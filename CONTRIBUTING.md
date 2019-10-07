@@ -1,3 +1,14 @@
+Your cycle
+==========
+
+1. You identify something that has to be fixed or done: create an issue. Issues can be associated with projects.
+2. If you want to start coding or documenting something, the first step is to check if anyone else is working on this in the list of pull requests. If not, create a branch on your local machine, commit something small such as a note or empty file, and push the commit to the same branch on GitHub. You can then open a pull request. This is for two reasons: you're communicating to the team that you're working on this (so we're not doing things twice) and it gives you and the others an.easy way to track your progress.
+3. Commit regularly (typically every 10-30 minutes) and give your commits useful messages. "Changes to the data package" does not say anything about what you've done. If your commit is too large this makes it harder to write a short message.
+4. When you're done with the feature, ask for reviews from two team members or ask the maintainers for help.
+5. When the reviewers have approved the pull request they will merge it into the master branch. At this point you want to check out the master again and pull so that you have your latest changes, and can open a new branch for a new feature. 
+
+
+
 Rules
 =====
 
@@ -8,13 +19,4 @@ Rules
 5. Functions, classes, methods should have a `Google-style docstring`.
 6. Larger new features should come with an example and narrative documentation.
 7. When you're ready for your Pull Request to be reviewed, in the top right corner you can suggest two reviewers,
-or alternatively, ping @ilogue or @HeikoSchuett and we will assign reviewers.
-
-
-HIGHLY RECOMMENDED
-==================
-
-1. Commit often (every 10-30 minutes when you're coding)
-2. Open a Pull Request for your feature branch as soon as you start on it. This way the team can see your intentions 
-and give your feedback early on, avoiding dissapointing news after you've put in a lot of work.
-
+or alternatively, ping @ilogue or @HeikoSchuett and we will assign reviewers
