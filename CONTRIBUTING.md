@@ -20,3 +20,28 @@ Rules
 6. Larger new features should come with an example and narrative documentation.
 7. When you're ready for your Pull Request to be reviewed, in the top right corner you can suggest two reviewers,
 or alternatively, ping @ilogue or @HeikoSchuett and we will assign reviewers
+
+Naming scheme
+=============
+
+
+*Classes*
+
+- CamelCase
+- ends in noun
+example: FancyModel
+
+*Functions and methods*
+
+- lowercase with underscores
+- starts with verb
+
+examples:
+rdm.ranktransform()
+transform_rank(rdm)
+calculate_gram_matrix
+load_fmri_data
+
+*Variables*
+
+- lowercase and underscore
