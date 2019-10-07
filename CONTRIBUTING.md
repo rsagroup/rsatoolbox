@@ -7,6 +7,8 @@ Rules
 4. Code should pass the `pylint` style check
 5. Functions, classes, methods should have a `Google-style docstring`.
 6. Larger new features should come with an example and narrative documentation.
+7. When you're ready for your Pull Request to be reviewed, in the top right corner you can suggest two reviewers,
+or alternatively, ping @ilogue or @HeikoSchuett and we will assign reviewers.
 
 
 HIGHLY RECOMMENDED
