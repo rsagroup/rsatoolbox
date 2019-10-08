@@ -7,6 +7,7 @@ Definition of RSA Model class and subclasses
 
 import numpy as np
 
+
 class Model:
     """
     Abstract model class.
@@ -29,7 +30,8 @@ class Model:
         Returns:
             rdm vector
         """
-        raise NotImplementedError("Predict function not implemented in used model class!")
+        raise NotImplementedError(
+                "Predict function not implemented in used model class!")
         
     def fit(self, data):
         """ fit the model to a RDM object data
@@ -40,6 +42,7 @@ class Model:
         Returns:
             theta(np.array 1d): parameter vector
         """
+
 
 class ModelFixed(Model):
     """
@@ -53,7 +56,8 @@ class ModelFixed(Model):
         if rdm.ndim == 1:  # User passed a vector
             self.n_cond = (1+np.sqrt(1+8*rdm.size))/2
             if self.n_cond % 1 != 0:
-                raise NameError("RDM vector needs to have size of ncond*(ncond-1)/2")
+                raise NameError(
+                        "RDM vector needs to have size of ncond*(ncond-1)/2")
             self.rdm = rdm   # Add check to make sure it's
             self.n_param = 0
 
