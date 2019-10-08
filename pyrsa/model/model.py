@@ -15,12 +15,10 @@ class Model:
     interesting behavior. Inherit from this class to define specific model
     types
     """
-    # Model Constructor
     def __init__(self, name):
         self.name = name
         self.n_param = 0
 
-    # The predict function should return a rdm vector
     def predict(self, theta):
         """ Returns the predicted rdm(-vector)
 
@@ -32,7 +30,7 @@ class Model:
         """
         raise NotImplementedError(
                 "Predict function not implemented in used model class!")
-        
+
     def fit(self, data):
         """ fit the model to a RDM object data
 
