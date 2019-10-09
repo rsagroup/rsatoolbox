@@ -1,6 +1,13 @@
 pyrsa.model package
 ===================
 
+Submodules
+----------
+
+.. toctree::
+
+   pyrsa.model.model
+
 Module contents
 ---------------
 
