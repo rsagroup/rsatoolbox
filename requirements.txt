@@ -1,3 +1,2 @@
 coverage
 numpy
-sphinx
