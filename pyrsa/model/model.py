@@ -29,7 +29,8 @@ class Model:
             rdm vector
         """
         raise NotImplementedError(
-                "Predict function not implemented in used model class!")
+            "Predict function not implemented in used model class!"
+        )
 
     def fit(self, data):
         """ fit the model to a RDM object data
@@ -52,10 +53,11 @@ class ModelFixed(Model):
     def __init__(self, name, rdm):
         Model.__init__(self, name)
         if rdm.ndim == 1:  # User passed a vector
-            self.n_cond = (1+np.sqrt(1+8*rdm.size))/2
+            self.n_cond = (1 + np.sqrt(1 + 8 * rdm.size)) / 2
             if self.n_cond % 1 != 0:
                 raise NameError(
-                        "RDM vector needs to have size of ncond*(ncond-1)/2")
+                    "RDM vector needs to have size of ncond*(ncond-1)/2"
+                )
             self.rdm = rdm   # Add check to make sure it's
             self.n_param = 0
 
