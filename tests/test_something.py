@@ -3,5 +3,5 @@ import unittest
 
 class DummyTests(unittest.TestCase):
 
-    def test_Ranktransform(self):
+    def test_something(self):
         assert True
