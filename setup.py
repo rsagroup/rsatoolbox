@@ -19,10 +19,9 @@ setup(
     classifiers=[
       "Programming Language :: Python",
       "Development Status :: 1 - Planning",
-      "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
       "Topic :: Scientific/Engineering",
       "Intended Audience :: Science/Research",
-      ],
+    ],
     author='pyrsa authors',
     author_email='',
     keywords='neuroscience ',
