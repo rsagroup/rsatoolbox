@@ -23,7 +23,7 @@ class Model:
         """ Returns the predicted rdm(-vector)
 
         Args:
-            theta(np.array 1d): the model parameter vector
+            theta(numpy.ndarray): the model parameter vector (one dimensional)
 
         Returns:
             rdm vector
@@ -39,7 +39,7 @@ class Model:
             data(RDM object): the RDMs to be fit with the model
 
         Returns:
-            theta(np.array 1d): parameter vector
+            theta(numpy.ndarray): parameter vector (one dimensional)
         """
         return np.array([])
 
@@ -69,7 +69,7 @@ class ModelFixed(Model):
         For the fixed model there are no parameters.
 
         Args:
-            theta(np.array 1d): the model parameter vector
+            theta(numpy.ndarray): the model parameter vector (one dimensional)
 
         Returns:
             rdm vector
