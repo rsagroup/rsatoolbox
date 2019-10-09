@@ -2,4 +2,4 @@
 # -*- coding: utf-8 -*-
 """Model definitions and handling
 """
-from pyrsa.model.model import Model
+from pyrsa.model.model import Model, ModelFixed
