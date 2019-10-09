@@ -16,7 +16,7 @@ The easiest way to install pyrsa is with pip:
 
     pip install pyrsa
 
-You can also use pyrsa directly from python:
+To use pyrsa:
 
 .. code-block:: python
 
