@@ -19,10 +19,10 @@ class DatasetExample(DatasetBase):
     def __init__(self, rawdata=None,preprocess=preprocess_example):
         measurements,descriptors,obs_descriptors,channel_descriptors=preprocess(rawdata)
 
-        def split_obs(self, by=descriptor):
+    def split_obs(self, by):
         """ Returns a list Datasets splited by obs
         Args:
-            descriptor(String): the descriptor by which the splitting is made
+            by (String): the descriptor by which the splitting is made
 
         Returns:
             list of Datasets, splitted by the selected obs_descriptor
@@ -30,30 +30,30 @@ class DatasetExample(DatasetBase):
         # TODO
         
 
-    def split_channel(self, by=descriptor):
+    def split_channel(self, by):
         """ Returns a list Datasets splited by channels
         Args:
-            descriptor(String): the descriptor by which the splitting is made
+            by (String): the descriptor by which the splitting is made
 
         Returns:
             list of Datasets,  splitted by the selected channel_descriptor
         """
         # TODO
 
-    def subset_obs(self, by=value):
+    def subset_obs(self, value):
         """ Returns a subsetted Dataset defined by certain obs
         Args:
-            value(HashMap<String,Float or String>): the value by which the subset selection is made from obs dimension
+            value (HashMap<String,Float or String>): the value by which the subset selection is made from obs dimension
 
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
         """
         # TODO
 
-    def subset_channel(self, by=value):
+    def subset_channel(self, value):
         """ Returns a subsetted Dataset defined by certain channel
         Args:
-            value(HashMap<String,Float or String>): the value by which the subset selection is made from channel dimension
+            value (HashMap<String,Float or String>): the value by which the subset selection is made from channel dimension
 
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
