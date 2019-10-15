@@ -20,7 +20,7 @@ class RDMs:
         Returns: 
             RDMs object 
     """
-    def __init__(self,dissimilarities=dissimilarities,dissimilarity_measure=dissimilarity_measure,descriptors=descriptors):
+    def __init__(self,dissimilarities=None,dissimilarity_measure=None,descriptors=None):
         if (dissimilarities.ndim==2):
             self.dissimilarities = dissimilarities
             self.n_rdm = self.measurements.shape[0]
