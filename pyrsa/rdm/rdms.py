@@ -7,6 +7,7 @@ Definition of RSA RDMs class and subclasses
 
 import pyrsa as rsa
 import numpy as np
+from scipy.spatial.distance import squareform
 
 class RDMs:
     """
@@ -19,7 +20,7 @@ class RDMs:
         Returns: 
             RDMs object 
     """
-    def __init__(self,dissimilarities=None,dissimilarity_measure=None,descriptors=None):
+    def __init__(self,dissimilarities=dissimilarities,dissimilarity_measure=dissimilarity_measure,descriptors=descriptors):
         if (dissimilarities.ndim==2):
             self.dissimilarities = dissimilarities
             self.n_rdm = self.measurements.shape[0]
@@ -35,12 +36,14 @@ class RDMs:
         Returns:
             RDMs as with one vector as one RDM
         """
-        # TODO
-
+        return self.dissimilarities
 
     def get_matrices(self):
         """ Returns RDMs as np.ndarray with each RDM as a matrix
         Returns:
             RDMs as with one matrix as one RDM
         """
-        # TODO
+        RDMs_matrix = np.ndarray((n_rdm,n_cond,n_cond))
+        for idx in np.arange(n_rdm):
+            RDMs_matrix[idx,:,:] = squareform(self.dissimilarities[idx])
+        return RDMs_matrix
