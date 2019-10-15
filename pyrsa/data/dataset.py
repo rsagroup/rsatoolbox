@@ -97,8 +97,12 @@ class Dataset(DatasetBase):
         Returns:
             list of Datasets, splitted by the selected obs_descriptor
         """
-        # TODO
-        
+        unique_values = set(self.obs_descriptors[descriptor])
+        dataset_list = []
+        for v in unique_values:
+            dataset_list.append(self.measurements[:,self.obs_descriptors[descriptor]==v,:])
+        return dataset_list
+        # TODO: for 3d measurements, need implementations.
 
     def split_channel(self, by=descriptor):
         """ Returns a list Datasets splited by channels
@@ -108,7 +112,12 @@ class Dataset(DatasetBase):
         Returns:
             list of Datasets,  splitted by the selected channel_descriptor
         """
-        # TODO
+        unique_values = set(self.channel_descriptors[descriptor])
+        dataset_list = []
+        for v in unique_values:
+            dataset_list.append(self.measurements[:,:,self.channel_descriptors[descriptor]==v])
+        return dataset_list
+        # TODO: for 3d measurements, need implementations.
 
     def subset_obs(self, by=value):
         """ Returns a subsetted Dataset defined by certain obs
