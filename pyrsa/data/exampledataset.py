@@ -31,7 +31,7 @@ class DatasetExample(DatasetBase):
         self.obs_descriptors = obs_descriptors 
         self.channel_descriptors = channel_descriptors 
 
-    def split_obs(self, by=descriptor):
+    def split_obs(self, by):
         """ Returns a list Datasets splited by obs
         Args:
             by(String): the descriptor by which the splitting is made
@@ -42,7 +42,7 @@ class DatasetExample(DatasetBase):
         # TODO
         
 
-    def split_channel(self, by=descriptor):
+    def split_channel(self, by):
         """ Returns a list Datasets splited by channels
         Args:
             by(String): the descriptor by which the splitting is made
@@ -52,7 +52,7 @@ class DatasetExample(DatasetBase):
         """
         # TODO
 
-    def subset_obs(self, by=descriptor, value=value):
+    def subset_obs(self, by, value):
         """ Returns a subsetted Dataset defined by certain obs value
         Args:
             by(String): the descriptor by which the subset selection is made from obs dimension
@@ -63,7 +63,7 @@ class DatasetExample(DatasetBase):
         """
         # TODO
 
-    def subset_channel(self, by=descriptor, value=value):
+    def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
         Args:
             by(String): the descriptor by which the subset selection is made from channel dimension
