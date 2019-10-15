@@ -25,6 +25,7 @@ class DatasetBase:
             dataset object 
     """
     def __init__(self,measurements=None,descriptors=None,obs_descriptors=None,channel_descriptors=None,rawdata=None,preprocess=None):
+        
         if (measurements.ndim==2):
             self.measurements = measurements
             self.n_set = 1 

@@ -20,7 +20,18 @@ class DatasetExample(DatasetBase):
     def __init__(self, rawdata=None,preprocess=preprocess_example):
         measurements,descriptors,obs_descriptors,channel_descriptors=preprocess(rawdata)
 
-        def split_obs(self, by=descriptor):
+        if (measurements.ndim==2):
+            self.measurements = measurements
+            self.n_set = 1 
+            self.n_obs,self.n_channel = self.measurements.shape
+        elif (measurements.ndim==3):
+            self.measurements = measurements
+            self.n_set,self.n_obs,self.n_channel = self.measurements.shape
+        self.descriptors = descriptors 
+        self.obs_descriptors = obs_descriptors 
+        self.channel_descriptors = channel_descriptors 
+
+    def split_obs(self, by=descriptor):
         """ Returns a list Datasets splited by obs
         Args:
             by(String): the descriptor by which the splitting is made
