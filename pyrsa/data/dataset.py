@@ -37,7 +37,7 @@ class DatasetBase:
         self.channel_descriptors = channel_descriptors 
 
     def split_obs(self, by=descriptor):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a list Datasets splited by obs
         Args:
             descriptor(String): the descriptor by which the splitting is made
 
@@ -49,7 +49,7 @@ class DatasetBase:
         )
 
     def split_channel(self, by=descriptor):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a list Datasets splited by channels
         Args:
             descriptor(String): the descriptor by which the splitting is made
 
@@ -61,7 +61,7 @@ class DatasetBase:
         )
 
     def subset_obs(self, by=value):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a subsetted Dataset defined by certain obs
         Args:
             value(HashMap<String,Float or String>): the value by which the subset selection is made from obs dimension
 
@@ -73,7 +73,7 @@ class DatasetBase:
         )
 
     def subset_channel(self, by=value):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a subsetted Dataset defined by certain channel
         Args:
             value(HashMap<String,Float or String>): the value by which the subset selection is made from channel dimension
 
@@ -90,7 +90,7 @@ class Dataset(DatasetBase):
 
     """
     def split_obs(self, by=descriptor):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a list Datasets splited by obs
         Args:
             descriptor(String): the descriptor by which the splitting is made
 
@@ -101,7 +101,7 @@ class Dataset(DatasetBase):
         
 
     def split_channel(self, by=descriptor):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a list Datasets splited by channels
         Args:
             descriptor(String): the descriptor by which the splitting is made
 
@@ -111,7 +111,7 @@ class Dataset(DatasetBase):
         # TODO
 
     def subset_obs(self, by=value):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a subsetted Dataset defined by certain obs
         Args:
             value(HashMap<String,Float or String>): the value by which the subset selection is made from obs dimension
 
@@ -121,7 +121,7 @@ class Dataset(DatasetBase):
         # TODO
 
     def subset_channel(self, by=value):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a subsetted Dataset defined by certain channel
         Args:
             value(HashMap<String,Float or String>): the value by which the subset selection is made from channel dimension
 

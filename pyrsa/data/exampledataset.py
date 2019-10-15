@@ -20,7 +20,7 @@ class DatasetExample(DatasetBase):
         measurements,descriptors,obs_descriptors,channel_descriptors=preprocess(rawdata)
 
         def split_obs(self, by=descriptor):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a list Datasets splited by obs
         Args:
             descriptor(String): the descriptor by which the splitting is made
 
@@ -31,7 +31,7 @@ class DatasetExample(DatasetBase):
         
 
     def split_channel(self, by=descriptor):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a list Datasets splited by channels
         Args:
             descriptor(String): the descriptor by which the splitting is made
 
@@ -41,7 +41,7 @@ class DatasetExample(DatasetBase):
         # TODO
 
     def subset_obs(self, by=value):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a subsetted Dataset defined by certain obs
         Args:
             value(HashMap<String,Float or String>): the value by which the subset selection is made from obs dimension
 
@@ -51,7 +51,7 @@ class DatasetExample(DatasetBase):
         # TODO
 
     def subset_channel(self, by=value):
-        """ Returns the predicted rdm(-vector)
+        """ Returns a subsetted Dataset defined by certain channel
         Args:
             value(HashMap<String,Float or String>): the value by which the subset selection is made from channel dimension
 
