@@ -130,7 +130,8 @@ class Dataset(DatasetBase):
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
         """
-        # TODO
+        return self.measurements[:,self.obs_descriptors[by]==value,:]
+        # TODO: for 3d measurements, need implementations.
 
     def subset_channel(self, by=descriptor, value=value):
         """ Returns a subsetted Dataset defined by certain channel value
@@ -141,8 +142,8 @@ class Dataset(DatasetBase):
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
         """
-        # TODO
-
+        return self.measurements[:,:,self.channel_descriptors[by]==value]
+        # TODO: for 3d measurements, need implementations.
 
 
 

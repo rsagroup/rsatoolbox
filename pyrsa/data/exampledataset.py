@@ -15,6 +15,7 @@ def preprocess_example(rawdata=None):
 class DatasetExample(DatasetBase): 
     """
     DatasetExample class is a variant of Dataset that takes in any arbitrary user defined data and process it into standard Dataset format.
+    It also enables the user to specifies arbitrary subset or split methods.
     """
     def __init__(self, rawdata=None,preprocess=preprocess_example):
         measurements,descriptors,obs_descriptors,channel_descriptors=preprocess(rawdata)
