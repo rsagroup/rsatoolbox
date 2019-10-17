@@ -5,8 +5,8 @@ Definition of RSA Dataset class and subclasses
 @author: baihan, jdiedrichsen
 """
 
-import pyrsa as rsa
 import numpy as np
+import pyrsa as rsa
 
 class DatasetBase:
     """
@@ -14,27 +14,29 @@ class DatasetBase:
     Defines members that every class needs to have, but does not implement any
     interesting behavior. Inherit from this class to define specific dataset types
 
-        Args: 
-            measurements (numpy.ndarray):   n_obs x n_channel 2d-array, or n_set x n_obs x n_channel 3d-array 
-            descriptors (dict):             descriptors with 1 value per Dataset object 
-            obs_descriptors (dict):         observation descriptors (all are array-like with shape = (n_obs,...)) 
+        Args:
+            measurements (numpy.ndarray):   n_obs x n_channel 2d-array, or n_set x n_obs x n_channel 3d-array
+            descriptors (dict):             descriptors with 1 value per Dataset object
+            obs_descriptors (dict):         observation descriptors (all are array-like with shape = (n_obs,...))
             channel_descriptors (dict):     channel descriptors (all are array-like with shape = (n_channel,...))
             (Optional) rawdata:             certain data type, raw data of abitrary dimensions or format
             (Optional) preprocess:          function, used to preprocess and translate the raw data into other fields
-        Returns: 
-            dataset object 
+        Returns:
+            dataset object
     """
-    def __init__(self,measurements=None,descriptors=None,obs_descriptors=None,channel_descriptors=None,rawdata=None,preprocess=None):
-        if (measurements.ndim==2):
+    def __init__(self,measurements = None, descriptors = None,
+                 obs_descriptors = None, channel_descriptors = None,
+                 rawdata = None, preprocess = None):
+        if (measurements.ndim == 2):
             self.measurements = measurements
-            self.n_set = 1 
+            self.n_set = 1
             self.n_obs,self.n_channel = self.measurements.shape
-        elif (measurements.ndim==3):
+        elif (measurements.ndim == 3):
             self.measurements = measurements
             self.n_set,self.n_obs,self.n_channel = self.measurements.shape
-        self.descriptors = descriptors 
-        self.obs_descriptors = obs_descriptors 
-        self.channel_descriptors = channel_descriptors 
+        self.descriptors = descriptors
+        self.obs_descriptors = obs_descriptors
+        self.channel_descriptors = channel_descriptors
 
     def split_obs(self, by):
         """ Returns a list Datasets splited by obs
@@ -84,10 +86,9 @@ class DatasetBase:
             "subset_channel function not implemented in used Dataset class!"
         )
 
-class Dataset(DatasetBase): 
+class Dataset(DatasetBase):
     """
     Dataset class is a standard version of DatasetBase that contains one data set - or multiple data sets with the same structure
-
     """
     def split_obs(self, by):
         """ Returns a list Datasets splited by obs
@@ -98,7 +99,6 @@ class Dataset(DatasetBase):
             list of Datasets, splitted by the selected obs_descriptor
         """
         # TODO
-        
 
     def split_channel(self, by):
         """ Returns a list Datasets splited by channels
@@ -129,9 +129,3 @@ class Dataset(DatasetBase):
             Dataset, with subset defined by the selected channel_descriptor
         """
         # TODO
-
-
-
-
-
-
