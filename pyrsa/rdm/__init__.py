@@ -1,1 +1,1 @@
-from pyrsa.data.rdm import RDMs
+from pyrsa.data.rdm.rdms import RDMs
