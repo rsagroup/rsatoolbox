@@ -23,8 +23,7 @@ class ColorTests(unittest.TestCase):
         n_cols = 10
         cols = rdm_colormap(n_cols)
         n_cols_returned, n_rgb = cols.colors.shape
+        last_color = [1., 1., 0]
         self.assertEqual(n_cols_returned, n_cols)
         self.assertEqual(n_rgb, 3)
-
-if __name__ == '__main__':
-    unittest.main()
+        self.assertEqual(last_color, cols.colors[-1])
