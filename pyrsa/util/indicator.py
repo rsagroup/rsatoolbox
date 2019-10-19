@@ -8,9 +8,10 @@ import numpy as np
 
 
 def identity(index_vector):
-    """ Indicator matriindicator_matrix with one column per unique element in vector
+    """ Indicator matriindicator_matrix with one
+        column per unique element in vector
         Args:
-            index_vector (numpy.ndarray): n_row vector to 
+            index_vector (numpy.ndarray): n_row vector to
             code - discrete values (one dimensional)
         Returns:
             indicator_matrix (numpy.ndarray): n_row indicator_matrix
@@ -26,10 +27,11 @@ def identity(index_vector):
 
 
 def identity_pos(index_vector):
-    """ Indicator matriindicator_matrix with one column 
+    """ Indicator matriindicator_matrix with one column
         per unique positive element in vector
         Args:
-            c (numpy.ndarray): n_row vector to code - discrete values (one dimensional)
+            c (numpy.ndarray): n_row vector to code -
+                               discrete values (one dimensional)
         Returns:
             indicator_matrix (numpy.ndarray): n_row indicator_matrix
                 n_values indicator matriindicator_matrix
@@ -48,10 +50,10 @@ def identity_pos(index_vector):
 def allpairs(index_vector):
     """ Indicator matriindicator_matrix with one row per unqiue pair
         Args:
-            c (numpy.ndarray): n_row vector to code 
+            c (numpy.ndarray): n_row vector to code
                                - discrete values (one dimensional)
         Returns:
-            indicator_matrix (numpy.ndarray): n_values * 
+            indicator_matrix (numpy.ndarray): n_values *
             (n_values-1)/2
             indicator_matrix n_row contrast matriindicator_matrix
     """
@@ -66,7 +68,7 @@ def allpairs(index_vector):
         for j in np.arange(i + 1, n_unique):
             indicator_matrix[n_unique, index_vector == c_unique[i]] \
                 = 1. / sum(index_vector == i)
-            indicator_matrix[n_unique, index_vector == \
-                c_unique[j]] = -1. / sum(index_vector == j)
+            indicator_matrix[n_unique, index_vector == c_unique[j]] \
+                = -1. / sum(j == index_vector)
             n_unique = n_unique + 1
     return indicator_matrix
