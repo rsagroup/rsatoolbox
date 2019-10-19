@@ -17,13 +17,16 @@ class DatasetBase:
     to define specific dataset types
 
         Args:
-            measurements (numpy.ndarray):   n_obs x n_channel 2d-array, or n_set x n_obs
-                                            x n_channel 3d-array
-            descriptors (dict):             descriptors with 1 value per Dataset object
-            obs_descriptors (dict):         observation descriptors (all are array-like
-                                            with shape = (n_obs,...))
-            channel_descriptors (dict):     channel descriptors (all are array-like with
-                                            shape = (n_channel,...))
+            measurements (numpy.ndarray): n_obs x n_channel 2d-array,
+                                          or n_set x n_obs x n_channel
+                                          3d-array
+            descriptors (dict):           descriptors with 1 value per
+                                          Dataset object
+            obs_descriptors (dict):       observation descriptors (all
+                                          are array-like with shape =
+                                          (n_obs,...))
+            channel_descriptors (dict):   channel descriptors (all are
+                                          array-like with shape = (n_channel,...))
         Returns:
             dataset object
     """
@@ -112,7 +115,7 @@ class Dataset(DatasetBase):
         dataset_list = []
         for v in unique_values:
             dataset_list.append(
-                 self.measurements[:,self.obs_descriptors[by] == v, :])
+                self.measurements[:, self.obs_descriptors[by] == v, :])
         return dataset_list
         # TODO: for 3d measurements, need implementations.
 
