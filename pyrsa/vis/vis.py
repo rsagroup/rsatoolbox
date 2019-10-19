@@ -11,4 +11,3 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from pyrsa.vis.mds import MDS
-from pyrsa.vis.colors import rdm_colormap
