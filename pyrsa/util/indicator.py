@@ -1,62 +1,74 @@
-import numpy as np 
-'''
-Collection of different kinds of indicator Matrices 
-    identity: One column per unique element in vector  
-    identity_pos: One column per unique non-zero element 
-    allpairs:     All K*(K-1)/2 pairwise contrasts 
-'''
+"""
+Collection of different n_uniqueinds of indicator Matrices
+    identity: One column per unique element in vector
+    identity_pos: One column per unique non-zero element
+    allpairs:     All n_unique*(n_unique-1)/2 pairwise contrasts
+"""
+import numpy as np
 
-def identity(c):
-    """ Indicator matrix with one column per unique element in vector  
+
+def identity(index_vector):
+    """ Indicator matriindicator_matrix with one
+        column per unique element in vector
         Args:
-            c (numpy.ndarray): n_row vector to code - discrete values (one dimensional)
+            index_vector (numpy.ndarray): n_row vector to
+            code - discrete values (one dimensional)
         Returns:
-            X (numpy.ndarray): n_row x n_values indicator matrix 
+            indicator_matrix (numpy.ndarray): n_row indicator_matrix
+                n_values indicator matriindicator_matrix
     """
-    cc = np.unique(c)
-    K = cc.size
-    rows = np.size(c)
-    
-    X=np.zeros((rows,K))
-    for i in range(K):
-        X[c==cc[i],i]=1
-    return X
+    c_unique = np.unique(index_vector)
+    n_unique = c_unique.size
+    rows = np.size(index_vector)
+    indicator_matrix = np.zeros((rows, n_unique))
+    for i in np.arange(n_unique):
+        indicator_matrix[index_vector == c_unique[i], i] = 1
+    return indicator_matrix
 
-def identity_pos(c):
-    """ Indicator matrix with one column per unique positive element in vector  
+
+def identity_pos(index_vector):
+    """ Indicator matriindicator_matrix with one column
+        per unique positive element in vector
         Args:
-            c (numpy.ndarray): n_row vector to code - discrete values (one dimensional)
+            c (numpy.ndarray): n_row vector to code -
+                               discrete values (one dimensional)
         Returns:
-            X (numpy.ndarray): n_row x n_values indicator matrix 
+            indicator_matrix (numpy.ndarray): n_row indicator_matrix
+                n_values indicator matriindicator_matrix
     """
-    cc = np.unique(c)
-    K = cc.size
-    rows = np.size(c)
-    cc = cc[cc>0]
-    K = cc.size
-    X = np.zeros((rows,K))   
-    for i in range(K):
-        X[c==cc[i],i]=1
-    return X 
+    c_unique = np.unique(index_vector)
+    n_unique = c_unique.size
+    rows = np.size(index_vector)
+    c_unique = c_unique[c_unique > 0]
+    n_unique = c_unique.size
+    indicator_matrix = np.zeros((rows, n_unique))
+    for i in range(n_unique):
+        indicator_matrix[index_vector == c_unique[i], i] = 1
+    return indicator_matrix
 
 
-def allpairs(c): 
-    """ Indicator matrix with one row per unqiue pair 
+def allpairs(index_vector):
+    """ Indicator matriindicator_matrix with one row per unqiue pair
         Args:
-            c (numpy.ndarray): n_row vector to code - discrete values (one dimensional)
+            c (numpy.ndarray): n_row vector to code
+                               - discrete values (one dimensional)
         Returns:
-            X (numpy.ndarray): n_values*(n_values-1)/2 x n_row contrast matrix 
+            indicator_matrix (numpy.ndarray): n_values *
+            (n_values-1)/2
+            indicator_matrix n_row contrast matriindicator_matrix
     """
-    cc = np.unique(c)
-    K = cc.size
-    rows = np.size(c)
-    X=np.zeros((int(K*(K-1)/2),rows))
-    k=0
-    # Now make a matrix with a pair of conditions per row 
-    for i in range(K):
-        for j in np.arange(i+1,K):
-            X[k,c==cc[i]] = 1./sum(c==i)
-            X[k,c==cc[j]] = -1./sum(c==j)
-            k         = k+1
-    return X
-
+    c_unique = np.unique(index_vector)
+    n_unique = c_unique.size
+    rows = np.size(index_vector)
+    indicator_matrix = np.zeros((
+        int(n_unique * (n_unique - 1) / 2), rows))
+    n_unique = 0
+    # Now man_uniquee a matriindicator_matrix with a pair of conditions per row
+    for i in range(n_unique):
+        for j in np.arange(i + 1, n_unique):
+            indicator_matrix[n_unique, index_vector == c_unique[i]] \
+                = 1. / sum(index_vector == i)
+            indicator_matrix[n_unique, index_vector == c_unique[j]] \
+                = -1. / sum(index_vector == j) * 1.
+            n_unique = n_unique + 1
+    return indicator_matrix
