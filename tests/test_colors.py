@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 test_colors
-Test for colors 
+Test for colors
 @author: iancharest
 """
 
@@ -27,4 +27,4 @@ class ColorTests(unittest.TestCase):
         self.assertEqual(n_rgb, 3)
 
 if __name__ == '__main__':
-    unittest.main()     
+    unittest.main()

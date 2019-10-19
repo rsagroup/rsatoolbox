@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
 """
 Definition of pyrsa's colors
 @author: iancharest
@@ -16,20 +15,22 @@ from scipy.interpolate import interp1d
 def color_scale(n_cols, anchor_cols=None, monitor=None):
     """ linearly interpolates between a set of given
         anchor colours to give n_cols and displays them
-        if monitor is set 
+        if monitor is set
 
     Args:
-        n_cols ([type]): [description]
-        anchor_cols ([type], optional): [description]. Defaults to None.
-        monitor ([type], optional): [description]. Defaults to None.
-    
+        n_cols ([type]): number of colors for the colormap
+        anchor_cols ([type], optional): what color space to 
+            interpolate. Defaults to None.
+        monitor (boolean, optional): quick visualisation of the
+            resulting colormap. Defaults to None.
+
     Returns:
         [array]: n_cols x 3 RGB array.
-    
+
     @author Ian Charest
     """
-    
-    
+
+
     if anchor_cols is None:
         # if no anchor_cols provided, use red to blue
         anchor_cols = np.array([[1, 0, 0], [0, 0, 1]])
@@ -41,7 +42,7 @@ def color_scale(n_cols, anchor_cols=None, monitor=None):
     fn = interp1d(
         range(n_anchors),
         anchor_cols.T,
-    )    
+    )
     cols = fn(np.linspace(0, n_anchors-1, n_cols)).T
 
     # optional visuals
@@ -59,14 +60,15 @@ def rdm_colormap(n_cols=256, monitor=None):
     """this function provides a convenient colormap for visualizing
     dissimilarity matrices. it goes from blue to yellow and has grey for
     intermediate values.
-   
+
     Args:
-        n_cols (int, optional): precision of the colormap. Defaults to 256.
-    
+        n_cols (int, optional): precision of the colormap. 
+            Defaults to 256.
+
     Returns:
-        [matplotlib ListedColormap]: this matplotlib color object can be 
-            used as a cmap in any plt plot. 
-    
+        [matplotlib ListedColormap]: this matplotlib color object can be
+            used as a cmap in any plt plot.
+
     Example:
         import numpy as np
         import matplotlib.pyplot as plt
@@ -74,8 +76,8 @@ def rdm_colormap(n_cols=256, monitor=None):
         plt.imshow(np.random.rand(10,10),cmap=rdm_colormap())
         plt.colorbar()
         plt.show()
-    
-    @authors: Ian Charest and Jasper van den Bosch 
+
+    @authors: Ian Charest and Jasper van den Bosch
     (ported from Niko Kriegeskorte's RDMcolormap.m)
     """
 
@@ -89,7 +91,8 @@ def rdm_colormap(n_cols=256, monitor=None):
     ])
 
     # skimage rgb2hsv is intended for 3d images (RGB)
-    # here we add a new axis to our 2d anchorCols to satisfy skimage, and then squeeze
+    # here we add a new axis to our 2d anchorCols to satisfy
+    # skimage, and then squeeze
     anchor_cols_hsv = rgb2hsv(anchor_cols[np.newaxis, :]).squeeze()
 
     inc_v_weight = 1
