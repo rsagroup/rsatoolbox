@@ -20,7 +20,7 @@ def preprocess_fmri(rawdata=None):
 
         Example usage:
             measurements, descriptors, obs_descriptors,
-            channel_descriptors = preprocess_fmri(rawdata)
+            channel_descriptors = preprocess(rawdata)
     """
     raise NotImplementedError(
         "preprocess_fmri function not implemented!")
