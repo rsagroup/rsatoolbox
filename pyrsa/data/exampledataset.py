@@ -15,7 +15,12 @@ def preprocess_example(rawdata=None):
             rawdata (pyrsa.data.dataset): the dataset
 
         Returns:
-            preprocessed dataset
+            preprocessed dataset in format of measurements,
+            descriptors, obs_descriptors, channel_descriptors
+
+        Example usage:
+            measurements, descriptors, obs_descriptors,
+            channel_descriptors = preprocess(rawdata)
     """
     raise NotImplementedError(
         "preprocess_fmri function not implemented!")
@@ -27,21 +32,6 @@ class DatasetExample(DatasetBase):
     user defined data and process it into standard Dataset format.
     It also enables the user to specifies arbitrary subset or split methods.
     """
-    def __init__(self, rawdata=None, preprocess=preprocess_example):
-        measurements, descriptors, obs_descriptors, channel_descriptors \
-            = preprocess(rawdata)
-
-        if (measurements.ndim == 2):
-            self.measurements = measurements
-            self.n_set = 1
-            self.n_obs, self.n_channel = self.measurements.shape
-        elif (measurements.ndim == 3):
-            self.measurements = measurements
-            self.n_set, self.n_obs, self.n_channel = self.measurements.shape
-        self.descriptors = descriptors
-        self.obs_descriptors = obs_descriptors
-        self.channel_descriptors = channel_descriptors
-
     def split_obs(self, by):
         """ Returns a list Datasets splited by obs
         Args:
