@@ -69,6 +69,6 @@ def allpairs(index_vector):
             indicator_matrix[n_unique, index_vector == c_unique[i]] \
                 = 1. / sum(index_vector == i)
             indicator_matrix[n_unique, index_vector == c_unique[j]] \
-                = -1. / sum(j == index_vector)
+                = -1. / sum(index_vector == j) * 1.
             n_unique = n_unique + 1
     return indicator_matrix
