@@ -19,7 +19,7 @@ def color_scale(n_cols, anchor_cols=None, monitor=None):
 
     Args:
         n_cols ([type]): number of colors for the colormap
-        anchor_cols ([type], optional): what color space to 
+        anchor_cols ([type], optional): what color space to
             interpolate. Defaults to None.
         monitor (boolean, optional): quick visualisation of the
             resulting colormap. Defaults to None.
@@ -29,7 +29,6 @@ def color_scale(n_cols, anchor_cols=None, monitor=None):
 
     @author Ian Charest
     """
-
 
     if anchor_cols is None:
         # if no anchor_cols provided, use red to blue
@@ -43,12 +42,12 @@ def color_scale(n_cols, anchor_cols=None, monitor=None):
         range(n_anchors),
         anchor_cols.T,
     )
-    cols = fn(np.linspace(0, n_anchors-1, n_cols)).T
+    cols = fn(np.linspace(0, n_anchors - 1, n_cols)).T
 
     # optional visuals
     if monitor:
         reshaped_cols = cols.reshape((n_cols, 1, 3))
-        width = int(n_cols/2)
+        width = int(n_cols / 2)
         mapping = np.tile(reshaped_cols, (width, 1))
         plt.imshow(mapping)
         plt.show()
@@ -62,7 +61,7 @@ def rdm_colormap(n_cols=256, monitor=None):
     intermediate values.
 
     Args:
-        n_cols (int, optional): precision of the colormap. 
+        n_cols (int, optional): precision of the colormap.
             Defaults to 256.
 
     Returns:
@@ -96,8 +95,8 @@ def rdm_colormap(n_cols=256, monitor=None):
     anchor_cols_hsv = rgb2hsv(anchor_cols[np.newaxis, :]).squeeze()
 
     inc_v_weight = 1
-    anchor_cols_hsv[:, 2] = (1-inc_v_weight)*anchor_cols_hsv[:, 2] + \
-        inc_v_weight*np.linspace(0.5, 1, anchor_cols.shape[0]).T
+    anchor_cols_hsv[:, 2] = (1 - inc_v_weight) * anchor_cols_hsv[:, 2] + \
+        inc_v_weight * np.linspace(0.5, 1, anchor_cols.shape[0]).T
 
     # anchorCols = brightness(anchorCols)
     anchor_cols = hsv2rgb(anchor_cols_hsv[np.newaxis, :]).squeeze()
