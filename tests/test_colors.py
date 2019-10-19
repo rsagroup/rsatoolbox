@@ -7,6 +7,7 @@ Test for colors
 """
 
 import unittest
+import numpy as np
 from pyrsa.vis.colors import color_scale
 from pyrsa.vis.colors import rdm_colormap
 
@@ -26,4 +27,4 @@ class ColorTests(unittest.TestCase):
         last_color = [1., 1., 0]
         self.assertEqual(n_cols_returned, n_cols)
         self.assertEqual(n_rgb, 3)
-        self.assertEqual(last_color, cols.colors[-1])
+        np.testing.assert_array_almost_equal(last_color, cols.colors[-1])
