@@ -8,6 +8,7 @@ Definition of RSA Dataset class and subclasses
 import numpy as np
 import pyrsa as rsa
 
+
 class DatasetBase:
     """
     Abstract dataset class.
@@ -24,16 +25,16 @@ class DatasetBase:
         Returns:
             dataset object
     """
-    def __init__(self, measurements = None, descriptors = None,
-                 obs_descriptors = None, channel_descriptors = None,
+    def __init__(self, measurements = None, descriptors = None, \
+                 obs_descriptors = None, channel_descriptors = None, \
                  rawdata = None, preprocess = None):
         if (measurements.ndim == 2):
             self.measurements = measurements
             self.n_set = 1
-            self.n_obs,self.n_channel = self.measurements.shape
+            self.n_obs, self.n_channel = self.measurements.shape
         elif (measurements.ndim == 3):
             self.measurements = measurements
-            self.n_set,self.n_obs,self.n_channel = self.measurements.shape
+            self.n_set, self.n_obs, self.n_channel = self.measurements.shape
         self.descriptors = descriptors
         self.obs_descriptors = obs_descriptors
         self.channel_descriptors = channel_descriptors
@@ -65,8 +66,10 @@ class DatasetBase:
     def subset_obs(self, by, value):
         """ Returns a subsetted Dataset defined by certain obs value
         Args:
-            by(String): the descriptor by which the subset selection is made from obs dimension
-            value: the value by which the subset selection is made from obs dimension
+            by(String): the descriptor by which the subset selection is made
+                        from obs dimension
+            value:      the value by which the subset selection is made
+                        from obs dimension
 
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
@@ -78,8 +81,10 @@ class DatasetBase:
     def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
         Args:
-            by(String): the descriptor by which the subset selection is made from channel dimension
-            value: the value by which the subset selection is made from channel dimension
+            by(String): the descriptor by which the subset selection is made
+                        from channel dimension
+            value:      the value by which the subset selection is made
+                        from channel dimension
 
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
@@ -87,6 +92,7 @@ class DatasetBase:
         raise NotImplementedError(
             "subset_channel function not implemented in used Dataset class!"
         )
+
 
 class Dataset(DatasetBase):
     """
@@ -103,7 +109,8 @@ class Dataset(DatasetBase):
         unique_values = set(self.obs_descriptors[by])
         dataset_list = []
         for v in unique_values:
-            dataset_list.append(self.measurements[:,self.obs_descriptors[by]==v,:])
+            dataset_list.append(self.measurements[:, \
+                self.obs_descriptors[by] == v, :])
         return dataset_list
         # TODO: for 3d measurements, need implementations.
 
@@ -118,30 +125,34 @@ class Dataset(DatasetBase):
         unique_values = set(self.channel_descriptors[by])
         dataset_list = []
         for v in unique_values:
-            dataset_list.append(self.measurements[:,:,self.channel_descriptors[by]==v])
+            dataset_list.append(self.measurements[:, :, self.channel_descriptors[by] == v])
         return dataset_list
         # TODO: for 3d measurements, need implementations.
 
     def subset_obs(self, by, value):
         """ Returns a subsetted Dataset defined by certain obs value
         Args:
-            by(String): the descriptor by which the subset selection is made from obs dimension
-            value: the value by which the subset selection is made from obs dimension
+            by(String): the descriptor by which the subset selection
+                        is made from obs dimension
+            value:      the value by which the subset selection is made
+                        from obs dimension
 
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
         """
-        return self.measurements[:,self.obs_descriptors[by]==value,:]
+        return self.measurements[:, self.obs_descriptors[by] == value, :]
         # TODO: for 3d measurements, need implementations.
 
     def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
         Args:
-            by(String): the descriptor by which the subset selection is made from channel dimension
-            value: the value by which the subset selection is made from channel dimension
+            by(String): the descriptor by which the subset selection is
+                        made from channel dimension
+            value:      the value by which the subset selection is made
+                        from channel dimension
 
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
         """
-        return self.measurements[:,:,self.channel_descriptors[by]==value]
+        return self.measurements[:, :, self.channel_descriptors[by] == value]
         # TODO: for 3d measurements, need implementations.

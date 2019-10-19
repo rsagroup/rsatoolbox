@@ -10,12 +10,13 @@ import numpy as np
 
 
 def preprocess_fmri(rawdata=None):
-    raise NotImplementedError( 
+    raise NotImplementedError(
         "preprocess_fmri function not implemented!")
+
 
 class DatasetFmri(DatasetBase):
     """
-    DatasetFmri class is a variant of Dataset that takes in raw 
+    DatasetFmri class is a variant of Dataset that takes in raw
     fMRI data and process it into standard Dataset format.
     """
     def __init__(self, rawdata=None, preprocess=preprocess_fmri):
