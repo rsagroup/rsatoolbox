@@ -26,7 +26,8 @@ class DatasetBase:
                                           are array-like with shape =
                                           (n_obs,...))
             channel_descriptors (dict):   channel descriptors (all are
-                                          array-like with shape = (n_channel,...))
+                                          array-like with shape =
+                                          (n_channel,...))
         Returns:
             dataset object
     """

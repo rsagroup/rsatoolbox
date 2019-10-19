@@ -24,5 +24,3 @@ def preprocess_fmri(rawdata=None):
     """
     raise NotImplementedError(
         "preprocess_fmri function not implemented!")
-
-
