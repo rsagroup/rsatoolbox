@@ -18,6 +18,7 @@ setup(
     long_description_content_type='text/markdown',
     classifiers=[
       "Programming Language :: Python",
+      "License :: OSI Approved :: MIT License",
       "Development Status :: 1 - Planning",
       "Topic :: Scientific/Engineering",
       "Intended Audience :: Science/Research",
