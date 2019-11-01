@@ -39,12 +39,12 @@ class DatasetBase:
                 self.measurements = measurements
                 self.n_obs, self.n_channel = self.measurements.shape
         if obs_descriptors is not None:
-            if !check_dict_length(obs_descriptors,self.n_obs):
+            if check_dict_length(obs_descriptors,self.n_obs) == False:
                 raise AttributeError(
                     "obs_descriptors have mismatched dimension with measurements."
                     )
         if channel_descriptors is not None:
-            if !check_dict_length(channel_descriptors,self.n_channel):
+            if check_dict_length(channel_descriptors,self.n_channel) == False:
                 raise AttributeError(
                     "channel_descriptors have mismatched dimension with measurements."
                     )
