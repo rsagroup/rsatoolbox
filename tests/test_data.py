@@ -102,4 +102,4 @@ class TestData(unittest.TestCase):
         self.assertEqual(subset.channel_descriptors['rois'][0],'IT')
 
 if __name__ == '__main__':
-    unittest.main()        
+    unittest.main()  
