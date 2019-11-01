@@ -20,8 +20,8 @@ class TestRDM(unittest.TestCase):
         rdms = rsr.RDMs(dissimilarities=dis,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        self.assertEqual(rdms.n_rdm,10)
-        self.assertEqual(rdms.n_cond,8)
+        self.assertEqual(rdms.n_rdm,8)
+        self.assertEqual(rdms.n_cond,5)
 
     def test_rdm2d_init(self):
         dis = np.zeros((8,10))
@@ -30,8 +30,8 @@ class TestRDM(unittest.TestCase):
         rdms = rsr.RDMs(dissimilarities=dis,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        self.assertEqual(rdms.n_rdm,10)
-        self.assertEqual(rdms.n_cond,8)
+        self.assertEqual(rdms.n_rdm,8)
+        self.assertEqual(rdms.n_cond,5)
 
 if __name__ == '__main__':
     unittest.main()  
