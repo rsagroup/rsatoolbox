@@ -10,6 +10,7 @@ import unittest
 import pyrsa.util as rsu
 import numpy as np 
 
+
 class TestIndicator(unittest.TestCase): 
     
     def test_identity(self):
@@ -23,7 +24,7 @@ class TestIndicator(unittest.TestCase):
     def test_identity_pos(self):
         a = np.array(range(0,5))
         a = np.concatenate((a,a))
-        X = rsu.indicator.identity_pos(a)
+        X = rsu.indicator.identity(a, positive=True)
         n_row,n_col = X.shape
         self.assertEqual(n_row,10)
         self.assertEqual(n_col,4)
@@ -36,4 +37,4 @@ class TestIndicator(unittest.TestCase):
         self.assertEqual(n_col,5)
 
 if __name__ == '__main__':
-    unittest.main()        
+    unittest.main()
