@@ -49,7 +49,7 @@ class TestData(unittest.TestCase):
         self.assertEqual(len(splited_list),6)
         self.assertEqual(splited_list[0].n_obs,2)
         self.assertEqual(splited_list[2].n_obs,3)
-        self.assertEqual(splited_list[2].obs_descriptors['conds'],np.array([2,2,2]))
+        self.assertEqual(splited_list[2].obs_descriptors['conds'][0],2)
 
     def test_dataset_split_channel(self):
         measurements = np.zeros((10,5))
@@ -65,7 +65,7 @@ class TestData(unittest.TestCase):
         self.assertEqual(len(splited_list),3)
         self.assertEqual(splited_list[0].n_channel,2)
         self.assertEqual(splited_list[2].n_channel,1)
-        self.assertEqual(splited_list[1].channel_descriptors['rois'],np.array(['IT','IT']))
+        self.assertEqual(splited_list[1].channel_descriptors['rois'][0],'IT')
 
 
 if __name__ == '__main__':
