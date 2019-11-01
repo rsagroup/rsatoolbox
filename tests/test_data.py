@@ -99,7 +99,7 @@ class TestData(unittest.TestCase):
         subset = data.subset_channel(by='rois',value='IT')
         self.assertEqual(subset.n_obs,10)
         self.assertEqual(subset.n_channel,2)
-        self.assertEqual(subset.obs_descriptors['rois'][0],'IT')
+        self.assertEqual(subset.channel_descriptors['rois'][0],'IT')
 
 if __name__ == '__main__':
     unittest.main()        
