@@ -50,7 +50,7 @@ class RDMs:
         Returns:
             RDMs as with one matrix as one RDM
         """
-        RDMs_matrix = np.ndarray((n_rdm, n_cond, n_cond))
-        for idx in np.arange(n_rdm):
+        RDMs_matrix = np.ndarray((self.n_rdm, self.n_cond, self.n_cond))
+        for idx in np.arange(self.n_rdm):
             RDMs_matrix[idx, :, :] = squareform(self.dissimilarities[idx])
         return RDMs_matrix
