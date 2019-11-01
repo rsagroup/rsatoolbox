@@ -17,6 +17,7 @@ def check_dict_length(dictionary,n):
 	return True
 
 def extract_dict(dictionary,indices):
+	extracted_dictionary = dictionary.copy()
 	for k,v in dictionary.items():
-		dictionary[k] = v[indices]
-	return dictionary
+		extracted_dictionary[k] = v[indices]
+	return extracted_dictionary
