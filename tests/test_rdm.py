@@ -24,7 +24,7 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(rdms.n_cond,5)
 
     def test_rdm2d_init(self):
-        dis = np.zeros((8,10))
+        dis = np.zeros((8,15))
         mes = "Euclidean"
         des = {'session':0, 'subj':0}
         rdms = rsr.RDMs(dissimilarities=dis,
@@ -32,6 +32,28 @@ class TestRDM(unittest.TestCase):
                         descriptors=des)
         self.assertEqual(rdms.n_rdm,8)
         self.assertEqual(rdms.n_cond,5)
+
+    def test_rdm3d_get_vectors(self):
+        dis = np.zeros((8,5,5))
+        mes = "Euclidean"
+        des = {'session':0, 'subj':0}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        v_rdms = rdms.get_vectors()
+        self.assertEqual(v_rdms.shape[0],8)
+        self.assertEqual(v_rdms.shape[1],15)
+
+    def test_rdm2d_get_vectors(self):
+        dis = np.zeros((8,15))
+        mes = "Euclidean"
+        des = {'session':0, 'subj':0}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        v_rdms = rdms.get_vectors()
+        self.assertEqual(v_rdms.shape[0],8)
+        self.assertEqual(v_rdms.shape[1],15)
 
 if __name__ == '__main__':
     unittest.main()  
