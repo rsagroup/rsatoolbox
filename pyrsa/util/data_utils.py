@@ -29,8 +29,15 @@ def extract_dict(dictionary, indices):
 
 
 def get_unique_unsorted(array):
-    u, indices = np.unique(array, return_index=True)    
+    u, indices = np.unique(array, return_index=True)
     temp = indices.argsort()
     ranks = np.empty_like(temp)
     ranks[temp] = np.arange(len(indices))
     return u[ranks]
+
+
+def check_descriptors_dimension(des, name, n):
+    if des is not None:
+        if not check_dict_length(des, n):
+            raise AttributeError(
+                name + " have mismatched dimension with measurements.")

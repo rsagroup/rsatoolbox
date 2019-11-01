@@ -7,7 +7,9 @@ Definition of RSA Dataset class and subclasses
 
 import numpy as np
 import pyrsa as rsa
-from pyrsa.util.data_utils import check_dict_length, extract_dict, get_unique_unsorted
+from pyrsa.util.data_utils import check_descriptors_dimension
+from pyrsa.util.data_utils import extract_dict
+from pyrsa.util.data_utils import get_unique_unsorted
 
 
 class DatasetBase:
@@ -35,21 +37,14 @@ class DatasetBase:
         if measurements is not None:
             if measurements.ndim != 2:
                 raise AttributeError(
-                    "measurements must be in dimension n_obs x n_channel"
-                    )
+                    "measurements must be in dimension n_obs x n_channel")
             else:
                 self.measurements = measurements
                 self.n_obs, self.n_channel = self.measurements.shape
-        if obs_descriptors is not None:
-            if check_dict_length(obs_descriptors,self.n_obs) == False:
-                raise AttributeError(
-                    "obs_descriptors have mismatched dimension with measurements."
-                    )
-        if channel_descriptors is not None:
-            if check_dict_length(channel_descriptors,self.n_channel) == False:
-                raise AttributeError(
-                    "channel_descriptors have mismatched dimension with measurements."
-                    )
+        check_descriptors_dimension(obs_descriptors,"obs_descriptors",
+                                    n.n_obs)
+        check_descriptors_dimension(channel_descriptors,"channel_descriptors",
+                                    n.n_channel)
         self.descriptors = descriptors
         self.obs_descriptors = obs_descriptors
         self.channel_descriptors = channel_descriptors
@@ -63,8 +58,7 @@ class DatasetBase:
             list of Datasets, splitted by the selected obs_descriptor
         """
         raise NotImplementedError(
-            "split_obs function not implemented in used Dataset class!"
-            )
+            "split_obs function not implemented in used Dataset class!")
 
     def split_channel(self, by):
         """ Returns a list Datasets splited by channels
@@ -75,8 +69,7 @@ class DatasetBase:
             list of Datasets,  splitted by the selected channel_descriptor
         """
         raise NotImplementedError(
-            "split_channel function not implemented in used Dataset class!"
-            )
+            "split_channel function not implemented in used Dataset class!")
 
     def subset_obs(self, by, value):
         """ Returns a subsetted Dataset defined by certain obs value
@@ -90,8 +83,7 @@ class DatasetBase:
             Dataset, with subset defined by the selected obs_descriptor
         """
         raise NotImplementedError(
-            "subset_obs function not implemented in used Dataset class!"
-            )
+            "subset_obs function not implemented in used Dataset class!")
 
     def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
@@ -105,8 +97,7 @@ class DatasetBase:
             Dataset, with subset defined by the selected channel_descriptor
         """
         raise NotImplementedError(
-            "subset_channel function not implemented in used Dataset class!"
-            )
+            "subset_channel function not implemented in used Dataset class!")
 
 
 class Dataset(DatasetBase):
@@ -128,7 +119,7 @@ class Dataset(DatasetBase):
             selection = (self.obs_descriptors[by] == v)
             measurements = self.measurements[selection, :]
             descriptors = self.descriptors
-            obs_descriptors = extract_dict(self.obs_descriptors,selection)
+            obs_descriptors = extract_dict(self.obs_descriptors, selection)
             channel_descriptors = self.channel_descriptors
             dataset = Dataset(measurements=measurements,
                 descriptors=descriptors,
@@ -152,11 +143,11 @@ class Dataset(DatasetBase):
             measurements = self.measurements[:, selection]
             descriptors = self.descriptors
             obs_descriptors = self.obs_descriptors
-            channel_descriptors = extract_dict(self.channel_descriptors,selection)
+            channel_descriptors = extract_dict(self.channel_descriptors, selection)
             dataset = Dataset(measurements=measurements,
-                descriptors=descriptors,
-                obs_descriptors=obs_descriptors,
-                channel_descriptors=channel_descriptors)
+                              descriptors=descriptors,
+                              obs_descriptors=obs_descriptors,
+                              channel_descriptors=channel_descriptors)
             dataset_list.append(dataset)
         return dataset_list
 
@@ -174,12 +165,13 @@ class Dataset(DatasetBase):
         selection = (self.obs_descriptors[by] == value)
         measurements = self.measurements[selection, :]
         descriptors = self.descriptors
-        obs_descriptors = extract_dict(self.obs_descriptors,selection)
+        obs_descriptors = extract_dict(
+            self.obs_descriptors,selection)
         channel_descriptors = self.channel_descriptors
         dataset = Dataset(measurements=measurements,
-            descriptors=descriptors,
-            obs_descriptors=obs_descriptors,
-            channel_descriptors=channel_descriptors)
+                          descriptors=descriptors,
+                          obs_descriptors=obs_descriptors,
+                          channel_descriptors=channel_descriptors)
         return dataset
 
     def subset_channel(self, by, value):
@@ -197,10 +189,10 @@ class Dataset(DatasetBase):
         measurements = self.measurements[:, selection]
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors
-        channel_descriptors = extract_dict(self.channel_descriptors,selection)
+        channel_descriptors = extract_dict(
+            self.channel_descriptors,selection)
         dataset = Dataset(measurements=measurements,
             descriptors=descriptors,
             obs_descriptors=obs_descriptors,
             channel_descriptors=channel_descriptors)
         return dataset
-

@@ -8,13 +8,6 @@ Collection of different n_uniqueinds of indicator Matrices
 @author: jdiedrichsen
 """
 
-"""
-Collection of different n_uniqueinds of indicator Matrices
-    identity: One column per unique element in vector
-    identity_pos: One column per unique non-zero element
-    allpairs:     All n_unique*(n_unique-1)/2 pairwise contrasts
-"""
-
 import numpy as np
 
 
