@@ -8,7 +8,6 @@ Definition of RSA Dataset class and subclasses
 import numpy as np
 import pyrsa as rsa
 
-
 class DatasetBase:
     """
     Abstract dataset class.
@@ -116,8 +115,15 @@ class Dataset(DatasetBase):
         dataset_list = []
         for v in unique_values:
             selection = (self.obs_descriptors[by] == v)
-            dataset_list.append(
-                self.measurements[:, selection, :])
+            measurements = self.measurements[selection, :, :]
+            descriptors = extract_dict(self.descriptors,selection)
+            obs_descriptors = extract_dict(self.obs_descriptors,selection)
+            channel_descriptors = extract_dict(self.channel_descriptors,selection)
+            dataset = Dataset(measurements=measurements,
+                descriptors=descriptors,
+                obs_descriptors=obs_descriptors,
+                channel_descriptors=channel_descriptors)
+            dataset_list.append(dataset)
         return dataset_list
 
     def split_channel(self, by):
@@ -131,8 +137,16 @@ class Dataset(DatasetBase):
         unique_values = set(self.channel_descriptors[by])
         dataset_list = []
         for v in unique_values:
-            dataset_list.append(
-                self.measurements[:, :, self.channel_descriptors[by] == v])
+            selection = (self.channel_descriptors[by] == v)
+            measurements = self.measurements[selection, :, :]
+            descriptors = extract_dict(self.descriptors,selection)
+            obs_descriptors = extract_dict(self.obs_descriptors,selection)
+            channel_descriptors = extract_dict(self.channel_descriptors,selection)
+            dataset = Dataset(measurements=measurements,
+                descriptors=descriptors,
+                obs_descriptors=obs_descriptors,
+                channel_descriptors=channel_descriptors)
+            dataset_list.append(dataset)
         return dataset_list
 
     def subset_obs(self, by, value):
@@ -146,7 +160,16 @@ class Dataset(DatasetBase):
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
         """
-        return self.measurements[:, self.obs_descriptors[by] == value, :]
+        selection = (self.obs_descriptors[by] == value)
+        measurements = self.measurements[selection, :, :]
+        descriptors = extract_dict(self.descriptors,selection)
+        obs_descriptors = extract_dict(self.obs_descriptors,selection)
+        channel_descriptors = extract_dict(self.channel_descriptors,selection)
+        dataset = Dataset(measurements=measurements,
+            descriptors=descriptors,
+            obs_descriptors=obs_descriptors,
+            channel_descriptors=channel_descriptors)
+        return dataset
 
     def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
@@ -159,4 +182,14 @@ class Dataset(DatasetBase):
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
         """
-        return self.measurements[:, :, self.channel_descriptors[by] == value]
+        selection = (self.channel_descriptors[by] == value)
+        measurements = self.measurements[selection, :, :]
+        descriptors = extract_dict(self.descriptors,selection)
+        obs_descriptors = extract_dict(self.obs_descriptors,selection)
+        channel_descriptors = extract_dict(self.channel_descriptors,selection)
+        dataset = Dataset(measurements=measurements,
+            descriptors=descriptors,
+            obs_descriptors=obs_descriptors,
+            channel_descriptors=channel_descriptors)
+        return dataset
+
