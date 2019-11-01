@@ -17,8 +17,6 @@ class DatasetBase:
 
         Args:
             measurements (numpy.ndarray): n_obs x n_channel 2d-array,
-                                          or n_set x n_obs x n_channel
-                                          3d-array
             descriptors (dict):           descriptors with 1 value per
                                           Dataset object
             obs_descriptors (dict):       observation descriptors (all
@@ -27,31 +25,34 @@ class DatasetBase:
             channel_descriptors (dict):   channel descriptors (all are
                                           array-like with shape =
                                           (n_channel,...))
+                                          
         Returns:
             dataset object
     """
     def __init__(self, measurements=None, descriptors=None,
                  obs_descriptors=None, channel_descriptors=None):
-        if (measurements.ndim == 2):
-            self.measurements = measurements
-            self.n_set = 1
-            self.n_obs, self.n_channel = self.measurements.shape
-        elif (measurements.ndim == 3):
-            self.measurements = measurements
-            self.n_set, self.n_obs, self.n_channel = self.measurements.shape
-        self.descriptors = descriptors
-        self.obs_descriptors = obs_descriptors
-        self.channel_descriptors = channel_descriptors
+        if measurements is not None:
+            if measurements.ndim != 2:
+                raise AttributeError(
+                    "measurements must be in dimension n_obs x n_channel"
+                    )
+            else:
+                self.measurements = measurements
+                self.n_set = 1
+                self.n_obs, self.n_channel = self.measurements.shape
         if obs_descriptors is not None:
-            if check_dict_length(obs_descriptors,self.n_obs):
+            if !check_dict_length(obs_descriptors,self.n_obs):
                 raise AttributeError(
                     "obs_descriptors have mismatched dimension with measurements."
                     )
         if channel_descriptors is not None:
-            if check_dict_length(channel_descriptors,self.n_channel):
+            if !check_dict_length(channel_descriptors,self.n_channel):
                 raise AttributeError(
                     "channel_descriptors have mismatched dimension with measurements."
                     )
+        self.descriptors = descriptors
+        self.obs_descriptors = obs_descriptors
+        self.channel_descriptors = channel_descriptors
 
     def split_obs(self, by):
         """ Returns a list Datasets splited by obs

@@ -10,21 +10,14 @@ import unittest
 import pyrsa.data as rsd
 import numpy as np 
 
-class TestSimulation(unittest.TestCase): 
+class TestData(unittest.TestCase): 
     
-    def test_dataset2d(self):
+    def test_dataset_init(self):
         A = np.zeros((10,5))
         data = rsd.Dataset(A)
         self.assertEqual(data.n_obs,10)
         self.assertEqual(data.n_channel,5)
         self.assertEqual(data.n_set,1)
-
-    def test_dataset3d(self):
-        A = np.zeros((3,10,5))
-        data = rsd.Dataset(A)
-        self.assertEqual(data.n_obs,10)
-        self.assertEqual(data.n_channel,5)
-        self.assertEqual(data.n_set,3)
 
 if __name__ == '__main__':
     unittest.main()        
