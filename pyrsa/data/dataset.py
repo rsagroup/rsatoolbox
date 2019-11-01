@@ -17,8 +17,7 @@ class DatasetBase:
 
         Args:
             measurements (numpy.ndarray): n_obs x n_channel 2d-array,
-            descriptors (dict):           descriptors with 1 value per
-                                          Dataset object
+            descriptors (dict):           descriptors (metadata)
             obs_descriptors (dict):       observation descriptors (all
                                           are array-like with shape =
                                           (n_obs,...))
@@ -38,7 +37,6 @@ class DatasetBase:
                     )
             else:
                 self.measurements = measurements
-                self.n_set = 1
                 self.n_obs, self.n_channel = self.measurements.shape
         if obs_descriptors is not None:
             if !check_dict_length(obs_descriptors,self.n_obs):
