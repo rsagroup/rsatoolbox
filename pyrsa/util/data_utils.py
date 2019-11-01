@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Collection of helper methods for data module
+    check_dict_length: check if each value in dict match length n
+    extract_dict:      extract key-value pairs with values given indexes.
 @author: baihan
 """
 

@@ -1,9 +1,20 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Collection of different n_uniqueinds of indicator Matrices
+    identity: One column per unique element in vector
+    identity_pos: One column per unique non-zero element
+    allpairs:     All n_unique*(n_unique-1)/2 pairwise contrasts
+@author: jdiedrichsen
+"""
+
 """
 Collection of different n_uniqueinds of indicator Matrices
     identity: One column per unique element in vector
     identity_pos: One column per unique non-zero element
     allpairs:     All n_unique*(n_unique-1)/2 pairwise contrasts
 """
+
 import numpy as np
 
 
