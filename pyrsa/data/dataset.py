@@ -115,8 +115,9 @@ class Dataset(DatasetBase):
         unique_values = set(self.obs_descriptors[by])
         dataset_list = []
         for v in unique_values:
+            selection = (self.obs_descriptors[by] == v)
             dataset_list.append(
-                self.measurements[:, self.obs_descriptors[by] == v, :])
+                self.measurements[:, selection, :])
         return dataset_list
 
     def split_channel(self, by):
