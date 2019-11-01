@@ -42,9 +42,9 @@ class DatasetBase:
                 self.measurements = measurements
                 self.n_obs, self.n_channel = self.measurements.shape
         check_descriptors_dimension(obs_descriptors, "obs_descriptors",
-                                    n.n_obs)
+                                    self.n_obs)
         check_descriptors_dimension(channel_descriptors, "channel_descriptors",
-                                    n.n_channel)
+                                    self.n_channel)
         self.descriptors = descriptors
         self.obs_descriptors = obs_descriptors
         self.channel_descriptors = channel_descriptors
