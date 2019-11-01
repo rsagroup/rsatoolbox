@@ -118,7 +118,6 @@ class Dataset(DatasetBase):
             dataset_list.append(
                 self.measurements[:, self.obs_descriptors[by] == v, :])
         return dataset_list
-        # TODO: for 3d measurements, need implementations.
 
     def split_channel(self, by):
         """ Returns a list Datasets splited by channels
@@ -134,7 +133,6 @@ class Dataset(DatasetBase):
             dataset_list.append(
                 self.measurements[:, :, self.channel_descriptors[by] == v])
         return dataset_list
-        # TODO: for 3d measurements, need implementations.
 
     def subset_obs(self, by, value):
         """ Returns a subsetted Dataset defined by certain obs value
@@ -148,7 +146,6 @@ class Dataset(DatasetBase):
             Dataset, with subset defined by the selected obs_descriptor
         """
         return self.measurements[:, self.obs_descriptors[by] == value, :]
-        # TODO: for 3d measurements, need implementations.
 
     def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
@@ -162,4 +159,3 @@ class Dataset(DatasetBase):
             Dataset, with subset defined by the selected channel_descriptor
         """
         return self.measurements[:, :, self.channel_descriptors[by] == value]
-        # TODO: for 3d measurements, need implementations.
