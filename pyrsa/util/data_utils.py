@@ -11,12 +11,12 @@ import numpy as np
 import pyrsa as rsa
 
 def check_dict_length(dictionary,n):
-	for k,v in dictionary:
+	for k,v in dictionary.items():
 		if v.shape[0] != n:
 			return False
 	return True
 
 def extract_dict(dictionary,indices):
-	for k,v in dictionary:
+	for k,v in dictionary.items():
 		dictionary[k] = v[indices]
 	return dictionary
