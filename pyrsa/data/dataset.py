@@ -41,9 +41,9 @@ class DatasetBase:
             else:
                 self.measurements = measurements
                 self.n_obs, self.n_channel = self.measurements.shape
-        check_descriptors_dimension(obs_descriptors,"obs_descriptors",
+        check_descriptors_dimension(obs_descriptors, "obs_descriptors",
                                     n.n_obs)
-        check_descriptors_dimension(channel_descriptors,"channel_descriptors",
+        check_descriptors_dimension(channel_descriptors, "channel_descriptors",
                                     n.n_channel)
         self.descriptors = descriptors
         self.obs_descriptors = obs_descriptors
@@ -119,12 +119,13 @@ class Dataset(DatasetBase):
             selection = (self.obs_descriptors[by] == v)
             measurements = self.measurements[selection, :]
             descriptors = self.descriptors
-            obs_descriptors = extract_dict(self.obs_descriptors, selection)
+            obs_descriptors = extract_dict(
+                self.obs_descriptors, selection)
             channel_descriptors = self.channel_descriptors
             dataset = Dataset(measurements=measurements,
-                descriptors=descriptors,
-                obs_descriptors=obs_descriptors,
-                channel_descriptors=channel_descriptors)
+                              descriptors=descriptors,
+                              obs_descriptors=obs_descriptors,
+                              channel_descriptors=channel_descriptors)
             dataset_list.append(dataset)
         return dataset_list
 
@@ -143,7 +144,8 @@ class Dataset(DatasetBase):
             measurements = self.measurements[:, selection]
             descriptors = self.descriptors
             obs_descriptors = self.obs_descriptors
-            channel_descriptors = extract_dict(self.channel_descriptors, selection)
+            channel_descriptors = extract_dict(
+                self.channel_descriptors, selection)
             dataset = Dataset(measurements=measurements,
                               descriptors=descriptors,
                               obs_descriptors=obs_descriptors,
@@ -166,7 +168,7 @@ class Dataset(DatasetBase):
         measurements = self.measurements[selection, :]
         descriptors = self.descriptors
         obs_descriptors = extract_dict(
-            self.obs_descriptors,selection)
+            self.obs_descriptors, selection)
         channel_descriptors = self.channel_descriptors
         dataset = Dataset(measurements=measurements,
                           descriptors=descriptors,
@@ -190,9 +192,9 @@ class Dataset(DatasetBase):
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors
         channel_descriptors = extract_dict(
-            self.channel_descriptors,selection)
+            self.channel_descriptors, selection)
         dataset = Dataset(measurements=measurements,
-            descriptors=descriptors,
-            obs_descriptors=obs_descriptors,
-            channel_descriptors=channel_descriptors)
+                          descriptors=descriptors,
+                          obs_descriptors=obs_descriptors,
+                          channel_descriptors=channel_descriptors)
         return dataset
