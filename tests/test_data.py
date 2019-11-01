@@ -3,7 +3,7 @@
 """
 test_data
 Test for Dataset class 
-@author: jdiedrichsen
+@author: baihan, jdiedrichsen
 """
 
 import unittest 
@@ -13,11 +13,10 @@ import numpy as np
 class TestData(unittest.TestCase): 
     
     def test_dataset_simple_init(self):
-        A = np.zeros((10,5))
-        data = rsd.Dataset(A)
+        measurements = np.zeros((10,5))
+        data = rsd.Dataset(measurements)
         self.assertEqual(data.n_obs,10)
         self.assertEqual(data.n_channel,5)
-        self.assertEqual(data.n_set,1)
 
     def test_dataset_full_init(self):
         measurements = np.zeros((10,5))
