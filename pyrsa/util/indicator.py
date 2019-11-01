@@ -1,9 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Collection of different n_uniqueinds of indicator Matrices
     identity: One column per unique element in vector
     identity_pos: One column per unique non-zero element
     allpairs:     All n_unique*(n_unique-1)/2 pairwise contrasts
+@author: jdiedrichsen
 """
+
 import numpy as np
 
 
@@ -30,7 +34,7 @@ def identity_pos(index_vector):
     """ Indicator matriindicator_matrix with one column
         per unique positive element in vector
         Args:
-            c (numpy.ndarray): n_row vector to code -
+            index_vector (numpy.ndarray): n_row vector to code -
                                discrete values (one dimensional)
         Returns:
             indicator_matrix (numpy.ndarray): n_row indicator_matrix
@@ -50,7 +54,7 @@ def identity_pos(index_vector):
 def allpairs(index_vector):
     """ Indicator matriindicator_matrix with one row per unqiue pair
         Args:
-            c (numpy.ndarray): n_row vector to code
+            index_vector (numpy.ndarray): n_row vector to code
                                - discrete values (one dimensional)
         Returns:
             indicator_matrix (numpy.ndarray): n_values *
