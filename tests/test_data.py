@@ -21,8 +21,8 @@ class TestData(unittest.TestCase):
     def test_dataset_full_init(self):
         measurements = np.zeros((10,5))
         des = {"session":0,"subj":0}
-        obs_des = {"conds":["cond_"+str(x) for x in np.arange(10)]}
-        chn_des = {"rois":["roi_"+str(x) for x in np.arange(5)]}
+        obs_des = {"conds":np.array(["cond_"+str(x) for x in np.arange(10)])}
+        chn_des = {"rois":np.array(["roi_"+str(x) for x in np.arange(5)])}
         data = rsd.Dataset(measurements,des,obs_des,chn_des)
         self.assertEqual(data.n_obs,10)
         self.assertEqual(data.n_channel,5)
