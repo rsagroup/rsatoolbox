@@ -7,7 +7,7 @@ Definition of RSA Dataset class and subclasses
 
 import numpy as np
 import pyrsa as rsa
-from rsa import check_dict_length, extract_dict
+from pyrsa import check_dict_length, extract_dict
 
 
 class DatasetBase:
