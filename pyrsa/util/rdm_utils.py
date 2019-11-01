@@ -19,13 +19,14 @@ def batch_to_vectors(x):
         n_rdm = x.shape[0]
         n_cond = np.ceil(np.sqrt(x.shape[1] * 2))
     elif x.ndim == 3:
-        m = dissimilarities
+        m = x
         n_rdm = x.shape[0]
         n_cond = x.shape[1]
         v = np.ndarray((n_rdm, int(n_cond * (n_cond - 1) / 2)))
         for idx in np.arange(n_rdm):
             m[idx, :] = squareform(m[idx])
     return v, n_rdm, n_cond
+
 
 def batch_to_matrices(x):
     if x.ndim == 2:
@@ -36,8 +37,7 @@ def batch_to_matrices(x):
         for idx in np.arange(n_rdm):
             m[idx, :, :] = squareform(v[idx])
     elif x.ndim == 3:
-        m = dissimilarities
+        m = x
         n_rdm = x.shape[0]
         n_cond = x.shape[1]
     return m, n_rdm, n_cond
-
