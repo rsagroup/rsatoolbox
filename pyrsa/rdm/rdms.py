@@ -6,7 +6,8 @@ Definition of RSA RDMs class and subclasses
 """
 
 import numpy as np
-from scipy.spatial.distance import squareform
+from pyrsa.util.rdm_utils import batch_to_vectors
+from pyrsa.util.rdm_utils import batch_to_matrices
 
 
 class RDMs:
@@ -27,14 +28,8 @@ class RDMs:
     def __init__(self, dissimilarities=None,
                  dissimilarity_measure=None,
                  descriptors=None):
-        if (dissimilarities.ndim == 2):
-            self.dissimilarities = dissimilarities
-            self.n_rdm = self.dissimilarities.shape[0]
-            self.n_cond = np.ceil(np.sqrt(self.dissimilarities.shape[1] * 2))
-        elif (dissimilarities.ndim == 3):
-            self.dissimilarities = dissimilarities
-            self.n_rdm = self.dissimilarities.shape[0]
-            self.n_cond = self.dissimilarities.shape[1]
+        self.dissimilarities, self.n_rdm, self.n_cond = \
+            batch_to_vectors(dissimilarities)
         self.descriptors = descriptors
         self.dissimilarity_measure = dissimilarity_measure
 
@@ -50,7 +45,5 @@ class RDMs:
         Returns:
             RDMs as with one matrix as one RDM
         """
-        RDMs_matrix = np.ndarray((self.n_rdm, self.n_cond, self.n_cond))
-        for idx in np.arange(self.n_rdm):
-            RDMs_matrix[idx, :, :] = squareform(self.dissimilarities[idx])
-        return RDMs_matrix
+        matrices, _, _ = batch_to_matrices(self.dissimilarities)
+        return matrices
