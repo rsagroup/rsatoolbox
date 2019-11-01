@@ -30,7 +30,7 @@ class RDMs:
         if (dissimilarities.ndim == 2):
             self.dissimilarities = dissimilarities
             self.n_rdm = self.dissimilarities.shape[0]
-            self.n_cond = np.ceil(np.sqrt(self.dissimilarities.shape[0] * 2))
+            self.n_cond = np.ceil(np.sqrt(self.dissimilarities.shape[1] * 2))
         elif (dissimilarities.ndim == 3):
             self.dissimilarities = dissimilarities
             self.n_rdm = self.dissimilarities.shape[0]
