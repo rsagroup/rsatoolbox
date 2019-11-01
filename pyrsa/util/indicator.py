@@ -30,7 +30,7 @@ def identity_pos(index_vector):
     """ Indicator matriindicator_matrix with one column
         per unique positive element in vector
         Args:
-            c (numpy.ndarray): n_row vector to code -
+            index_vector (numpy.ndarray): n_row vector to code -
                                discrete values (one dimensional)
         Returns:
             indicator_matrix (numpy.ndarray): n_row indicator_matrix
@@ -50,7 +50,7 @@ def identity_pos(index_vector):
 def allpairs(index_vector):
     """ Indicator matriindicator_matrix with one row per unqiue pair
         Args:
-            c (numpy.ndarray): n_row vector to code
+            index_vector (numpy.ndarray): n_row vector to code
                                - discrete values (one dimensional)
         Returns:
             indicator_matrix (numpy.ndarray): n_values *
