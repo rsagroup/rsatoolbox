@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 Collection of helper methods for data module
-    check_dict_length: check if each value in dict match length n
-    extract_dict:      extract key-value pairs with values given indexes.
+    check_dict_length:   check if each value in dict matches 
+                         length n
+    extract_dict:        extract key-value pairs with values 
+                         given indexes.
+    get_unique_unsorted: return a unique unsorted list
 @author: baihan
 """
 
@@ -21,3 +24,11 @@ def extract_dict(dictionary,indices):
 	for k,v in dictionary.items():
 		extracted_dictionary[k] = v[indices]
 	return extracted_dictionary
+
+def get_unique_unsorted(array):
+	u, indices = np.unique(a, return_index=True)
+	temp = indices.argsort()
+	ranks = np.empty_like(temp)
+	ranks[temp] = np.arange(len(indices))
+	return u[ranks]
+

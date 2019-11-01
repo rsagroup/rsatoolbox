@@ -10,6 +10,7 @@ import unittest
 import pyrsa.data as rsd
 import numpy as np 
 
+
 class TestData(unittest.TestCase): 
     
     def test_dataset_simple_init(self):
@@ -20,9 +21,9 @@ class TestData(unittest.TestCase):
 
     def test_dataset_full_init(self):
         measurements = np.zeros((10,5))
-        des = {"session":0,"subj":0}
-        obs_des = {"conds":np.array(["cond_"+str(x) for x in np.arange(10)])}
-        chn_des = {"rois":np.array(["roi_"+str(x) for x in np.arange(5)])}
+        des = {'session':0,'subj':0}
+        obs_des = {'conds':np.array(['cond_'+str(x) for x in np.arange(10)])}
+        chn_des = {'rois':np.array(['roi_'+str(x) for x in np.arange(5)])}
         data = rsd.Dataset(measurements=measurements,
                            descriptors=des,
                            obs_descriptors=obs_des,
@@ -36,35 +37,35 @@ class TestData(unittest.TestCase):
 
     def test_dataset_split_obs(self):
         measurements = np.zeros((10,5))
-        des = {"session":0,"subj":0}
-        obs_des = {"conds":np.array([0,0,1,1,2,2,2,3,4,5])}
-        chn_des = {"rois":np.array(["V1","V1","IT","IT","V4"])}
+        des = {'session':0,'subj':0}
+        obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5])}
+        chn_des = {'rois':np.array(['V1','V1','IT','IT','V4'])}
         data = rsd.Dataset(measurements=measurements,
                            descriptors=des,
                            obs_descriptors=obs_des,
                            channel_descriptors=chn_des
                            )
-        splited_list = data.split_obs("conds")
+        splited_list = data.split_obs('conds')
         self.assertEqual(len(splited_list),6)
         self.assertEqual(splited_list[0].n_obs,2)
         self.assertEqual(splited_list[2].n_obs,3)
-        self.assertEqual(splited_list[2].obs_descriptors["conds"],np.array([2,2,2]))
+        self.assertEqual(splited_list[2].obs_descriptors['conds'],np.array([2,2,2]))
 
     def test_dataset_split_channel(self):
         measurements = np.zeros((10,5))
-        des = {"session":0,"subj":0}
-        obs_des = {"conds":np.array([0,0,1,1,2,2,2,3,4,5])}
-        chn_des = {"rois":np.array(["V1","V1","IT","IT","V4"])}
+        des = {'session':0,'subj':0}
+        obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5])}
+        chn_des = {'rois':np.array(['V1','V1','IT','IT','V4'])}
         data = rsd.Dataset(measurements=measurements,
                            descriptors=des,
                            obs_descriptors=obs_des,
                            channel_descriptors=chn_des
                            )
-        splited_list = data.split_channel("rois")
+        splited_list = data.split_channel('rois')
         self.assertEqual(len(splited_list),3)
-        self.assertEqual(splited_list[0].n_obs,2)
-        self.assertEqual(splited_list[2].n_obs,1)
-        self.assertEqual(splited_list[1].obs_descriptors["rois"],np.array(["IT","IT"]))
+        self.assertEqual(splited_list[0].n_channel,2)
+        self.assertEqual(splited_list[2].n_channel,1)
+        self.assertEqual(splited_list[1].channel_descriptors['rois'],np.array(['IT','IT']))
 
 
 if __name__ == '__main__':

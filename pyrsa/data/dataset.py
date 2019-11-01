@@ -7,7 +7,7 @@ Definition of RSA Dataset class and subclasses
 
 import numpy as np
 import pyrsa as rsa
-from pyrsa.util.data_utils import check_dict_length,extract_dict
+from pyrsa.util.data_utils import check_dict_length,extract_dict,get_unique_unsorted
 
 
 class DatasetBase:
@@ -122,7 +122,7 @@ class Dataset(DatasetBase):
         Returns:
             list of Datasets, splitted by the selected obs_descriptor
         """
-        unique_values = set(self.obs_descriptors[by])
+        unique_values = get_unique_unsorted(self.obs_descriptors[by])
         dataset_list = []
         for v in unique_values:
             selection = (self.obs_descriptors[by] == v)
@@ -145,7 +145,7 @@ class Dataset(DatasetBase):
         Returns:
             list of Datasets,  splitted by the selected channel_descriptor
         """
-        unique_values = set(self.channel_descriptors[by])
+        unique_values = get_unique_unsorted(self.channel_descriptors[by])
         dataset_list = []
         for v in unique_values:
             selection = (self.channel_descriptors[by] == v)
