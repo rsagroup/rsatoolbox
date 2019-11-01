@@ -26,7 +26,7 @@ def extract_dict(dictionary,indices):
 	return extracted_dictionary
 
 def get_unique_unsorted(array):
-	u, indices = np.unique(a, return_index=True)
+	u, indices = np.unique(array, return_index=True)
 	temp = indices.argsort()
 	ranks = np.empty_like(temp)
 	ranks[temp] = np.arange(len(indices))
