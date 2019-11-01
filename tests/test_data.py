@@ -86,5 +86,20 @@ class TestData(unittest.TestCase):
         self.assertEqual(subset.n_channel,5)
         self.assertEqual(subset.obs_descriptors['conds'][0],2)
 
+    def test_dataset_subset_channel(self):
+        measurements = np.zeros((10,5))
+        des = {'session':0,'subj':0}
+        obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5])}
+        chn_des = {'rois':np.array(['V1','V1','IT','IT','V4'])}
+        data = rsd.Dataset(measurements=measurements,
+                           descriptors=des,
+                           obs_descriptors=obs_des,
+                           channel_descriptors=chn_des
+                           )
+        subset = data.subset_channel(by='rois',value='IT')
+        self.assertEqual(subset.n_obs,10)
+        self.assertEqual(subset.n_channel,2)
+        self.assertEqual(subset.obs_descriptors['rois'][0],'IT')
+
 if __name__ == '__main__':
     unittest.main()        
