@@ -11,7 +11,7 @@ Collection of different n_uniqueinds of indicator Matrices
 import numpy as np
 
 
-def identity(index_vector,positive=False):
+def identity(index_vector, positive=False):
     """ Indicator matriindicator_matrix with one
         column per unique element in vector
         Args:
