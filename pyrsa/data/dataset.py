@@ -42,6 +42,16 @@ class DatasetBase:
         self.descriptors = descriptors
         self.obs_descriptors = obs_descriptors
         self.channel_descriptors = channel_descriptors
+        if obs_descriptors is not None:
+            if check_dict_length(obs_descriptors,self.n_obs):
+                raise AttributeError(
+                    "obs_descriptors have mismatched dimension with measurements."
+                    )
+        if channel_descriptors is not None:
+            if check_dict_length(channel_descriptors,self.n_channel):
+                raise AttributeError(
+                    "channel_descriptors have mismatched dimension with measurements."
+                    )
 
     def split_obs(self, by):
         """ Returns a list Datasets splited by obs
@@ -53,7 +63,7 @@ class DatasetBase:
         """
         raise NotImplementedError(
             "split_obs function not implemented in used Dataset class!"
-        )
+            )
 
     def split_channel(self, by):
         """ Returns a list Datasets splited by channels
@@ -65,7 +75,7 @@ class DatasetBase:
         """
         raise NotImplementedError(
             "split_channel function not implemented in used Dataset class!"
-        )
+            )
 
     def subset_obs(self, by, value):
         """ Returns a subsetted Dataset defined by certain obs value
@@ -80,7 +90,7 @@ class DatasetBase:
         """
         raise NotImplementedError(
             "subset_obs function not implemented in used Dataset class!"
-        )
+            )
 
     def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
@@ -95,7 +105,7 @@ class DatasetBase:
         """
         raise NotImplementedError(
             "subset_channel function not implemented in used Dataset class!"
-        )
+            )
 
 
 class Dataset(DatasetBase):
