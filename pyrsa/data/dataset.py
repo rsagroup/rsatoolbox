@@ -21,6 +21,7 @@ class DatasetBase:
 
         Args:
             measurements (numpy.ndarray): n_obs x n_channel 2d-array,
+            escriptors (dict):            descriptors (metadata)
             obs_descriptors (dict):       observation descriptors (all
                                           are array-like with shape =
                                           (n_obs,...))
