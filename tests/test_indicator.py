@@ -10,6 +10,7 @@ import unittest
 import pyrsa.util as rsu
 import numpy as np 
 
+
 class TestIndicator(unittest.TestCase): 
     
     def test_identity(self):
@@ -19,6 +20,7 @@ class TestIndicator(unittest.TestCase):
         n_row,n_col = X.shape
         self.assertEqual(n_row,10)
         self.assertEqual(n_col,5)
+        self.assertEqual(X[0,0],1.0)
 
     def test_identity_pos(self):
         a = np.array(range(0,5))
@@ -27,6 +29,7 @@ class TestIndicator(unittest.TestCase):
         n_row,n_col = X.shape
         self.assertEqual(n_row,10)
         self.assertEqual(n_col,4)
+        self.assertEqual(X[0,0],0.0)
 
     def test_allpairs(self):
         a = np.array(range(0,5))
@@ -34,6 +37,7 @@ class TestIndicator(unittest.TestCase):
         n_row,n_col = X.shape
         self.assertEqual(n_row,10)
         self.assertEqual(n_col,5)
+        self.assertEqual(X[0,0],1.0)
 
 if __name__ == '__main__':
-    unittest.main()        
+    unittest.main()
