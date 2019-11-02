@@ -1,13 +1,17 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Collection of different n_uniqueinds of indicator Matrices
     identity: One column per unique element in vector
     identity_pos: One column per unique non-zero element
     allpairs:     All n_unique*(n_unique-1)/2 pairwise contrasts
+@author: jdiedrichsen
 """
+
 import numpy as np
 
 
-def identity(index_vector):
+def identity(index_vector, positive=False):
     """ Indicator matriindicator_matrix with one
         column per unique element in vector
         Args:
@@ -20,29 +24,11 @@ def identity(index_vector):
     c_unique = np.unique(index_vector)
     n_unique = c_unique.size
     rows = np.size(index_vector)
+    if positive:
+        c_unique = c_unique[c_unique > 0]
+        n_unique = c_unique.size
     indicator_matrix = np.zeros((rows, n_unique))
     for i in np.arange(n_unique):
-        indicator_matrix[index_vector == c_unique[i], i] = 1
-    return indicator_matrix
-
-
-def identity_pos(index_vector):
-    """ Indicator matriindicator_matrix with one column
-        per unique positive element in vector
-        Args:
-            c (numpy.ndarray): n_row vector to code -
-                               discrete values (one dimensional)
-        Returns:
-            indicator_matrix (numpy.ndarray): n_row indicator_matrix
-                n_values indicator matriindicator_matrix
-    """
-    c_unique = np.unique(index_vector)
-    n_unique = c_unique.size
-    rows = np.size(index_vector)
-    c_unique = c_unique[c_unique > 0]
-    n_unique = c_unique.size
-    indicator_matrix = np.zeros((rows, n_unique))
-    for i in range(n_unique):
         indicator_matrix[index_vector == c_unique[i], i] = 1
     return indicator_matrix
 
@@ -50,7 +36,7 @@ def identity_pos(index_vector):
 def allpairs(index_vector):
     """ Indicator matriindicator_matrix with one row per unqiue pair
         Args:
-            c (numpy.ndarray): n_row vector to code
+            index_vector (numpy.ndarray): n_row vector to code
                                - discrete values (one dimensional)
         Returns:
             indicator_matrix (numpy.ndarray): n_values *
