@@ -9,5 +9,3 @@ import pyrsa as rsa
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-
-from pyrsa.vis.mds import MDS
