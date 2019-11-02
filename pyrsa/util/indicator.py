@@ -51,8 +51,10 @@ def allpairs(index_vector):
     n_row = 0
     # Now make an indicator_matrix with a pair of conditions per row
     for i in range(n_unique):
-        for j in np.arange(i+1,n_unique):
-            indicator_matrix[n_row,index_vector == c_unique[i]] = 1./sum(index_vector == c_unique[i])
-            indicator_matrix[n_row,index_vector == c_unique[j]] = -1./sum(index_vector == c_unique[j])
-            n_row = n_row + 1   
+        for j in np.arange(i + 1, n_unique):
+            select = (index_vector == c_unique[i])
+            indicator_matrix[n_row, select] = 1. / sum(select)
+            select = (index_vector == c_unique[j])
+            indicator_matrix[n_row, select] = -1. / sum(select)
+            n_row = n_row + 1
     return indicator_matrix
