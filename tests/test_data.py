@@ -101,5 +101,27 @@ class TestData(unittest.TestCase):
         self.assertEqual(subset.n_channel,2)
         self.assertEqual(subset.channel_descriptors['rois'][0],'IT')
 
+
+class TestDataComputations(unittest.TestCase):
+    def setUp(self):
+        measurements = np.random.rand(10,5)
+        des = {'session':0,'subj':0}
+        obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5])}
+        chn_des = {'rois':np.array(['V1','V1','IT','IT','V4'])}
+        self.test_data = rsd.Dataset(measurements=measurements,
+                           descriptors=des,
+                           obs_descriptors=obs_des,
+                           channel_descriptors=chn_des
+                           )
+        
+    def test_average(self):
+        avg = rsd.average_dataset(self.test_data)
+        self.assertEqual(avg.shape,(5,))
+        
+    def test_average_by(self):
+        avg = rsd.average_dataset_by(self.test_data,'conds')
+        self.assertEqual(avg.shape, (6,5))
+        assert(np.all(self.test_data.measurements[-1]==avg[-1]))
+        
 if __name__ == '__main__':
     unittest.main()  

@@ -18,3 +18,18 @@ def average_dataset(dataset):
             average(numpy.ndarray): average activation vector
     """
     return np.mean(dataset.measurements, axis = 0)
+
+def average_dataset_by(dataset, by):
+    """
+    computes the average of a dataset per value of a descriptor
+    
+        Args:
+            dataset(pyrsa.data.Dataset): the dataset to operate on 
+            by(String): which obs_descriptor to split by
+            
+        Returns:
+            average(numpy.ndarray): average activation vector
+    """
+    datasets = dataset.split_obs(by)
+    average = [average_dataset(d) for d in datasets]
+    return np.array(average)
