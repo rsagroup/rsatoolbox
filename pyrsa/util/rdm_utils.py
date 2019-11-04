@@ -14,6 +14,20 @@ from scipy.spatial.distance import squareform
 
 
 def batch_to_vectors(x):
+    """
+    converts a *stack* of RDMs in vector or matrix form into vector form
+    
+        Args:
+            x: stack of RDMs 
+            
+        Returns:
+            v(np.ndarray):
+                2D, vector form of the stack of RDMs
+            n_rdm(int): 
+                number of rdms
+            n_cond(int): 
+                number of conditions
+    """
     if x.ndim == 2:
         v = x
         n_rdm = x.shape[0]
@@ -29,6 +43,20 @@ def batch_to_vectors(x):
 
 
 def batch_to_matrices(x):
+    """
+    converts a *stack* of RDMs in vector or matrix form into matrix form
+    
+        Args:
+            x: stack of RDMs 
+            
+        Returns:
+            v(np.ndarray):
+                3D, matrix form of the stack of RDMs
+            n_rdm(int): 
+                number of rdms
+            n_cond(int): 
+                number of conditions
+    """
     if x.ndim == 2:
         v = x
         n_rdm = x.shape[0]
