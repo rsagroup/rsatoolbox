@@ -7,9 +7,10 @@ Test for RDM class
 """
 
 import unittest 
-import pyrsa.rdm as rsr
 import numpy as np 
 
+import pyrsa.rdm as rsr
+import pyrsa as rsa
 
 class TestRDM(unittest.TestCase): 
     
@@ -79,5 +80,23 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(m_rdms.shape[1],5)
         self.assertEqual(m_rdms.shape[2],5)
 
+
+class TestCalcRDM(unittest.TestCase): 
+    
+    def setUp(self):
+        measurements = np.random.rand(10,5)
+        des = {'session':0,'subj':0}
+        obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5])}
+        chn_des = {'rois':np.array(['V1','V1','IT','IT','V4'])}
+        self.test_data = rsa.data.Dataset(measurements=measurements,
+                           descriptors=des,
+                           obs_descriptors=obs_des,
+                           channel_descriptors=chn_des
+                           )
+        
+    def test_calc_euclid(self):
+        rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'Euclidean')
+        
+    
 if __name__ == '__main__':
     unittest.main()  
