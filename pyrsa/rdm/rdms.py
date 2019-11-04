@@ -22,16 +22,20 @@ class RDMs:
                 a description of the dissimilarity measure (e.g. 'Euclidean')
             descriptors (dict):
                 descriptors with 1 value per RDMs object
+            pattern_descriptors (dict)
+                descriptors with 1 value per RDM column
         Returns:
             RDMs object
     """
-    def __init__(self, dissimilarities=None,
+    def __init__(self, dissimilarities,
                  dissimilarity_measure=None,
-                 descriptors=None):
+                 descriptors={},
+                 pattern_descriptors={}):
         self.dissimilarities, self.n_rdm, self.n_cond = \
             batch_to_vectors(dissimilarities)
         self.descriptors = descriptors
         self.dissimilarity_measure = dissimilarity_measure
+        self.pattern_descriptors = pattern_descriptors
 
     def get_vectors(self):
         """ Returns RDMs as np.ndarray with each RDM as a vector
