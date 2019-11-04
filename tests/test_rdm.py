@@ -84,9 +84,11 @@ class TestRDM(unittest.TestCase):
 class TestCalcRDM(unittest.TestCase): 
     
     def setUp(self):
-        measurements = np.random.rand(10,5)
+        measurements = np.random.rand(20,5)
         des = {'session':0,'subj':0}
-        obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5])}
+        obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5,0,0,1,1,2,2,2,3,4,5]),
+                   'fold':np.array([0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1])
+                   }
         chn_des = {'rois':np.array(['V1','V1','IT','IT','V4'])}
         self.test_data = rsa.data.Dataset(measurements=measurements,
                            descriptors=des,
@@ -99,6 +101,9 @@ class TestCalcRDM(unittest.TestCase):
         
     def test_calc_mahalanobis(self):
         rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'mahalanobis')
+        
+    def test_calc_crossnobis(self):
+        rdm = rsr.calc_rdm_crossnobis(self.test_data, descriptor = 'conds', cv_descriptor = 'fold')
         
     
 if __name__ == '__main__':

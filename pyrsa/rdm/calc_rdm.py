@@ -21,7 +21,7 @@ def calc_rdm(dataset, method = 'euclidean',descriptor = None, noise = None):
             method (String):
                 a description of the dissimilarity measure (e.g. 'Euclidean')
             descriptor (String):
-                obs_descriptors used to define the rows/columns of the RDM
+                obs_descriptor used to define the rows/columns of the RDM
             noise (numpy.ndarray):
                 precision matrix used to calculate the RDM
                 used only for Mahalanobis and Crossnobis estimators
@@ -48,7 +48,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
             dataset (pyrsa.data.DatasetBase):
                 The dataset the RDM is computed from
             descriptor (String):
-                obs_descriptors used to define the rows/columns of the RDM
+                obs_descriptor used to define the rows/columns of the RDM
                 defaults to one row/column per row in the dataset
         Returns:
             RDMs object with the one RDM
@@ -78,7 +78,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
             dataset (pyrsa.data.DatasetBase):
                 The dataset the RDM is computed from
             descriptor (String):
-                obs_descriptors used to define the rows/columns of the RDM
+                obs_descriptor used to define the rows/columns of the RDM
                 defaults to one row/column per row in the dataset
             noise (numpy.ndarray):
                 precision matrix used to calculate the RDM
@@ -104,51 +104,64 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     rdm.descriptors['noise'] = noise
     return rdm
 
-def calc_rdm_crossnobis(dataset, descriptor=None, noise= None, Nfolds=None):
+def calc_rdm_crossnobis(dataset,
+                        descriptor,
+                        noise = None,
+                        cv_descriptor = None
+                        ):
     """
     calculates an RDM from an input dataset using Cross-nobis distance
-    If multiple instances of the same condition are found in the dataset
-    they are averaged.
+    This performs leave one out crossvalidation over the cv_descriptor
 
         Args:
             dataset (pyrsa.data.DatasetBase):
                 The dataset the RDM is computed from
             descriptor (String):
-                obs_descriptors used to define the rows/columns of the RDM
+                obs_descriptor used to define the rows/columns of the RDM
                 defaults to one row/column per row in the dataset
             noise (numpy.ndarray):
                 precision matrix used to calculate the RDM
+            cv_descriptor (String):
+                obs_descriptor which determines the cross-validation folds
+                
         Returns:
             RDMs object with the one RDM
     """
     if noise is None:
-        noise = np.eye(measurements.shape[-1])
-    # measurements should be a list of measurements computed for the different repetitions/folds
-    if Nfolds is None:
-        Nfolds = len(measurements) # default to leave one out crossvalidation
-    measurements = np.array(measurements)
-    shape = measurements.shape[0:-3]
-    RDMs = np.zeros(shape+(Nfolds,measurements.shape[-2],measurements.shape[-2]))
-    if len(shape)==0:
-        for iCross in range(Nfolds):
-            measurements1 = measurements[iCross]
-            measurements2 = np.mean(np.concatenate((measurements[:iCross],measurements[(iCross+1):]),axis=0),axis=0)
-            RDMs[iCross] = calc_RDM_crossnobis_single(measurements1,measurements2,noise)
+        noise = np.eye(dataset.n_channel)
+    if descriptor is None:
+        raise ValueError('descriptor must be a string! Crossvalidation' +
+                         'requires multiple measurements to be grouped')    
+    cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
+    weights = []
+    rdms = []
+    for i_fold in cv_folds:
+        data_train = dataset.subset_obs(cv_descriptor,i_fold)
+        data_test = dataset.subset_obs(cv_descriptor,np.setdiff1d(cv_folds,i_fold))
+        measurements_train, desc = average_dataset_by(data_train, descriptor)
+        measurements_test, desc = average_dataset_by(data_test, descriptor)
+        rdm = calc_rdm_crossnobis_single(measurements_train,
+                                         measurements_test,
+                                         noise)
+        rdms.append(rdm)
+        weights.append(data_test.n_obs)
+    rdms = np.array(rdms)
+    weights = np.array(weights)
+    rdm = np.einsum('ij,i->j',rdms,weights)/np.sum(weights)
+    rdm = RDMs(dissimilarities = np.array([rdm]), dissimilarity_measure = 'crossnobis',
+                 descriptors = dataset.descriptors)
+    if descriptor is None:
+        rdm.pattern_descriptors['pattern'] = list(np.arange(rdm.n_cond))
     else:
-        RDMv = RDMs.reshape((np.prod(shape),Nfolds,measurements.shape[-2],measurements.shape[-2]))
-        measurements = measurements.reshape((np.prod(shape),measurements.shape[-3],measurements.shape[-2],measurements.shape[-1]))
-        for iRDM in range(RDMv.shape[0]):
-            for iCross in range(Nfolds):
-                measurements1 = measurements[iRDM,iCross]
-                measurements2 = np.mean(np.concatenate((measurements[iRDM,:iCross],measurements[iRDM,(iCross+1):]),axis=0),axis=0)
-                RDMs[iCross] = calc_RDM_crossnobis_single(measurements1,measurements2,noise)
-    RDM = np.mean(RDMs,axis=-3)
-    return RDM
+        rdm.pattern_descriptors[descriptor] = desc
+    rdm.descriptors['noise'] = noise
+    rdm.descriptors['cv_descriptor'] = cv_descriptor
+    return rdm
     
-def calc_RDM_crossnobis_single(measurements1,measurements2,noise):
-    C = get_cotrast_matrix(measurements1.shape[0])
-    Ds1 = np.matmul(C,measurements1)
-    Ds2 = np.matmul(C,measurements2)
-    Ds2 = np.linalg.solve(noise,Ds2.transpose())
-    RDM = np.einsum('kj,jk->k',Ds1,Ds2)/measurements1.shape[1]
-    return get_rdm_matrix(RDM)
+def calc_rdm_crossnobis_single(measurements1,measurements2,noise):
+    C = contrast_matrix(measurements1.shape[0])
+    diff_1 = np.matmul(C,measurements1)
+    diff_2 = np.matmul(C,measurements2)
+    diff_2 = np.matmul(noise,diff_2.transpose())
+    rdm = np.einsum('kj,jk->k',diff_1,diff_2)/measurements1.shape[1]
+    return rdm
