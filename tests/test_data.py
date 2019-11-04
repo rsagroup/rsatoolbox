@@ -119,8 +119,10 @@ class TestDataComputations(unittest.TestCase):
         self.assertEqual(avg.shape,(5,))
         
     def test_average_by(self):
-        avg = rsd.average_dataset_by(self.test_data,'conds')
+        avg,descriptor = rsd.average_dataset_by(self.test_data,'conds')
         self.assertEqual(avg.shape, (6,5))
+        self.assertEqual(len(descriptor),6)
+        self.assertEqual(descriptor[-1],5)
         assert(np.all(self.test_data.measurements[-1]==avg[-1]))
         
 if __name__ == '__main__':

@@ -31,5 +31,6 @@ def average_dataset_by(dataset, by):
             average(numpy.ndarray): average activation vector
     """
     datasets = dataset.split_obs(by)
+    descriptor = [d.obs_descriptors[by][0] for d in datasets]
     average = [average_dataset(d) for d in datasets]
-    return np.array(average)
+    return np.array(average), descriptor

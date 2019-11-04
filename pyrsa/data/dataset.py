@@ -143,6 +143,7 @@ class Dataset(DatasetBase):
             selection = (self.channel_descriptors[by] == v)
             measurements = self.measurements[:, selection]
             descriptors = self.descriptors
+            descriptors[by] = v
             obs_descriptors = self.obs_descriptors
             channel_descriptors = extract_dict(
                 self.channel_descriptors, selection)
