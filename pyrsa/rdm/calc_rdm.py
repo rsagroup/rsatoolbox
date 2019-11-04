@@ -11,7 +11,7 @@ from pyrsa.data.dataset import Dataset
 from pyrsa.data import average_dataset_by
 from pyrsa.util import contrast_matrix
 
-def calc_rdm(dataset, method = 'Euclidean',descriptor = None, noise = None):
+def calc_rdm(dataset, method = 'euclidean',descriptor = None, noise = None):
     """
     calculates an RDM from an input dataset
 
@@ -28,18 +28,12 @@ def calc_rdm(dataset, method = 'Euclidean',descriptor = None, noise = None):
         Returns:
             RDMs object with the one RDM
     """
-    measurements = dataset.measurements
-    
-    if method == 'Mahalanobis':
-        if noise is None:
-            noise = np.eye(measurements.shape[-1])
-        rdm = calc_rdm_mahalanobis(dataset,noise)
-    elif method == 'Euclidean':
+    if method == 'mahalanobis':
+        rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
+    elif method == 'euclidean':
         rdm = calc_rdm_euclid(dataset)
-    elif method == 'Crossnobis':
-        if noise is None:
-            noise = np.eye(measurements.shape[-1])
-        rdm = calc_rdm_crossnobis(measurements, noise)
+    elif method == 'crossnobis':
+        rdm = calc_rdm_crossnobis(dataset, descriptor, noise)
     else:
         raise(NotImplementedError)
     return rdm
@@ -91,23 +85,24 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
         Returns:
             RDMs object with the one RDM
     """
-    measurements = np.array(measurements)
-    shape = measurements.shape[0:-2]
-    RDM = np.zeros(shape+(measurements.shape[-2],measurements.shape[-2]))
-    if len(RDM.shape)==2:
-        for i in range(RDM.shape[0]):
-            for j in range(i,RDM.shape[1]):
-                RDM[i,j] = np.matmul((measurements[i,:]-measurements[j,:]),np.linalg.solve(noise,(measurements[i,:]-measurements[j,:]))) /measurements.shape[1]
-                RDM[j,i] = RDM[i,j]
+    if descriptor is None:
+        measurements = dataset.measurements
     else:
-        RDMv = RDM.reshape((np.prod(shape),measurements.shape[-2],measurements.shape[-2]))
-        measurements = measurements.reshape((np.prod(shape),measurements.shape[-2],measurements.shape[-1]))
-        for iRDM in range(RDMv.shape[0]):
-            for i in range(RDMv.shape[1]):
-                for j in range(i,RDMv.shape[2]):
-                    RDMv[iRDM,i,j] = np.matmul((measurements[i,:]-measurements[j,:]),np.linalg.solve(noise,(measurements[i,:]-measurements[j,:]))) /measurements.shape[-1]
-                    RDMv[iRDM,j,i] = RDM[iRDM,i,j]
-    return RDM
+        measurements,desc = average_dataset_by(dataset,descriptor)
+    if noise is None:
+        noise = np.eye(measurements.shape[-1])
+    c_matrix = contrast_matrix(measurements.shape[0])
+    diff = np.matmul(c_matrix,measurements)
+    diff2 = np.matmul(noise,diff.T).T
+    rdm = np.einsum('ij,ij->i',diff,diff2)/measurements.shape[1]
+    rdm = RDMs(dissimilarities = np.array([rdm]), dissimilarity_measure = 'Mahalanobis',
+                 descriptors = dataset.descriptors)
+    if descriptor is None:
+        rdm.pattern_descriptors['pattern'] = list(np.arange(diff.shape[0]))
+    else:
+        rdm.pattern_descriptors[descriptor] = desc
+    rdm.descriptors['noise'] = noise
+    return rdm
 
 def calc_rdm_crossnobis(dataset, descriptor=None, noise= None, Nfolds=None):
     """
@@ -126,6 +121,8 @@ def calc_rdm_crossnobis(dataset, descriptor=None, noise= None, Nfolds=None):
         Returns:
             RDMs object with the one RDM
     """
+    if noise is None:
+        noise = np.eye(measurements.shape[-1])
     # measurements should be a list of measurements computed for the different repetitions/folds
     if Nfolds is None:
         Nfolds = len(measurements) # default to leave one out crossvalidation

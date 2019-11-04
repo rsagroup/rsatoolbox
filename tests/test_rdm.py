@@ -95,7 +95,10 @@ class TestCalcRDM(unittest.TestCase):
                            )
         
     def test_calc_euclid(self):
-        rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'Euclidean')
+        rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'euclidean')
+        
+    def test_calc_mahalanobis(self):
+        rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'mahalanobis')
         
     
 if __name__ == '__main__':
