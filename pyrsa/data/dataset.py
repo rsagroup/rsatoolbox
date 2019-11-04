@@ -165,7 +165,10 @@ class Dataset(DatasetBase):
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
         """
-        selection = (self.obs_descriptors[by] == value)
+        if type(value) is list or type(value) is tuple:
+            selection = np.any(np.array([self.obs_descriptors[by]==v for v in value]),axis=0)
+        else:
+            selection = (self.obs_descriptors[by] == value)
         measurements = self.measurements[selection, :]
         descriptors = self.descriptors
         obs_descriptors = extract_dict(
@@ -188,7 +191,10 @@ class Dataset(DatasetBase):
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
         """
-        selection = (self.channel_descriptors[by] == value)
+        if type(value) is list or type(value) is tuple:
+            selection = np.any(np.array([self.channel_descriptors[by]==v for v in value]),axis=0)
+        else:
+            selection = (self.channel_descriptors[by] == value)
         measurements = self.measurements[:, selection]
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors

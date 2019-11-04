@@ -85,6 +85,10 @@ class TestData(unittest.TestCase):
         self.assertEqual(subset.n_obs,3)
         self.assertEqual(subset.n_channel,5)
         self.assertEqual(subset.obs_descriptors['conds'][0],2)
+        subset = data.subset_obs(by='conds',value=[2,3])
+        self.assertEqual(subset.n_obs,4)
+        self.assertEqual(subset.n_channel,5)
+        self.assertEqual(subset.obs_descriptors['conds'][0],2)
 
     def test_dataset_subset_channel(self):
         measurements = np.zeros((10,5))
@@ -100,6 +104,11 @@ class TestData(unittest.TestCase):
         self.assertEqual(subset.n_obs,10)
         self.assertEqual(subset.n_channel,2)
         self.assertEqual(subset.channel_descriptors['rois'][0],'IT')
+        subset = data.subset_channel(by='rois',value=['IT','V4'])
+        self.assertEqual(subset.n_obs,10)
+        self.assertEqual(subset.n_channel,3)
+        self.assertEqual(subset.channel_descriptors['rois'][0],'IT')
+        self.assertEqual(subset.channel_descriptors['rois'][-1],'V4')
 
 
 class TestDataComputations(unittest.TestCase):
