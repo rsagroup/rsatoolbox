@@ -55,7 +55,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
         Returns:
             RDMs object with the one RDM
     """
-    measurements, desc, descriptor =  _parse_input(dataset, descriptor)
+    measurements, desc, descriptor = _parse_input(dataset, descriptor)
     c_matrix = allpairs(np.arange(measurements.shape[0]))
     diff = np.matmul(c_matrix, measurements)
     rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
@@ -83,7 +83,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
         Returns:
             RDMs object with the one RDM
     """
-    measurements, desc, descriptor =  _parse_input(dataset, descriptor)
+    measurements, desc, descriptor = _parse_input(dataset, descriptor)
     if noise is None:
         noise = np.eye(measurements.shape[-1])
     c_matrix = allpairs(np.arange(measurements.shape[0]))
@@ -136,8 +136,8 @@ def calc_rdm_crossnobis(dataset,
         measurements_train, desc = average_dataset_by(data_train, descriptor)
         measurements_test, desc = average_dataset_by(data_test, descriptor)
         rdm = _calc_rdm_crossnobis_single(measurements_train,
-                                         measurements_test,
-                                         noise)
+                                          measurements_test,
+                                          noise)
         rdms.append(rdm)
         weights.append(data_test.n_obs)
     rdms = np.array(rdms)
@@ -172,4 +172,3 @@ def _parse_input(dataset, descriptor):
     else:
         measurements, desc = average_dataset_by(dataset, descriptor)
     return measurements, desc, descriptor
-    
