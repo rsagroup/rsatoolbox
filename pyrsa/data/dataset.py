@@ -166,7 +166,8 @@ class Dataset(DatasetBase):
             Dataset, with subset defined by the selected obs_descriptor
         """
         if type(value) is list or type(value) is tuple:
-            selection = np.array([self.obs_descriptors[by]==v for v in value])
+            selection = np.array([self.obs_descriptors[by] == v
+                                  for v in value])
             selection = np.any(selection, axis=0)
         else:
             selection = (self.obs_descriptors[by] == value)
@@ -193,7 +194,8 @@ class Dataset(DatasetBase):
             Dataset, with subset defined by the selected channel_descriptor
         """
         if type(value) is list or type(value) is tuple:
-            selection = np.array([self.channel_descriptors[by]==v for v in value])
+            selection = np.array([self.channel_descriptors[by] == v
+                                  for v in value])
             selection = np.any(selection, axis=0)
         else:
             selection = (self.channel_descriptors[by] == value)

@@ -4,12 +4,10 @@
 Collection of helper methods for rdm module
     batch_to_vectors:  batch squareform() to vectors
     batch_to_matrices: batch squareform() to matrices
-    get_unique_unsorted: return a unique unsorted list
 @author: baihan
 """
 
 import numpy as np
-import pyrsa as rsa
 from scipy.spatial.distance import squareform
 
 
@@ -23,7 +21,7 @@ def batch_to_vectors(x):
         Returns:
             v(np.ndarray):
                 2D, vector form of the stack of RDMs
-            n_rdm(int): 
+            n_rdm(int):
                 number of rdms
             n_cond(int)
                 number of conditions
