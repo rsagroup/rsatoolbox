@@ -11,7 +11,8 @@ from pyrsa.data.dataset import Dataset
 from pyrsa.data import average_dataset_by
 from pyrsa.util import contrast_matrix
 
-def calc_rdm(dataset, method = 'euclidean',descriptor = None, noise = None):
+
+def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
     """
     calculates an RDM from an input dataset
 
@@ -38,6 +39,7 @@ def calc_rdm(dataset, method = 'euclidean',descriptor = None, noise = None):
         raise(NotImplementedError)
     return rdm
 
+
 def calc_rdm_euclid(dataset, descriptor=None):
     """
     calculates an RDM from an input dataset using euclidean distance
@@ -56,17 +58,18 @@ def calc_rdm_euclid(dataset, descriptor=None):
     if descriptor is None:
         measurements = dataset.measurements
     else:
-        measurements,desc = average_dataset_by(dataset,descriptor)
+        measurements,desc = average_dataset_by(dataset, descriptor)
     c_matrix = contrast_matrix(measurements.shape[0])
-    diff = np.matmul(c_matrix,measurements)
-    rdm = np.einsum('ij,ij->i',diff,diff)/measurements.shape[1]
-    rdm = RDMs(dissimilarities = np.array([rdm]), dissimilarity_measure = 'euclidean',
-                 descriptors = dataset.descriptors)
+    diff = np.matmul(c_matrix, measurements)
+    rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
+    rdm = RDMs(dissimilarities = np.array([rdm]), dissimilarity_measure='euclidean',
+                 descriptors=dataset.descriptors)
     if descriptor is None:
         rdm.pattern_descriptors['pattern'] = list(np.arange(diff.shape[0]))
     else:
         rdm.pattern_descriptors[descriptor] = desc
     return rdm
+
 
 def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     """
@@ -92,11 +95,11 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     if noise is None:
         noise = np.eye(measurements.shape[-1])
     c_matrix = contrast_matrix(measurements.shape[0])
-    diff = np.matmul(c_matrix,measurements)
+    diff = np.matmul(c_matrix, measurements)
     diff2 = np.matmul(noise,diff.T).T
-    rdm = np.einsum('ij,ij->i',diff,diff2)/measurements.shape[1]
-    rdm = RDMs(dissimilarities = np.array([rdm]), dissimilarity_measure = 'Mahalanobis',
-                 descriptors = dataset.descriptors)
+    rdm = np.einsum('ij,ij->i', diff, diff2) / measurements.shape[1]
+    rdm = RDMs(dissimilarities=np.array([rdm]), dissimilarity_measure='Mahalanobis',
+                 descriptors=dataset.descriptors)
     if descriptor is None:
         rdm.pattern_descriptors['pattern'] = list(np.arange(diff.shape[0]))
     else:
@@ -104,10 +107,11 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     rdm.descriptors['noise'] = noise
     return rdm
 
+
 def calc_rdm_crossnobis(dataset,
                         descriptor,
-                        noise = None,
-                        cv_descriptor = None
+                        noise=None,
+                        cv_descriptor=None
                         ):
     """
     calculates an RDM from an input dataset using Cross-nobis distance
@@ -136,8 +140,8 @@ def calc_rdm_crossnobis(dataset,
     weights = []
     rdms = []
     for i_fold in cv_folds:
-        data_train = dataset.subset_obs(cv_descriptor,i_fold)
-        data_test = dataset.subset_obs(cv_descriptor,np.setdiff1d(cv_folds,i_fold))
+        data_train = dataset.subset_obs(cv_descriptor, i_fold)
+        data_test = dataset.subset_obs(cv_descriptor, np.setdiff1d(cv_folds, i_fold))
         measurements_train, desc = average_dataset_by(data_train, descriptor)
         measurements_test, desc = average_dataset_by(data_test, descriptor)
         rdm = calc_rdm_crossnobis_single(measurements_train,
@@ -157,7 +161,8 @@ def calc_rdm_crossnobis(dataset,
     rdm.descriptors['noise'] = noise
     rdm.descriptors['cv_descriptor'] = cv_descriptor
     return rdm
-    
+
+
 def calc_rdm_crossnobis_single(measurements1,measurements2,noise):
     C = contrast_matrix(measurements1.shape[0])
     diff_1 = np.matmul(C,measurements1)

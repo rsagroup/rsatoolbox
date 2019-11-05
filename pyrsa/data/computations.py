@@ -7,26 +7,28 @@ Dataset computations
 
 import numpy as np
 
+
 def average_dataset(dataset):
     """
     computes the average of a dataset
-    
+
         Args:
-            dataset(pyrsa.data.Dataset): the dataset to operate on 
-            
+            dataset(pyrsa.data.Dataset): the dataset to operate on
+
         Returns:
             average(numpy.ndarray): average activation vector
     """
-    return np.mean(dataset.measurements, axis = 0)
+    return np.mean(dataset.measurements, axis=0)
+
 
 def average_dataset_by(dataset, by):
     """
     computes the average of a dataset per value of a descriptor
-    
+
         Args:
-            dataset(pyrsa.data.Dataset): the dataset to operate on 
+            dataset(pyrsa.data.Dataset): the dataset to operate on
             by(String): which obs_descriptor to split by
-            
+
         Returns:
             average(numpy.ndarray): average activation vector
     """
