@@ -36,7 +36,7 @@ def batch_to_vectors(x):
         n_cond = x.shape[1]
         v = np.ndarray((n_rdm, int(n_cond * (n_cond - 1) / 2)))
         for idx in np.arange(n_rdm):
-            v[idx, :] = squareform(m[idx, :, :])
+            v[idx, :] = squareform(m[idx, :, :], checks=False)
     return v, n_rdm, n_cond
 
 
