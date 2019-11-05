@@ -10,11 +10,11 @@ Functions for data simulation a specific RSA-model
 
 import pyrsa as rsa
 import numpy as np 
-import scipy.stats as ss 
-import scipy.linalg as sl 
+import scipy.stats as ss
+import scipy.linalg as sl
 
 
-def make_design(n_cond,n_part):
+def make_design(n_cond, n_part):
     """
     Makes simple fMRI design with n_cond, each measures n_part times 
 
@@ -22,19 +22,19 @@ def make_design(n_cond,n_part):
         n_cond (int):          Number of conditions 
         n_part (int):          Number of partitions 
     Returns:
-        Tuple (cond_vec,part_vec)
+        Tuple (cond_vec, part_vec)
         cond_vec (np.ndarray): n_obs vector with condition 
         part_vec (np.ndarray): n_obs vector with partition 
     """
-    p = np.array(range(0,n_part))
-    c = np.array(range(0,n_cond))
-    cond_vec = np.kron(np.ones((n_part,)),c) # Condition Vector 
-    part_vec = np.kron(p,np.ones((n_cond,))) # Partition vector 
+    p = np.array(range(0, n_part))
+    c = np.array(range(0, n_cond))
+    cond_vec = np.kron(np.ones((n_part,)), c) # Condition Vector
+    part_vec = np.kron(p,np.ones((n_cond,)))  # Partition vector
     return(cond_vec,part_vec)
 
-def make_dataset(model,theta,cond_vec,n_channel=30,n_sim = 1,\
-                 signal = 1,noise = 1,noise_cov = None,\
-                 part_vec=None): 
+def make_dataset(model, theta, cond_vec, n_channel=30, n_sim = 1,\
+                 signal = 1, noise = 1, noise_cov = None,\
+                 part_vec=None):
     """
     Simulates a fMRI-style data set with a set of partitions 
 
@@ -58,11 +58,11 @@ def make_dataset(model,theta,cond_vec,n_channel=30,n_sim = 1,\
     # Make design matrix 
     if (cond_vec.ndim == 1):
         Zcond = pcm.indicator.identity(cond_vec)
-    elif (cond_vec.ndim == 2): 
+    elif (cond_vec.ndim == 2):
         Zcond = cond_vec
     else:
         raise(NameError("cond_vec needs to be either condition vector or design matrix"))
-    n_obs,n_cond = Zcond.shape
+    n_obs, n_cond = Zcond.shape
     
     # If noise_cov given, precalculate the cholinsky decomp 
     if (noise_cov is not None): 
@@ -71,7 +71,7 @@ def make_dataset(model,theta,cond_vec,n_channel=30,n_sim = 1,\
         noise_chol = np.linalg.cholesky(noise_cov)
         
     # Generate the true patterns with exactly correct second moment matrix 
-    true_U = np.random.uniform(0,1,size=(n_cond,n_channel))
+    true_U = np.random.uniform(0, 1, size=(n_cond, n_channel))
     true_U = ss.norm.ppf(true_U)  # We use two-step procedure allow for different distributions later on 
     # Make orthonormal row vectors  
     E = true_U @ true_U.transpose() 
@@ -80,8 +80,8 @@ def make_dataset(model,theta,cond_vec,n_channel=30,n_sim = 1,\
     
     # Now produce data with the known second-moment matrix 
     # Use positive eigenvectors only (cholesky does not work with rank-deficient matrices)
-    l,V=np.linalg.eig(G)  
-    l[l<1e-15]=0          
+    l, V = np.linalg.eig(G)  
+    l[l<1e-15] = 0
     l = np.sqrt(l)   
     chol_G = V.real*l.real.reshape((1,l.size))  
     true_U = (chol_G @ true_U) * np.sqrt(n_channel)
@@ -91,7 +91,7 @@ def make_dataset(model,theta,cond_vec,n_channel=30,n_sim = 1,\
     # across different partitions 
     data = np.empty((n_sim,n_obs,n_channel))
     for i in range(0,n_sim):
-        epsilon = np.random.uniform(0,1,size=(n_obs,n_channel))
+        epsilon = np.random.uniform(0, 1, size=(n_obs, n_channel))
         epsilon = ss.norm.ppf(epsilon)*np.sqrt(noise)  # Allows alter for providing own cdf for noise distribution 
         if (noise_cov is not None):         
             epsilon   = epsilon @ noise_chol
