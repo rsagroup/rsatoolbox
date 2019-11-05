@@ -32,8 +32,8 @@ def make_design(n_cond, n_part):
     part_vec = np.kron(p,np.ones((n_cond,)))  # Partition vector
     return(cond_vec,part_vec)
 
-def make_dataset(model, theta, cond_vec, n_channel=30, n_sim = 1,\
-                 signal = 1, noise = 1, noise_cov = None,\
+def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,\
+                 signal=1, noise=1, noise_cov=None,\
                  part_vec=None):
     """
     Simulates a fMRI-style data set with a set of partitions
@@ -44,10 +44,10 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim = 1,\
         cond_vec (numpy.ndarray): RSA-style model: vector of experimental conditions
                                   Encoding-style model: design matrix (n_obs x n_cond)
         n_channel (int):          Number of channels (default = 30)
-        n_sim (int):              Number of data set simulation with the same signal (default = 1)
+        n_sim (int):              Number of simulation with the same signal (default = 1)
         signal (float):           Signal variance (multiplied by predicted G)
-        noise (float)             Noise variance (mulitplied by spatial noise_cov if given)
-        noise_cov (numpy.ndarray):n_channel x n_channel covariance structure of noise (default = identity)
+        noise (float)             Noise variance (*noise_cov if given)
+        noise_cov (numpy.ndarray):n_channel x n_channel covariance matrix of noise (default = identity)
         part_vec (numpy.ndarray): optional partition vector if within-partition covariance is specified
     Returns:
         data (rsa.Dataset):       Dataset with obs_descriptors.
@@ -76,27 +76,27 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim = 1,\
     # Make orthonormal row vectors
     E = true_U @ true_U.transpose()
     L = np.linalg.cholesky(E)
-    true_U = np.linalg.solve(L,true_U)
+    true_U = np.linalg.solve(L, true_U)
 
     # Now produce data with the known second-moment matrix
     # Use positive eigenvectors only (cholesky does not work with rank-deficient matrices)
     l, V = np.linalg.eig(G)
     l[l<1e-15] = 0
     l = np.sqrt(l)
-    chol_G = V.real*l.real.reshape((1,l.size))
+    chol_G = V.real*l.real.reshape((1, l.size))
     true_U = (chol_G @ true_U) * np.sqrt(n_channel)
 
     # Generate noise as a matrix normal, independent across partitions
     # If noise covariance structure is given, it is assumed that it's the same
     # across different partitions
-    data = np.empty((n_sim,n_obs,n_channel))
-    for i in range(0,n_sim):
+    data = np.empty((n_sim, n_obs, n_channel))
+    for i in range(0, n_sim):
         epsilon = np.random.uniform(0, 1, size=(n_obs, n_channel))
         epsilon = ss.norm.ppf(epsilon)*np.sqrt(noise)  # Allows alter for providing own cdf for noise distribution
         if (noise_cov is not None):
-            epsilon   = epsilon @ noise_chol
+            epsilon=epsilon @ noise_chol
         data[i,:,:] = Zcond@true_U * np.sqrt(signal) + epsilon
     obs_des = {"cond_vec": cond_vec}
     des     = {"signal": signal,"noise":noise,"model":model.name,"theta": theta}
-    dataset = rsa.Dataset(data,obs_descriptors = obs_des,descriptors = des)
+    dataset = rsa.Dataset(data,obs_descriptors=obs_des,descriptors=des)
     return dataset
