@@ -84,7 +84,7 @@ def calc_rdm_correlation(dataset, descriptor=None):
             RDMs object with the one RDM
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
-    rdm = 1-np.corrcoef(measurements)
+    rdm = 1 - np.corrcoef(measurements)
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='euclidean',
                descriptors=dataset.descriptors)
