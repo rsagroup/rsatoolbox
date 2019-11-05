@@ -95,16 +95,22 @@ class TestCalcRDM(unittest.TestCase):
                            obs_descriptors=obs_des,
                            channel_descriptors=chn_des
                            )
-        
+
     def test_calc_euclid(self):
         rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'euclidean')
+        assert rdm.n_cond == 6
+        
+    def test_calc_correlation(self):
+        rdm = rsr.calc_rdm_correlation(self.test_data, descriptor = 'conds')
+        assert rdm.n_cond == 6
         
     def test_calc_mahalanobis(self):
         rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'mahalanobis')
+        assert rdm.n_cond == 6
         
     def test_calc_crossnobis(self):
         rdm = rsr.calc_rdm_crossnobis(self.test_data, descriptor = 'conds', cv_descriptor = 'fold')
-        
-    
+        assert rdm.n_cond == 6
+
 if __name__ == '__main__':
     unittest.main()  

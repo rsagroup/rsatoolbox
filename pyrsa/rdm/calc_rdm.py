@@ -29,10 +29,12 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
         Returns:
             RDMs object with the one RDM
     """
-    if method == 'mahalanobis':
+    if method == 'euclidean':
+        rdm = calc_rdm_euclid(dataset, descriptor)
+    elif method == 'correlation':
+        rdm = calc_rdm_correlation(dataset, descriptor)
+    elif method == 'mahalanobis':
         rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
-    elif method == 'euclidean':
-        rdm = calc_rdm_euclid(dataset)
     elif method == 'crossnobis':
         rdm = calc_rdm_crossnobis(dataset, descriptor, noise)
     else:
@@ -59,6 +61,30 @@ def calc_rdm_euclid(dataset, descriptor=None):
     c_matrix = allpairs(np.arange(measurements.shape[0]))
     diff = np.matmul(c_matrix, measurements)
     rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
+    rdm = RDMs(dissimilarities=np.array([rdm]),
+               dissimilarity_measure='euclidean',
+               descriptors=dataset.descriptors)
+    rdm.pattern_descriptors[descriptor] = desc
+    return rdm
+
+
+def calc_rdm_correlation(dataset, descriptor=None):
+    """
+    calculates an RDM from an input dataset using correlation distance
+    If multiple instances of the same condition are found in the dataset
+    they are averaged.
+
+        Args:
+            dataset (pyrsa.data.DatasetBase):
+                The dataset the RDM is computed from
+            descriptor (String):
+                obs_descriptor used to define the rows/columns of the RDM
+                defaults to one row/column per row in the dataset
+        Returns:
+            RDMs object with the one RDM
+    """
+    measurements, desc, descriptor = _parse_input(dataset, descriptor)
+    rdm = 1-np.corrcoef(measurements)
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='euclidean',
                descriptors=dataset.descriptors)
