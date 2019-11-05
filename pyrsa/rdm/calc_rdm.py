@@ -55,12 +55,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
         Returns:
             RDMs object with the one RDM
     """
-    if descriptor is None:
-        measurements = dataset.measurements
-        desc = list(np.arange(measurements.shape[0]))
-        descriptor = 'pattern'
-    else:
-        measurements, desc = average_dataset_by(dataset, descriptor)
+    measurements, desc, descriptor =  _parse_input(dataset, descriptor)
     c_matrix = allpairs(np.arange(measurements.shape[0]))
     diff = np.matmul(c_matrix, measurements)
     rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
@@ -88,12 +83,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
         Returns:
             RDMs object with the one RDM
     """
-    if descriptor is None:
-        measurements = dataset.measurements
-        desc = list(np.arange(measurements.shape[0]))
-        descriptor = 'pattern'
-    else:
-        measurements, desc = average_dataset_by(dataset, descriptor)
+    measurements, desc, descriptor =  _parse_input(dataset, descriptor)
     if noise is None:
         noise = np.eye(measurements.shape[-1])
     c_matrix = allpairs(np.arange(measurements.shape[0]))
@@ -145,7 +135,7 @@ def calc_rdm_crossnobis(dataset,
                                        np.setdiff1d(cv_folds, i_fold))
         measurements_train, desc = average_dataset_by(data_train, descriptor)
         measurements_test, desc = average_dataset_by(data_test, descriptor)
-        rdm = calc_rdm_crossnobis_single(measurements_train,
+        rdm = _calc_rdm_crossnobis_single(measurements_train,
                                          measurements_test,
                                          noise)
         rdms.append(rdm)
@@ -165,10 +155,21 @@ def calc_rdm_crossnobis(dataset,
     return rdm
 
 
-def calc_rdm_crossnobis_single(measurements1, measurements2, noise):
+def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
     c_matrix = allpairs(np.arange(measurements1.shape[0]))
     diff_1 = np.matmul(c_matrix, measurements1)
     diff_2 = np.matmul(c_matrix, measurements2)
     diff_2 = np.matmul(noise, diff_2.transpose())
     rdm = np.einsum('kj,jk->k', diff_1, diff_2) / measurements1.shape[1]
     return rdm
+
+
+def _parse_input(dataset, descriptor):
+    if descriptor is None:
+        measurements = dataset.measurements
+        desc = list(np.arange(measurements.shape[0]))
+        descriptor = 'pattern'
+    else:
+        measurements, desc = average_dataset_by(dataset, descriptor)
+    return measurements, desc, descriptor
+    
