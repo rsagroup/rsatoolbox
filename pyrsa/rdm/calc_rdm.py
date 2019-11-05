@@ -57,6 +57,8 @@ def calc_rdm_euclid(dataset, descriptor=None):
     """
     if descriptor is None:
         measurements = dataset.measurements
+        desc = list(np.arange(measurements.shape[0]))
+        descriptor = 'pattern'
     else:
         measurements, desc = average_dataset_by(dataset, descriptor)
     c_matrix = allpairs(np.arange(measurements.shape[0]))
@@ -65,10 +67,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='euclidean',
                descriptors=dataset.descriptors)
-    if descriptor is None:
-        rdm.pattern_descriptors['pattern'] = list(np.arange(diff.shape[0]))
-    else:
-        rdm.pattern_descriptors[descriptor] = desc
+    rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
 
@@ -91,6 +90,8 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     """
     if descriptor is None:
         measurements = dataset.measurements
+        desc = list(np.arange(measurements.shape[0]))
+        descriptor = 'pattern'
     else:
         measurements, desc = average_dataset_by(dataset, descriptor)
     if noise is None:
@@ -102,10 +103,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='Mahalanobis',
                descriptors=dataset.descriptors)
-    if descriptor is None:
-        rdm.pattern_descriptors['pattern'] = list(np.arange(diff.shape[0]))
-    else:
-        rdm.pattern_descriptors[descriptor] = desc
+    rdm.pattern_descriptors[descriptor] = desc
     rdm.descriptors['noise'] = noise
     return rdm
 
