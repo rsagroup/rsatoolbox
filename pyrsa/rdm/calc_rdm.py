@@ -9,7 +9,7 @@ import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.data.dataset import Dataset
 from pyrsa.data import average_dataset_by
-from pyrsa.util import contrast_matrix
+from pyrsa.util.indicator import allpairs
 
 
 def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
@@ -59,7 +59,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
         measurements = dataset.measurements
     else:
         measurements, desc = average_dataset_by(dataset, descriptor)
-    c_matrix = contrast_matrix(measurements.shape[0])
+    c_matrix = allpairs(np.arange(measurements.shape[0]))
     diff = np.matmul(c_matrix, measurements)
     rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
@@ -95,7 +95,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
         measurements, desc = average_dataset_by(dataset, descriptor)
     if noise is None:
         noise = np.eye(measurements.shape[-1])
-    c_matrix = contrast_matrix(measurements.shape[0])
+    c_matrix = allpairs(np.arange(measurements.shape[0]))
     diff = np.matmul(c_matrix, measurements)
     diff2 = np.matmul(noise, diff.T).T
     rdm = np.einsum('ij,ij->i', diff, diff2) / measurements.shape[1]
@@ -168,9 +168,9 @@ def calc_rdm_crossnobis(dataset,
 
 
 def calc_rdm_crossnobis_single(measurements1, measurements2, noise):
-    C = contrast_matrix(measurements1.shape[0])
-    diff_1 = np.matmul(C, measurements1)
-    diff_2 = np.matmul(C, measurements2)
+    c_matrix = allpairs(np.arange(measurements1.shape[0]))
+    diff_1 = np.matmul(c_matrix, measurements1)
+    diff_2 = np.matmul(c_matrix, measurements2)
     diff_2 = np.matmul(noise, diff_2.transpose())
     rdm = np.einsum('kj,jk->k', diff_1, diff_2) / measurements1.shape[1]
     return rdm
