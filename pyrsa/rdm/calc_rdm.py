@@ -62,7 +62,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
     c_matrix = contrast_matrix(measurements.shape[0])
     diff = np.matmul(c_matrix, measurements)
     rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
-    rdm = RDMs(dissimilarities = np.array([rdm]),
+    rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='euclidean',
                descriptors=dataset.descriptors)
     if descriptor is None:
