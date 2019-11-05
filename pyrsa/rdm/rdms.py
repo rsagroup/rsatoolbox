@@ -8,6 +8,7 @@ Definition of RSA RDMs class and subclasses
 import numpy as np
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
+from pyrsa.util.descriptor_utils import format_descriptor
 
 
 class RDMs:
@@ -32,6 +33,29 @@ class RDMs:
             batch_to_vectors(dissimilarities)
         self.descriptors = descriptors
         self.dissimilarity_measure = dissimilarity_measure
+        
+    def __repr__(self):
+        """
+        defines string which is printed for the object
+        """
+        return (f'pyrsa.rdm.{self.__class__.__name__}(\n'
+                f'dissimilarity_measure = \n{self.dissimilarity_measure}\n'
+                f'dissimilarities = \n{self.dissimilarities}\n'
+                f'descriptors = \n{self.descriptors}\n'
+               )
+
+    def __str__(self):
+        """
+        defines the output of print 
+        """
+        string_desc = format_descriptor(self.descriptors)
+        diss = self.get_matrices()[0]
+        return (f'pyrsa.rdm.{self.__class__.__name__}\n'
+                f'{self.n_rdm} RDM(s) over {self.n_cond} conditions\n\n'
+                f'dissimilarity_measure = \n{self.dissimilarity_measure}\n\n'
+                f'dissimilarities[0] = \n{diss}\n\n'
+                f'descriptors: \n{string_desc}\n'
+               )
 
     def get_vectors(self):
         """ Returns RDMs as np.ndarray with each RDM as a vector
