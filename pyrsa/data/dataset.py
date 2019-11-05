@@ -59,17 +59,17 @@ class DatasetBase:
                 f'descriptors = \n{self.descriptors}\n'
                 f'obs_descriptors = \n{self.obs_descriptors}\n'
                 f'channel_descriptors = \n{self.channel_descriptors}\n'
-               )
+                )
 
     def __str__(self):
         """
-        defines the output of print 
+        defines the output of print
         """
         string_desc = format_descriptor(self.descriptors)
         string_obs_desc = format_descriptor(self.obs_descriptors)
         string_channel_desc = format_descriptor(self.channel_descriptors)
-        if self.measurements.shape[0]>5:
-            measurements = self.measurements[:5,:]
+        if self.measurements.shape[0] > 5:
+            measurements = self.measurements[:5, :]
         else:
             measurements = self.measurements
         return (f'pyrsa.data.{self.__class__.__name__}\n'
@@ -77,7 +77,7 @@ class DatasetBase:
                 f'descriptors: \n{string_desc}\n\n'
                 f'obs_descriptors: \n{string_obs_desc}\n\n'
                 f'channel_descriptors: \n{string_channel_desc}\n'
-               )
+                )
 
     def split_obs(self, by):
         """ Returns a list Datasets splited by obs

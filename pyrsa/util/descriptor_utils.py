@@ -8,7 +8,7 @@ Descriptor handling
 
 
 def format_descriptor(descriptors):
-    """ formats a descriptor dictionary 
+    """ formats a descriptor dictionary
         Args:
             descriptors(dict): the descriptor dictionary
 
