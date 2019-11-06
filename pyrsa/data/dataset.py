@@ -33,8 +33,8 @@ class DatasetBase:
         Returns:
             dataset object
     """
-    def __init__(self, measurements, descriptors={},
-                 obs_descriptors={}, channel_descriptors={}):
+    def __init__(self, measurements, descriptors=None,
+                 obs_descriptors=None, channel_descriptors=None):
         if measurements is not None:
             if measurements.ndim != 2:
                 raise AttributeError(
@@ -46,9 +46,18 @@ class DatasetBase:
                                     self.n_obs)
         check_descriptors_dimension(channel_descriptors, "channel_descriptors",
                                     self.n_channel)
-        self.descriptors = descriptors
-        self.obs_descriptors = obs_descriptors
-        self.channel_descriptors = channel_descriptors
+        if descriptors is None:
+            self.descriptors = {}
+        else:
+            self.descriptors = descriptors
+        if descriptors is None:
+            self.obs_descriptors = {}
+        else:
+            self.obs_descriptors = obs_descriptors
+        if descriptors is None:
+            self.channel_descriptors = {}
+        else:
+            self.channel_descriptors = channel_descriptors
 
     def __repr__(self):
         """

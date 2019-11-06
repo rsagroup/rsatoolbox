@@ -26,12 +26,15 @@ class RDMs:
         Returns:
             RDMs object
     """
-    def __init__(self, dissimilarities=None,
+    def __init__(self, dissimilarities,
                  dissimilarity_measure=None,
                  descriptors=None):
         self.dissimilarities, self.n_rdm, self.n_cond = \
             batch_to_vectors(dissimilarities)
-        self.descriptors = descriptors
+        if descriptors is None:
+            self.descriptors = {}
+        else:
+            self.descriptors = descriptors
         self.dissimilarity_measure = dissimilarity_measure
 
     def __repr__(self):
