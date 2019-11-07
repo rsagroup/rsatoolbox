@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Collection of different n_uniqueinds of indicator Matrices
-    identity: One column per unique element in vector
-    identity_pos: One column per unique non-zero element
-    allpairs:     All n_unique*(n_unique-1)/2 pairwise contrasts
+Collection of different utility Matrices
+    indicator:  One column with an indicator variable for each unique element in vector
+    pairwise_contrast:  All n_unique*(n_unique-1)/2 pairwise contrasts
+    centering: Centering matrix which, by multiplication, removes the column or row mean 
 @author: jdiedrichsen
 """
 
 import numpy as np
 
-
-def identity(index_vector, positive=False):
-    """ Indicator matriindicator_matrix with one
+def indicator(index_vector, positive=False):
+    """ Indicator matrix with one
         column per unique element in vector
         Args:
             index_vector (numpy.ndarray): n_row vector to
-            code - discrete values (one dimensional)
+                code - discrete values (one dimensional)
+            positive (bool): should the function ignore zero
+                negative entries in the index_vector?
+                Default: false
         Returns:
-            indicator_matrix (numpy.ndarray): n_row indicator_matrix
-                n_values indicator matriindicator_matrix
+            indicator_matrix (numpy.ndarray): nrow x nconditions
+                indicator matrix 
     """
     c_unique = np.unique(index_vector)
     n_unique = c_unique.size
@@ -33,15 +35,14 @@ def identity(index_vector, positive=False):
     return indicator_matrix
 
 
-def allpairs(index_vector):
-    """ Indicator matriindicator_matrix with one row per unqiue pair
+def pairwise_contrast(index_vector):
+    """ Contrast matrix with one row per unqiue pairwise contrast
         Args:
             index_vector (numpy.ndarray): n_row vector to code
                                - discrete values (one dimensional)
         Returns:
-            indicator_matrix (numpy.ndarray): n_values *
-            (n_values-1)/2
-            indicator_matrix n_row contrast matriindicator_matrix
+            constrast_matrix (numpy.ndarray): n_values *
+                (n_values-1)/2 
     """
     c_unique = np.unique(index_vector)
     n_unique = c_unique.size
@@ -58,3 +59,13 @@ def allpairs(index_vector):
             indicator_matrix[n_row, select] = -1. / sum(select)
             n_row = n_row + 1
     return indicator_matrix
+
+def centering(size):
+    """ generates a centering matrix 
+        Args:
+            size (int): size of the center matrix
+        Returns:
+            centering_matrix (numpy.ndarray): size * size
+    """
+    centering_matrix = np.identity(size)-np.ones(size)/size
+    return centering_matrix

@@ -1,1 +1,1 @@
-import pyrsa.util.indicator as indicator
+import pyrsa.util.matrix as matrix
