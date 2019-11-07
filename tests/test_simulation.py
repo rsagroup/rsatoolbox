@@ -4,18 +4,23 @@
 """
 
 import unittest
-import pyrsa.simulation as sim
+import pyrsa.simulation.sim as sim
 import pyrsa.model as model
 import numpy as np
 
+class TestSimulation(unittest.TestCase):
+    def test_make_design(self):
+        # Test for make_design 
+        cond_vec,part_vec = sim.make_design(4, 8)
+        self.assertEqual(cond_vec.size,32)
 
-class test_ModelFixed(unittest.TestCase):
-    """ Tests for the fixed model class
-    """
-    def test_creation(self):
-        rdm = np.array(np.ones(6))
-        m = model.ModelFixed('Test Model',rdm)
-        m.fit([])
-        pred = m.predict()
-        assert np.all(pred == rdm)
-        
+    def test_make_data(self):
+        # Test for make_data 
+        cond_vec,part_vec = sim.make_design(4, 8)
+        M = model.ModelFixed("test", np.array([2, 2, 2, 1, 1, 1]))
+        D = sim.make_dataset(M, None, cond_vec, n_channel=40)
+        self.assertEqual(D[0].n_obs, 32)
+        self.assertEqual(D[0].n_channel, 40)
+
+if __name__ == '__main__':
+    unittest.main()

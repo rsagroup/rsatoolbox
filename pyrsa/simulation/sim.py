@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Functions for data simulation a specific RSA-model
-    identity: One column per unique element in vector
-    identity_pos: One column per unique non-zero element
-    allpairs:     All n_unique*(n_unique-1)/2 pairwise contrasts
+    make_design: creates design and condition vectors for fMRI design
+    make_dataset: creates a data set based on an RDM model
 @author: jdiedrichsen
 """
 
@@ -12,6 +11,7 @@ import pyrsa as rsa
 import numpy as np
 import scipy.stats as ss
 import scipy.linalg as sl
+from scipy.spatial.distance import squareform
 
 
 def make_design(n_cond, n_part):
@@ -32,9 +32,9 @@ def make_design(n_cond, n_part):
     part_vec = np.kron(p,np.ones((n_cond,)))  # Partition vector
     return(cond_vec,part_vec)
 
+
 def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,\
-                 signal=1, noise=1, noise_cov=None,\
-                 part_vec=None):
+                 signal=1, noise=1, noise_cov=None, part_vec=None):
     """
     Simulates a fMRI-style data set with a set of partitions
 
@@ -50,14 +50,19 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,\
         noise_cov (numpy.ndarray):n_channel x n_channel covariance matrix of noise (default = identity)
         part_vec (numpy.ndarray): optional partition vector if within-partition covariance is specified
     Returns:
-        data (rsa.Dataset):       Dataset with obs_descriptors.
+        data (list):              List of rsa.Dataset with obs_descriptors
     """
 
-    RDM = model.predict(theta)    # Get the model prediction
+    # Get the model prediction and build second moment matrix
+    # Note that this step assumes that RDM uses squared Euclidean distances
+    RDM = model.predict(theta)
+    D = squareform(RDM)
+    H = rsa.util.matrix.centering(D.shape[0])
+    G = -0.5 * (H @ D @ H)
 
     # Make design matrix
     if (cond_vec.ndim == 1):
-        Zcond = rsu.indicator.identity(cond_vec)
+        Zcond = rsa.util.matrix.indicator(cond_vec)
     elif (cond_vec.ndim == 2):
         Zcond = cond_vec
     else:
@@ -70,7 +75,37 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,\
             raise(NameError("noise covariance needs to be n_channel x n_channel array"))
         noise_chol = np.linalg.cholesky(noise_cov)
 
+    # Generate the signal - here same for all simulations
+    true_U = make_exact_signal(G,n_channel)
+
+    # Generate noise as a matrix normal, independent across partitions
+    # If noise covariance structure is given, it is assumed that it's the same
+    # across different partitions
+    obs_des = {"cond_vec": cond_vec}
+    des     = {"signal": signal,"noise":noise,"model":model.name,"theta": theta}
+    dataset_list = []
+    for i in range(0, n_sim):
+        epsilon = np.random.uniform(0, 1, size=(n_obs, n_channel))
+        epsilon = ss.norm.ppf(epsilon)*np.sqrt(noise)  # Allows alter for providing own cdf for noise distribution
+        if (noise_cov is not None):
+            epsilon=epsilon @ noise_chol
+        data = Zcond @ true_U * np.sqrt(signal) + epsilon
+        dataset = rsa.data.Dataset(data,obs_descriptors=obs_des,descriptors=des)
+        dataset_list.append(dataset)
+    return dataset_list
+
+
+def make_exact_signal(G,n_channel):
+    """
+    Generates signal exactly with a specified second-moment matrix (G)
+    Args:
+        G(np.array): desired second moment matrix (ncond x ncond)
+        n_channel (int) : Number of channels 
+    Returns:
+        np.array (n_cond x n_channel): random signal 
+    """
     # Generate the true patterns with exactly correct second moment matrix
+    n_cond = G.shape[0]
     true_U = np.random.uniform(0, 1, size=(n_cond, n_channel))
     true_U = ss.norm.ppf(true_U)  # We use two-step procedure allow for different distributions later on
     # Make orthonormal row vectors
@@ -85,18 +120,4 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,\
     l = np.sqrt(l)
     chol_G = V.real*l.real.reshape((1, l.size))
     true_U = (chol_G @ true_U) * np.sqrt(n_channel)
-
-    # Generate noise as a matrix normal, independent across partitions
-    # If noise covariance structure is given, it is assumed that it's the same
-    # across different partitions
-    data = np.empty((n_sim, n_obs, n_channel))
-    for i in range(0, n_sim):
-        epsilon = np.random.uniform(0, 1, size=(n_obs, n_channel))
-        epsilon = ss.norm.ppf(epsilon)*np.sqrt(noise)  # Allows alter for providing own cdf for noise distribution
-        if (noise_cov is not None):
-            epsilon=epsilon @ noise_chol
-        data[i,:,:] = Zcond@true_U * np.sqrt(signal) + epsilon
-    obs_des = {"cond_vec": cond_vec}
-    des     = {"signal": signal,"noise":noise,"model":model.name,"theta": theta}
-    dataset = rsa.Dataset(data,obs_descriptors=obs_des,descriptors=des)
-    return dataset
+    return true_U
