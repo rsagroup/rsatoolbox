@@ -35,13 +35,11 @@ class DatasetBase:
     """
     def __init__(self, measurements, descriptors=None,
                  obs_descriptors=None, channel_descriptors=None):
-        if measurements is not None:
-            if measurements.ndim != 2:
-                raise AttributeError(
-                    "measurements must be in dimension n_obs x n_channel")
-            else:
-                self.measurements = measurements
-                self.n_obs, self.n_channel = self.measurements.shape
+        if measurements.ndim != 2:
+            raise AttributeError(
+                "measurements must be in dimension n_obs x n_channel")
+        self.measurements = measurements
+        self.n_obs, self.n_channel = self.measurements.shape
         check_descriptors_dimension(obs_descriptors, "obs_descriptors",
                                     self.n_obs)
         check_descriptors_dimension(channel_descriptors, "channel_descriptors",
