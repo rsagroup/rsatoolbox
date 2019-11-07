@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 Collection of different utility Matrices
-    indicator:  One column with an indicator variable for each unique element in vector
+    indicator:  indicator variable for each unique element in vector
     pairwise_contrast:  All n_unique*(n_unique-1)/2 pairwise contrasts
-    centering: Centering matrix which, by multiplication, removes the column or row mean 
+    centering: Centering matrix which removes the column or row mean
 @author: jdiedrichsen
 """
 
 import numpy as np
+
 
 def indicator(index_vector, positive=False):
     """ Indicator matrix with one
@@ -21,7 +22,7 @@ def indicator(index_vector, positive=False):
                 Default: false
         Returns:
             indicator_matrix (numpy.ndarray): nrow x nconditions
-                indicator matrix 
+                indicator matrix
     """
     c_unique = np.unique(index_vector)
     n_unique = c_unique.size
@@ -60,12 +61,13 @@ def pairwise_contrast(index_vector):
             n_row = n_row + 1
     return indicator_matrix
 
+
 def centering(size):
-    """ generates a centering matrix 
+    """ generates a centering matrix
         Args:
             size (int): size of the center matrix
         Returns:
             centering_matrix (numpy.ndarray): size * size
     """
-    centering_matrix = np.identity(size)-np.ones(size)/size
+    centering_matrix = np.identity(size) - np.ones(size) / size
     return centering_matrix
