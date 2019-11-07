@@ -22,6 +22,7 @@ def format_descriptor(descriptors):
                               )
     return string_descriptors
 
+
 def parse_input_descriptor(descriptors):
     """ parse input descriptor checks whether an input descriptors dictionary
         is a dictionary. If it is None instead it is replaced by an empty dict.
@@ -34,6 +35,6 @@ def parse_input_descriptor(descriptors):
     """
     if descriptors is None:
         descriptors = {}
-    elif not isinstance(descriptors,dict):
+    elif not isinstance(descriptors, dict):
         raise ValueError('Descriptors must be dictionaries!')
     return descriptors
