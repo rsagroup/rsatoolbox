@@ -11,6 +11,7 @@ from pyrsa.util.data_utils import check_descriptors_dimension
 from pyrsa.util.data_utils import extract_dict
 from pyrsa.util.data_utils import get_unique_unsorted
 from pyrsa.util.descriptor_utils import format_descriptor
+from pyrsa.util.descriptor_utils import parse_input_descriptor
 
 
 class DatasetBase:
@@ -44,18 +45,9 @@ class DatasetBase:
                                     self.n_obs)
         check_descriptors_dimension(channel_descriptors, "channel_descriptors",
                                     self.n_channel)
-        if descriptors is None:
-            self.descriptors = {}
-        else:
-            self.descriptors = descriptors
-        if descriptors is None:
-            self.obs_descriptors = {}
-        else:
-            self.obs_descriptors = obs_descriptors
-        if descriptors is None:
-            self.channel_descriptors = {}
-        else:
-            self.channel_descriptors = channel_descriptors
+        self.descriptors = parse_input_descriptor(descriptors)
+        self.obs_descriptors = parse_input_descriptor(obs_descriptors)
+        self.channel_descriptors = parse_input_descriptor(channel_descriptors)
 
     def __repr__(self):
         """

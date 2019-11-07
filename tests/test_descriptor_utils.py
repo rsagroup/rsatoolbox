@@ -12,3 +12,15 @@ class TestDescriptorUtils(TestCase):
             format_descriptor(descriptors),
             'foo = bar\nfoz = 12.3\n'
         )
+
+    def test_parse_input_descriptor(self):
+        from pyrsa.util.descriptor_utils import parse_input_descriptor
+        descriptors = {'foo': 'bar', 'foz': 12.3}
+        self.assertEqual(
+            parse_input_descriptor(descriptors),
+            descriptors
+        )
+        self.assertEqual(
+            parse_input_descriptor(None),
+            {}
+        )
