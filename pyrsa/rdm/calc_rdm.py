@@ -24,6 +24,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
             descriptor (String):
                 obs_descriptor used to define the rows/columns of the RDM
             noise (numpy.ndarray):
+                dataset.n_channel x dataset.n_channel
                 precision matrix used to calculate the RDM
                 used only for Mahalanobis and Crossnobis estimators
         Returns:
@@ -105,13 +106,13 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
                 obs_descriptor used to define the rows/columns of the RDM
                 defaults to one row/column per row in the dataset
             noise (numpy.ndarray):
+                dataset.n_channel x dataset.n_channel
                 precision matrix used to calculate the RDM
         Returns:
             RDMs object with the one RDM
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
-    if noise is None:
-        noise = np.eye(measurements.shape[-1])
+    noise = _check_noise(noise, dataset.n_channel)
     c_matrix = allpairs(np.arange(measurements.shape[0]))
     diff = np.matmul(c_matrix, measurements)
     diff2 = np.matmul(noise, diff.T).T
@@ -140,6 +141,7 @@ def calc_rdm_crossnobis(dataset,
                 obs_descriptor used to define the rows/columns of the RDM
                 defaults to one row/column per row in the dataset
             noise (numpy.ndarray):
+                dataset.n_channel x dataset.n_channel
                 precision matrix used to calculate the RDM
             cv_descriptor (String):
                 obs_descriptor which determines the cross-validation folds
@@ -147,8 +149,7 @@ def calc_rdm_crossnobis(dataset,
         Returns:
             RDMs object with the one RDM
     """
-    if noise is None:
-        noise = np.eye(dataset.n_channel)
+    noise = _check_noise(noise, dataset.n_channel)
     if descriptor is None:
         raise ValueError('descriptor must be a string! Crossvalidation' +
                          'requires multiple measurements to be grouped')
@@ -198,3 +199,24 @@ def _parse_input(dataset, descriptor):
     else:
         measurements, desc = average_dataset_by(dataset, descriptor)
     return measurements, desc, descriptor
+
+
+def _check_noise(noise, n_channel):
+    """
+    checks that a noise pattern is a matrix with correct dimension
+    n_channel x n_channel
+
+        Args:
+            noise: noise input to be checked
+
+        Returns:
+            noise(np.ndarray): n_channel x n_channel noise precision matrix
+    """
+    if noise is None:
+        noise = np.eye(n_channel)
+    elif isinstance(noise, np.ndarray):
+        assert noise.ndim == 2
+        assert np.all(noise.shape == (n_channel, n_channel))
+    else:
+        raise ValueError('noise must have shape n_channel x n_channel')
+    return noise
