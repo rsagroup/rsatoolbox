@@ -45,7 +45,7 @@ def parse_input_descriptor(descriptors):
 def check_descriptor_length(descriptor, n):
     """
     Checks whether the entries of a descriptor dictionary have the right length
-    
+
         Args:
             descriptor(dict): the descriptor dictionary
             n: the correct length of the descriptors
@@ -62,7 +62,7 @@ def check_descriptor_length(descriptor, n):
 def subset_descriptor(descriptor, indices):
     """
     retrievs a subset of a descriptor given by indices.
-    
+
         Args:
             descriptor(dict): the descriptor dictionary
             indices: the indices to be extracted
@@ -72,7 +72,7 @@ def subset_descriptor(descriptor, indices):
     """
     extracted_descriptor = {}
     for k, v in descriptor.items():
-        if isinstance(indices,tuple) or isinstance(indices,list):
+        if isinstance(indices, tuple) or isinstance(indices, list):
             extracted_descriptor[k] = [v[index] for index in indices]
         else:
             extracted_descriptor[k] = np.array(v)[indices]
@@ -82,7 +82,7 @@ def subset_descriptor(descriptor, indices):
 def check_descriptor_length_error(descriptor, name, n):
     """
     Raises an error if the given descriptor does not have the right length
-    
+
         Args:
             descriptor(dict/None): the descriptor dictionary
             name(String): Descriptor name used for error message
