@@ -29,7 +29,7 @@ def make_design(n_cond, n_part):
     p = np.array(range(0, n_part))
     c = np.array(range(0, n_cond))
     cond_vec = np.kron(np.ones((n_part,)), c)   # Condition Vector
-    part_vec = np.kron(p,np.ones((n_cond,)))    # Partition vector
+    part_vec = np.kron(p, np.ones((n_cond,)))    # Partition vector
     return(cond_vec, part_vec)
 
 
@@ -47,9 +47,9 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         n_sim (int):              Number of simulation with the same signal (default = 1)
         signal (float):           Signal variance (multiplied by predicted G)
         noise (float)             Noise variance (*noise_cov if given)
-        noise_cov (numpy.ndarray):n_channel x n_channel covariance matrix of 
+        noise_cov (numpy.ndarray):n_channel x n_channel covariance matrix of
                                   noise (default = identity)
-        part_vec (numpy.ndarray): optional partition vector if within-partition 
+        part_vec (numpy.ndarray): optional partition vector if within-partition
                                   covariance is specified
     Returns:
         data (list):              List of rsa.Dataset with obs_descriptors
@@ -85,7 +85,8 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     # If noise covariance structure is given, it is assumed that it's the same
     # across different partitions
     obs_des = {"cond_vec": cond_vec}
-    des     = {"signal": signal,"noise":noise,"model":model.name,"theta": theta}
+    des = {"signal": signal, "noise":noise,
+               "model":model.name, "theta": theta}
     dataset_list = []
     for i in range(0, n_sim):
         epsilon = np.random.uniform(0, 1, size=(n_obs, n_channel))
@@ -93,12 +94,12 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         if (noise_cov is not None):
             epsilon=epsilon @ noise_chol
         data = Zcond @ true_U * np.sqrt(signal) + epsilon
-        dataset = rsa.data.Dataset(data,obs_descriptors=obs_des,descriptors=des)
+        dataset = rsa.data.Dataset(data, obs_descriptors=obs_des, descriptors=des)
         dataset_list.append(dataset)
     return dataset_list
 
 
-def make_exact_signal(G,n_channel):
+def make_exact_signal(G, n_channel):
     """
     Generates signal exactly with a specified second-moment matrix (G)
     Args:
@@ -109,8 +110,9 @@ def make_exact_signal(G,n_channel):
     """
     # Generate the true patterns with exactly correct second moment matrix
     n_cond = G.shape[0]
+    # We use two-step procedure allow for different distributions later on
     true_U = np.random.uniform(0, 1, size=(n_cond, n_channel))
-    true_U = ss.norm.ppf(true_U)  # We use two-step procedure allow for different distributions later on
+    true_U = ss.norm.ppf(true_U)  
     # Make orthonormal row vectors
     E = true_U @ true_U.transpose()
     L = np.linalg.cholesky(E)
@@ -118,9 +120,9 @@ def make_exact_signal(G,n_channel):
 
     # Now produce data with the known second-moment matrix
     # Use positive eigenvectors only (cholesky does not work with rank-deficient matrices)
-    l, V = np.linalg.eig(G)
-    l[l<1e-15] = 0
-    l = np.sqrt(l)
-    chol_G = V.real*l.real.reshape((1, l.size))
+    lam, V = np.linalg.eig(G)
+    lam[lam < 1e-15] = 0
+    lam = np.sqrt(lam)
+    chol_G = V.real * lam.real.reshape((1, l.size))
     true_U = (chol_G @ true_U) * np.sqrt(n_channel)
     return true_U
