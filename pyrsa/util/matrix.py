@@ -43,7 +43,7 @@ def pairwise_contrast(index_vector):
                                - discrete values (one dimensional)
         Returns:
             constrast_matrix (numpy.ndarray): n_values *
-                (n_values-1)/2 
+                (n_values-1)/2
     """
     c_unique = np.unique(index_vector)
     n_unique = c_unique.size
