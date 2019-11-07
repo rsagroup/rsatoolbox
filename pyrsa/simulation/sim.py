@@ -28,12 +28,12 @@ def make_design(n_cond, n_part):
     """
     p = np.array(range(0, n_part))
     c = np.array(range(0, n_cond))
-    cond_vec = np.kron(np.ones((n_part,)), c) # Condition Vector
-    part_vec = np.kron(p,np.ones((n_cond,)))  # Partition vector
-    return(cond_vec,part_vec)
+    cond_vec = np.kron(np.ones((n_part,)), c)   # Condition Vector
+    part_vec = np.kron(p,np.ones((n_cond,)))    # Partition vector
+    return(cond_vec, part_vec)
 
 
-def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,\
+def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
                  signal=1, noise=1, noise_cov=None, part_vec=None):
     """
     Simulates a fMRI-style data set with a set of partitions
@@ -42,13 +42,15 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,\
         model (rsa.Model):        the model from which to generate data
         theta (numpy.ndarray):    vector of parameters (one dimensional)
         cond_vec (numpy.ndarray): RSA-style model: vector of experimental conditions
-                                  Encoding-style model: design matrix (n_obs x n_cond)
+                                  Encoding-style:  design matrix (n_obs x n_cond)
         n_channel (int):          Number of channels (default = 30)
         n_sim (int):              Number of simulation with the same signal (default = 1)
         signal (float):           Signal variance (multiplied by predicted G)
         noise (float)             Noise variance (*noise_cov if given)
-        noise_cov (numpy.ndarray):n_channel x n_channel covariance matrix of noise (default = identity)
-        part_vec (numpy.ndarray): optional partition vector if within-partition covariance is specified
+        noise_cov (numpy.ndarray):n_channel x n_channel covariance matrix of 
+                                  noise (default = identity)
+        part_vec (numpy.ndarray): optional partition vector if within-partition 
+                                  covariance is specified
     Returns:
         data (list):              List of rsa.Dataset with obs_descriptors
     """
@@ -66,17 +68,18 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,\
     elif (cond_vec.ndim == 2):
         Zcond = cond_vec
     else:
-        raise(NameError("cond_vec needs to be either condition vector or design matrix"))
+        raise(NameError("cond_vec needs to be either vector or design matrix"))
     n_obs, n_cond = Zcond.shape
 
     # If noise_cov given, precalculate the cholinsky decomp
     if (noise_cov is not None):
-        if (noise_cov.shape is not (n_channel,n_channel)):
-            raise(NameError("noise covariance needs to be n_channel x n_channel array"))
+        if (noise_cov.shape is not (n_channel, n_channel)):
+            raise(NameError("noise covariance needs to be \
+                             n_channel x n_channel array"))
         noise_chol = np.linalg.cholesky(noise_cov)
 
     # Generate the signal - here same for all simulations
-    true_U = make_exact_signal(G,n_channel)
+    true_U = make_exact_signal(G, n_channel)
 
     # Generate noise as a matrix normal, independent across partitions
     # If noise covariance structure is given, it is assumed that it's the same
