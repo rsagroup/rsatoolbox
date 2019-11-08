@@ -1,1 +1,1 @@
-from pyrsa.data.dataset import Dataset
+from .dataset import Dataset
