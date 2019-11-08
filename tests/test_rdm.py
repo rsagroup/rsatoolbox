@@ -102,15 +102,15 @@ class TestCalcRDM(unittest.TestCase):
         rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'euclidean')
         assert rdm.n_cond == 6
 
-    @patch('pyrsa.rdm.calc_rdm._parse_input')
+    @patch('pyrsa.rdm.calc._parse_input')
     def test_calc_euclid_as_scipy(self, _parse_input):
         from pyrsa.rdm import calc_rdm
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
-        measurements = np.random.rand(6, 5)
+        data.measurements = np.random.rand(6, 5)
         desc = [0, 1, 2, 3, 4, 5]
-        _parse_input.return_value = (measurements, desc, 'conds')
-        rdm_expected = pdist(data.measurements)
+        _parse_input.return_value = (data.measurements, desc, 'conds')
+        rdm_expected = pdist(data.measurements)**2/5
         rdms = calc_rdm(
             self.test_data,
             descriptor='conds',
@@ -118,7 +118,7 @@ class TestCalcRDM(unittest.TestCase):
         )
         assert_array_almost_equal(
             rdm_expected,
-            rdms.dissimilarities
+            rdms.dissimilarities.flatten()
         )
         
     def test_calc_correlation(self):
