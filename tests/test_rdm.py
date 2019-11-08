@@ -6,9 +6,11 @@ Test for RDM class
 @author: baihan
 """
 
-import unittest 
+import unittest
+from unittest.mock import Mock, patch
 import numpy as np 
-
+from numpy.testing import assert_array_almost_equal
+from scipy.spatial.distance import pdist
 import pyrsa.rdm as rsr
 import pyrsa as rsa
 
@@ -96,9 +98,28 @@ class TestCalcRDM(unittest.TestCase):
                            channel_descriptors=chn_des
                            )
 
-    def test_calc_euclid(self):
+    def test_calc_euclid_nconds(self):
         rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'euclidean')
         assert rdm.n_cond == 6
+
+    @patch('pyrsa.rdm.calc_rdm._parse_input')
+    def test_calc_euclid_as_scipy(self, _parse_input):
+        from pyrsa.rdm import calc_rdm
+        data = Mock()
+        data.descriptors = {'session': 0, 'subj': 0}
+        measurements = np.random.rand(6, 5)
+        desc = [0, 1, 2, 3, 4, 5]
+        _parse_input.return_value = (measurements, desc, 'conds')
+        rdm_expected = pdist(data.measurements)
+        rdms = calc_rdm(
+            self.test_data,
+            descriptor='conds',
+            method='euclidean'
+        )
+        assert_array_almost_equal(
+            rdm_expected,
+            rdms.dissimilarities
+        )
         
     def test_calc_correlation(self):
         rdm = rsr.calc_rdm_correlation(self.test_data, descriptor = 'conds')
