@@ -10,6 +10,7 @@ import pyrsa as rsa
 from pyrsa.util.data_utils import check_descriptors_dimension
 from pyrsa.util.data_utils import extract_dict
 from pyrsa.util.data_utils import get_unique_unsorted
+from pyrsa.util.descriptor_utils import bool_index
 from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import parse_input_descriptor
 
@@ -172,6 +173,7 @@ class Dataset(DatasetBase):
             selection = (self.channel_descriptors[by] == v)
             measurements = self.measurements[:, selection]
             descriptors = self.descriptors
+            descriptors[by] = v
             obs_descriptors = self.obs_descriptors
             channel_descriptors = extract_dict(
                 self.channel_descriptors, selection)
@@ -193,7 +195,7 @@ class Dataset(DatasetBase):
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
         """
-        selection = (self.obs_descriptors[by] == value)
+        selection = bool_index(self.obs_descriptors[by], value)
         measurements = self.measurements[selection, :]
         descriptors = self.descriptors
         obs_descriptors = extract_dict(
@@ -216,7 +218,7 @@ class Dataset(DatasetBase):
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
         """
-        selection = (self.channel_descriptors[by] == value)
+        selection = bool_index(self.channel_descriptors[by], value)
         measurements = self.measurements[:, selection]
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors
