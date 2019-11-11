@@ -1,3 +1,3 @@
-from pyrsa.data.dataset import Dataset
-from pyrsa.data.computations import average_dataset
-from pyrsa.data.computations import average_dataset_by
+from .dataset import Dataset
+from .computations import average_dataset
+from .computations import average_dataset_by
