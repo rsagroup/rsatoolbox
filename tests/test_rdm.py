@@ -120,7 +120,7 @@ class TestCalcRDM(unittest.TestCase):
             rdm_expected,
             rdms.dissimilarities.flatten()
         )
-        
+
     @patch('pyrsa.rdm.calc._parse_input')
     def test_calc_correlation(self, _parse_input):
         from pyrsa.rdm import calc_rdm
