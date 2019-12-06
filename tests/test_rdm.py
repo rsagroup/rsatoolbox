@@ -137,7 +137,7 @@ class TestCalcRDM(unittest.TestCase):
 class TestCompareRDM(unittest.TestCase): 
     
     def setUp(self):
-        dissimilarities1 = np.random.rand(3,15)
+        dissimilarities1 = np.random.rand(1,15)
         des1 = {'session':0,'subj':0}
         self.test_rdm1 = rsa.rdm.RDMs(dissimilarities=dissimilarities1,
                            dissimilarity_measure='test',
@@ -152,16 +152,16 @@ class TestCompareRDM(unittest.TestCase):
 
     def test_compare_cosine(self):
         from pyrsa.rdm.compare import compare_cosine
-        result = compare_cosine(self.test_rdm1,self.test_rdm1)
-        assert result==0
-        result = compare_cosine(self.test_rdm1,self.test_rdm2)
+        result = compare_cosine(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_cosine(self.test_rdm1, self.test_rdm2)
         assert result>0
         
     def test_compare_correlation(self):
         from pyrsa.rdm.compare import compare_correlation
-        result = compare_correlation(self.test_rdm1,self.test_rdm1)
-        assert result==0
-        result = compare_correlation(self.test_rdm1,self.test_rdm2)
+        result = compare_correlation(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_correlation(self.test_rdm1, self.test_rdm2)
         assert result>0
 
 if __name__ == '__main__':
