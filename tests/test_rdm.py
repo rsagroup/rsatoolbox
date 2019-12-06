@@ -156,6 +156,13 @@ class TestCompareRDM(unittest.TestCase):
         assert result==0
         result = compare_cosine(self.test_rdm1,self.test_rdm2)
         assert result>0
+        
+    def test_compare_correlation(self):
+        from pyrsa.rdm.compare import compare_correlation
+        result = compare_correlation(self.test_rdm1,self.test_rdm1)
+        assert result==0
+        result = compare_correlation(self.test_rdm1,self.test_rdm2)
+        assert result>0
 
 if __name__ == '__main__':
     unittest.main()  
