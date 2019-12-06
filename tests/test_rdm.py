@@ -133,5 +133,29 @@ class TestCalcRDM(unittest.TestCase):
         rdm = rsr.calc_rdm_crossnobis(self.test_data, descriptor = 'conds', cv_descriptor = 'fold')
         assert rdm.n_cond == 6
 
+
+class TestCompareRDM(unittest.TestCase): 
+    
+    def setUp(self):
+        dissimilarities1 = np.random.rand(3,15)
+        des1 = {'session':0,'subj':0}
+        self.test_rdm1 = rsa.rdm.RDMs(dissimilarities=dissimilarities1,
+                           dissimilarity_measure='test',
+                           descriptors=des1
+                           )
+        dissimilarities2 = np.random.rand(3,15)
+        des2 = {'session':0,'subj':0}
+        self.test_rdm2 = rsa.rdm.RDMs(dissimilarities=dissimilarities2,
+                           dissimilarity_measure='test',
+                           descriptors=des2
+                           )
+
+    def test_compare_cosine(self):
+        from pyrsa.rdm.compare import compare_cosine
+        result = compare_cosine(self.test_rdm1,self.test_rdm1)
+        assert result==0
+        result = compare_cosine(self.test_rdm1,self.test_rdm2)
+        assert result>0
+
 if __name__ == '__main__':
     unittest.main()  
