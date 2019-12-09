@@ -58,7 +58,7 @@ def compare_rank_corr(rdm1, rdm2):
                 second set of RDMs
         Returns:
             dist (float):
-                correlation distance between the two RDMs
+                rank correlation distance between the two RDMs
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     dist = _average_all_combinations(vector1, vector2, _spearman_r)
@@ -76,7 +76,7 @@ def compare_kendall_tau(rdm1, rdm2):
                 second set of RDMs
         Returns:
             dist (float):
-                correlation distance between the two RDMs
+                kendall-tau based distance between the two RDMs
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     dist = _average_all_combinations(vector1, vector2, _kendall_tau)
