@@ -71,3 +71,19 @@ def batch_to_matrices(x):
 
 def get_n_from_reduced_vectors(x):
     return int(np.ceil(np.sqrt(x.shape[1] * 2)))
+
+
+def check_equal_dimension(rdm1, rdm2):
+    """
+    raises an error if the two RDMs objects have different dimensions
+
+        Args:
+            rdm1 (pyrsa.rdm.RDMs):
+                first set of RDMs
+            rdm2 (pyrsa.rdm.RDMs):
+                second set of RDMs
+    """
+    vector1 = rdm1.get_vectors()
+    vector2 = rdm2.get_vectors()
+    if not vector1.shape[1] == vector2.shape[1]:
+        raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')

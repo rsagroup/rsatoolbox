@@ -70,14 +70,13 @@ def compare_rank_corr(rdm1, rdm2):
     vector2 = rdm2.get_vectors()
     if not (vector1.shape[1] == vector2.shape[1]):
         raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
-    
     dist = _average_all_combinations(vector1, vector2, scipy.stats.spearmanr)
     return 1 - dist
 
 
 def _average_all_combinations(vectors1, vectors2, func):
     """
-    runs a function func on all combinations of v1 in vectors1 
+    runs a function func on all combinations of v1 in vectors1
     and v2 in vectors2 and averages the results
 
         Args:
@@ -113,6 +112,6 @@ def _cosine(vector1, vector2):
                 cosine angle between angles
     """
     cos = (np.sum(vector1 * vector2) /
-                np.sqrt(np.sum(vector1 * vector1)) /
-                np.sqrt(np.sum(vector2 * vector2)))
+           np.sqrt(np.sum(vector1 * vector1)) /
+           np.sqrt(np.sum(vector2 * vector2)))
     return cos
