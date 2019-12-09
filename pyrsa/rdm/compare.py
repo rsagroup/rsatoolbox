@@ -22,10 +22,7 @@ def compare_cosine(rdm1, rdm2):
             dist (float):
                 cosine distance between the two RDMs
     """
-    vector1 = rdm1.get_vectors()
-    vector2 = rdm2.get_vectors()
-    if not (vector1.shape[1] == vector2.shape[1]):
-        raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
+    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     dist = _average_all_combinations(vector1, vector2, _cosine)
     return 1 - dist
 
@@ -43,10 +40,7 @@ def compare_correlation(rdm1, rdm2):
             dist (float):
                 correlation distance between the two RDMs
     """
-    vector1 = rdm1.get_vectors()
-    vector2 = rdm2.get_vectors()
-    if not (vector1.shape[1] == vector2.shape[1]):
-        raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
+    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     dist = _average_all_combinations(vector1, vector2, _cosine)
@@ -66,10 +60,7 @@ def compare_rank_corr(rdm1, rdm2):
             dist (float):
                 correlation distance between the two RDMs
     """
-    vector1 = rdm1.get_vectors()
-    vector2 = rdm2.get_vectors()
-    if not (vector1.shape[1] == vector2.shape[1]):
-        raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
+    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     dist = _average_all_combinations(vector1, vector2, scipy.stats.spearmanr)
     return 1 - dist
 
@@ -115,3 +106,21 @@ def _cosine(vector1, vector2):
            np.sqrt(np.sum(vector1 * vector1)) /
            np.sqrt(np.sum(vector2 * vector2)))
     return cos
+
+
+def _parse_input_rdms(rdm1, rdm2):
+    """
+    Gets the vector representation of input RDMs, raises an error if
+    the two RDMs objects have different dimensions
+
+        Args:
+            rdm1 (pyrsa.rdm.RDMs):
+                first set of RDMs
+            rdm2 (pyrsa.rdm.RDMs):
+                second set of RDMs
+    """
+    vector1 = rdm1.get_vectors()
+    vector2 = rdm2.get_vectors()
+    if not vector1.shape[1] == vector2.shape[1]:
+        raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
+    return vector1, vector2
