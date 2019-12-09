@@ -163,6 +163,20 @@ class TestCompareRDM(unittest.TestCase):
         assert_array_almost_equal(result, 0)
         result = compare_correlation(self.test_rdm1, self.test_rdm2)
         assert result>0
+        
+    def test_compare_rank_corr(self):
+        from pyrsa.rdm.compare import compare_rank_corr
+        result = compare_rank_corr(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_rank_corr(self.test_rdm1, self.test_rdm2)
+        assert result>0
+        
+    def test_compare_kendall_tau(self):
+        from pyrsa.rdm.compare import compare_kendall_tau
+        result = compare_kendall_tau(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_kendall_tau(self.test_rdm1, self.test_rdm2)
+        assert result>0
 
 if __name__ == '__main__':
     unittest.main()  
