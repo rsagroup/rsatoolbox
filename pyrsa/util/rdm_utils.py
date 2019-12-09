@@ -16,7 +16,7 @@ def batch_to_vectors(x):
     converts a *stack* of RDMs in vector or matrix form into vector form
 
         Args:
-            x: stack of RDMs
+            x(np.ndarray): stack of RDMs
 
         Returns:
             v(np.ndarray):
@@ -45,7 +45,7 @@ def batch_to_matrices(x):
     converts a *stack* of RDMs in vector or matrix form into matrix form
 
         Args:
-            x: stack of RDMs
+            x(np.ndarray): stack of RDMs
 
         Returns:
             v(np.ndarray):
@@ -70,6 +70,15 @@ def batch_to_matrices(x):
 
 
 def get_n_from_reduced_vectors(x):
+    """
+    calculates the size of the RDM from the vector representation
+
+        Args:
+            x(np.ndarray): stack of RDM vectors (2D)
+
+        Returns:
+            n(int): size of the RDM
+    """
     return int(np.ceil(np.sqrt(x.shape[1] * 2)))
 
 
