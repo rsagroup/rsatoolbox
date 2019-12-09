@@ -9,6 +9,38 @@ import numpy as np
 import scipy.stats
 
 
+def compare(rdm1, rdm2, method='cosine'):
+    """
+    calculates a distance between two RDMs objects
+
+        Args:
+            rdm1 (pyrsa.rdm.RDMs):
+                first set of RDMs
+            rdm2 (pyrsa.rdm.RDMs):
+                second set of RDMs
+            method (string):
+                which method to use, options are:
+                'cosine' = cosine distance
+                'spearman' = spearman rank correlation distance
+                'corr' = pearson correlation distance
+                'kendall' = kendall-tau based distance
+        Returns:
+            dist (float):
+                dissimilarity between the two RDMs
+    """
+    if method == 'cosine':
+        dist = compare_cosine(rdm1, rdm2)
+    elif method == 'spearman':
+        dist = compare_rank_corr(rdm1, rdm2)
+    elif method == 'corr':
+        dist = compare_correlation(rdm1, rdm2)
+    elif method == 'kendall':
+        dist = compare_kendall_tau(rdm1, rdm2)
+    else:
+        raise ValueError('Unknown RDM comparison method requested!')
+    return dist
+
+
 def compare_cosine(rdm1, rdm2):
     """
     calculates the cosine distance between two RDMs objects
