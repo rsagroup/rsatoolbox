@@ -178,5 +178,14 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm2)
         assert result>0
 
+    def test_compare(self):
+        from pyrsa.rdm.compare import compare
+        result = compare(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare(self.test_rdm1, self.test_rdm2, method='corr')
+        result = compare(self.test_rdm1, self.test_rdm2, method='spearman')
+        result = compare(self.test_rdm1, self.test_rdm2, method='cosine')
+        result = compare(self.test_rdm1, self.test_rdm2, method='kendall')
+
 if __name__ == '__main__':
     unittest.main()  
