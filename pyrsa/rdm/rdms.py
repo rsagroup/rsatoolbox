@@ -92,11 +92,31 @@ class RDMs:
             RDMs object, with fewer patterns
         """
         selection = bool_index(self.pattern_descriptors[by], value)
-        dissimilarities = self.get_matrices()[selection, selection]
+        dissimilarities = self.get_matrices()[:,selection, selection]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
             self.pattern_descriptors, selection)
-        descriptors = self.descriptors
+        rdms = RDMs(dissimilarities=batch_to_vectors(dissimilarities),
+                    descriptors=descriptors,
+                    pattern_descriptors=pattern_descriptors)
+        return rdms
+
+    def subset(self, by, value):
+        """ Returns a set of fewer RDMs matching descriptor values
+        Args:
+            by(String): the descriptor by which the subset selection
+                        is made from descriptors
+            value:      the value by which the subset selection is made
+                        from descriptors
+
+        Returns:
+            RDMs object, with fewer RDMs
+        """
+        selection = bool_index(self.descriptors[by], value)
+        dissimilarities = self.dissimilarities[selection, :]
+        pattern_descriptors = self.pattern_descriptors
+        descriptors = extract_dict(
+            self.descriptors, selection)
         rdms = RDMs(dissimilarities=dissimilarities,
                     descriptors=descriptors,
                     pattern_descriptors=pattern_descriptors)
