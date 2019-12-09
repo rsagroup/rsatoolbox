@@ -67,7 +67,7 @@ def compare_rank_corr(rdm1, rdm2):
 
 def compare_kendall_tau(rdm1, rdm2):
     """
-    Calculates the Kendall-tau based distance between two RDMs objects.
+    calculates the Kendall-tau based distance between two RDMs objects
 
         Args:
             rdm1 (pyrsa.rdm.RDMs):
