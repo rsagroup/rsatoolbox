@@ -10,6 +10,9 @@ import pyrsa as rsa
 from pyrsa.util.data_utils import check_descriptors_dimension
 from pyrsa.util.data_utils import extract_dict
 from pyrsa.util.data_utils import get_unique_unsorted
+from pyrsa.util.descriptor_utils import bool_index
+from pyrsa.util.descriptor_utils import format_descriptor
+from pyrsa.util.descriptor_utils import parse_input_descriptor
 
 
 class DatasetBase:
@@ -32,22 +35,49 @@ class DatasetBase:
         Returns:
             dataset object
     """
-    def __init__(self, measurements=None, descriptors=None,
+    def __init__(self, measurements, descriptors=None,
                  obs_descriptors=None, channel_descriptors=None):
-        if measurements is not None:
-            if measurements.ndim != 2:
-                raise AttributeError(
-                    "measurements must be in dimension n_obs x n_channel")
-            else:
-                self.measurements = measurements
-                self.n_obs, self.n_channel = self.measurements.shape
+        if measurements.ndim != 2:
+            raise AttributeError(
+                "measurements must be in dimension n_obs x n_channel")
+        self.measurements = measurements
+        self.n_obs, self.n_channel = self.measurements.shape
         check_descriptors_dimension(obs_descriptors, "obs_descriptors",
                                     self.n_obs)
         check_descriptors_dimension(channel_descriptors, "channel_descriptors",
                                     self.n_channel)
-        self.descriptors = descriptors
-        self.obs_descriptors = obs_descriptors
-        self.channel_descriptors = channel_descriptors
+        self.descriptors = parse_input_descriptor(descriptors)
+        self.obs_descriptors = parse_input_descriptor(obs_descriptors)
+        self.channel_descriptors = parse_input_descriptor(channel_descriptors)
+
+    def __repr__(self):
+        """
+        defines string which is printed for the object
+        """
+        return (f'pyrsa.data.{self.__class__.__name__}(\n'
+                f'measurements = \n{self.measurements}\n'
+                f'descriptors = \n{self.descriptors}\n'
+                f'obs_descriptors = \n{self.obs_descriptors}\n'
+                f'channel_descriptors = \n{self.channel_descriptors}\n'
+                )
+
+    def __str__(self):
+        """
+        defines the output of print
+        """
+        string_desc = format_descriptor(self.descriptors)
+        string_obs_desc = format_descriptor(self.obs_descriptors)
+        string_channel_desc = format_descriptor(self.channel_descriptors)
+        if self.measurements.shape[0] > 5:
+            measurements = self.measurements[:5, :]
+        else:
+            measurements = self.measurements
+        return (f'pyrsa.data.{self.__class__.__name__}\n'
+                f'measurements = \n{measurements}\n...\n\n'
+                f'descriptors: \n{string_desc}\n\n'
+                f'obs_descriptors: \n{string_obs_desc}\n\n'
+                f'channel_descriptors: \n{string_channel_desc}\n'
+                )
 
     def split_obs(self, by):
         """ Returns a list Datasets splited by obs
@@ -143,6 +173,7 @@ class Dataset(DatasetBase):
             selection = (self.channel_descriptors[by] == v)
             measurements = self.measurements[:, selection]
             descriptors = self.descriptors
+            descriptors[by] = v
             obs_descriptors = self.obs_descriptors
             channel_descriptors = extract_dict(
                 self.channel_descriptors, selection)
@@ -164,7 +195,7 @@ class Dataset(DatasetBase):
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
         """
-        selection = (self.obs_descriptors[by] == value)
+        selection = bool_index(self.obs_descriptors[by], value)
         measurements = self.measurements[selection, :]
         descriptors = self.descriptors
         obs_descriptors = extract_dict(
@@ -187,7 +218,7 @@ class Dataset(DatasetBase):
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
         """
-        selection = (self.channel_descriptors[by] == value)
+        selection = bool_index(self.channel_descriptors[by], value)
         measurements = self.measurements[:, selection]
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors
