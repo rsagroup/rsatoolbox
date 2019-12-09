@@ -9,7 +9,8 @@ import numpy as np
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
-
+from pyrsa.util.descriptor_utils import bool_index
+from pyrsa.util.data_utils import extract_dict
 
 class RDMs:
     """
@@ -78,3 +79,25 @@ class RDMs:
         """
         matrices, _, _ = batch_to_matrices(self.dissimilarities)
         return matrices
+
+    def subset_patterns(self, by, value):
+        """ Returns a smaller RDMs with patterns with certain descriptor values
+        Args:
+            by(String): the descriptor by which the subset selection
+                        is made from pattern_descriptors
+            value:      the value by which the subset selection is made
+                        from pattern_descriptors
+
+        Returns:
+            RDMs object, with fewer patterns
+        """
+        selection = bool_index(self.pattern_descriptors[by], value)
+        dissimilarities = self.get_matrices()[selection, selection]
+        descriptors = self.descriptors
+        pattern_descriptors = extract_dict(
+            self.pattern_descriptors, selection)
+        descriptors = self.descriptors
+        rdms = RDMs(dissimilarities=dissimilarities,
+                    descriptors=descriptors,
+                    pattern_descriptors=pattern_descriptors)
+        return rdms
