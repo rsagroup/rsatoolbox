@@ -1,13 +1,6 @@
 pyrsa.vis package
 =================
 
-Submodules
-----------
-
-.. toctree::
-
-   pyrsa.vis.colors
-
 Module contents
 ---------------
 
