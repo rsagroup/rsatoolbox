@@ -20,6 +20,7 @@ def bool_index(descriptor, value):
         Returns:
             bool_index:         boolean index vector where descriptor == value
     """
+    descriptor = np.array(descriptor)
     if (type(value) is list or
             type(value) is tuple or
             type(value) is np.ndarray):

@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import Mock, patch
 import numpy as np 
 from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 from scipy.spatial.distance import pdist
 import pyrsa.rdm as rsr
 import pyrsa as rsa
@@ -81,6 +82,20 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(m_rdms.shape[0],8)
         self.assertEqual(m_rdms.shape[1],5)
         self.assertEqual(m_rdms.shape[2],5)
+
+    def test_rdm_subset(self):
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        rdms_subset = rdms.subset('session',np.array([0,1,2]))
+        self.assertEqual(rdms_subset.n_rdm,4)
+        self.assertEqual(rdms_subset.n_cond,5)
+        assert_array_equal(rdms_subset.rdm_descriptors['session'],[0,1,2,2])
 
 
 class TestCalcRDM(unittest.TestCase): 
