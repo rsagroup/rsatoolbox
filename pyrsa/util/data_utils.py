@@ -11,12 +11,11 @@ Collection of helper methods for data module
 """
 
 import numpy as np
-import pyrsa as rsa
 
 
 def check_dict_length(dictionary, n):
     for k, v in dictionary.items():
-        if v.shape[0] != n:
+        if len(v) != n:
             return False
     return True
 

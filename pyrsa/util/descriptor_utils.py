@@ -18,16 +18,17 @@ def bool_index(descriptor, value):
             value:                  value or list of values to mark
 
         Returns:
-            bool_index:         boolean index vector where descriptor == value
+            index:         boolean index vector where descriptor == value
     """
+    descriptor = np.array(descriptor)
     if (type(value) is list or
             type(value) is tuple or
             type(value) is np.ndarray):
-        bool_index = np.array([descriptor == v for v in value])
-        bool_index = np.any(bool_index, axis=0)
+        index = np.array([descriptor == v for v in value])
+        index = np.any(index, axis=0)
     else:
-        bool_index = np.array(descriptor == value)
-    return bool_index
+        index = np.array(descriptor == value)
+    return index
 
 
 def format_descriptor(descriptors):
