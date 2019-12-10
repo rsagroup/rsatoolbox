@@ -157,8 +157,8 @@ def _cosine(vector1, vector2):
                 cosine angle between angles
     """
     cos = np.einsum('ij,kj->ik', vector1, vector2)
-    cos /= np.sqrt(np.einsum('ij,ij->i', vector1, vector1))
-    cos /= np.sqrt(np.einsum('ij,ij->i', vector2, vector2))
+    cos /= np.sqrt(np.einsum('ij,ij->i', vector1, vector1)).reshape((-1,1))
+    cos /= np.sqrt(np.einsum('ij,ij->i', vector2, vector2)).reshape((1,-1))
     return cos
 
 

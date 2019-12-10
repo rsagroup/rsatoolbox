@@ -159,9 +159,9 @@ class TestCompareRDM(unittest.TestCase):
         
     def test_compare_cosine_loop(self):
         from pyrsa.rdm.compare import compare_cosine
-        result = compare_cosine(self.test_rdm1, self.test_rdm2)
+        result = compare_cosine(self.test_rdm2, self.test_rdm2)
         result_loop = np.zeros_like(result)
-        d1 = self.test_rdm1.get_vectors()
+        d1 = self.test_rdm2.get_vectors()
         d2 = self.test_rdm2.get_vectors()
         for i in range(result_loop.shape[0]):
             for j in range(result_loop.shape[1]):
