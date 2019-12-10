@@ -25,7 +25,7 @@ def bool_index(descriptor, value):
             type(value) is tuple or
             type(value) is np.ndarray):
         index = np.array([descriptor == v for v in value])
-        index = np.any(bool_index, axis=0)
+        index = np.any(index, axis=0)
     else:
         index = np.array(descriptor == value)
     return index
