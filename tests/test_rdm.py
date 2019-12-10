@@ -155,28 +155,28 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_cosine(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 0)
         result = compare_cosine(self.test_rdm1, self.test_rdm2)
-        assert result>0
+        assert np.all(result>0)
         
     def test_compare_correlation(self):
         from pyrsa.rdm.compare import compare_correlation
         result = compare_correlation(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 0)
         result = compare_correlation(self.test_rdm1, self.test_rdm2)
-        assert result>0
+        assert np.all(result>0)
         
     def test_compare_rank_corr(self):
         from pyrsa.rdm.compare import compare_rank_corr
         result = compare_rank_corr(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 0)
         result = compare_rank_corr(self.test_rdm1, self.test_rdm2)
-        assert result>0
+        assert np.all(result>0)
         
     def test_compare_kendall_tau(self):
         from pyrsa.rdm.compare import compare_kendall_tau
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 0)
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm2)
-        assert result>0
+        assert np.all(result>0)
 
     def test_compare(self):
         from pyrsa.rdm.compare import compare

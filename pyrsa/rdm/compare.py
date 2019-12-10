@@ -55,7 +55,7 @@ def compare_cosine(rdm1, rdm2):
                 cosine distance between the two RDMs
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
-    dist = _average_all_combinations(vector1, vector2, _cosine)
+    dist = _all_combinations(vector1, vector2, _cosine)
     return 1 - dist
 
 
@@ -75,7 +75,7 @@ def compare_correlation(rdm1, rdm2):
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
-    dist = _average_all_combinations(vector1, vector2, _cosine)
+    dist = _all_combinations(vector1, vector2, _cosine)
     return 1 - dist
 
 
@@ -93,7 +93,7 @@ def compare_rank_corr(rdm1, rdm2):
                 rank correlation distance between the two RDMs
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
-    dist = _average_all_combinations(vector1, vector2, _spearman_r)
+    dist = _all_combinations(vector1, vector2, _spearman_r)
     return 1 - dist
 
 
@@ -111,14 +111,14 @@ def compare_kendall_tau(rdm1, rdm2):
                 kendall-tau based distance between the two RDMs
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
-    dist = _average_all_combinations(vector1, vector2, _kendall_tau)
+    dist = _all_combinations(vector1, vector2, _kendall_tau)
     return 1 - dist
 
 
-def _average_all_combinations(vectors1, vectors2, func):
+def _all_combinations(vectors1, vectors2, func):
     """
     runs a function func on all combinations of v1 in vectors1
-    and v2 in vectors2 and averages the results
+    and v2 in vectors2 and puts the results into an array
 
         Args:
             vectors1 (numpy.ndarray):
@@ -129,14 +129,18 @@ def _average_all_combinations(vectors1, vectors2, func):
                 function to be applied, should take two input vectors
                 and return one scalar
         Returns:
-            value (float):
-                average function result over all pairs
+            value (numpy.ndarray):
+                function result over all pairs
     """
-    sum_val = 0
+    value = np.empty((len(vectors1),len(vectors2)))
+    k1 = 0
     for v1 in vectors1:
+        k2 = 0
         for v2 in vectors2:
-            sum_val += func(v1, v2)
-    return sum_val / vectors1.shape[0] / vectors2.shape[0]
+            value[k1, k2] = func(v1, v2)
+            k2 += 1
+        k1 += 1
+    return value
 
 
 def _cosine(vector1, vector2):
