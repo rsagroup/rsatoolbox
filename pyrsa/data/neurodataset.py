@@ -5,9 +5,8 @@ Definition of RSA Dataset classes for neuroimaging or neural data
 @author: baihan
 """
 
-import pyrsa as rsa
-from pyrsa.data.dataset import DatasetBase
 import numpy as np
+from pyrsa.data.dataset import DatasetBase
 
 
 def preprocess_fmri(rawdata=None):
