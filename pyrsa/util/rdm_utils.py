@@ -21,9 +21,9 @@ def batch_to_vectors(x):
 
     Returns:
         tuple: **v** (np.ndarray): 2D, vector form of the stack of RDMs
-        
+
         **n_rdm** (int): number of rdms
-        
+
         **n_cond** (int): number of conditions
 
     """
@@ -49,9 +49,9 @@ def batch_to_matrices(x):
 
     Returns:
         tuple: **v** (np.ndarray): 3D, matrix form of the stack of RDMs
-        
+
         **n_rdm** (int): number of rdms
-        
+
         **n_cond** (int): number of conditions
 
     """
