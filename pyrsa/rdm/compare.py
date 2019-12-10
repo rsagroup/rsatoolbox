@@ -132,7 +132,7 @@ def _all_combinations(vectors1, vectors2, func):
             value (numpy.ndarray):
                 function result over all pairs
     """
-    value = np.empty((len(vectors1),len(vectors2)))
+    value = np.empty((len(vectors1), len(vectors2)))
     k1 = 0
     for v1 in vectors1:
         k2 = 0
@@ -156,7 +156,7 @@ def _cosine(vector1, vector2):
             cos (float):
                 cosine angle between angles
     """
-    cos = np.einsum('ij,kj->ik', vector1, vector2) 
+    cos = np.einsum('ij,kj->ik', vector1, vector2)
     cos /= np.sqrt(np.einsum('ij,ij->i', vector1, vector1))
     cos /= np.sqrt(np.einsum('ij,ij->i', vector2, vector2))
     return cos
