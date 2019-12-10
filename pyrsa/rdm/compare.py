@@ -55,7 +55,7 @@ def compare_cosine(rdm1, rdm2):
                 cosine distance between the two RDMs
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
-    dist = _all_combinations(vector1, vector2, _cosine)
+    dist = _cosine(vector1, vector2)
     return 1 - dist
 
 
@@ -75,7 +75,7 @@ def compare_correlation(rdm1, rdm2):
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
-    dist = _all_combinations(vector1, vector2, _cosine)
+    dist = _cosine(vector1, vector2)
     return 1 - dist
 
 
@@ -145,20 +145,20 @@ def _all_combinations(vectors1, vectors2, func):
 
 def _cosine(vector1, vector2):
     """
-    computes the cosine angle between two vectors
+    computes the cosine angles between two sets of vectors
 
         Args:
             vector1 (numpy.ndarray):
-                first vector
+                first vectors (2D)
             vector1 (numpy.ndarray):
-                second vector
+                second vectors (2D)
         Returns:
             cos (float):
                 cosine angle between angles
     """
-    cos = (np.sum(vector1 * vector2) /
-           np.sqrt(np.sum(vector1 * vector1)) /
-           np.sqrt(np.sum(vector2 * vector2)))
+    cos = np.einsum('ij,kj->ik', vector1, vector2) 
+    cos /= np.sqrt(np.einsum('ij,ij->i', vector1, vector1))
+    cos /= np.sqrt(np.einsum('ij,ij->i', vector2, vector2))
     return cos
 
 

@@ -157,6 +157,19 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_cosine(self.test_rdm1, self.test_rdm2)
         assert np.all(result>0)
         
+    def test_compare_cosine_loop(self):
+        from pyrsa.rdm.compare import compare_cosine
+        result = compare_cosine(self.test_rdm1, self.test_rdm2)
+        result_loop = np.zeros_like(result)
+        d1 = self.test_rdm1.get_vectors()
+        d2 = self.test_rdm2.get_vectors()
+        for i in range(result_loop.shape[0]):
+            for j in range(result_loop.shape[1]):
+                result_loop[i,j] = (np.sum(d1[i] * d2[j]) 
+                                    / np.sqrt(np.sum(d1[i] * d1[i]))
+                                    / np.sqrt(np.sum(d2[j] * d2[j])))
+        assert_array_almost_equal(result, 1 - result_loop)
+        
     def test_compare_correlation(self):
         from pyrsa.rdm.compare import compare_correlation
         result = compare_correlation(self.test_rdm1, self.test_rdm1)
