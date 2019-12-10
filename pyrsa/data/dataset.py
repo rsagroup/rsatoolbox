@@ -22,18 +22,16 @@ class DatasetBase:
     implement any interesting behavior. Inherit from this class
     to define specific dataset types
 
-        Args:
-            measurements (numpy.ndarray): n_obs x n_channel 2d-array,
-            descriptors (dict):           descriptors (metadata)
-            obs_descriptors (dict):       observation descriptors (all
-                                          are array-like with shape =
-                                          (n_obs,...))
-            channel_descriptors (dict):   channel descriptors (all are
-                                          array-like with shape =
-                                          (n_channel,...))
+    Args:
+        measurements (numpy.ndarray): n_obs x n_channel 2d-array,
+        descriptors (dict):           descriptors (metadata)
+        obs_descriptors (dict):       observation descriptors (all
+            are array-like with shape = (n_obs,...))
+        channel_descriptors (dict):   channel descriptors (all are
+            array-like with shape = (n_channel,...))
 
-        Returns:
-            dataset object
+    Returns:
+        dataset object
     """
     def __init__(self, measurements, descriptors=None,
                  obs_descriptors=None, channel_descriptors=None):
@@ -103,11 +101,12 @@ class DatasetBase:
 
     def subset_obs(self, by, value):
         """ Returns a subsetted Dataset defined by certain obs value
+
         Args:
             by(String): the descriptor by which the subset selection is made
-                        from obs dimension
+                from obs dimension
             value:      the value by which the subset selection is made
-                        from obs dimension
+                from obs dimension
 
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
@@ -117,11 +116,12 @@ class DatasetBase:
 
     def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
+
         Args:
             by(String): the descriptor by which the subset selection is made
-                        from channel dimension
+                from channel dimension
             value:      the value by which the subset selection is made
-                        from channel dimension
+                from channel dimension
 
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
@@ -161,6 +161,7 @@ class Dataset(DatasetBase):
 
     def split_channel(self, by):
         """ Returns a list Datasets splited by channels
+
         Args:
             by(String): the descriptor by which the splitting is made
 
@@ -186,11 +187,12 @@ class Dataset(DatasetBase):
 
     def subset_obs(self, by, value):
         """ Returns a subsetted Dataset defined by certain obs value
+
         Args:
             by(String): the descriptor by which the subset selection
-                        is made from obs dimension
+                is made from obs dimension
             value:      the value by which the subset selection is made
-                        from obs dimension
+                from obs dimension
 
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
@@ -209,11 +211,12 @@ class Dataset(DatasetBase):
 
     def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
+
         Args:
             by(String): the descriptor by which the subset selection is
-                        made from channel dimension
+                made from channel dimension
             value:      the value by which the subset selection is made
-                        from channel dimension
+                from channel dimension
 
         Returns:
             Dataset, with subset defined by the selected channel_descriptor

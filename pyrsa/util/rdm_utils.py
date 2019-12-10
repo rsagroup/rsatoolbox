@@ -4,6 +4,7 @@
 Collection of helper methods for rdm module
     batch_to_vectors:  batch squareform() to vectors
     batch_to_matrices: batch squareform() to matrices
+
 @author: baihan
 """
 
