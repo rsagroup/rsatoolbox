@@ -22,8 +22,8 @@ def preprocess_fmri(rawdata=None):
 
         Example:
             .. code-block:: python
-            
-                measurements, descriptors, obs_descriptors, 
+
+                measurements, descriptors, obs_descriptors,
                               channel_descriptors = preprocess(rawdata)
 
     """
