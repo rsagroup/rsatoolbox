@@ -149,6 +149,12 @@ class TestCompareRDM(unittest.TestCase):
                            dissimilarity_measure='test',
                            descriptors=des2
                            )
+        dissimilarities3 = np.random.rand(7,15)
+        des2 = {'session':0,'subj':0}
+        self.test_rdm3 = rsa.rdm.RDMs(dissimilarities=dissimilarities3,
+                           dissimilarity_measure='test',
+                           descriptors=des2
+                           )
 
     def test_compare_cosine(self):
         from pyrsa.rdm.compare import compare_cosine
@@ -159,10 +165,12 @@ class TestCompareRDM(unittest.TestCase):
         
     def test_compare_cosine_loop(self):
         from pyrsa.rdm.compare import compare_cosine
-        result = compare_cosine(self.test_rdm2, self.test_rdm2)
+        result = compare_cosine(self.test_rdm2, self.test_rdm3)
+        assert result.shape[0] == 3
+        assert result.shape[1] == 7
         result_loop = np.zeros_like(result)
         d1 = self.test_rdm2.get_vectors()
-        d2 = self.test_rdm2.get_vectors()
+        d2 = self.test_rdm3.get_vectors()
         for i in range(result_loop.shape[0]):
             for j in range(result_loop.shape[1]):
                 result_loop[i,j] = (np.sum(d1[i] * d2[j]) 
@@ -176,6 +184,23 @@ class TestCompareRDM(unittest.TestCase):
         assert_array_almost_equal(result, 0)
         result = compare_correlation(self.test_rdm1, self.test_rdm2)
         assert np.all(result>0)
+        
+    def test_compare_corr_loop(self):
+        from pyrsa.rdm.compare import compare_correlation
+        result = compare_correlation(self.test_rdm2, self.test_rdm3)
+        assert result.shape[0] == 3
+        assert result.shape[1] == 7
+        result_loop = np.zeros_like(result)
+        d1 = self.test_rdm2.get_vectors()
+        d2 = self.test_rdm3.get_vectors()
+        d1 = d1 - np.mean(d1, 1, keepdims=True)
+        d2 = d2 - np.mean(d2, 1, keepdims=True)
+        for i in range(result_loop.shape[0]):
+            for j in range(result_loop.shape[1]):
+                result_loop[i,j] = (np.sum(d1[i] * d2[j]) 
+                                    / np.sqrt(np.sum(d1[i] * d1[i]))
+                                    / np.sqrt(np.sum(d2[j] * d2[j])))
+        assert_array_almost_equal(result, 1 - result_loop)
         
     def test_compare_rank_corr(self):
         from pyrsa.rdm.compare import compare_rank_corr
