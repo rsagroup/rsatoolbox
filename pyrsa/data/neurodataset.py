@@ -12,16 +12,20 @@ import numpy as np
 
 def preprocess_fmri(rawdata=None):
     """example of a preprocessing function
+
         Args:
-            rawdata (pyrsa.data.dataset): the neural data
+            rawdata (pyrsa.data.dataset.Dataset): the neural data
 
         Returns:
             preprocessed neural data in format of measurements,
             descriptors, obs_descriptors, channel_descriptors
 
-        Example usage:
-            measurements, descriptors, obs_descriptors,
-            channel_descriptors = preprocess(rawdata)
+        Example:
+            .. code-block:: python
+            
+                measurements, descriptors, obs_descriptors, 
+                              channel_descriptors = preprocess(rawdata)
+
     """
     raise NotImplementedError(
         "preprocess_fmri function not implemented!")
