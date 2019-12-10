@@ -1,6 +1,13 @@
 pyrsa.inference package
 =======================
 
+Submodules
+----------
+
+.. toctree::
+
+   pyrsa.inference.bootstrap
+
 Module contents
 ---------------
 
