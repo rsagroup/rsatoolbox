@@ -13,12 +13,14 @@ def bool_index(descriptor, value):
     """
     creates a boolean index vector where a descriptor has a value
 
-        Args:
-            descriptor(np.ndarray): descriptor vector
-            value:                  value or list of values to mark
+    Args:
+        descriptor(numpy.ndarray): descriptor vector
+        value:                  value or list of values to mark
 
-        Returns:
-            bool_index:         boolean index vector where descriptor == value
+    Returns:
+        numpy.ndarray: 
+            bool_index: boolean index vector where descriptor == value
+
     """
     if (type(value) is list or
             type(value) is tuple or
@@ -32,11 +34,13 @@ def bool_index(descriptor, value):
 
 def format_descriptor(descriptors):
     """ formats a descriptor dictionary
+
         Args:
             descriptors(dict): the descriptor dictionary
 
         Returns:
-            string_descriptors(String): formated string to show dict
+            String: formated string to show dict
+
     """
     string_descriptors = ''
     for entry in descriptors:
@@ -50,11 +54,13 @@ def parse_input_descriptor(descriptors):
     """ parse input descriptor checks whether an input descriptors dictionary
         is a dictionary. If it is None instead it is replaced by an empty dict.
         Otherwise an error is raised.
+
         Args:
             descriptors(dict/None): the descriptor dictionary
 
         Returns:
-            descriptors(dict): descriptor dictionary
+            dict: descriptor dictionary
+
     """
     if descriptors is None:
         descriptors = {}
