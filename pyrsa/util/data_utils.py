@@ -2,18 +2,21 @@
 # -*- coding: utf-8 -*-
 """
 Collection of helper methods for data module
-    check_dict_length:   check if each value in dict matches length n
-    extract_dict:        extract key-value pairs with values given indexes.
-    get_unique_unsorted: return a unique unsorted list
+
++ check_dict_length:   check if each value in dict matches length n
++ extract_dict:        extract key-value pairs with values given indexes.
++ get_unique_unsorted: return a unique unsorted list
++ check_descriptors_dimension: run check_dict_length and raise an error
 
 @author: baihan
 """
 
 import numpy as np
-import pyrsa as rsa
 
 
 def check_dict_length(dictionary, n):
+    """check if each value in dict matches length n
+    """
     for k, v in dictionary.items():
         if v.shape[0] != n:
             return False
@@ -21,6 +24,8 @@ def check_dict_length(dictionary, n):
 
 
 def extract_dict(dictionary, indices):
+    """extract key-value pairs with values given indexes.
+    """
     extracted_dictionary = dictionary.copy()
     for k, v in dictionary.items():
         extracted_dictionary[k] = v[indices]
@@ -28,6 +33,8 @@ def extract_dict(dictionary, indices):
 
 
 def get_unique_unsorted(array):
+    """return a unique unsorted list
+    """
     u, indices = np.unique(array, return_index=True)
     temp = indices.argsort()
     ranks = np.empty_like(temp)
@@ -36,6 +43,8 @@ def get_unique_unsorted(array):
 
 
 def check_descriptors_dimension(des, name, n):
+    """ run check_dict_length and raise an error
+    """
     if des is not None:
         if not check_dict_length(des, n):
             raise AttributeError(
