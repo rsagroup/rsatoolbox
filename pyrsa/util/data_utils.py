@@ -17,7 +17,7 @@ import numpy as np
 def check_dict_length(dictionary, n):
     """check if each value in dict matches length n
     """
-    for k, v in dictionary.items():
+    for _, v in dictionary.items():
         if v.shape[0] != n:
             return False
     return True

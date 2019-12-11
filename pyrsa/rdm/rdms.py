@@ -68,7 +68,7 @@ class RDMs:
 
     def get_vectors(self):
         """ Returns RDMs as np.ndarray with each RDM as a vector
-        
+
         Returns:
             numpy.ndarray: RDMs as with one vector per RDM
 

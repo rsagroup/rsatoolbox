@@ -5,8 +5,6 @@ Definition of RSA Dataset class and subclasses
 @author: baihan, jdiedrichsen
 """
 
-import numpy as np
-import pyrsa as rsa
 from pyrsa.util.data_utils import check_descriptors_dimension
 from pyrsa.util.data_utils import extract_dict
 from pyrsa.util.data_utils import get_unique_unsorted

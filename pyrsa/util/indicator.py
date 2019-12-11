@@ -46,7 +46,7 @@ def allpairs(index_vector):
     Returns:
         numpy.ndarray: indicator_matrix: n_values * (n_values-1)/2 x n_row
         contrast matrix
-        
+
     """
     c_unique = np.unique(index_vector)
     n_unique = c_unique.size

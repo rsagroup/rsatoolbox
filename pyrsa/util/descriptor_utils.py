@@ -18,7 +18,7 @@ def bool_index(descriptor, value):
         value:                  value or list of values to mark
 
     Returns:
-        numpy.ndarray: 
+        numpy.ndarray:
             bool_index: boolean index vector where descriptor == value
 
     """
