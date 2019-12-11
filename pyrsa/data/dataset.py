@@ -228,6 +228,7 @@ class Dataset(DatasetBase):
 
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
+
         """
         selection = bool_index(self.channel_descriptors[by], value)
         measurements = self.measurements[:, selection]
