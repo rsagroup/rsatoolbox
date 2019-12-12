@@ -14,14 +14,15 @@ import numpy as np
 
 def identity(index_vector, positive=False):
     """ Indicator matriindicator_matrix with one
-        column per unique element in vector
+    column per unique element in vector
 
     Args:
         index_vector (numpy.ndarray): n_row vector to
         code - discrete values (one dimensional)
+
     Returns:
-        indicator_matrix (numpy.ndarray): n_row indicator_matrix
-            n_values indicator matriindicator_matrix
+        numpy.ndarray: n_row x n_values matrix
+
     """
     c_unique = np.unique(index_vector)
     n_unique = c_unique.size
@@ -41,10 +42,11 @@ def allpairs(index_vector):
     Args:
         index_vector (numpy.ndarray): n_row vector to code
             discrete values (one dimensional)
+
     Returns:
-        indicator_matrix (numpy.ndarray): n_values *
-        (n_values-1)/2
-        indicator_matrix n_row contrast matriindicator_matrix
+        numpy.ndarray: indicator_matrix: n_values * (n_values-1)/2 x n_row
+        contrast matrix
+
     """
     c_unique = np.unique(index_vector)
     n_unique = c_unique.size

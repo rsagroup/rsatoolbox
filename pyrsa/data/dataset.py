@@ -5,8 +5,6 @@ Definition of RSA Dataset class and subclasses
 @author: baihan, jdiedrichsen
 """
 
-import numpy as np
-import pyrsa as rsa
 from pyrsa.util.data_utils import check_descriptors_dimension
 from pyrsa.util.data_utils import extract_dict
 from pyrsa.util.data_utils import get_unique_unsorted
@@ -78,23 +76,27 @@ class DatasetBase:
                 )
 
     def split_obs(self, by):
-        """ Returns a list Datasets splited by obs
+        """ Returns a list Datasets split by obs
+
         Args:
             by(String): the descriptor by which the splitting is made
 
         Returns:
             list of Datasets, splitted by the selected obs_descriptor
+
         """
         raise NotImplementedError(
             "split_obs function not implemented in used Dataset class!")
 
     def split_channel(self, by):
-        """ Returns a list Datasets splited by channels
+        """ Returns a list Datasets split by channels
+
         Args:
             by(String): the descriptor by which the splitting is made
 
         Returns:
             list of Datasets,  splitted by the selected channel_descriptor
+
         """
         raise NotImplementedError(
             "split_channel function not implemented in used Dataset class!")
@@ -110,6 +112,7 @@ class DatasetBase:
 
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
+
         """
         raise NotImplementedError(
             "subset_obs function not implemented in used Dataset class!")
@@ -125,6 +128,7 @@ class DatasetBase:
 
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
+
         """
         raise NotImplementedError(
             "subset_channel function not implemented in used Dataset class!")
@@ -137,6 +141,7 @@ class Dataset(DatasetBase):
     """
     def split_obs(self, by):
         """ Returns a list Datasets splited by obs
+
         Args:
             by(String): the descriptor by which the splitting is made
 
@@ -196,6 +201,7 @@ class Dataset(DatasetBase):
 
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
+
         """
         selection = bool_index(self.obs_descriptors[by], value)
         measurements = self.measurements[selection, :]
@@ -220,6 +226,7 @@ class Dataset(DatasetBase):
 
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
+
         """
         selection = bool_index(self.channel_descriptors[by], value)
         measurements = self.measurements[:, selection]
