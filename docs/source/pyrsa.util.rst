@@ -1,6 +1,16 @@
 pyrsa.util package
 ==================
 
+Submodules
+----------
+
+.. toctree::
+
+   pyrsa.util.data_utils
+   pyrsa.util.descriptor_utils
+   pyrsa.util.indicator
+   pyrsa.util.rdm_utils
+
 Module contents
 ---------------
 

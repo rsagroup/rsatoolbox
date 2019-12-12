@@ -5,6 +5,7 @@ Collection of different utility Matrices
     indicator:  indicator variable for each unique element in vector
     pairwise_contrast:  All n_unique*(n_unique-1)/2 pairwise contrasts
     centering: Centering matrix which removes the column or row mean
+
 @author: jdiedrichsen
 """
 
@@ -13,16 +14,19 @@ import numpy as np
 
 def indicator(index_vector, positive=False):
     """ Indicator matrix with one
-        column per unique element in vector
-        Args:
-            index_vector (numpy.ndarray): n_row vector to
-                code - discrete values (one dimensional)
-            positive (bool): should the function ignore zero
-                negative entries in the index_vector?
-                Default: false
-        Returns:
-            indicator_matrix (numpy.ndarray): nrow x nconditions
-                indicator matrix
+    column per unique element in vector
+
+    Args:
+        index_vector (numpy.ndarray): n_row vector to
+            code - discrete values (one dimensional)
+        positive (bool): should the function ignore zero
+            negative entries in the index_vector?
+            Default: false
+
+    Returns:
+        indicator_matrix (numpy.ndarray): nrow x nconditions
+            indicator matrix
+
     """
     c_unique = np.unique(index_vector)
     n_unique = c_unique.size
@@ -38,12 +42,15 @@ def indicator(index_vector, positive=False):
 
 def pairwise_contrast(index_vector):
     """ Contrast matrix with one row per unqiue pairwise contrast
-        Args:
-            index_vector (numpy.ndarray): n_row vector to code
-                               - discrete values (one dimensional)
-        Returns:
-            constrast_matrix (numpy.ndarray): n_values *
-                (n_values-1)/2
+
+    Args:
+        index_vector (numpy.ndarray): n_row vector to code
+            discrete values (one dimensional)
+
+    Returns:
+        numpy.ndarray: indicator_matrix: n_values * (n_values-1)/2 x n_row
+        contrast matrix
+
     """
     c_unique = np.unique(index_vector)
     n_unique = c_unique.size
@@ -64,10 +71,12 @@ def pairwise_contrast(index_vector):
 
 def centering(size):
     """ generates a centering matrix
-        Args:
-            size (int): size of the center matrix
-        Returns:
-            centering_matrix (numpy.ndarray): size * size
+
+    Args:
+        size (int): size of the center matrix
+
+    Returns:
+        centering_matrix (numpy.ndarray): size * size
     """
     centering_matrix = np.identity(size) - np.ones(size) / size
     return centering_matrix
