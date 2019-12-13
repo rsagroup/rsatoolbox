@@ -202,17 +202,36 @@ class TestCompareRDM(unittest.TestCase):
                                     / np.sqrt(np.sum(d2[j] * d2[j])))
         assert_array_almost_equal(result, 1 - result_loop)
         
-    def test_compare_rank_corr(self):
-        from pyrsa.rdm.compare import compare_rank_corr
-        result = compare_rank_corr(self.test_rdm1, self.test_rdm1)
+    def test_compare_spearman(self):
+        from pyrsa.rdm.compare import compare_spearman
+        result = compare_spearman(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 0)
-        result = compare_rank_corr(self.test_rdm1, self.test_rdm2)
+        result = compare_spearman(self.test_rdm1, self.test_rdm2)
         assert np.all(result>0)
         
     def test_spearman_equal_scipy(self):
-        from pyrsa.rdm.compare import compare_rank_corr
+        from pyrsa.rdm.compare import _parse_input_rdms
+        from pyrsa.rdm.compare import _all_combinations
+        import scipy.stats
         from pyrsa.rdm.compare import compare_spearman
-        result = compare_rank_corr(self.test_rdm1, self.test_rdm2)
+        def _spearman_r(vector1, vector2):
+            """computes the spearman rank correlation between two vectors
+        
+            Args:
+                vector1 (numpy.ndarray):
+                    first vector
+                vector1 (numpy.ndarray):
+                    second vector
+            Returns:
+                corr (float):
+                    spearman r
+        
+            """
+            corr = scipy.stats.spearmanr(vector1, vector2).correlation
+            return corr
+        vector1, vector2 = _parse_input_rdms(self.test_rdm1, self.test_rdm2)
+        sim = _all_combinations(vector1, vector2, _spearman_r)
+        result = 1-sim
         result2 = compare_spearman(self.test_rdm1, self.test_rdm2)
         assert_array_almost_equal(result,result2)
         

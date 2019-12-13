@@ -31,7 +31,7 @@ def compare(rdm1, rdm2, method='cosine'):
     if method == 'cosine':
         dist = compare_cosine(rdm1, rdm2)
     elif method == 'spearman':
-        dist = compare_rank_corr(rdm1, rdm2)
+        dist = compare_spearman(rdm1, rdm2)
     elif method == 'corr':
         dist = compare_correlation(rdm1, rdm2)
     elif method == 'kendall':
@@ -76,24 +76,6 @@ def compare_correlation(rdm1, rdm2):
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     sim = _cosine(vector1, vector2)
-    return 1 - sim
-
-
-def compare_rank_corr(rdm1, rdm2):
-    """calculates the correlation distance between two RDMs objects
-
-    Args:
-        rdm1 (pyrsa.rdm.RDMs):
-            first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
-            second set of RDMs
-    Returns:
-        numpy.ndarray: dist:
-            rank correlation distance between the two RDMs
-
-    """
-    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
-    sim = _all_combinations(vector1, vector2, _spearman_r)
     return 1 - sim
 
 
@@ -200,23 +182,6 @@ def _kendall_tau(vector1, vector2):
     """
     tau = scipy.stats.kendalltau(vector1, vector2).correlation
     return tau
-
-
-def _spearman_r(vector1, vector2):
-    """computes the spearman rank correlation between two vectors
-
-    Args:
-        vector1 (numpy.ndarray):
-            first vector
-        vector1 (numpy.ndarray):
-            second vector
-    Returns:
-        corr (float):
-            spearman r
-
-    """
-    corr = scipy.stats.spearmanr(vector1, vector2).correlation
-    return corr
 
 
 def _parse_input_rdms(rdm1, rdm2):
