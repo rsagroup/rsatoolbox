@@ -5,11 +5,11 @@ Definition of RSA Dataset class and subclasses
 @author: baihan, jdiedrichsen
 """
 
-import numpy as np
-import pyrsa as rsa
 from pyrsa.util.data_utils import check_descriptors_dimension
 from pyrsa.util.data_utils import extract_dict
 from pyrsa.util.data_utils import get_unique_unsorted
+from pyrsa.util.descriptor_utils import check_descriptor_length_error
+from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import bool_index
 from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import parse_input_descriptor
@@ -22,18 +22,16 @@ class DatasetBase:
     implement any interesting behavior. Inherit from this class
     to define specific dataset types
 
-        Args:
-            measurements (numpy.ndarray): n_obs x n_channel 2d-array,
-            descriptors (dict):           descriptors (metadata)
-            obs_descriptors (dict):       observation descriptors (all
-                                          are array-like with shape =
-                                          (n_obs,...))
-            channel_descriptors (dict):   channel descriptors (all are
-                                          array-like with shape =
-                                          (n_channel,...))
+    Args:
+        measurements (numpy.ndarray): n_obs x n_channel 2d-array,
+        descriptors (dict):           descriptors (metadata)
+        obs_descriptors (dict):       observation descriptors (all
+            are array-like with shape = (n_obs,...))
+        channel_descriptors (dict):   channel descriptors (all are
+            array-like with shape = (n_channel,...))
 
-        Returns:
-            dataset object
+    Returns:
+        dataset object
     """
     def __init__(self, measurements, descriptors=None,
                  obs_descriptors=None, channel_descriptors=None):
@@ -42,10 +40,14 @@ class DatasetBase:
                 "measurements must be in dimension n_obs x n_channel")
         self.measurements = measurements
         self.n_obs, self.n_channel = self.measurements.shape
-        check_descriptors_dimension(obs_descriptors, "obs_descriptors",
-                                    self.n_obs)
-        check_descriptors_dimension(channel_descriptors, "channel_descriptors",
-                                    self.n_channel)
+        check_descriptor_length_error(obs_descriptors,
+                                      "obs_descriptors",
+                                      self.n_obs
+                                      )
+        check_descriptor_length_error(channel_descriptors,
+                                      "channel_descriptors",
+                                      self.n_channel
+                                      )
         self.descriptors = parse_input_descriptor(descriptors)
         self.obs_descriptors = parse_input_descriptor(obs_descriptors)
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
@@ -80,51 +82,59 @@ class DatasetBase:
                 )
 
     def split_obs(self, by):
-        """ Returns a list Datasets splited by obs
+        """ Returns a list Datasets split by obs
+
         Args:
             by(String): the descriptor by which the splitting is made
 
         Returns:
             list of Datasets, splitted by the selected obs_descriptor
+
         """
         raise NotImplementedError(
             "split_obs function not implemented in used Dataset class!")
 
     def split_channel(self, by):
-        """ Returns a list Datasets splited by channels
+        """ Returns a list Datasets split by channels
+
         Args:
             by(String): the descriptor by which the splitting is made
 
         Returns:
             list of Datasets,  splitted by the selected channel_descriptor
+
         """
         raise NotImplementedError(
             "split_channel function not implemented in used Dataset class!")
 
     def subset_obs(self, by, value):
         """ Returns a subsetted Dataset defined by certain obs value
+
         Args:
             by(String): the descriptor by which the subset selection is made
-                        from obs dimension
+                from obs dimension
             value:      the value by which the subset selection is made
-                        from obs dimension
+                from obs dimension
 
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
+
         """
         raise NotImplementedError(
             "subset_obs function not implemented in used Dataset class!")
 
     def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
+
         Args:
             by(String): the descriptor by which the subset selection is made
-                        from channel dimension
+                from channel dimension
             value:      the value by which the subset selection is made
-                        from channel dimension
+                from channel dimension
 
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
+
         """
         raise NotImplementedError(
             "subset_channel function not implemented in used Dataset class!")
@@ -137,6 +147,7 @@ class Dataset(DatasetBase):
     """
     def split_obs(self, by):
         """ Returns a list Datasets splited by obs
+
         Args:
             by(String): the descriptor by which the splitting is made
 
@@ -149,7 +160,7 @@ class Dataset(DatasetBase):
             selection = (self.obs_descriptors[by] == v)
             measurements = self.measurements[selection, :]
             descriptors = self.descriptors
-            obs_descriptors = extract_dict(
+            obs_descriptors = subset_descriptor(
                 self.obs_descriptors, selection)
             channel_descriptors = self.channel_descriptors
             dataset = Dataset(measurements=measurements,
@@ -161,6 +172,7 @@ class Dataset(DatasetBase):
 
     def split_channel(self, by):
         """ Returns a list Datasets splited by channels
+
         Args:
             by(String): the descriptor by which the splitting is made
 
@@ -175,7 +187,7 @@ class Dataset(DatasetBase):
             descriptors = self.descriptors
             descriptors[by] = v
             obs_descriptors = self.obs_descriptors
-            channel_descriptors = extract_dict(
+            channel_descriptors = subset_descriptor(
                 self.channel_descriptors, selection)
             dataset = Dataset(measurements=measurements,
                               descriptors=descriptors,
@@ -186,19 +198,21 @@ class Dataset(DatasetBase):
 
     def subset_obs(self, by, value):
         """ Returns a subsetted Dataset defined by certain obs value
+
         Args:
             by(String): the descriptor by which the subset selection
-                        is made from obs dimension
+                is made from obs dimension
             value:      the value by which the subset selection is made
-                        from obs dimension
+                from obs dimension
 
         Returns:
             Dataset, with subset defined by the selected obs_descriptor
+
         """
         selection = bool_index(self.obs_descriptors[by], value)
         measurements = self.measurements[selection, :]
         descriptors = self.descriptors
-        obs_descriptors = extract_dict(
+        obs_descriptors = subset_descriptor(
             self.obs_descriptors, selection)
         channel_descriptors = self.channel_descriptors
         dataset = Dataset(measurements=measurements,
@@ -209,20 +223,22 @@ class Dataset(DatasetBase):
 
     def subset_channel(self, by, value):
         """ Returns a subsetted Dataset defined by certain channel value
+
         Args:
             by(String): the descriptor by which the subset selection is
-                        made from channel dimension
+                made from channel dimension
             value:      the value by which the subset selection is made
-                        from channel dimension
+                from channel dimension
 
         Returns:
             Dataset, with subset defined by the selected channel_descriptor
+
         """
         selection = bool_index(self.channel_descriptors[by], value)
         measurements = self.measurements[:, selection]
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors
-        channel_descriptors = extract_dict(
+        channel_descriptors = subset_descriptor(
             self.channel_descriptors, selection)
         dataset = Dataset(measurements=measurements,
                           descriptors=descriptors,
