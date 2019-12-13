@@ -5,20 +5,21 @@
 
 import numpy as np
 
+
 def bootstrap_sample(rdms, rdm_descriptors=None, pattern_descriptors=None):
     """draws a bootstrap_sample from the data
 
-    This function generates a bootstrap sample of RDMs resampled over 
-    measurements and patterns. By default every pattern and RDM sample is 
-    treated independently. If desired descriptor names can be passed in 
+    This function generates a bootstrap sample of RDMs resampled over
+    measurements and patterns. By default every pattern and RDM sample is
+    treated independently. If desired descriptor names can be passed in
     descriptors and in pattern_descriptors to group rdms instead.
 
     Args:
         rdms(pyrsa.rdm.rdms.RDMs): Data to be used
 
-        rdm_descriptors(list of string): 
-            descriptors to group the samples by. For each unique value of 
-            the descriptors each sample will either contain all RDMs with 
+        rdm_descriptors(list of string):
+            descriptors to group the samples by. For each unique value of
+            the descriptors each sample will either contain all RDMs with
             this combination or none
 
         pattern_descriptors(list of string):
@@ -47,5 +48,4 @@ def bootstrap_sample(rdms, rdm_descriptors=None, pattern_descriptors=None):
         descriptor_mat = np.array(descriptor_mat)
         pattern_select, pattern_idx = np.unique(descriptor_mat,
                                                 return_inverse=True)
-    
     return rdms
