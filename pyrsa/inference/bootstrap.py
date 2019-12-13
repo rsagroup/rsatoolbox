@@ -7,7 +7,7 @@ import numpy as np
 
 
 def bootstrap_sample(rdms, rdm_descriptors=None, pattern_descriptors=None):
-    """draws a bootstrap_sample from the data
+    """Draws a bootstrap_sample from the data.
 
     This function generates a bootstrap sample of RDMs resampled over
     measurements and patterns. By default every pattern and RDM sample is
@@ -43,7 +43,7 @@ def bootstrap_sample(rdms, rdm_descriptors=None, pattern_descriptors=None):
         pattern_select = np.arange(rdms.n_cond)
         pattern_idx = np.aramge(rdms.n_cond)
     else:
-        descriptor_mat = [rdms.pattern_descriptors[i] 
+        descriptor_mat = [rdms.pattern_descriptors[i]
                           for i in pattern_descriptors]
         descriptor_mat = np.array(descriptor_mat)
         pattern_select, pattern_idx = np.unique(descriptor_mat,
