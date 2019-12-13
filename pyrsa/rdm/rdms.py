@@ -5,7 +5,7 @@ Definition of RSA RDMs class and subclasses
 @author: baihan
 """
 
-import numpy as np
+
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -15,23 +15,22 @@ from pyrsa.util.data_utils import check_descriptors_dimension
 
 
 class RDMs:
-    """
-    RDMs class.
+    """ RDMs class
 
-        Args:
-            dissimilarities (numpy.ndarray):
-                either a 2d np-array (n_rdm x vectorform of dissimilarities)
-                or a 3d np-array (n_rdm x n_cond x n_cond)
-            dissimilarity_measure (String):
-                a description of the dissimilarity measure (e.g. 'Euclidean')
-            descriptors (dict):
-                descriptors with 1 value per RDMs object
-            rdm_descriptors (dict):
-                descriptors with 1 value per RDM
-            pattern_descriptors (dict)
-                descriptors with 1 value per RDM row/column
-        Returns:
-            RDMs object
+    Args:
+        dissimilarities (numpy.ndarray):
+            either a 2d np-array (n_rdm x vectorform of dissimilarities)
+            or a 3d np-array (n_rdm x n_cond x n_cond)
+        dissimilarity_measure (String):
+            a description of the dissimilarity measure (e.g. 'Euclidean')
+        descriptors (dict):
+            descriptors with 1 value per RDMs object
+        pattern_descriptors (dict):
+            descriptors with 1 value per RDM column
+
+    Attributes:
+        n_rdm(int): number of rdms
+        n_cond(int): number of patterns
     """
     def __init__(self, dissimilarities,
                  dissimilarity_measure=None,
@@ -91,15 +90,19 @@ class RDMs:
 
     def get_vectors(self):
         """ Returns RDMs as np.ndarray with each RDM as a vector
+
         Returns:
-            RDMs as with one vector as one RDM
+            numpy.ndarray: RDMs as with one vector per RDM
+
         """
         return self.dissimilarities
 
     def get_matrices(self):
         """ Returns RDMs as np.ndarray with each RDM as a matrix
+
         Returns:
-            RDMs as with one matrix as one RDM
+            numpy.ndarray: RDMs as with one matrix per RDM
+
         """
         matrices, _, _ = batch_to_matrices(self.dissimilarities)
         return matrices
