@@ -99,7 +99,7 @@ def compare_rank_corr(rdm1, rdm2):
 
 def compare_kendall_tau(rdm1, rdm2):
     """calculates the Kendall-tau b based distance between two RDMs objects.
-    Kendall-tau b is the version, which can deal well with ties. 
+    Kendall-tau b is the version, which can deal well with ties.
     We here use the implementation from scipy.
 
         Args:
