@@ -9,26 +9,28 @@ import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.data.dataset import Dataset
 from pyrsa.data import average_dataset_by
-from pyrsa.util.indicator import allpairs
+from pyrsa.util.matrix import pairwise_contrast
 
 
 def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
     """
     calculates an RDM from an input dataset
 
-        Args:
-            dataset (pyrsa.data.DatasetBase):
-                The dataset the RDM is computed from
-            method (String):
-                a description of the dissimilarity measure (e.g. 'Euclidean')
-            descriptor (String):
-                obs_descriptor used to define the rows/columns of the RDM
-            noise (numpy.ndarray):
-                dataset.n_channel x dataset.n_channel
-                precision matrix used to calculate the RDM
-                used only for Mahalanobis and Crossnobis estimators
-        Returns:
-            RDMs object with the one RDM
+    Args:
+        dataset (pyrsa.data.dataset.DatasetBase):
+            The dataset the RDM is computed from
+        method (String):
+            a description of the dissimilarity measure (e.g. 'Euclidean')
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+        noise (numpy.ndarray):
+            dataset.n_channel x dataset.n_channel
+            precision matrix used to calculate the RDM
+            used only for Mahalanobis and Crossnobis estimators
+
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+
     """
     if method == 'euclidean':
         rdm = calc_rdm_euclid(dataset, descriptor)
@@ -49,17 +51,19 @@ def calc_rdm_euclid(dataset, descriptor=None):
     If multiple instances of the same condition are found in the dataset
     they are averaged.
 
-        Args:
-            dataset (pyrsa.data.DatasetBase):
-                The dataset the RDM is computed from
-            descriptor (String):
-                obs_descriptor used to define the rows/columns of the RDM
-                defaults to one row/column per row in the dataset
-        Returns:
-            RDMs object with the one RDM
+    Args:
+        dataset (pyrsa.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
-    c_matrix = allpairs(np.arange(measurements.shape[0]))
+    c_matrix = pairwise_contrast(np.arange(measurements.shape[0]))
     diff = np.matmul(c_matrix, measurements)
     rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
@@ -75,14 +79,16 @@ def calc_rdm_correlation(dataset, descriptor=None):
     If multiple instances of the same condition are found in the dataset
     they are averaged.
 
-        Args:
-            dataset (pyrsa.data.DatasetBase):
-                The dataset the RDM is computed from
-            descriptor (String):
-                obs_descriptor used to define the rows/columns of the RDM
-                defaults to one row/column per row in the dataset
-        Returns:
-            RDMs object with the one RDM
+    Args:
+        dataset (pyrsa.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+
     """
     ma, desc, descriptor = _parse_input(dataset, descriptor)
 
@@ -102,21 +108,23 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     If multiple instances of the same condition are found in the dataset
     they are averaged.
 
-        Args:
-            dataset (pyrsa.data.DatasetBase):
-                The dataset the RDM is computed from
-            descriptor (String):
-                obs_descriptor used to define the rows/columns of the RDM
-                defaults to one row/column per row in the dataset
-            noise (numpy.ndarray):
-                dataset.n_channel x dataset.n_channel
-                precision matrix used to calculate the RDM
-        Returns:
-            RDMs object with the one RDM
+    Args:
+        dataset (pyrsa.data.dataset.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+        noise (numpy.ndarray):
+            dataset.n_channel x dataset.n_channel
+            precision matrix used to calculate the RDM
+
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
     noise = _check_noise(noise, dataset.n_channel)
-    c_matrix = allpairs(np.arange(measurements.shape[0]))
+    c_matrix = pairwise_contrast(np.arange(measurements.shape[0]))
     diff = np.matmul(c_matrix, measurements)
     diff2 = np.matmul(noise, diff.T).T
     rdm = np.einsum('ij,ij->i', diff, diff2) / measurements.shape[1]
@@ -137,20 +145,21 @@ def calc_rdm_crossnobis(dataset,
     calculates an RDM from an input dataset using Cross-nobis distance
     This performs leave one out crossvalidation over the cv_descriptor
 
-        Args:
-            dataset (pyrsa.data.DatasetBase):
-                The dataset the RDM is computed from
-            descriptor (String):
-                obs_descriptor used to define the rows/columns of the RDM
-                defaults to one row/column per row in the dataset
-            noise (numpy.ndarray):
-                dataset.n_channel x dataset.n_channel
-                precision matrix used to calculate the RDM
-            cv_descriptor (String):
-                obs_descriptor which determines the cross-validation folds
+    Args:
+        dataset (pyrsa.data.dataset.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+        noise (numpy.ndarray):
+            dataset.n_channel x dataset.n_channel
+            precision matrix used to calculate the RDM
+        cv_descriptor (String):
+            obs_descriptor which determines the cross-validation folds
 
-        Returns:
-            RDMs object with the one RDM
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+
     """
     noise = _check_noise(noise, dataset.n_channel)
     if descriptor is None:
@@ -186,7 +195,7 @@ def calc_rdm_crossnobis(dataset,
 
 
 def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
-    c_matrix = allpairs(np.arange(measurements1.shape[0]))
+    c_matrix = pairwise_contrast(np.arange(measurements1.shape[0]))
     diff_1 = np.matmul(c_matrix, measurements1)
     diff_2 = np.matmul(c_matrix, measurements2)
     diff_2 = np.matmul(noise, diff_2.transpose())
@@ -209,11 +218,12 @@ def _check_noise(noise, n_channel):
     checks that a noise pattern is a matrix with correct dimension
     n_channel x n_channel
 
-        Args:
-            noise: noise input to be checked
+    Args:
+        noise: noise input to be checked
 
-        Returns:
-            noise(np.ndarray): n_channel x n_channel noise precision matrix
+    Returns:
+        noise(np.ndarray): n_channel x n_channel noise precision matrix
+
     """
     if noise is None:
         noise = np.eye(n_channel)
