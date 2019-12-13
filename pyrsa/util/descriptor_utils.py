@@ -13,12 +13,14 @@ def bool_index(descriptor, value):
     """
     creates a boolean index vector where a descriptor has a value
 
-        Args:
-            descriptor(np.ndarray): descriptor vector
-            value:                  value or list of values to mark
+    Args:
+        descriptor(numpy.ndarray): descriptor vector
+        value:                  value or list of values to mark
 
-        Returns:
-            index:         boolean index vector where descriptor == value
+    Returns:
+        numpy.ndarray:
+            bool_index: boolean index vector where descriptor == value
+
     """
     descriptor = np.array(descriptor)
     if (type(value) is list or
@@ -33,11 +35,13 @@ def bool_index(descriptor, value):
 
 def format_descriptor(descriptors):
     """ formats a descriptor dictionary
-        Args:
-            descriptors(dict): the descriptor dictionary
 
-        Returns:
-            string_descriptors(String): formated string to show dict
+    Args:
+        descriptors(dict): the descriptor dictionary
+
+    Returns:
+        String: formated string to show dict
+
     """
     string_descriptors = ''
     for entry in descriptors:
@@ -49,16 +53,76 @@ def format_descriptor(descriptors):
 
 def parse_input_descriptor(descriptors):
     """ parse input descriptor checks whether an input descriptors dictionary
-        is a dictionary. If it is None instead it is replaced by an empty dict.
-        Otherwise an error is raised.
-        Args:
-            descriptors(dict/None): the descriptor dictionary
+    is a dictionary. If it is None instead it is replaced by an empty dict.
+    Otherwise an error is raised.
 
-        Returns:
-            descriptors(dict): descriptor dictionary
+    Args:
+        descriptors(dict/None): the descriptor dictionary
+
+    Returns:
+        dict: descriptor dictionary
+
     """
     if descriptors is None:
         descriptors = {}
     elif not isinstance(descriptors, dict):
         raise ValueError('Descriptors must be dictionaries!')
     return descriptors
+
+
+def check_descriptor_length(descriptor, n):
+    """
+    Checks whether the entries of a descriptor dictionary have the right length
+
+    Args:
+        descriptor(dict): the descriptor dictionary
+        n: the correct length of the descriptors
+
+    Returns:
+        bool
+
+    """
+    for k, v in descriptor.items():
+        if np.array(v).shape[0] != n:
+            return False
+    return True
+
+
+def subset_descriptor(descriptor, indices):
+    """
+    retrievs a subset of a descriptor given by indices.
+
+    Args:
+        descriptor(dict): the descriptor dictionary
+        indices: the indices to be extracted
+
+    Returns:
+        extracted_descriptor(dict): the selected subset of the descriptor
+
+    """
+    extracted_descriptor = {}
+    for k, v in descriptor.items():
+        if isinstance(indices, tuple) or isinstance(indices, list):
+            extracted_descriptor[k] = [v[index] for index in indices]
+        else:
+            extracted_descriptor[k] = np.array(v)[indices]
+    return extracted_descriptor
+
+
+def check_descriptor_length_error(descriptor, name, n):
+    """
+    Raises an error if the given descriptor does not have the right length
+
+    Args:
+        descriptor(dict/None): the descriptor dictionary
+        name(String): Descriptor name used for error message
+        n: the indices to be extracted
+
+    Returns:
+        ---
+
+    """
+    if descriptor is not None:
+        if not check_descriptor_length(descriptor, n):
+            raise AttributeError(
+                name + " have mismatched dimension with measurements.")
