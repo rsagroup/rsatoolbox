@@ -97,6 +97,29 @@ def compare_rank_corr(rdm1, rdm2):
     return 1 - sim
 
 
+def compare_spearman(rdm1, rdm2):
+    """calculates the spearman rank correlation distances between 
+    two RDMs objects
+
+    Args:
+        rdm1 (pyrsa.rdm.RDMs):
+            first set of RDMs
+        rdm2 (pyrsa.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            rank correlation distance between the two RDMs
+
+    """
+    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    vector1 = np.apply_along_axis(scipy.stats.rankdata,1,vector1)
+    vector2 = np.apply_along_axis(scipy.stats.rankdata,1,vector2)
+    vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
+    vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
+    sim = _cosine(vector1, vector2)
+    return 1 - sim
+
+
 def compare_kendall_tau(rdm1, rdm2):
     """calculates the Kendall-tau b based distance between two RDMs objects.
     Kendall-tau b is the version, which can deal well with ties.

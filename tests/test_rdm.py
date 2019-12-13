@@ -209,6 +209,13 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_rank_corr(self.test_rdm1, self.test_rdm2)
         assert np.all(result>0)
         
+    def test_spearman_equal_scipy(self):
+        from pyrsa.rdm.compare import compare_rank_corr
+        from pyrsa.rdm.compare import compare_spearman
+        result = compare_rank_corr(self.test_rdm1, self.test_rdm2)
+        result2 = compare_spearman(self.test_rdm1, self.test_rdm2)
+        assert_array_almost_equal(result,result2)
+        
     def test_compare_kendall_tau(self):
         from pyrsa.rdm.compare import compare_kendall_tau
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm1)
