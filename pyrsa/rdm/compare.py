@@ -55,8 +55,8 @@ def compare_cosine(rdm1, rdm2):
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
-    dist = _cosine(vector1, vector2)
-    return 1 - dist
+    sim = _cosine(vector1, vector2)
+    return 1 - sim
 
 
 def compare_correlation(rdm1, rdm2):
@@ -75,8 +75,8 @@ def compare_correlation(rdm1, rdm2):
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
-    dist = _cosine(vector1, vector2)
-    return 1 - dist
+    sim = _cosine(vector1, vector2)
+    return 1 - sim
 
 
 def compare_rank_corr(rdm1, rdm2):
@@ -93,8 +93,8 @@ def compare_rank_corr(rdm1, rdm2):
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
-    dist = _all_combinations(vector1, vector2, _spearman_r)
-    return 1 - dist
+    sim = _all_combinations(vector1, vector2, _spearman_r)
+    return 1 - sim
 
 
 def compare_kendall_tau(rdm1, rdm2):
@@ -112,8 +112,8 @@ def compare_kendall_tau(rdm1, rdm2):
                 kendall-tau based distance between the two RDMs
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
-    dist = _all_combinations(vector1, vector2, _kendall_tau)
-    return 1 - dist
+    sim = _all_combinations(vector1, vector2, _kendall_tau)
+    return 1 - sim
 
 
 def _all_combinations(vectors1, vectors2, func):
