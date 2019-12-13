@@ -67,7 +67,7 @@ def batch_to_matrices(x):
     return m, n_rdm, n_cond
 
 
-def get_n_from_reduced_vectors(x):
+def _get_n_from_reduced_vectors(x):
     """
     calculates the size of the RDM from the vector representation
 
