@@ -67,3 +67,58 @@ def parse_input_descriptor(descriptors):
     elif not isinstance(descriptors, dict):
         raise ValueError('Descriptors must be dictionaries!')
     return descriptors
+
+
+def check_descriptor_length(descriptor, n):
+    """
+    Checks whether the entries of a descriptor dictionary have the right length
+
+        Args:
+            descriptor(dict): the descriptor dictionary
+            n: the correct length of the descriptors
+
+        Returns:
+            bool
+    """
+    for k, v in descriptor.items():
+        if np.array(v).shape[0] != n:
+            return False
+    return True
+
+
+def subset_descriptor(descriptor, indices):
+    """
+    retrievs a subset of a descriptor given by indices.
+
+        Args:
+            descriptor(dict): the descriptor dictionary
+            indices: the indices to be extracted
+
+        Returns:
+            extracted_descriptor(dict): the selected subset of the descriptor
+    """
+    extracted_descriptor = {}
+    for k, v in descriptor.items():
+        if isinstance(indices, tuple) or isinstance(indices, list):
+            extracted_descriptor[k] = [v[index] for index in indices]
+        else:
+            extracted_descriptor[k] = np.array(v)[indices]
+    return extracted_descriptor
+
+
+def check_descriptor_length_error(descriptor, name, n):
+    """
+    Raises an error if the given descriptor does not have the right length
+
+        Args:
+            descriptor(dict/None): the descriptor dictionary
+            name(String): Descriptor name used for error message
+            n: the indices to be extracted
+
+        Returns:
+            ---
+    """
+    if descriptor is not None:
+        if not check_descriptor_length(descriptor, n):
+            raise AttributeError(
+                name + " have mismatched dimension with measurements.")

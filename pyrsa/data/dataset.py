@@ -8,6 +8,8 @@ Definition of RSA Dataset class and subclasses
 from pyrsa.util.data_utils import check_descriptors_dimension
 from pyrsa.util.data_utils import extract_dict
 from pyrsa.util.data_utils import get_unique_unsorted
+from pyrsa.util.descriptor_utils import check_descriptor_length_error
+from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import bool_index
 from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import parse_input_descriptor
@@ -38,10 +40,14 @@ class DatasetBase:
                 "measurements must be in dimension n_obs x n_channel")
         self.measurements = measurements
         self.n_obs, self.n_channel = self.measurements.shape
-        check_descriptors_dimension(obs_descriptors, "obs_descriptors",
-                                    self.n_obs)
-        check_descriptors_dimension(channel_descriptors, "channel_descriptors",
-                                    self.n_channel)
+        check_descriptor_length_error(obs_descriptors,
+                                      "obs_descriptors",
+                                      self.n_obs
+                                      )
+        check_descriptor_length_error(channel_descriptors,
+                                      "channel_descriptors",
+                                      self.n_channel
+                                      )
         self.descriptors = parse_input_descriptor(descriptors)
         self.obs_descriptors = parse_input_descriptor(obs_descriptors)
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
@@ -154,7 +160,7 @@ class Dataset(DatasetBase):
             selection = (self.obs_descriptors[by] == v)
             measurements = self.measurements[selection, :]
             descriptors = self.descriptors
-            obs_descriptors = extract_dict(
+            obs_descriptors = subset_descriptor(
                 self.obs_descriptors, selection)
             channel_descriptors = self.channel_descriptors
             dataset = Dataset(measurements=measurements,
@@ -181,7 +187,7 @@ class Dataset(DatasetBase):
             descriptors = self.descriptors
             descriptors[by] = v
             obs_descriptors = self.obs_descriptors
-            channel_descriptors = extract_dict(
+            channel_descriptors = subset_descriptor(
                 self.channel_descriptors, selection)
             dataset = Dataset(measurements=measurements,
                               descriptors=descriptors,
@@ -206,7 +212,7 @@ class Dataset(DatasetBase):
         selection = bool_index(self.obs_descriptors[by], value)
         measurements = self.measurements[selection, :]
         descriptors = self.descriptors
-        obs_descriptors = extract_dict(
+        obs_descriptors = subset_descriptor(
             self.obs_descriptors, selection)
         channel_descriptors = self.channel_descriptors
         dataset = Dataset(measurements=measurements,
@@ -232,7 +238,7 @@ class Dataset(DatasetBase):
         measurements = self.measurements[:, selection]
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors
-        channel_descriptors = extract_dict(
+        channel_descriptors = subset_descriptor(
             self.channel_descriptors, selection)
         dataset = Dataset(measurements=measurements,
                           descriptors=descriptors,
