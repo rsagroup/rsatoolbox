@@ -10,7 +10,7 @@ import scipy.stats
 
 
 def compare(rdm1, rdm2, method='cosine'):
-    """calculates a distance between two RDMs objects
+    """calculates the distances between two RDMs objects using a chosen method
 
     Args:
         rdm1 (pyrsa.rdm.RDMs):
@@ -42,7 +42,7 @@ def compare(rdm1, rdm2, method='cosine'):
 
 
 def compare_cosine(rdm1, rdm2):
-    """calculates the cosine distance between two RDMs objects
+    """calculates the cosine distances between two RDMs objects
 
     Args:
         rdm1 (pyrsa.rdm.RDMs):
@@ -60,7 +60,7 @@ def compare_cosine(rdm1, rdm2):
 
 
 def compare_correlation(rdm1, rdm2):
-    """calculates the correlation distance between two RDMs objects
+    """calculates the correlation distances between two RDMs objects
 
     Args:
         rdm1 (pyrsa.rdm.RDMs):
@@ -80,7 +80,7 @@ def compare_correlation(rdm1, rdm2):
 
 
 def compare_spearman(rdm1, rdm2):
-    """calculates the spearman rank correlation distances between 
+    """calculates the spearman rank correlation distances between
     two RDMs objects
 
     Args:
@@ -94,8 +94,8 @@ def compare_spearman(rdm1, rdm2):
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
-    vector1 = np.apply_along_axis(scipy.stats.rankdata,1,vector1)
-    vector2 = np.apply_along_axis(scipy.stats.rankdata,1,vector2)
+    vector1 = np.apply_along_axis(scipy.stats.rankdata, 1, vector1)
+    vector2 = np.apply_along_axis(scipy.stats.rankdata, 1, vector2)
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     sim = _cosine(vector1, vector2)
