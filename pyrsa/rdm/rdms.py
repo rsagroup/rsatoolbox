@@ -95,7 +95,7 @@ class RDMs:
         """ Returns RDMs as np.ndarray with each RDM as a vector
 
         Returns:
-            numpy.ndarray: RDMs as with one vector per RDM
+            numpy.ndarray: RDMs as a matrix with one row per RDM
 
         """
         return self.dissimilarities
@@ -104,7 +104,7 @@ class RDMs:
         """ Returns RDMs as np.ndarray with each RDM as a matrix
 
         Returns:
-            numpy.ndarray: RDMs as with one matrix per RDM
+            numpy.ndarray: RDMs as a 3-Tensor with one matrix per RDM
 
         """
         matrices, _, _ = batch_to_matrices(self.dissimilarities)
