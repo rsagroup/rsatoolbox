@@ -10,23 +10,23 @@ import scipy.stats
 
 
 def compare(rdm1, rdm2, method='cosine'):
-    """
-    calculates a distance between two RDMs objects
+    """calculates a distance between two RDMs objects
 
-        Args:
-            rdm1 (pyrsa.rdm.RDMs):
-                first set of RDMs
-            rdm2 (pyrsa.rdm.RDMs):
-                second set of RDMs
-            method (string):
-                which method to use, options are:
-                'cosine' = cosine distance
-                'spearman' = spearman rank correlation distance
-                'corr' = pearson correlation distance
-                'kendall' = kendall-tau based distance
-        Returns:
-            dist (float):
-                dissimilarity between the two RDMs
+    Args:
+        rdm1 (pyrsa.rdm.RDMs):
+            first set of RDMs
+        rdm2 (pyrsa.rdm.RDMs):
+            second set of RDMs
+        method (string):
+            which method to use, options are:
+            'cosine' = cosine distance
+            'spearman' = spearman rank correlation distance
+            'corr' = pearson correlation distance
+            'kendall' = kendall-tau based distance
+    Returns:
+        numpy.ndarray: dist:
+            dissimilarity between the two RDMs
+
     """
     if method == 'cosine':
         dist = compare_cosine(rdm1, rdm2)
@@ -42,17 +42,17 @@ def compare(rdm1, rdm2, method='cosine'):
 
 
 def compare_cosine(rdm1, rdm2):
-    """
-    calculates the cosine distance between two RDMs objects
+    """calculates the cosine distance between two RDMs objects
 
-        Args:
-            rdm1 (pyrsa.rdm.RDMs):
-                first set of RDMs
-            rdm2 (pyrsa.rdm.RDMs):
-                second set of RDMs
-        Returns:
-            dist (float):
-                cosine distance between the two RDMs
+    Args:
+        rdm1 (pyrsa.rdm.RDMs):
+            first set of RDMs
+        rdm2 (pyrsa.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            cosine distance between the two RDMs
+
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     dist = _cosine(vector1, vector2)
@@ -60,17 +60,17 @@ def compare_cosine(rdm1, rdm2):
 
 
 def compare_correlation(rdm1, rdm2):
-    """
-    calculates the correlation distance between two RDMs objects
+    """calculates the correlation distance between two RDMs objects
 
-        Args:
-            rdm1 (pyrsa.rdm.RDMs):
-                first set of RDMs
-            rdm2 (pyrsa.rdm.RDMs):
-                second set of RDMs
-        Returns:
-            dist (float):
-                correlation distance between the two RDMs
+    Args:
+        rdm1 (pyrsa.rdm.RDMs):
+            first set of RDMs
+        rdm2 (pyrsa.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            correlation distance between the two RDMs
+
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
@@ -80,17 +80,17 @@ def compare_correlation(rdm1, rdm2):
 
 
 def compare_rank_corr(rdm1, rdm2):
-    """
-    calculates the correlation distance between two RDMs objects
+    """calculates the correlation distance between two RDMs objects
 
-        Args:
-            rdm1 (pyrsa.rdm.RDMs):
-                first set of RDMs
-            rdm2 (pyrsa.rdm.RDMs):
-                second set of RDMs
-        Returns:
-            dist (float):
-                rank correlation distance between the two RDMs
+    Args:
+        rdm1 (pyrsa.rdm.RDMs):
+            first set of RDMs
+        rdm2 (pyrsa.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            rank correlation distance between the two RDMs
+
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     dist = _all_combinations(vector1, vector2, _spearman_r)
@@ -98,8 +98,9 @@ def compare_rank_corr(rdm1, rdm2):
 
 
 def compare_kendall_tau(rdm1, rdm2):
-    """
-    calculates the Kendall-tau based distance between two RDMs objects
+    """calculates the Kendall-tau b based distance between two RDMs objects.
+    Kendall-tau b is the version, which can deal well with ties. 
+    We here use the implementation from scipy.
 
         Args:
             rdm1 (pyrsa.rdm.RDMs):
@@ -107,7 +108,7 @@ def compare_kendall_tau(rdm1, rdm2):
             rdm2 (pyrsa.rdm.RDMs):
                 second set of RDMs
         Returns:
-            dist (float):
+            numpy.ndarray: dist:
                 kendall-tau based distance between the two RDMs
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
@@ -116,21 +117,20 @@ def compare_kendall_tau(rdm1, rdm2):
 
 
 def _all_combinations(vectors1, vectors2, func):
-    """
-    runs a function func on all combinations of v1 in vectors1
+    """runs a function func on all combinations of v1 in vectors1
     and v2 in vectors2 and puts the results into an array
 
-        Args:
-            vectors1 (numpy.ndarray):
-                first set of values
-            vectors1 (numpy.ndarray):
-                second set of values
-            func (function):
-                function to be applied, should take two input vectors
-                and return one scalar
-        Returns:
-            value (numpy.ndarray):
-                function result over all pairs
+    Args:
+        vectors1 (numpy.ndarray):
+            first set of values
+        vectors1 (numpy.ndarray):
+            second set of values
+        func (function):
+            function to be applied, should take two input vectors
+            and return one scalar
+    Returns:
+        numpy.ndarray: value: function result over all pairs
+
     """
     value = np.empty((len(vectors1), len(vectors2)))
     k1 = 0
@@ -144,17 +144,17 @@ def _all_combinations(vectors1, vectors2, func):
 
 
 def _cosine(vector1, vector2):
-    """
-    computes the cosine angles between two sets of vectors
+    """computes the cosine angles between two sets of vectors
 
-        Args:
-            vector1 (numpy.ndarray):
-                first vectors (2D)
-            vector1 (numpy.ndarray):
-                second vectors (2D)
-        Returns:
-            cos (float):
-                cosine angle between angles
+    Args:
+        vector1 (numpy.ndarray):
+            first vectors (2D)
+        vector1 (numpy.ndarray):
+            second vectors (2D)
+    Returns:
+        cos (float):
+            cosine angle between angles
+
     """
     cos = np.einsum('ij,kj->ik', vector1, vector2)
     cos /= np.sqrt(np.einsum('ij,ij->i', vector1, vector1)).reshape((-1, 1))
@@ -163,49 +163,49 @@ def _cosine(vector1, vector2):
 
 
 def _kendall_tau(vector1, vector2):
-    """
-    computes the kendall-tau between two vectors
+    """computes the kendall-tau between two vectors
 
-        Args:
-            vector1 (numpy.ndarray):
-                first vector
-            vector1 (numpy.ndarray):
-                second vector
-        Returns:
-            tau (float):
-                kendall-tau
+    Args:
+        vector1 (numpy.ndarray):
+            first vector
+        vector1 (numpy.ndarray):
+            second vector
+    Returns:
+        tau (float):
+            kendall-tau
+
     """
     tau = scipy.stats.kendalltau(vector1, vector2).correlation
     return tau
 
 
 def _spearman_r(vector1, vector2):
-    """
-    computes the spearman rank correlation between two vectors
+    """computes the spearman rank correlation between two vectors
 
-        Args:
-            vector1 (numpy.ndarray):
-                first vector
-            vector1 (numpy.ndarray):
-                second vector
-        Returns:
-            corr (float):
-                spearman r
+    Args:
+        vector1 (numpy.ndarray):
+            first vector
+        vector1 (numpy.ndarray):
+            second vector
+    Returns:
+        corr (float):
+            spearman r
+
     """
     corr = scipy.stats.spearmanr(vector1, vector2).correlation
     return corr
 
 
 def _parse_input_rdms(rdm1, rdm2):
-    """
-    Gets the vector representation of input RDMs, raises an error if
+    """Gets the vector representation of input RDMs, raises an error if
     the two RDMs objects have different dimensions
 
-        Args:
-            rdm1 (pyrsa.rdm.RDMs):
-                first set of RDMs
-            rdm2 (pyrsa.rdm.RDMs):
-                second set of RDMs
+    Args:
+        rdm1 (pyrsa.rdm.RDMs):
+            first set of RDMs
+        rdm2 (pyrsa.rdm.RDMs):
+            second set of RDMs
+
     """
     vector1 = rdm1.get_vectors()
     vector2 = rdm2.get_vectors()
