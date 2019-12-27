@@ -11,10 +11,5 @@ import pyrsa.vis as vis
 import numpy as np 
 
 
-class TestVis(unittest.TestCase): 
-    
-    def test_MDS(self):
-        # more to come
-
 if __name__ == '__main__':
     unittest.main()  
