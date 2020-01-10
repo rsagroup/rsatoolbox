@@ -111,6 +111,34 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(rdms_subset.n_cond,4)
         assert_array_equal(rdms_subset.pattern_descriptors['type'],[0,1,2,2])
 
+    def test_rdm_subsample(self):
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        rdms_sample = rdms.subsample('session',np.array([0,1,2,2]))
+        self.assertEqual(rdms_sample.n_rdm,6)
+        self.assertEqual(rdms_sample.n_cond,5)
+        assert_array_equal(rdms_sample.rdm_descriptors['session'],
+                           [0,1,2,2,2,2])
+
+    def test_rdm_subsample_pattern(self):
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        pattern_des = {'type':np.array([0,1,2,2,4])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        rdms_sample = rdms.subsample_pattern('type',np.array([0,1,2,2]))
+        self.assertEqual(rdms_sample.n_rdm,8)
+        self.assertEqual(rdms_sample.n_cond,6)
+        assert_array_equal(rdms_sample.pattern_descriptors['type'],[0,1,2,2,2,2])
 
 class TestCalcRDM(unittest.TestCase): 
     

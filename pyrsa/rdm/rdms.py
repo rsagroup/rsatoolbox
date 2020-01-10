@@ -5,7 +5,7 @@ Definition of RSA RDMs class and subclasses
 @author: baihan
 """
 
-
+import numpy as np
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -120,8 +120,41 @@ class RDMs:
 
         Returns:
             RDMs object, with fewer patterns
+
         """
         selection = bool_index(self.pattern_descriptors[by], value)
+        dissimilarities = self.get_matrices()[:, selection][:, :, selection]
+        descriptors = self.descriptors
+        pattern_descriptors = extract_dict(
+            self.pattern_descriptors, selection)
+        rdm_descriptors = self.rdm_descriptors
+        rdms = RDMs(dissimilarities=dissimilarities,
+                    descriptors=descriptors,
+                    rdm_descriptors=rdm_descriptors,
+                    pattern_descriptors=pattern_descriptors)
+        return rdms
+
+    def subsample_pattern(self, by, value):
+        """ Returns a subsampled RDMs with repetitions if values are repeated
+        
+        Args:
+            by(String): the descriptor by which the subset selection
+                        is made from descriptors
+            value:      the value by which the subset selection is made
+                        from descriptors
+
+        Returns:
+            RDMs object, with subsampled patterns
+
+        """   
+        if (type(value) is list or
+            type(value) is tuple or
+            type(value) is np.ndarray):
+            selection = [np.asarray(self.pattern_descriptors[by]==i).nonzero()[0]
+                         for i in value]
+            selection = np.concatenate(selection)
+        else:
+            selection = np.where(self.rdm_descriptors[by]==value)
         dissimilarities = self.get_matrices()[:, selection][:, :, selection]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
@@ -143,8 +176,40 @@ class RDMs:
 
         Returns:
             RDMs object, with fewer RDMs
+
         """
         selection = bool_index(self.rdm_descriptors[by], value)
+        dissimilarities = self.dissimilarities[selection, :]
+        descriptors = self.descriptors
+        pattern_descriptors = self.pattern_descriptors
+        rdm_descriptors = extract_dict(self.rdm_descriptors, selection)
+        rdms = RDMs(dissimilarities=dissimilarities,
+                    descriptors=descriptors,
+                    rdm_descriptors=rdm_descriptors,
+                    pattern_descriptors=pattern_descriptors)
+        return rdms
+
+    def subsample(self, by, value):
+        """ Returns a subsampled RDMs with repetitions if values are repeated
+        
+        Args:
+            by(String): the descriptor by which the subset selection
+                        is made from descriptors
+            value:      the value by which the subset selection is made
+                        from descriptors
+
+        Returns:
+            RDMs object, with subsampled RDMs
+
+        """   
+        if (type(value) is list or
+            type(value) is tuple or
+            type(value) is np.ndarray):
+            selection = [np.asarray(self.rdm_descriptors[by]==i).nonzero()[0]
+                         for i in value]
+            selection = np.concatenate(selection)
+        else:
+            selection = np.where(self.rdm_descriptors[by]==value)
         dissimilarities = self.dissimilarities[selection, :]
         descriptors = self.descriptors
         pattern_descriptors = self.pattern_descriptors
