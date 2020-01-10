@@ -91,7 +91,7 @@ def bootstrap_sample_pattern(rdms, pattern_descriptor=None):
     """Draws a bootstrap_sample from the data.
 
     This function generates a bootstrap sample of RDMs resampled over
-    patterns. By default every pattern is treated independently. If desired 
+    patterns. By default every pattern is treated independently. If desired
     a descriptor name can be passed in pattern_descriptor to group patterns.
 
     Args:

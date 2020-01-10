@@ -136,7 +136,7 @@ class RDMs:
 
     def subsample_pattern(self, by, value):
         """ Returns a subsampled RDMs with repetitions if values are repeated
-        
+
         Args:
             by(String): the descriptor by which the subset selection
                         is made from descriptors
@@ -146,15 +146,16 @@ class RDMs:
         Returns:
             RDMs object, with subsampled patterns
 
-        """   
+        """  
         if (type(value) is list or
             type(value) is tuple or
             type(value) is np.ndarray):
-            selection = [np.asarray(self.pattern_descriptors[by]==i).nonzero()[0]
+            desc = self.pattern_descriptors[by]
+            selection = [np.asarray(desc == i).nonzero()[0]
                          for i in value]
             selection = np.concatenate(selection)
         else:
-            selection = np.where(self.rdm_descriptors[by]==value)
+            selection = np.where(self.rdm_descriptors[by] == value)
         dissimilarities = self.get_matrices()[:, selection][:, :, selection]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
@@ -191,7 +192,7 @@ class RDMs:
 
     def subsample(self, by, value):
         """ Returns a subsampled RDMs with repetitions if values are repeated
-        
+
         Args:
             by(String): the descriptor by which the subset selection
                         is made from descriptors
@@ -201,15 +202,15 @@ class RDMs:
         Returns:
             RDMs object, with subsampled RDMs
 
-        """   
+        """
         if (type(value) is list or
             type(value) is tuple or
             type(value) is np.ndarray):
-            selection = [np.asarray(self.rdm_descriptors[by]==i).nonzero()[0]
+            selection = [np.asarray(self.rdm_descriptors[by] == i).nonzero()[0]
                          for i in value]
             selection = np.concatenate(selection)
         else:
-            selection = np.where(self.rdm_descriptors[by]==value)
+            selection = np.where(self.rdm_descriptors[by] == value)
         dissimilarities = self.dissimilarities[selection, :]
         descriptors = self.descriptors
         pattern_descriptors = self.pattern_descriptors
