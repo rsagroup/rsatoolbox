@@ -146,10 +146,11 @@ class RDMs:
         Returns:
             RDMs object, with subsampled patterns
 
-        """  
-        if (type(value) is list or
-            type(value) is tuple or
-            type(value) is np.ndarray):
+        """
+        if (
+                type(value) is list or
+                type(value) is tuple or
+                type(value) is np.ndarray):
             desc = self.pattern_descriptors[by]
             selection = [np.asarray(desc == i).nonzero()[0]
                          for i in value]
@@ -203,9 +204,10 @@ class RDMs:
             RDMs object, with subsampled RDMs
 
         """
-        if (type(value) is list or
-            type(value) is tuple or
-            type(value) is np.ndarray):
+        if (
+                type(value) is list or
+                type(value) is tuple or
+                type(value) is np.ndarray):
             selection = [np.asarray(self.rdm_descriptors[by] == i).nonzero()[0]
                          for i in value]
             selection = np.concatenate(selection)
