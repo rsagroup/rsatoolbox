@@ -6,7 +6,7 @@
 import numpy as np
 
 
-def bootstrap_sample(rdms, rdm_descriptors=None, pattern_descriptors=None):
+def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
     """Draws a bootstrap_sample from the data.
 
     This function generates a bootstrap sample of RDMs resampled over
@@ -17,35 +17,38 @@ def bootstrap_sample(rdms, rdm_descriptors=None, pattern_descriptors=None):
     Args:
         rdms(pyrsa.rdm.rdms.RDMs): Data to be used
 
-        rdm_descriptors(list of string):
-            descriptors to group the samples by. For each unique value of
-            the descriptors each sample will either contain all RDMs with
-            this combination or none
+        rdm_descriptors(String):
+            descriptor to group the samples by. For each unique value of
+            the descriptor each sample will either contain all RDMs with
+            this value or none
 
-        pattern_descriptors(list of string):
-            descriptors to group the patterns by. Each group of patterns will
+        pattern_descriptors(string):
+            descriptor to group the patterns by. Each group of patterns will
             be in or out of the sample as a whole
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: rdm_sample:
+        pyrsa.rdm.rdms.RDMs: rdm_sample
         subsampled dataset with equal number of groups in both patterns
         and measurements of the rdms
 
     """
-    if rdm_descriptors is None:
+    if rdm_descriptor is None:
         rdm_select = np.arange(rdms.n_rdm)
-        rdm_idx = np.aramge(rdms.n_rdm)
+        rdms.rdm_descriptors['index'] = rdm_select
+        rdm_descriptor = 'index'
     else:
-        descriptor_mat = [rdms.rdm_descriptors[i] for i in rdm_descriptors]
-        descriptor_mat = np.array(descriptor_mat)
-        rdm_select, rdm_idx = np.unique(descriptor_mat, return_inverse=True)
-    if pattern_descriptors is None:
+        rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
+    if pattern_descriptor is None:
         pattern_select = np.arange(rdms.n_cond)
-        pattern_idx = np.aramge(rdms.n_cond)
+        rdms.pattern_descriptors['index'] = pattern_select
+        pattern_descriptor = 'index'
     else:
-        descriptor_mat = [rdms.pattern_descriptors[i]
-                          for i in pattern_descriptors]
-        descriptor_mat = np.array(descriptor_mat)
-        pattern_select, pattern_idx = np.unique(descriptor_mat,
-                                                return_inverse=True)
+        pattern_select = np.unique(rdms.pattern_descriptors[pattern_descriptor])
+    rdm_sample = np.random.randint(0, len(rdm_select)-1,
+                                   size=len(rdm_select))
+    rdms = rdms.subsample(rdm_descriptor, rdm_select[rdm_sample])
+    pattern_sample = np.random.randint(0, len(pattern_select)-1,
+                                       size=len(pattern_select))
+    rdms = rdms.subsample_pattern(pattern_descriptor,
+                                  pattern_select[pattern_sample])
     return rdms
