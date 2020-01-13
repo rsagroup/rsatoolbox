@@ -195,18 +195,18 @@ def _parse_input_rdms(rdm1, rdm2):
             second set of RDMs
 
     """
-    if not isinstance(rdm1,np.ndarray):
+    if not isinstance(rdm1, np.ndarray):
         vector1 = rdm1.get_vectors()
     else:
         if len(rdm1.shape) == 1:
-            vector1 = rdm1.reshape(1,-1)
+            vector1 = rdm1.reshape(1, -1)
         else:
             vector1 = rdm1
-    if not isinstance(rdm2,np.ndarray):
+    if not isinstance(rdm2, np.ndarray):
         vector2 = rdm2.get_vectors()
     else:
         if len(rdm2.shape) == 1:
-            vector2 = rdm2.reshape(1,-1)
+            vector2 = rdm2.reshape(1, -1)
         else:
             vector2 = rdm2
     if not vector1.shape[1] == vector2.shape[1]:

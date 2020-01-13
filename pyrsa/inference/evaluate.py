@@ -10,7 +10,7 @@ from pyrsa.rdm import compare
 
 
 def eval_fixed(model, data, method='cosine'):
-    """evaluates a model on data, without any bootstrapping or 
+    """evaluates a model on data, without any bootstrapping or
     cross-validation
 
     Args:
@@ -23,4 +23,4 @@ def eval_fixed(model, data, method='cosine'):
 
     """
     rdm_pred = model.predict()
-    return compare(rdm_pred, data, method) 
+    return compare(rdm_pred, data, method)
