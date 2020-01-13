@@ -81,3 +81,14 @@ class test_bootstrap(unittest.TestCase):
                     dissimilarity_measure=mes,
                     descriptors=des)
         rdm_sample = bootstrap_sample_pattern(rdms,'type')
+
+class test_evaluation(unittest.TestCase):
+    """ evaluation tests
+    """
+    def test_eval_fixed(self):
+        from pyrsa.inference import eval_fixed
+        from pyrsa.rdm import RDMs
+        from pyrsa.model import ModelFixed
+        rdms = RDMs(np.random.rand(11,10))  # 11 5x5 rdms
+        m = ModelFixed('test', rdms.get_vectors()[0])
+        value = eval_fixed(m, rdms)
