@@ -5,6 +5,7 @@ Definition of RSA Dataset class and subclasses
 @author: baihan, jdiedrichsen
 """
 
+
 from pyrsa.util.data_utils import check_descriptors_dimension
 from pyrsa.util.data_utils import extract_dict
 from pyrsa.util.data_utils import get_unique_unsorted

@@ -22,24 +22,25 @@ def bool_index(descriptor, value):
             bool_index: boolean index vector where descriptor == value
 
     """
+    descriptor = np.array(descriptor)
     if (type(value) is list or
             type(value) is tuple or
             type(value) is np.ndarray):
-        bool_index = np.array([descriptor == v for v in value])
-        bool_index = np.any(bool_index, axis=0)
+        index = np.array([descriptor == v for v in value])
+        index = np.any(index, axis=0)
     else:
-        bool_index = np.array(descriptor == value)
-    return bool_index
+        index = np.array(descriptor == value)
+    return index
 
 
 def format_descriptor(descriptors):
     """ formats a descriptor dictionary
 
-        Args:
-            descriptors(dict): the descriptor dictionary
+    Args:
+        descriptors(dict): the descriptor dictionary
 
-        Returns:
-            String: formated string to show dict
+    Returns:
+        String: formated string to show dict
 
     """
     string_descriptors = ''
@@ -52,14 +53,14 @@ def format_descriptor(descriptors):
 
 def parse_input_descriptor(descriptors):
     """ parse input descriptor checks whether an input descriptors dictionary
-        is a dictionary. If it is None instead it is replaced by an empty dict.
-        Otherwise an error is raised.
+    is a dictionary. If it is None instead it is replaced by an empty dict.
+    Otherwise an error is raised.
 
-        Args:
-            descriptors(dict/None): the descriptor dictionary
+    Args:
+        descriptors(dict/None): the descriptor dictionary
 
-        Returns:
-            dict: descriptor dictionary
+    Returns:
+        dict: descriptor dictionary
 
     """
     if descriptors is None:
@@ -73,12 +74,13 @@ def check_descriptor_length(descriptor, n):
     """
     Checks whether the entries of a descriptor dictionary have the right length
 
-        Args:
-            descriptor(dict): the descriptor dictionary
-            n: the correct length of the descriptors
+    Args:
+        descriptor(dict): the descriptor dictionary
+        n: the correct length of the descriptors
 
-        Returns:
-            bool
+    Returns:
+        bool
+
     """
     for k, v in descriptor.items():
         if np.array(v).shape[0] != n:
@@ -90,12 +92,13 @@ def subset_descriptor(descriptor, indices):
     """
     retrievs a subset of a descriptor given by indices.
 
-        Args:
-            descriptor(dict): the descriptor dictionary
-            indices: the indices to be extracted
+    Args:
+        descriptor(dict): the descriptor dictionary
+        indices: the indices to be extracted
 
-        Returns:
-            extracted_descriptor(dict): the selected subset of the descriptor
+    Returns:
+        extracted_descriptor(dict): the selected subset of the descriptor
+
     """
     extracted_descriptor = {}
     for k, v in descriptor.items():
@@ -110,13 +113,14 @@ def check_descriptor_length_error(descriptor, name, n):
     """
     Raises an error if the given descriptor does not have the right length
 
-        Args:
-            descriptor(dict/None): the descriptor dictionary
-            name(String): Descriptor name used for error message
-            n: the indices to be extracted
+    Args:
+        descriptor(dict/None): the descriptor dictionary
+        name(String): Descriptor name used for error message
+        n: the indices to be extracted
 
-        Returns:
-            ---
+    Returns:
+        ---
+
     """
     if descriptor is not None:
         if not check_descriptor_length(descriptor, n):
