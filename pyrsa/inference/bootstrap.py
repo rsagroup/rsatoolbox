@@ -27,9 +27,21 @@ def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
             be in or out of the sample as a whole
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: rdm_sample
-        subsampled dataset with equal number of groups in both patterns
-        and measurements of the rdms
+        pyrsa.rdm.rdms.RDMs: rdms
+            subsampled dataset with equal number of groups in both patterns
+            and measurements of the rdms
+
+        numpy.ndarray: rdm_sample
+            sampled rdm indices
+
+        numpy.ndarray: rdm_select
+            rdm group descritor values
+
+        numpy.ndarray: pattern_sample
+            sampled pattern descriptor indices
+
+        numpy.ndarray: pattern_select
+            sampled pattern descriptor values
 
     """
     if rdm_descriptor is None:
@@ -52,7 +64,7 @@ def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
                                        size=len(pattern_select))
     rdms = rdms.subsample_pattern(pattern_descriptor,
                                   pattern_select[pattern_sample])
-    return rdms
+    return rdms, rdm_sample, rdm_select, pattern_sample, pattern_select
 
 
 def bootstrap_sample_rdm(rdms, rdm_descriptor=None):
@@ -72,7 +84,13 @@ def bootstrap_sample_rdm(rdms, rdm_descriptor=None):
 
     Returns:
         pyrsa.rdm.rdms.RDMs: rdm_sample
-        subsampled dataset with equal number of groups of rdms
+            subsampled dataset with equal number of groups of rdms
+
+        numpy.ndarray: rdm_sample
+            sampled rdm indices
+
+        numpy.ndarray: rdm_select
+            rdm group descritor values
 
     """
     if rdm_descriptor is None:
@@ -84,7 +102,7 @@ def bootstrap_sample_rdm(rdms, rdm_descriptor=None):
     rdm_sample = np.random.randint(0, len(rdm_select) - 1,
                                    size=len(rdm_select))
     rdms = rdms.subsample(rdm_descriptor, rdm_select[rdm_sample])
-    return rdms
+    return rdms, rdm_sample, rdm_select
 
 
 def bootstrap_sample_pattern(rdms, pattern_descriptor=None):
@@ -103,7 +121,13 @@ def bootstrap_sample_pattern(rdms, pattern_descriptor=None):
 
     Returns:
         pyrsa.rdm.rdms.RDMs: rdm_sample
-        subsampled dataset with equal number of pattern groups
+            subsampled dataset with equal number of pattern groups
+
+        numpy.ndarray: pattern_sample
+            sampled pattern descriptor indices
+
+        numpy.ndarray: pattern_select
+            sampled pattern descriptor values
 
     """
     if pattern_descriptor is None:
@@ -117,4 +141,4 @@ def bootstrap_sample_pattern(rdms, pattern_descriptor=None):
                                        size=len(pattern_select))
     rdms = rdms.subsample_pattern(pattern_descriptor,
                                   pattern_select[pattern_sample])
-    return rdms
+    return rdms, pattern_sample, pattern_select
