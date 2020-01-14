@@ -90,10 +90,13 @@ def calc_rdm_correlation(dataset, descriptor=None):
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
-    measurements, desc, descriptor = _parse_input(dataset, descriptor)
-    rdm = 1 - np.corrcoef(measurements)
+    ma, desc, descriptor = _parse_input(dataset, descriptor)
+
+    ma = ma - ma.mean(axis=1, keepdims=True)
+    ma /= np.sqrt(np.einsum('ij,ij->i', ma, ma))[:, None]
+    rdm = 1 - np.einsum('ik,jk', ma, ma)
     rdm = RDMs(dissimilarities=np.array([rdm]),
-               dissimilarity_measure='euclidean',
+               dissimilarity_measure='correlation',
                descriptors=dataset.descriptors)
     rdm.pattern_descriptors[descriptor] = desc
     return rdm

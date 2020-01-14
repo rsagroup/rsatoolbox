@@ -149,11 +149,29 @@ class TestCalcRDM(unittest.TestCase):
             rdm_expected,
             rdms.dissimilarities.flatten()
         )
-        
-    def test_calc_correlation(self):
-        rdm = rsr.calc_rdm_correlation(self.test_data, descriptor = 'conds')
-        assert rdm.n_cond == 6
-        
+
+    @patch('pyrsa.rdm.calc._parse_input')
+    def test_calc_correlation(self, _parse_input):
+        from pyrsa.rdm import calc_rdm
+        data = Mock()
+        data.descriptors = {'session': 0, 'subj': 0}
+        data.measurements = np.random.rand(6, 5)
+        desc = [0, 1, 2, 3, 4, 5]
+        _parse_input.return_value = (data.measurements, desc, 'conds')
+        rdm_expected = 1 - np.corrcoef(data.measurements)
+        rdme = rsr.RDMs(dissimilarities=np.array([rdm_expected]),
+            dissimilarity_measure='correlation',
+            descriptors=data.descriptors)
+        rdm = calc_rdm(
+            self.test_data,
+            descriptor='conds',
+            method='correlation'
+        )
+        assert_array_almost_equal(
+            rdme.dissimilarities.flatten(),
+            rdm.dissimilarities.flatten()
+        )
+
     def test_calc_mahalanobis(self):
         rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'mahalanobis')
         assert rdm.n_cond == 6
