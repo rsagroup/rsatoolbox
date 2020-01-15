@@ -136,10 +136,9 @@ class ModelSelect(Model):
             self.n_cond = (1 + np.sqrt(1 + 8 * rdm.shape[1])) / 2
             if self.n_cond % 1 != 0:
                 raise NameError(
-                    "RDM vector needs to have size of ncond*(ncond-1)/2"
-                    )
+                    "RDM vector needs to have size of ncond*(ncond-1)/2")
             self.rdm = rdm
-        else: # User passed matrixes
+        else:  # User passed matrixes
             self.rdm_obj = RDMs(rdm)
             self.rdm = batch_to_vectors(rdm)
         self.n_param = 1

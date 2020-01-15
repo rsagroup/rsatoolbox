@@ -18,7 +18,7 @@ def eval_fixed(model, data, theta=None, method='cosine'):
         model(pyrsa.model.Model): Model to be evaluated
 
         data(pyrsa.rdm.RDMs): data to evaluate on
-        
+
         theta(numpy.ndarray): parameter vector for the model
 
         method(string): comparison method to use

@@ -104,8 +104,6 @@ def subset_descriptor(descriptor, indices):
     for k, v in descriptor.items():
         if isinstance(indices, tuple) or isinstance(indices, list):
             extracted_descriptor[k] = [v[index] for index in indices]
-        elif isinstance(indices, int):
-            extracted_descriptor[k] = [v[indices]]
         else:
             extracted_descriptor[k] = np.array(v)[indices]
         if len(np.array(extracted_descriptor[k]).shape) == 0:

@@ -7,8 +7,9 @@ Crossvalidation
 
 import numpy as np
 
+
 def leave_one_out(rdms, pattern_descriptor=None):
-    """ generates training and test set combinations by leaving one level 
+    """ generates training and test set combinations by leaving one level
     of pattern_descriptor out as a test set
     
     Args:
