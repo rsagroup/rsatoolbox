@@ -2,4 +2,4 @@
 # -*- coding: utf-8 -*-
 """Model definitions and handling
 """
-from .model import Model, ModelFixed
+from .model import Model, ModelFixed, ModelSelect
