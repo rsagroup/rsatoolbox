@@ -98,7 +98,7 @@ class RDMs:
         """
         idx = np.array(idx)
         dissimilarities = self.dissimilarities[idx].reshape(-1,
-            self.dissimilarities.shape[1])
+                                self.dissimilarities.shape[1])
         rdm_descriptors = subset_descriptor(self.rdm_descriptors, idx)
         rdms = RDMs(dissimilarities,
                     dissimilarity_measure=self.dissimilarity_measure,

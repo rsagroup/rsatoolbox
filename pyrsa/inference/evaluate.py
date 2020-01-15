@@ -40,7 +40,7 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
         model(pyrsa.model.Model): Model to be evaluated
 
         data(pyrsa.rdm.RDMs): data to evaluate on
-        
+
         theta(numpy.ndarray): parameter vector for the model
 
         method(string): comparison method to use
