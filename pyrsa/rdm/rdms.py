@@ -10,8 +10,9 @@ from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import bool_index
+from pyrsa.util.descriptor_utils import subset_descriptor
+from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.data_utils import extract_dict
-from pyrsa.util.data_utils import check_descriptors_dimension
 
 
 class RDMs:
@@ -49,16 +50,16 @@ class RDMs:
         if rdm_descriptors is None:
             self.rdm_descriptors = {}
         else:
-            check_descriptors_dimension(rdm_descriptors,
-                                        'rdm_descriptors',
-                                        self.n_rdm)
+            check_descriptor_length_error(rdm_descriptors,
+                                          'rdm_descriptors',
+                                          self.n_rdm)
             self.rdm_descriptors = rdm_descriptors
         if pattern_descriptors is None:
             self.pattern_descriptors = {}
         else:
-            check_descriptors_dimension(pattern_descriptors,
-                                        'pattern_descriptors',
-                                        self.n_cond)
+            check_descriptor_length_error(pattern_descriptors,
+                                          'pattern_descriptors',
+                                          self.n_cond)
             self.pattern_descriptors = pattern_descriptors
         self.dissimilarity_measure = dissimilarity_measure
 
@@ -90,6 +91,21 @@ class RDMs:
                 f'rdm_descriptors: \n{rdm_desc}\n'
                 f'pattern_descriptors: \n{pattern_desc}\n'
                 )
+
+    def __getitem__(self, idx):
+        """
+        allows indexing with []
+        """
+        idx = np.array(idx)
+        dissimilarities = self.dissimilarities[idx].reshape(-1,
+            self.dissimilarities.shape[1])
+        rdm_descriptors = subset_descriptor(self.rdm_descriptors, idx)
+        rdms = RDMs(dissimilarities,
+                    dissimilarity_measure=self.dissimilarity_measure,
+                    descriptors=self.descriptors,
+                    rdm_descriptors=rdm_descriptors,
+                    pattern_descriptors=self.pattern_descriptors)
+        return rdms
 
     def get_vectors(self):
         """ Returns RDMs as np.ndarray with each RDM as a vector

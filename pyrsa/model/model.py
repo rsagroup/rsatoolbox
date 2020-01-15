@@ -135,8 +135,8 @@ class ModelSelect(Model):
             self.rdm_obj = rdm
             self.rdm = rdm.get_vectors()
         elif rdm.ndim == 2:  # User supplied vectors
-            self.rdm_obj = RDMs(np.array([rdm]))
-            self.n_cond = (1 + np.sqrt(1 + 8 * rdm.size)) / 2
+            self.rdm_obj = RDMs(rdm)
+            self.n_cond = (1 + np.sqrt(1 + 8 * rdm.shape[1])) / 2
             if self.n_cond % 1 != 0:
                 raise NameError(
                     "RDM vector needs to have size of ncond*(ncond-1)/2"
@@ -215,10 +215,12 @@ def fit_select(model, data, method='cosine', pattern_sample=None,
         theta(int): parameter vector
 
     """
+    print('fit select started')
     assert isinstance(model, ModelSelect)
     evaluations = np.zeros(model.n_rdm)
     for i_rdm in range(model.n_rdm):
         pred = model.predict_rdm(i_rdm)
-        evaluations[i_rdm] = np.mean(compare(pred, data))
-    theta = np.argmax(evaluations)
+        evaluations[i_rdm] = np.mean(compare(pred, data, method=method))
+    print(evaluations)
+    theta = np.argmin(evaluations)
     return theta

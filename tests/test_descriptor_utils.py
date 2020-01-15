@@ -39,7 +39,7 @@ class TestDescriptorUtils(TestCase):
         descriptors = {'foo': ['bar', 'bar2']}
         self.assertEqual(
                 subset_descriptor(descriptors,0),
-                {'foo': 'bar'}
+                {'foo': ['bar']}
                 )
         self.assertEqual(
                 subset_descriptor(descriptors,np.array([True,False])),

@@ -140,6 +140,23 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(rdms_sample.n_cond,6)
         assert_array_equal(rdms_sample.pattern_descriptors['type'],[0,1,2,2,2,2])
 
+    def test_rdm_idx(self):
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        pattern_des = {'type':np.array([0,1,2,2,4])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        rdms_sample = rdms[2]
+        self.assertEqual(rdms_sample.n_rdm,1)
+        assert_array_equal(rdms_sample.dissimilarities[0], dis[2])
+        rdms_sample = rdms[3,4,5]
+        self.assertEqual(rdms_sample.n_rdm,3)
+        assert_array_equal(rdms_sample.dissimilarities[0], dis[3])
+        
+
 class TestCalcRDM(unittest.TestCase): 
     
     def setUp(self):
