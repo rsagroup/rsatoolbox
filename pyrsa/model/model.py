@@ -7,6 +7,7 @@ Definition of RSA Model class and subclasses
 
 import numpy as np
 from pyrsa.rdm import RDMs
+from pyrsa.rdm import compare
 from pyrsa.util.rdm_utils import batch_to_vectors
 
 
@@ -20,7 +21,7 @@ class Model:
     def __init__(self, name):
         self.name = name
         self.n_param = 0
-        self.default_fitter = None
+        self.default_fitter = fit_mock
 
     def predict(self, theta=None):
         """ Returns the predicted rdm vector
@@ -57,7 +58,10 @@ class Model:
         Returns:
             theta(numpy.ndarray): parameter vector (one dimensional)
         """
-        return np.array([])
+        return self.default_fitter(self, data, method='cosine',
+                                   pattern_sample=None,
+                                   pattern_select=None,
+                                   pattern_descriptor=None)
 
 
 class ModelFixed(Model):
@@ -87,6 +91,7 @@ class ModelFixed(Model):
             self.rdm_obj = RDMs(np.array([rdm]))
             self.rdm = batch_to_vectors(np.array([rdm]))[0]
         self.n_param = 0
+        self.default_fitter = fit_mock
 
     def predict(self, theta=None):
         """ Returns the predicted rdm vector
@@ -142,6 +147,7 @@ class ModelSelect(Model):
             self.rdm = batch_to_vectors(rdm)
         self.n_param = 1
         self.n_rdm = self.rdm_obj.n_rdm
+        self.default_fitter = fit_select
 
     def predict(self, theta=0):
         """ Returns the predicted rdm vector
@@ -170,3 +176,49 @@ class ModelSelect(Model):
 
         """
         return self.rdm_obj[theta]
+
+
+def fit_mock(model, data, method='cosine', pattern_sample=None,
+             pattern_select=None, pattern_descriptor=None):
+    """ formally acceptable fitting method which always returns a vector of
+    zeros
+    
+    Args:
+        model(pyrsa.model.Model): model to be fit
+        data(pyrsa.rdm.RDMs): Data to fit to
+        method(String): Evaluation method
+        pattern_sample(numpy.ndarray): Which patterns are sampled
+        pattern_select(list of String): pattern keys
+        pattern_descriptor(String): Which descriptor is used
+        
+    Returns:
+        theta(numpy.ndarray): parameter vector
+
+    """
+    return np.zeros(model.n_param)
+
+
+def fit_select(model, data, method='cosine', pattern_sample=None,
+               pattern_select=None, pattern_descriptor=None):
+    """ fits selection models by evaluating each rdm and selcting the one
+    with best performance. Works only for ModelSelect
+    
+    Args:
+        model(pyrsa.model.Model): model to be fit
+        data(pyrsa.rdm.RDMs): Data to fit to
+        method(String): Evaluation method
+        pattern_sample(numpy.ndarray): Which patterns are sampled
+        pattern_select(list of String): pattern keys
+        pattern_descriptor(String): Which descriptor is used
+        
+    Returns:
+        theta(int): parameter vector
+
+    """
+    assert isinstance(model, ModelSelect)
+    evaluations = np.zeros(model.n_rdm)
+    for i_rdm in range(model.n_rdm):
+        pred = model.predict_rdm(i_rdm)
+        evaluations[i_rdm] = np.mean(compare(pred, data))
+    theta = np.argmax(evaluations)
+    return theta
