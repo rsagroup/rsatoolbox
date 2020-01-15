@@ -33,8 +33,7 @@ class Model:
             numpy.ndarray: rdm vector
         """
         raise NotImplementedError(
-            "Predict function not implemented in used model class!"
-            )
+            "Predict function not implemented in used model class!")
 
     def predict_rdm(self, theta=None):
         """ Returns the predicted rdm as an object
@@ -46,8 +45,7 @@ class Model:
             numpy.ndarray: rdm object
         """
         raise NotImplementedError(
-            "Predict rdm function not implemented in used model class!"
-            )
+            "Predict rdm function not implemented in used model class!")
 
     def fit(self, data):
         """ fit the model to a RDM object data
@@ -70,7 +68,7 @@ class ModelFixed(Model):
         Fixed model
         This is a parameter-free model that simply predicts a fixed RDM
         It takes rdm object, a vector or a matrix as input to define the RDM
-        
+
         Args:
             Name(String): Model name
             rdm(pyrsa.rdm.RDMs): rdms in one object
@@ -84,10 +82,9 @@ class ModelFixed(Model):
             self.n_cond = (1 + np.sqrt(1 + 8 * rdm.size)) / 2
             if self.n_cond % 1 != 0:
                 raise NameError(
-                    "RDM vector needs to have size of ncond*(ncond-1)/2"
-                    )
+                    "RDM vector needs to have size of ncond*(ncond-1)/2")
             self.rdm = rdm
-        else: # User passed a matrix
+        else:  # User passed a matrix
             self.rdm_obj = RDMs(np.array([rdm]))
             self.rdm = batch_to_vectors(np.array([rdm]))[0]
         self.n_param = 0
@@ -182,7 +179,7 @@ def fit_mock(model, data, method='cosine', pattern_sample=None,
              pattern_select=None, pattern_descriptor=None):
     """ formally acceptable fitting method which always returns a vector of
     zeros
-    
+
     Args:
         model(pyrsa.model.Model): model to be fit
         data(pyrsa.rdm.RDMs): Data to fit to
@@ -190,7 +187,7 @@ def fit_mock(model, data, method='cosine', pattern_sample=None,
         pattern_sample(numpy.ndarray): Which patterns are sampled
         pattern_select(list of String): pattern keys
         pattern_descriptor(String): Which descriptor is used
-        
+
     Returns:
         theta(numpy.ndarray): parameter vector
 
@@ -202,7 +199,7 @@ def fit_select(model, data, method='cosine', pattern_sample=None,
                pattern_select=None, pattern_descriptor=None):
     """ fits selection models by evaluating each rdm and selcting the one
     with best performance. Works only for ModelSelect
-    
+
     Args:
         model(pyrsa.model.Model): model to be fit
         data(pyrsa.rdm.RDMs): Data to fit to
@@ -210,7 +207,7 @@ def fit_select(model, data, method='cosine', pattern_sample=None,
         pattern_sample(numpy.ndarray): Which patterns are sampled
         pattern_select(list of String): pattern keys
         pattern_descriptor(String): Which descriptor is used
-        
+
     Returns:
         theta(int): parameter vector
 
