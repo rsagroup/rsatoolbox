@@ -120,8 +120,8 @@ class test_crossval(unittest.TestCase):
                     ]
         crossval(m, train_set, test_set, pattern_descriptor='type')
 
-    def test_leave_one_out(self):
-        from pyrsa.inference.evaluate import sets_leave_one_out
+    def test_leave_one_out_pattern(self):
+        from pyrsa.inference.evaluate import sets_leave_one_out_pattern
         import pyrsa.rdm as rsr
         dis = np.zeros((8,10))
         mes = "Euclidean"
@@ -133,6 +133,6 @@ class test_crossval(unittest.TestCase):
                         dissimilarity_measure=mes,
                         pattern_descriptors=pattern_des,
                         descriptors=des)
-        train_set, test_set = sets_leave_one_out(rdms)
+        train_set, test_set = sets_leave_one_out_pattern(rdms)
         for i_test in test_set:
             i_test[0].n_cond == 1
