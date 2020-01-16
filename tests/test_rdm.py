@@ -120,7 +120,7 @@ class TestRDM(unittest.TestCase):
                         rdm_descriptors=rdm_des,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        rdms_sample = rdms.subsample('session',np.array([0,1,2,2]))
+        rdms_sample = rdms.subsample('session', np.array([0,1,2,2]))
         self.assertEqual(rdms_sample.n_rdm,6)
         self.assertEqual(rdms_sample.n_cond,5)
         assert_array_equal(rdms_sample.rdm_descriptors['session'],

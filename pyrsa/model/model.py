@@ -58,7 +58,6 @@ class Model:
         """
         return self.default_fitter(self, data, method='cosine',
                                    pattern_sample=None,
-                                   pattern_select=None,
                                    pattern_descriptor=None)
 
 
@@ -175,7 +174,7 @@ class ModelSelect(Model):
 
 
 def fit_mock(model, data, method='cosine', pattern_sample=None,
-             pattern_select=None, pattern_descriptor=None):
+             pattern_descriptor=None):
     """ formally acceptable fitting method which always returns a vector of
     zeros
 
@@ -184,7 +183,6 @@ def fit_mock(model, data, method='cosine', pattern_sample=None,
         data(pyrsa.rdm.RDMs): Data to fit to
         method(String): Evaluation method
         pattern_sample(numpy.ndarray): Which patterns are sampled
-        pattern_select(list of String): pattern keys
         pattern_descriptor(String): Which descriptor is used
 
     Returns:
@@ -195,7 +193,7 @@ def fit_mock(model, data, method='cosine', pattern_sample=None,
 
 
 def fit_select(model, data, method='cosine', pattern_sample=None,
-               pattern_select=None, pattern_descriptor=None):
+               pattern_descriptor=None):
     """ fits selection models by evaluating each rdm and selcting the one
     with best performance. Works only for ModelSelect
 
@@ -204,18 +202,18 @@ def fit_select(model, data, method='cosine', pattern_sample=None,
         data(pyrsa.rdm.RDMs): Data to fit to
         method(String): Evaluation method
         pattern_sample(numpy.ndarray): Which patterns are sampled
-        pattern_select(list of String): pattern keys
         pattern_descriptor(String): Which descriptor is used
 
     Returns:
         theta(int): parameter vector
 
     """
-    print('fit select started')
     assert isinstance(model, ModelSelect)
     evaluations = np.zeros(model.n_rdm)
     for i_rdm in range(model.n_rdm):
         pred = model.predict_rdm(i_rdm)
+        if not (pattern_sample is None or pattern_descriptor is None):
+            pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
         evaluations[i_rdm] = np.mean(compare(pred, data, method=method))
     print(evaluations)
     theta = np.argmin(evaluations)

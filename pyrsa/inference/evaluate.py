@@ -94,10 +94,41 @@ def crossval(model, train_set, test_set, method='cosine', fitter=None,
         test = test_set[i]
         theta = fitter(model, train[0], method=method,
                        pattern_sample=train[1],
-                       pattern_select=train[2],
                        pattern_descriptor=pattern_descriptor)
         pred = model.predict_rdm(theta)
-        pred = pred.subsample_pattern(pred, by=pattern_descriptor,
-                                      value=test[2][test[1]])
+        pred = pred.subsample_pattern(by=pattern_descriptor, value=test[1])
         evaluations.append(compare(pred, test[0], method))
     return evaluations
+
+
+def sets_leave_one_out(rdms, pattern_descriptor=None):
+    """ generates training and test set combinations by leaving one level
+    of pattern_descriptor out as a test set
+
+    Args:
+        rdms(pyrsa.rdm.RDMs): rdms to use
+        pattern_descriptor(String): descriptor to select groups
+
+    Returns:
+        train_set(list): list of tuples (rdms, pattern_sample, pattern_select)
+        test_set(list): list of tuples (rdms, pattern_sample, pattern_select)
+
+    """
+    if pattern_descriptor is None:
+        pattern_select = np.arange(rdms.n_cond)
+        rdms.pattern_descriptors['index'] = pattern_select
+        pattern_descriptor = 'index'
+    else:
+        pattern_select = rdms.pattern_descriptors[pattern_descriptor]
+        pattern_select = np.unique(pattern_select)
+    train_set = []
+    test_set = []
+    for i_pattern in pattern_select:
+        pattern_sample_train = np.setdiff1d(pattern_select, i_pattern)
+        rdms_train = rdms.subset_pattern(pattern_descriptor,
+                                         pattern_sample_train)
+        pattern_sample_test = [i_pattern]
+        rdms_test = rdms.subset_pattern(pattern_descriptor, i_pattern)
+        train_set.append((rdms_train, pattern_sample_train))
+        test_set.append((rdms_test, pattern_sample_test))
+    return train_set, test_set
