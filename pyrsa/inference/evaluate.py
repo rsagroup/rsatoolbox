@@ -346,7 +346,7 @@ def sets_of_k_pattern(rdms, pattern_descriptor=None, k=5, random=False):
         pattern_select = rdms.pattern_descriptors[pattern_descriptor]
         pattern_select = np.unique(pattern_select)
     assert k <= len(pattern_select) / 2, \
-        'to form two groups we can use at most half the patterns per group'
+        'to form groups we can use at most half the patterns per group'
     n_groups = int(len(pattern_select) / k)
     return sets_k_fold_pattern(rdms, pattern_descriptor=pattern_descriptor,
                                k=n_groups, random=random)

@@ -14,15 +14,6 @@ Collection of helper methods for data module
 import numpy as np
 
 
-def check_dict_length(dictionary, n):
-    """check if each value in dict matches length n
-    """
-    for _, v in dictionary.items():
-        if len(v) != n:
-            return False
-    return True
-
-
 def extract_dict(dictionary, indices):
     """extract key-value pairs with values given indexes.
     """
