@@ -7,6 +7,7 @@ inference module: evaluate models
 
 import numpy as np
 from pyrsa.rdm import compare
+from pyrsa.inference import bootstrap_sample
 from pyrsa.inference import bootstrap_sample_rdm
 from pyrsa.inference import bootstrap_sample_pattern
 
@@ -49,9 +50,9 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
     """
     evaluations = np.zeros(N)
     for i in range(N):
-        sample = bootstrap_sample_rdm(data, rdm_descriptor)
-        sample, pattern_sample = \
-            bootstrap_sample_pattern(sample, pattern_descriptor)
+        sample, rdm_sample, pattern_sample = \
+            bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
+                             pattern_descriptor=pattern_descriptor)
         rdm_pred = model.predict_rdm(theta=theta)
         rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                               pattern_sample)
@@ -148,7 +149,37 @@ def crossval(model, train_set, test_set, method='cosine', fitter=None,
     return evaluations
 
 
-def sets_leave_one_out(rdms, pattern_descriptor=None):
+def bootstrap_crossval(model, data, method='cosine', fitter=None, k=5, N=1000,
+             pattern_descriptor=None, rdm_descriptor=None, random=True):
+    """evaluates a model by k-fold crossvalidation within a bootstrap
+
+    Args:
+        model(pyrsa.model.Model): Model to be evaluated
+        datat(pyrsa.rdm.RDMs): RDM data to use
+        train_set(list): a list of the training RDMs with 3-tuple entries:
+            (RDMs, pattern_sample, pattern_select)
+        test_set(list): a list of the test RDMs with 3-tuple entries:
+            (RDMs, pattern_sample, pattern_select)
+        method(string): comparison method to use
+        pattern_descriptor(string): descriptor to group patterns
+        rdm_descriptor(string): descriptor to group rdms
+
+    Returns:
+        numpy.ndarray: matrix of evaluations (N x k)
+    """
+    evaluations = np.zeros((N,k))
+    for i_sample in range(N):
+        sample, rdm_sample, pattern_sample = bootstrap_sample(data)
+        train_set, test_set = sets_k_fold(sample, pattern_descriptor, k=k,
+                                          random=random)
+        evaluations[i_sample] = crossval(model, train_set, test_set,
+                                         method=method,
+                                         fitter=fitter, 
+                                         pattern_descriptor=pattern_descriptor)
+    return evaluations
+
+
+def sets_leave_one_out_pattern(rdms, pattern_descriptor=None):
     """ generates training and test set combinations by leaving one level
     of pattern_descriptor out as a test set.
     This is only sensible if pattern_descriptor already defines larger groups!
@@ -158,8 +189,8 @@ def sets_leave_one_out(rdms, pattern_descriptor=None):
         pattern_descriptor(String): descriptor to select groups
 
     Returns:
-        train_set(list): list of tuples (rdms, pattern_sample, pattern_select)
-        test_set(list): list of tuples (rdms, pattern_sample, pattern_select)
+        train_set(list): list of tuples (rdms, pattern_sample)
+        test_set(list): list of tuples (rdms, pattern_sample)
 
     """
     if pattern_descriptor is None:
@@ -183,7 +214,65 @@ def sets_leave_one_out(rdms, pattern_descriptor=None):
     return train_set, test_set
 
 
-def sets_k_fold(rdms, pattern_descriptor=None, k=5, random=False):
+def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
+                pattern_descriptor=None, rdm_descriptor=None):
+    """ generates training and test set combinations by splitting into k
+    similar sized groups. This version splits both over rdms and over patterns
+    resulting in k_rdm * k_pattern (training, test) pairs.
+
+    Args:
+        rdms(pyrsa.rdm.RDMs): rdms to use
+        pattern_descriptor(String): descriptor to select pattern groups
+        rdm_descriptor(String): descriptor to select rdm groups
+        k_rdm(int): number of rdm groups
+        k_pattern(int): number of pattern groups
+        random(bool): whether the assignment shall be randomized
+
+    Returns:
+        train_set(list): list of tuples (rdms, pattern_sample)
+        test_set(list): list of tuples (rdms, pattern_sample)
+
+    """
+    if rdm_descriptor is None:
+        rdm_select = np.arange(rdms.n_rdms)
+        rdms.rdm_descriptors['index'] = rdm_select
+        pattern_descriptor = 'index'
+    else:
+        rdm_select = rdms.pattern_descriptors[pattern_descriptor]
+        rdm_select = np.unique(rdm_select)
+    assert k_rdm <= len(rdm_select), \
+        'Can make at most as many groups as rdms'
+    if random:
+        rdm_select = np.random.shuffle(rdm_select)
+    group_size_rdm = np.floor(len(rdm_select) / k_rdm)
+    additional_rdms = len(rdm_select) % k_rdm
+    train_set = []
+    test_set = []
+    for i_group in range(k_rdm):
+        test_idx = np.arange(i_group * group_size_rdm,
+                             (i_group + 1) * group_size_rdm)
+        if i_group < additional_rdms:
+            test_idx = np.concatenate((test_idx, [-(i_group+1)]))
+        train_idx = np.setdiff1d(np.arange(len(rdm_select)),
+                                 test_idx)
+        rdm_sample_test = rdm_select[test_idx]
+        rdm_sample_train = rdm_select[train_idx]
+        rdms_test = rdms.subsample_rdm(rdm_descriptor,
+                                       rdm_sample_test)
+        rdms_train = rdms.subsample_rdm(rdm_descriptor,
+                                        rdm_sample_train)
+        train_new, test_new = sets_k_fold_pattern(rdms_train, k=k_pattern,
+            pattern_descriptor=pattern_descriptor, random=random)
+        for i in range(k_pattern):
+            test_new[k_pattern][0] = rdms_test.subsample_pattern(
+                pattern_descriptor=pattern_descriptor,
+                value=test_new[k_pattern][1])
+        train_set += train_new
+        test_set += test_new
+    return train_set, test_set
+
+
+def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into k
     similar sized groups. This version splits in the given order or 
     randomizes the order
@@ -195,8 +284,8 @@ def sets_k_fold(rdms, pattern_descriptor=None, k=5, random=False):
         random(bool): whether the assignment shall be randomized
 
     Returns:
-        train_set(list): list of tuples (rdms, pattern_sample, pattern_select)
-        test_set(list): list of tuples (rdms, pattern_sample, pattern_select)
+        train_set(list): list of tuples (rdms, pattern_sample)
+        test_set(list): list of tuples (rdms, pattern_sample)
 
     """
     if pattern_descriptor is None:
@@ -232,7 +321,7 @@ def sets_k_fold(rdms, pattern_descriptor=None, k=5, random=False):
     return train_set, test_set
 
 
-def sets_of_k(rdms, pattern_descriptor=None, k=5, random=False):
+def sets_of_k_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into
     groups of k. This version splits in the given order or 
     randomizes the order. If the number of patterns is not divisible by k
@@ -245,8 +334,8 @@ def sets_of_k(rdms, pattern_descriptor=None, k=5, random=False):
         random(bool): whether the assignment shall be randomized
 
     Returns:
-        train_set(list): list of tuples (rdms, pattern_sample, pattern_select)
-        test_set(list): list of tuples (rdms, pattern_sample, pattern_select)
+        train_set(list): list of tuples (rdms, pattern_sample)
+        test_set(list): list of tuples (rdms, pattern_sample)
 
     """
     if pattern_descriptor is None:
@@ -259,5 +348,5 @@ def sets_of_k(rdms, pattern_descriptor=None, k=5, random=False):
     assert k <= len(pattern_select) / 2, \
         'to form two groups we can use at most half the patterns per group'
     n_groups = np.floor(len(pattern_select) / k)
-    return sets_k_fold(rdms, pattern_descriptor=pattern_descriptor,
-                       k=n_groups, random=random)
+    return sets_k_fold_pattern(rdms, pattern_descriptor=pattern_descriptor,
+                               k=n_groups, random=random)
