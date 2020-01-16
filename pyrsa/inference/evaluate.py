@@ -26,7 +26,7 @@ def eval_fixed(model, data, theta=None, method='cosine'):
         float: evaluation
 
     """
-    rdm_pred = model.predict(theta=theta)
+    rdm_pred = model.predict_rdm(theta=theta)
     return compare(rdm_pred, data, method)
 
 
@@ -54,9 +54,14 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
             bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
                              pattern_descriptor=pattern_descriptor)
         rdm_pred = model.predict_rdm(theta=theta)
-        rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                              pattern_sample)
-        evaluations[i] = compare(rdm_pred, sample, method)
+        if pattern_descriptor is None:
+            rdm_pred.pattern_descriptors['index'] = np.arange(rdm_pred.n_cond)
+            rdm_pred = rdm_pred.subsample_pattern('index',
+                                                  pattern_sample)
+        else:
+            rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
+                                                  pattern_sample)
+        evaluations[i] = np.mean(compare(rdm_pred, sample, method))
     return evaluations
 
 
@@ -82,9 +87,14 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
         sample, pattern_sample = \
             bootstrap_sample_pattern(data, pattern_descriptor)
         rdm_pred = model.predict_rdm(theta=theta)
-        rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                              pattern_sample)
-        evaluations[i] = compare(rdm_pred, sample, method)
+        if pattern_descriptor is None:
+            rdm_pred.pattern_descriptors['index'] = np.arange(rdm_pred.n_cond)
+            rdm_pred = rdm_pred.subsample_pattern('index',
+                                                  pattern_sample)
+        else:
+            rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
+                                                  pattern_sample)
+        evaluations[i] = np.mean(compare(rdm_pred, sample, method))
     return evaluations
 
 
@@ -108,8 +118,8 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
     evaluations = np.zeros(N)
     for i in range(N):
         sample = bootstrap_sample_rdm(data, rdm_descriptor)
-        evaluations[i] = eval_fixed(model, sample, theta=theta,
-                                    method=method)
+        evaluations[i] = np.mean(eval_fixed(model, sample[0], theta=theta,
+                                            method=method))
     return evaluations
 
 
@@ -145,12 +155,14 @@ def crossval(model, train_set, test_set, method='cosine', fitter=None,
                        pattern_descriptor=pattern_descriptor)
         pred = model.predict_rdm(theta)
         pred = pred.subsample_pattern(by=pattern_descriptor, value=test[1])
-        evaluations.append(compare(pred, test[0], method))
-    return evaluations
+        evaluations.append(np.mean(compare(pred, test[0], method)))
+    return np.array(evaluations)
 
 
-def bootstrap_crossval(model, data, method='cosine', fitter=None, k=5, N=1000,
-             pattern_descriptor=None, rdm_descriptor=None, random=True):
+def bootstrap_crossval(model, data, method='cosine', fitter=None,
+                       k_pattern=5, k_rdm=5, N=1000,
+                       pattern_descriptor=None, rdm_descriptor=None,
+                       random=True):
     """evaluates a model by k-fold crossvalidation within a bootstrap
 
     Args:
@@ -167,15 +179,24 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None, k=5, N=1000,
     Returns:
         numpy.ndarray: matrix of evaluations (N x k)
     """
-    evaluations = np.zeros((N,k))
+    evaluations = np.zeros((N, k_pattern*k_rdm))
     for i_sample in range(N):
-        sample, rdm_sample, pattern_sample = bootstrap_sample(data)
-        train_set, test_set = sets_k_fold(sample, pattern_descriptor, k=k,
-                                          random=random)
-        evaluations[i_sample] = crossval(model, train_set, test_set,
-                                         method=method,
-                                         fitter=fitter, 
-                                         pattern_descriptor=pattern_descriptor)
+        sample, rdm_sample, pattern_sample = bootstrap_sample(data,
+            rdm_descriptor=rdm_descriptor,
+            pattern_descriptor=pattern_descriptor)
+        train_set, test_set = sets_k_fold(sample,
+            pattern_descriptor=pattern_descriptor,
+            rdm_descriptor=rdm_descriptor,
+            k_pattern=k_pattern, k_rdm=k_rdm, random=random)
+        for idx in range(len(test_set)):
+            test_set[idx][1] = _concat_sampling(pattern_sample,
+                                                test_set[idx][1])
+            train_set[idx][1] = _concat_sampling(pattern_sample,
+                                                 train_set[idx][1])
+        evaluations[i_sample,:] = crossval(model, train_set, test_set,
+            method=method,
+            fitter=fitter, 
+            pattern_descriptor=pattern_descriptor)
     return evaluations
 
 
@@ -234,16 +255,16 @@ def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
 
     """
     if rdm_descriptor is None:
-        rdm_select = np.arange(rdms.n_rdms)
+        rdm_select = np.arange(rdms.n_rdm)
         rdms.rdm_descriptors['index'] = rdm_select
         pattern_descriptor = 'index'
     else:
-        rdm_select = rdms.pattern_descriptors[pattern_descriptor]
+        rdm_select = rdms.rdm_descriptors[rdm_descriptor]
         rdm_select = np.unique(rdm_select)
     assert k_rdm <= len(rdm_select), \
         'Can make at most as many groups as rdms'
     if random:
-        rdm_select = np.random.shuffle(rdm_select)
+        np.random.shuffle(rdm_select)
     group_size_rdm = np.floor(len(rdm_select) / k_rdm)
     additional_rdms = len(rdm_select) % k_rdm
     train_set = []
@@ -298,7 +319,7 @@ def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     assert k <= len(pattern_select), \
         'Can make at most as many groups as conditions'
     if random:
-        pattern_select = np.random.shuffle(pattern_select)
+        np.random.shuffle(pattern_select)
     group_size = np.floor(len(pattern_select) / k)
     additional_patterns = len(pattern_select) % k
     train_set = []
@@ -350,3 +371,12 @@ def sets_of_k_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     n_groups = int(len(pattern_select) / k)
     return sets_k_fold_pattern(rdms, pattern_descriptor=pattern_descriptor,
                                k=n_groups, random=random)
+
+
+def _concat_sampling(sample1, sample2):
+    """ computes an index vector for the sequential sampling with sample1 
+    and sample2
+    """
+    sample_out = [[i_samp1 for i_samp1 in sample1 if i_samp1==i_samp2]
+                  for i_samp2 in sample2]
+    return sum(sample_out,[])

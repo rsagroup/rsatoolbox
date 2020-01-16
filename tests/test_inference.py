@@ -94,6 +94,30 @@ class test_evaluation(unittest.TestCase):
         m = ModelFixed('test', rdms.get_vectors()[0])
         value = eval_fixed(m, rdms)
 
+    def test_eval_bootstrap(self):
+        from pyrsa.inference import eval_bootstrap
+        from pyrsa.rdm import RDMs
+        from pyrsa.model import ModelFixed
+        rdms = RDMs(np.random.rand(11,10))  # 11 5x5 rdms
+        m = ModelFixed('test', rdms.get_vectors()[0])
+        value = eval_bootstrap(m, rdms, N=10)
+
+    def test_eval_bootstrap_pattern(self):
+        from pyrsa.inference import eval_bootstrap_pattern
+        from pyrsa.rdm import RDMs
+        from pyrsa.model import ModelFixed
+        rdms = RDMs(np.random.rand(11,10))  # 11 5x5 rdms
+        m = ModelFixed('test', rdms.get_vectors()[0])
+        value = eval_bootstrap_pattern(m, rdms, N=10)
+
+    def test_eval_bootstrap_rdm(self):
+        from pyrsa.inference import eval_bootstrap_rdm
+        from pyrsa.rdm import RDMs
+        from pyrsa.model import ModelFixed
+        rdms = RDMs(np.random.rand(11,10))  # 11 5x5 rdms
+        m = ModelFixed('test', rdms.get_vectors()[0])
+        value = eval_bootstrap_rdm(m, rdms, N=10)
+
 
 class test_crossval(unittest.TestCase):
     """ crossvalidation tests
@@ -120,6 +144,25 @@ class test_crossval(unittest.TestCase):
                     (rdms.subset_pattern('type', [1,2]), np.array([1,2])),
                     ]
         crossval(m, train_set, test_set, pattern_descriptor='type')
+        
+    def test_bootstrap_crossval(self):
+        from pyrsa.inference import bootstrap_crossval
+        from pyrsa.rdm import RDMs
+        from pyrsa.model import ModelFixed
+        dis = np.random.rand(11,10)  # 11 5x5 rdms
+        mes = "Euclidean"
+        des = {'subj':0}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7,7,7,7])}
+        pattern_des = {'type':np.array([0,1,2,2,4])}
+        rdms = RDMs(dissimilarities=dis,
+                    rdm_descriptors=rdm_des,
+                    pattern_descriptors=pattern_des,
+                    dissimilarity_measure=mes,
+                    descriptors=des)
+        m = ModelFixed('test', rdms[0])
+        bootstrap_crossval(m, rdms, N=10, k_rdm=2, k_pattern=2,
+                           pattern_descriptor='type',
+                           rdm_descriptor='session')
 
     def test_leave_one_out_pattern(self):
         from pyrsa.inference.evaluate import sets_leave_one_out_pattern
