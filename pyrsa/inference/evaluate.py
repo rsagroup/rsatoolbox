@@ -8,6 +8,7 @@ inference module: evaluate models
 import numpy as np
 from pyrsa.rdm import compare
 from pyrsa.inference import bootstrap_sample_rdm
+from pyrsa.inference import bootstrap_sample_pattern
 
 
 def eval_fixed(model, data, theta=None, method='cosine'):
@@ -26,6 +27,64 @@ def eval_fixed(model, data, theta=None, method='cosine'):
     """
     rdm_pred = model.predict(theta=theta)
     return compare(rdm_pred, data, method)
+
+
+def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
+                   pattern_descriptor=None, rdm_descriptor=None):
+    """evaluates a model on data
+    performs bootstrapping to get a sampling distribution
+
+    Args:
+        model(pyrsa.model.Model): Model to be evaluated
+        data(pyrsa.rdm.RDMs): data to evaluate on
+        theta(numpy.ndarray): parameter vector for the model
+        method(string): comparison method to use
+        N(int): number of samples
+        pattern_descriptor(string): descriptor to group patterns for bootstrap
+        rdm_descriptor(string): descriptor to group rdms for bootstrap
+
+    Returns:
+        numpy.ndarray: vector of evaluations
+
+    """
+    evaluations = np.zeros(N)
+    for i in range(N):
+        sample = bootstrap_sample_rdm(data, rdm_descriptor)
+        sample, pattern_sample = \
+            bootstrap_sample_pattern(sample, pattern_descriptor)
+        rdm_pred = model.predict_rdm(theta=theta)
+        rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
+                                              pattern_sample)
+        evaluations[i] = compare(rdm_pred, sample, method)
+    return evaluations
+
+
+def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
+                           pattern_descriptor=None):
+    """evaluates a model on data
+    performs bootstrapping to get a sampling distribution
+
+    Args:
+        model(pyrsa.model.Model): Model to be evaluated
+        data(pyrsa.rdm.RDMs): data to evaluate on
+        theta(numpy.ndarray): parameter vector for the model
+        method(string): comparison method to use
+        N(int): number of samples
+        pattern_descriptor(string): descriptor to group patterns for bootstrap
+
+    Returns:
+        numpy.ndarray: vector of evaluations
+
+    """
+    evaluations = np.zeros(N)
+    for i in range(N):
+        sample, pattern_sample = \
+            bootstrap_sample_pattern(data, pattern_descriptor)
+        rdm_pred = model.predict_rdm(theta=theta)
+        rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
+                                              pattern_sample)
+        evaluations[i] = compare(rdm_pred, sample, method)
+    return evaluations
 
 
 def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
@@ -64,7 +123,7 @@ def crossval(model, train_set, test_set, method='cosine', fitter=None,
         test_set(list): a list of the test RDMs with 3-tuple entries:
             (RDMs, pattern_sample, pattern_select)
         method(string): comparison method to use
-        pattern_descriptor(string): rdm_descriptor to group rdms for bootstrap
+        pattern_descriptor(string): descriptor to group patterns
 
     Returns:
         numpy.ndarray: vector of evaluations
