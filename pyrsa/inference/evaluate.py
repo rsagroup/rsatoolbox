@@ -199,26 +199,6 @@ def sets_of_k(rdms, pattern_descriptor=None, k=5, random=False):
         pattern_select = np.unique(pattern_select)
     assert k <= len(pattern_select) / 2, \
         'to form two groups we can use at most half the patterns per group'
-    if random:
-        pattern_select = np.random.shuffle(pattern_select)
-    group_size = k
     n_groups = np.floor(len(pattern_select) / k)
-    additional_patterns = len(pattern_select) % k
-    train_set = []
-    test_set = []
-    for i_group in range(n_groups):
-        test_idx = np.arange(i_group * group_size,
-                             (i_group + 1) * group_size)
-        if i_group < additional_patterns:
-            test_idx = np.concatenate((test_idx, [-(i_group+1)]))
-        train_idx = np.setdiff1d(np.arange(len(pattern_select)),
-                                 test_idx)
-        pattern_sample_test = pattern_select[test_idx]
-        pattern_sample_train = pattern_select[train_idx]
-        rdms_test = rdms.subset_pattern(pattern_descriptor,
-                                        pattern_sample_test)
-        rdms_train = rdms.subset_pattern(pattern_descriptor,
-                                         pattern_sample_train)
-        test_set.append((rdms_test, pattern_sample_test))
-        train_set.append((rdms_train, pattern_sample_train))
-    return train_set, test_set
+    return sets_k_fold(rdms, pattern_descriptor=pattern_descriptor,
+                       k=n_groups, random=random)
