@@ -59,12 +59,14 @@ def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
         pattern_select = np.unique(pattern_select)
     rdm_sample = np.random.randint(0, len(rdm_select) - 1,
                                    size=len(rdm_select))
-    rdms = rdms.subsample(rdm_descriptor, rdm_select[rdm_sample])
+    rdm_sample = rdm_select[rdm_sample]
+    rdms = rdms.subsample(rdm_descriptor, rdm_sample)
     pattern_sample = np.random.randint(0, len(pattern_select) - 1,
                                        size=len(pattern_select))
+    pattern_sample = pattern_select[pattern_sample]
     rdms = rdms.subsample_pattern(pattern_descriptor,
-                                  pattern_select[pattern_sample])
-    return rdms, rdm_sample, rdm_select, pattern_sample, pattern_select
+                                  pattern_sample)
+    return rdms, rdm_sample, pattern_sample
 
 
 def bootstrap_sample_rdm(rdms, rdm_descriptor=None):
@@ -101,8 +103,9 @@ def bootstrap_sample_rdm(rdms, rdm_descriptor=None):
         rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
     rdm_sample = np.random.randint(0, len(rdm_select) - 1,
                                    size=len(rdm_select))
-    rdms = rdms.subsample(rdm_descriptor, rdm_select[rdm_sample])
-    return rdms, rdm_sample, rdm_select
+    rdm_sample = rdm_select[rdm_sample]
+    rdms = rdms.subsample(rdm_descriptor, rdm_sample)
+    return rdms, rdm_sample
 
 
 def bootstrap_sample_pattern(rdms, pattern_descriptor=None):
@@ -124,11 +127,7 @@ def bootstrap_sample_pattern(rdms, pattern_descriptor=None):
             subsampled dataset with equal number of pattern groups
 
         numpy.ndarray: pattern_sample
-            sampled pattern descriptor indices
-
-        numpy.ndarray: pattern_select
-            sampled pattern descriptor values
-
+            sampled pattern descriptor index values for subsampling other rdms
     """
     if pattern_descriptor is None:
         pattern_select = np.arange(rdms.n_cond)
@@ -139,6 +138,7 @@ def bootstrap_sample_pattern(rdms, pattern_descriptor=None):
         pattern_select = np.unique(pattern_select)
     pattern_sample = np.random.randint(0, len(pattern_select) - 1,
                                        size=len(pattern_select))
+    pattern_sample = pattern_select[pattern_sample]
     rdms = rdms.subsample_pattern(pattern_descriptor,
-                                  pattern_select[pattern_sample])
-    return rdms, pattern_sample, pattern_select
+                                  pattern_sample)
+    return rdms, pattern_sample
