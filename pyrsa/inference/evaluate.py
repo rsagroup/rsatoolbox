@@ -255,18 +255,18 @@ def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
             test_idx = np.concatenate((test_idx, [-(i_group+1)]))
         train_idx = np.setdiff1d(np.arange(len(rdm_select)),
                                  test_idx)
-        rdm_sample_test = rdm_select[test_idx]
-        rdm_sample_train = rdm_select[train_idx]
-        rdms_test = rdms.subsample_rdm(rdm_descriptor,
-                                       rdm_sample_test)
-        rdms_train = rdms.subsample_rdm(rdm_descriptor,
-                                        rdm_sample_train)
+        rdm_sample_test = [rdm_select[int(idx)] for idx in test_idx]
+        rdm_sample_train = [rdm_select[int(idx)] for idx in train_idx]
+        rdms_test = rdms.subsample(rdm_descriptor,
+                                   rdm_sample_test)
+        rdms_train = rdms.subsample(rdm_descriptor,
+                                    rdm_sample_train)
         train_new, test_new = sets_k_fold_pattern(rdms_train, k=k_pattern,
             pattern_descriptor=pattern_descriptor, random=random)
-        for i in range(k_pattern):
-            test_new[k_pattern][0] = rdms_test.subsample_pattern(
-                pattern_descriptor=pattern_descriptor,
-                value=test_new[k_pattern][1])
+        for i_pattern in range(k_pattern):
+            test_new[i_pattern][0] = rdms_test.subsample_pattern(
+                by=pattern_descriptor,
+                value=test_new[i_pattern][1])
         train_set += train_new
         test_set += test_new
     return train_set, test_set
@@ -316,8 +316,8 @@ def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
                                         pattern_sample_test)
         rdms_train = rdms.subset_pattern(pattern_descriptor,
                                          pattern_sample_train)
-        test_set.append((rdms_test, pattern_sample_test))
-        train_set.append((rdms_train, pattern_sample_train))
+        test_set.append([rdms_test, pattern_sample_test])
+        train_set.append([rdms_train, pattern_sample_train])
     return train_set, test_set
 
 

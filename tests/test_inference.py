@@ -82,6 +82,7 @@ class test_bootstrap(unittest.TestCase):
                     descriptors=des)
         rdm_sample = bootstrap_sample_pattern(rdms,'type')
 
+
 class test_evaluation(unittest.TestCase):
     """ evaluation tests
     """
@@ -152,6 +153,25 @@ class test_crossval(unittest.TestCase):
                         descriptors=des)
         train_set, test_set = sets_k_fold_pattern(rdms, k=2,
             pattern_descriptor='category')
+        assert test_set[0][0].n_cond == 2
+        assert test_set[1][0].n_cond == 3
+
+    def test_k_fold(self):
+        from pyrsa.inference.evaluate import sets_k_fold
+        import pyrsa.rdm as rsr
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        pattern_des = {'category':np.array([0,1,2,2,3])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        dissimilarity_measure=mes,
+                        pattern_descriptors=pattern_des,
+                        descriptors=des)
+        train_set, test_set = sets_k_fold(rdms,k_rdm=3, k_pattern=2,
+            pattern_descriptor='category', rdm_descriptor='session',
+            random=False)
         assert test_set[0][0].n_cond == 2
         assert test_set[1][0].n_cond == 3
         
