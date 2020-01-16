@@ -174,4 +174,21 @@ class test_crossval(unittest.TestCase):
             random=False)
         assert test_set[0][0].n_cond == 2
         assert test_set[1][0].n_cond == 3
-        
+
+    def test_sets_of_k_pattern(self):
+        from pyrsa.inference.evaluate import sets_of_k_pattern
+        import pyrsa.rdm as rsr
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        pattern_des = {'category':np.array([0,1,2,2,3])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        dissimilarity_measure=mes,
+                        pattern_descriptors=pattern_des,
+                        descriptors=des)
+        train_set, test_set = sets_of_k_pattern(rdms, k=2,
+            pattern_descriptor='category', random=False)
+        assert test_set[0][0].n_cond == 2
+        assert test_set[1][0].n_cond == 3
