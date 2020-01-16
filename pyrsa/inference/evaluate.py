@@ -124,14 +124,16 @@ def sets_leave_one_out(rdms, pattern_descriptor=None):
     return train_set, test_set
 
 
-def sets_k_fold(rdms, pattern_descriptor=None, k=5):
+def sets_k_fold(rdms, pattern_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into k
-    similar sized groups. This version splits in the given order.
+    similar sized groups. This version splits in the given order.or 
+    randomizes the order
 
     Args:
         rdms(pyrsa.rdm.RDMs): rdms to use
         pattern_descriptor(String): descriptor to select groups
         k(int): number of groups
+        random(bool): whether the assignment shall be randomized
 
     Returns:
         train_set(list): list of tuples (rdms, pattern_sample, pattern_select)
@@ -147,6 +149,8 @@ def sets_k_fold(rdms, pattern_descriptor=None, k=5):
         pattern_select = np.unique(pattern_select)
     assert k <= len(pattern_select), \
         'Can make at most as many groups as conditions'
+    if random:
+        pattern_select = np.random.shuffle(pattern_select)
     group_size = np.floor(len(pattern_select)/k)
     additional_patterns = len(pattern_select) % k
     train_set = []
