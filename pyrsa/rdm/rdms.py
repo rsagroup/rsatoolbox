@@ -128,6 +128,7 @@ class RDMs:
 
     def subset_pattern(self, by, value):
         """ Returns a smaller RDMs with patterns with certain descriptor values
+
         Args:
             by(String): the descriptor by which the subset selection
                         is made from pattern_descriptors
@@ -186,6 +187,7 @@ class RDMs:
 
     def subset(self, by, value):
         """ Returns a set of fewer RDMs matching descriptor values
+
         Args:
             by(String): the descriptor by which the subset selection
                         is made from descriptors
