@@ -91,7 +91,8 @@ def crossval(model, train_set, test_set, method='cosine', fitter=None,
 
 def sets_leave_one_out(rdms, pattern_descriptor=None):
     """ generates training and test set combinations by leaving one level
-    of pattern_descriptor out as a test set
+    of pattern_descriptor out as a test set.
+    This is only sensible if pattern_descriptor already defines larger groups!
 
     Args:
         rdms(pyrsa.rdm.RDMs): rdms to use
@@ -116,18 +117,21 @@ def sets_leave_one_out(rdms, pattern_descriptor=None):
         rdms_train = rdms.subset_pattern(pattern_descriptor,
                                          pattern_sample_train)
         pattern_sample_test = [i_pattern]
-        rdms_test = rdms.subset_pattern(pattern_descriptor, i_pattern)
+        rdms_test = rdms.subset_pattern(pattern_descriptor,
+                                        pattern_sample_test)
         train_set.append((rdms_train, pattern_sample_train))
         test_set.append((rdms_test, pattern_sample_test))
     return train_set, test_set
 
-def sets_k_fold(rdms, pattern_descriptor=None):
-    """ generates training and test set combinations by leaving one level
-    of pattern_descriptor out as a test set
+
+def sets_k_fold(rdms, pattern_descriptor=None, k=5):
+    """ generates training and test set combinations by splitting into k
+    similar sized groups. This version splits in the given order.
 
     Args:
         rdms(pyrsa.rdm.RDMs): rdms to use
         pattern_descriptor(String): descriptor to select groups
+        k(int): number of groups
 
     Returns:
         train_set(list): list of tuples (rdms, pattern_sample, pattern_select)
@@ -141,14 +145,25 @@ def sets_k_fold(rdms, pattern_descriptor=None):
     else:
         pattern_select = rdms.pattern_descriptors[pattern_descriptor]
         pattern_select = np.unique(pattern_select)
+    assert k <= len(pattern_select), \
+        'Can make at most as many groups as conditions'
+    group_size = np.floor(len(pattern_select)/k)
+    additional_patterns = len(pattern_select) % k
     train_set = []
     test_set = []
-    for i_pattern in pattern_select:
-        pattern_sample_train = np.setdiff1d(pattern_select, i_pattern)
+    for i_group in range(k):
+        test_idx = np.arange(i_group * group_size,
+                             (i_group + 1) * group_size)
+        if i_group < additional_patterns:
+            test_idx = np.concatenate((test_idx, [-(i_group+1)]))
+        train_idx = np.setdiff1d(np.arange(len(pattern_select)),
+                                 test_idx)
+        pattern_sample_test = pattern_select[test_idx]
+        pattern_sample_train = pattern_select[train_idx]
+        rdms_test = rdms.subset_pattern(pattern_descriptor,
+                                        pattern_sample_test)
         rdms_train = rdms.subset_pattern(pattern_descriptor,
                                          pattern_sample_train)
-        pattern_sample_test = [i_pattern]
-        rdms_test = rdms.subset_pattern(pattern_descriptor, i_pattern)
-        train_set.append((rdms_train, pattern_sample_train))
         test_set.append((rdms_test, pattern_sample_test))
+        train_set.append((rdms_train, pattern_sample_train))
     return train_set, test_set
