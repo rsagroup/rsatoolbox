@@ -126,7 +126,7 @@ def sets_leave_one_out(rdms, pattern_descriptor=None):
 
 def sets_k_fold(rdms, pattern_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into k
-    similar sized groups. This version splits in the given order.or 
+    similar sized groups. This version splits in the given order or 
     randomizes the order
 
     Args:
@@ -151,11 +151,62 @@ def sets_k_fold(rdms, pattern_descriptor=None, k=5, random=False):
         'Can make at most as many groups as conditions'
     if random:
         pattern_select = np.random.shuffle(pattern_select)
-    group_size = np.floor(len(pattern_select)/k)
+    group_size = np.floor(len(pattern_select) / k)
     additional_patterns = len(pattern_select) % k
     train_set = []
     test_set = []
     for i_group in range(k):
+        test_idx = np.arange(i_group * group_size,
+                             (i_group + 1) * group_size)
+        if i_group < additional_patterns:
+            test_idx = np.concatenate((test_idx, [-(i_group+1)]))
+        train_idx = np.setdiff1d(np.arange(len(pattern_select)),
+                                 test_idx)
+        pattern_sample_test = pattern_select[test_idx]
+        pattern_sample_train = pattern_select[train_idx]
+        rdms_test = rdms.subset_pattern(pattern_descriptor,
+                                        pattern_sample_test)
+        rdms_train = rdms.subset_pattern(pattern_descriptor,
+                                         pattern_sample_train)
+        test_set.append((rdms_test, pattern_sample_test))
+        train_set.append((rdms_train, pattern_sample_train))
+    return train_set, test_set
+
+
+def sets_of_k(rdms, pattern_descriptor=None, k=5, random=False):
+    """ generates training and test set combinations by splitting into
+    groups of k. This version splits in the given order or 
+    randomizes the order. If the number of patterns is not divisible by k
+    patterns are added to the first groups such that those have k+1 patterns
+
+    Args:
+        rdms(pyrsa.rdm.RDMs): rdms to use
+        pattern_descriptor(String): descriptor to select groups
+        k(int): number of groups
+        random(bool): whether the assignment shall be randomized
+
+    Returns:
+        train_set(list): list of tuples (rdms, pattern_sample, pattern_select)
+        test_set(list): list of tuples (rdms, pattern_sample, pattern_select)
+
+    """
+    if pattern_descriptor is None:
+        pattern_select = np.arange(rdms.n_cond)
+        rdms.pattern_descriptors['index'] = pattern_select
+        pattern_descriptor = 'index'
+    else:
+        pattern_select = rdms.pattern_descriptors[pattern_descriptor]
+        pattern_select = np.unique(pattern_select)
+    assert k <= len(pattern_select) / 2, \
+        'to form two groups we can use at most half the patterns per group'
+    if random:
+        pattern_select = np.random.shuffle(pattern_select)
+    group_size = k
+    n_groups = np.floor(len(pattern_select) / k)
+    additional_patterns = len(pattern_select) % k
+    train_set = []
+    test_set = []
+    for i_group in range(n_groups):
         test_idx = np.arange(i_group * group_size,
                              (i_group + 1) * group_size)
         if i_group < additional_patterns:
