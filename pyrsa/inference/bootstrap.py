@@ -4,7 +4,7 @@
 """
 
 import numpy as np
-
+from pyrsa.util.rdm_utils import add_pattern_index
 
 def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
     """Draws a bootstrap_sample from the data.
@@ -50,13 +50,8 @@ def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
         rdm_descriptor = 'index'
     else:
         rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
-    if pattern_descriptor is None:
-        pattern_select = np.arange(rdms.n_cond)
-        rdms.pattern_descriptors['index'] = pattern_select
-        pattern_descriptor = 'index'
-    else:
-        pattern_select = rdms.pattern_descriptors[pattern_descriptor]
-        pattern_select = np.unique(pattern_select)
+    pattern_descriptor, pattern_select = \
+        add_pattern_index(rdms, pattern_descriptor)
     rdm_sample = np.random.randint(0, len(rdm_select) - 1,
                                    size=len(rdm_select))
     rdm_sample = rdm_select[rdm_sample]
