@@ -21,10 +21,12 @@ def make_design(n_cond, n_part):
     Args:
         n_cond (int):          Number of conditions
         n_part (int):          Number of partitions
+
     Returns:
         Tuple (cond_vec, part_vec)
         cond_vec (np.ndarray): n_obs vector with condition
         part_vec (np.ndarray): n_obs vector with partition
+
     """
     p = np.array(range(0, n_part))
     c = np.array(range(0, n_cond))
@@ -41,12 +43,12 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     Args:
         model (rsa.Model):        the model from which to generate data
         theta (numpy.ndarray):    vector of parameters (one dimensional)
-        cond_vec (numpy.ndarray): RSA-style model: 
+        cond_vec (numpy.ndarray): RSA-style model:
                                       vector of experimental conditions
-                                  Encoding-style:  
+                                  Encoding-style:
                                       design matrix (n_obs x n_cond)
         n_channel (int):          Number of channels (default = 30)
-        n_sim (int):              Number of simulation with the same signal 
+        n_sim (int):              Number of simulation with the same signal
                                       (default = 1)
         signal (float):           Signal variance (multiplied by predicted G)
         noise (float)             Noise variance (*noise_cov if given)
@@ -56,6 +58,7 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
                                   covariance is specified
     Returns:
         data (list):              List of rsa.Dataset with obs_descriptors
+
     """
 
     # Get the model prediction and build second moment matrix
@@ -108,24 +111,27 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
 def make_exact_signal(G, n_channel):
     """
     Generates signal exactly with a specified second-moment matrix (G)
+
     Args:
         G(np.array): desired second moment matrix (ncond x ncond)
-        n_channel (int) : Number of channels 
+        n_channel (int) : Number of channels
+
     Returns:
-        np.array (n_cond x n_channel): random signal 
+        np.array (n_cond x n_channel): random signal
+
     """
     # Generate the true patterns with exactly correct second moment matrix
     n_cond = G.shape[0]
     # We use two-step procedure allow for different distributions later on
     true_U = np.random.uniform(0, 1, size=(n_cond, n_channel))
-    true_U = ss.norm.ppf(true_U)  
+    true_U = ss.norm.ppf(true_U)
     # Make orthonormal row vectors
     E = true_U @ true_U.transpose()
     L = np.linalg.cholesky(E)
     true_U = np.linalg.solve(L, true_U)
 
     # Now produce data with the known second-moment matrix
-    # Use positive eigenvectors only 
+    # Use positive eigenvectors only
     # (cholesky does not work with rank-deficient matrices)
     lam, V = np.linalg.eig(G)
     lam[lam < 1e-15] = 0
