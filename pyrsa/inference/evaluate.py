@@ -182,6 +182,7 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
 
     Returns:
         numpy.ndarray: matrix of evaluations (N x k)
+
     """
     evaluations = np.zeros((N, k_pattern*k_rdm))
     for i_sample in range(N):
