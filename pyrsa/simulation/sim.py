@@ -123,6 +123,6 @@ def make_exact_signal(G, n_channel):
     lam, V = np.linalg.eig(G)
     lam[lam < 1e-15] = 0
     lam = np.sqrt(lam)
-    chol_G = V.real * lam.real.reshape((1, l.size))
+    chol_G = V.real * lam.real.reshape((1, V.shape[1]))
     true_U = (chol_G @ true_U) * np.sqrt(n_channel)
     return true_U
