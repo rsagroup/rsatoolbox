@@ -176,6 +176,17 @@ class TestCalcRDM(unittest.TestCase):
         rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'euclidean')
         assert rdm.n_cond == 6
 
+    def test_parse_input(self):
+        from pyrsa.rdm.calc import _parse_input
+        data = Mock()
+        data.descriptors = {'session': 0, 'subj': 0}
+        data.measurements = np.random.rand(6, 5)
+        desc_true = [0, 1, 2, 3, 4, 5]
+        measurements, desc, descriptor = _parse_input(data, None)
+        assert descriptor == 'pattern'
+        assert np.all(np.array(desc_true) == desc)
+        assert np.all(data.measurements == measurements)
+
     @patch('pyrsa.rdm.calc._parse_input')
     def test_calc_euclid_as_scipy(self, _parse_input):
         from pyrsa.rdm import calc_rdm
