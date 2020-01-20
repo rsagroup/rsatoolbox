@@ -76,11 +76,23 @@ def _get_n_from_reduced_vectors(x):
 
     Returns:
         int: n: size of the RDM
+
     """
     return int(np.ceil(np.sqrt(x.shape[1] * 2)))
 
 
 def add_pattern_index(rdms, pattern_descriptor):
+    """
+    adds index if pattern_descriptor is None
+
+    Args:
+        rdms(pyrsa.rdm.RDMs): rdms object to be parsed
+
+    Returns:
+        pattern_descriptor
+        pattern_select
+
+    """
     if pattern_descriptor is None:
         pattern_select = np.arange(rdms.n_cond)
         rdms.pattern_descriptors['index'] = pattern_select
