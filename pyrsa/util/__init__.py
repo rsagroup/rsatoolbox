@@ -1,1 +1,1 @@
-import pyrsa.util.matrix as matrix
+from . import matrix

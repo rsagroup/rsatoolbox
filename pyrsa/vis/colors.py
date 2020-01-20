@@ -12,22 +12,21 @@ from matplotlib.colors import ListedColormap
 from scipy.interpolate import interp1d
 
 
-def color_scale(n_cols, anchor_cols=None, monitor=None):
+def color_scale(n_cols, anchor_cols=None, monitor=False):
     """ linearly interpolates between a set of given
-        anchor colours to give n_cols and displays them
-        if monitor is set
+    anchor colours to give n_cols and displays them
+    if monitor is set
 
     Args:
-        n_cols ([type]): number of colors for the colormap
-        anchor_cols ([type], optional): what color space to
+        n_cols (int): number of colors for the colormap
+        anchor_cols (numpy.ndarray, optional): what color space to
             interpolate. Defaults to None.
         monitor (boolean, optional): quick visualisation of the
-            resulting colormap. Defaults to None.
+            resulting colormap. Defaults to False.
 
     Returns:
-        [array]: n_cols x 3 RGB array.
+        numpy.ndarray: n_cols x 3 RGB array.
 
-    @author Ian Charest
     """
 
     if anchor_cols is None:
@@ -62,19 +61,21 @@ def rdm_colormap(n_cols=256, monitor=None):
 
     Args:
         n_cols (int, optional): precision of the colormap.
-            Defaults to 256.
+        Defaults to 256.
 
     Returns:
         [matplotlib ListedColormap]: this matplotlib color object can be
-            used as a cmap in any plt plot.
+        used as a cmap in any plot.
 
     Example:
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from pyrsa.vis.colors import rdm_colormap
-        plt.imshow(np.random.rand(10,10),cmap=rdm_colormap())
-        plt.colorbar()
-        plt.show()
+        .. code-block:: python
+
+            import numpy as np
+            import matplotlib.pyplot as plt
+            from pyrsa.vis.colors import rdm_colormap
+            plt.imshow(np.random.rand(10,10),cmap=rdm_colormap())
+            plt.colorbar()
+            plt.show()
 
     @authors: Ian Charest and Jasper van den Bosch
     (ported from Niko Kriegeskorte's RDMcolormap.m)
