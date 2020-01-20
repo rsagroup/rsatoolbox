@@ -10,6 +10,7 @@ from pyrsa.rdm import compare
 from pyrsa.inference import bootstrap_sample
 from pyrsa.inference import bootstrap_sample_rdm
 from pyrsa.inference import bootstrap_sample_pattern
+from pyrsa.util.rdm_utils import add_pattern_index
 from .crossvalsets import sets_leave_one_out_pattern
 from .crossvalsets import sets_k_fold
 from .crossvalsets import sets_k_fold_pattern
@@ -58,13 +59,10 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
             bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
                              pattern_descriptor=pattern_descriptor)
         rdm_pred = model.predict_rdm(theta=theta)
-        if pattern_descriptor is None:
-            rdm_pred.pattern_descriptors['index'] = np.arange(rdm_pred.n_cond)
-            rdm_pred = rdm_pred.subsample_pattern('index',
-                                                  pattern_sample)
-        else:
-            rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                                  pattern_sample)
+        pattern_descriptor, pattern_select = \
+            add_pattern_index(rdm_pred, pattern_descriptor)
+        rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
+                                              pattern_sample)
         evaluations[i] = np.mean(compare(rdm_pred, sample, method))
     return evaluations
 
@@ -91,13 +89,10 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
         sample, pattern_sample = \
             bootstrap_sample_pattern(data, pattern_descriptor)
         rdm_pred = model.predict_rdm(theta=theta)
-        if pattern_descriptor is None:
-            rdm_pred.pattern_descriptors['index'] = np.arange(rdm_pred.n_cond)
-            rdm_pred = rdm_pred.subsample_pattern('index',
-                                                  pattern_sample)
-        else:
-            rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                                  pattern_sample)
+        pattern_descriptor, pattern_select = \
+            add_pattern_index(rdm_pred, pattern_descriptor)
+        rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
+                                              pattern_sample)
         evaluations[i] = np.mean(compare(rdm_pred, sample, method))
     return evaluations
 
