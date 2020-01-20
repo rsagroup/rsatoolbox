@@ -124,13 +124,8 @@ def bootstrap_sample_pattern(rdms, pattern_descriptor=None):
         numpy.ndarray: pattern_sample
             sampled pattern descriptor index values for subsampling other rdms
     """
-    if pattern_descriptor is None:
-        pattern_select = np.arange(rdms.n_cond)
-        rdms.pattern_descriptors['index'] = pattern_select
-        pattern_descriptor = 'index'
-    else:
-        pattern_select = rdms.pattern_descriptors[pattern_descriptor]
-        pattern_select = np.unique(pattern_select)
+    pattern_descriptor, pattern_select = \
+        add_pattern_index(rdms, pattern_descriptor)
     pattern_sample = np.random.randint(0, len(pattern_select) - 1,
                                        size=len(pattern_select))
     pattern_sample = pattern_select[pattern_sample]

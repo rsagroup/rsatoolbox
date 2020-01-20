@@ -7,6 +7,7 @@ Created on Mon Jan 20 09:44:04 2020
 """
 
 import numpy as np
+from pyrsa.util.rdm_utils import add_pattern_index
 
 
 def sets_leave_one_out_pattern(rdms, pattern_descriptor=None):
@@ -23,13 +24,8 @@ def sets_leave_one_out_pattern(rdms, pattern_descriptor=None):
         test_set(list): list of tuples (rdms, pattern_sample)
 
     """
-    if pattern_descriptor is None:
-        pattern_select = np.arange(rdms.n_cond)
-        rdms.pattern_descriptors['index'] = pattern_select
-        pattern_descriptor = 'index'
-    else:
-        pattern_select = rdms.pattern_descriptors[pattern_descriptor]
-        pattern_select = np.unique(pattern_select)
+    pattern_descriptor, pattern_select = \
+        add_pattern_index(rdms, pattern_descriptor)
     train_set = []
     test_set = []
     for i_pattern in pattern_select:
@@ -118,13 +114,8 @@ def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
         test_set(list): list of tuples (rdms, pattern_sample)
 
     """
-    if pattern_descriptor is None:
-        pattern_select = np.arange(rdms.n_cond)
-        rdms.pattern_descriptors['index'] = pattern_select
-        pattern_descriptor = 'index'
-    else:
-        pattern_select = rdms.pattern_descriptors[pattern_descriptor]
-        pattern_select = np.unique(pattern_select)
+    pattern_descriptor, pattern_select = \
+        add_pattern_index(rdms, pattern_descriptor)
     assert k <= len(pattern_select), \
         'Can make at most as many groups as conditions'
     if random:
@@ -168,13 +159,8 @@ def sets_of_k_pattern(rdms, pattern_descriptor=None, k=5, random=False):
         test_set(list): list of tuples (rdms, pattern_sample)
 
     """
-    if pattern_descriptor is None:
-        pattern_select = np.arange(rdms.n_cond)
-        rdms.pattern_descriptors['index'] = pattern_select
-        pattern_descriptor = 'index'
-    else:
-        pattern_select = rdms.pattern_descriptors[pattern_descriptor]
-        pattern_select = np.unique(pattern_select)
+    pattern_descriptor, pattern_select = \
+        add_pattern_index(rdms, pattern_descriptor)
     assert k <= len(pattern_select) / 2, \
         'to form groups we can use at most half the patterns per group'
     n_groups = int(len(pattern_select) / k)
