@@ -41,10 +41,13 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     Args:
         model (rsa.Model):        the model from which to generate data
         theta (numpy.ndarray):    vector of parameters (one dimensional)
-        cond_vec (numpy.ndarray): RSA-style model: vector of experimental conditions
-                                  Encoding-style:  design matrix (n_obs x n_cond)
+        cond_vec (numpy.ndarray): RSA-style model: 
+                                      vector of experimental conditions
+                                  Encoding-style:  
+                                      design matrix (n_obs x n_cond)
         n_channel (int):          Number of channels (default = 30)
-        n_sim (int):              Number of simulation with the same signal (default = 1)
+        n_sim (int):              Number of simulation with the same signal 
+                                      (default = 1)
         signal (float):           Signal variance (multiplied by predicted G)
         noise (float)             Noise variance (*noise_cov if given)
         noise_cov (numpy.ndarray):n_channel x n_channel covariance matrix of
@@ -85,16 +88,19 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     # If noise covariance structure is given, it is assumed that it's the same
     # across different partitions
     obs_des = {"cond_vec": cond_vec}
-    des = {"signal": signal, "noise":noise,
-               "model":model.name, "theta": theta}
+    des = {"signal": signal, "noise": noise,
+           "model": model.name, "theta": theta}
     dataset_list = []
     for i in range(0, n_sim):
         epsilon = np.random.uniform(0, 1, size=(n_obs, n_channel))
-        epsilon = ss.norm.ppf(epsilon)*np.sqrt(noise)  # Allows alter for providing own cdf for noise distribution
+        # Allows alter for providing own cdf for noise distribution
+        epsilon = ss.norm.ppf(epsilon) * np.sqrt(noise)
         if (noise_cov is not None):
-            epsilon=epsilon @ noise_chol
+            epsilon = epsilon @ noise_chol
         data = Zcond @ true_U * np.sqrt(signal) + epsilon
-        dataset = rsa.data.Dataset(data, obs_descriptors=obs_des, descriptors=des)
+        dataset = rsa.data.Dataset(data,
+                                   obs_descriptors=obs_des,
+                                   descriptors=des)
         dataset_list.append(dataset)
     return dataset_list
 
@@ -119,7 +125,8 @@ def make_exact_signal(G, n_channel):
     true_U = np.linalg.solve(L, true_U)
 
     # Now produce data with the known second-moment matrix
-    # Use positive eigenvectors only (cholesky does not work with rank-deficient matrices)
+    # Use positive eigenvectors only 
+    # (cholesky does not work with rank-deficient matrices)
     lam, V = np.linalg.eig(G)
     lam[lam < 1e-15] = 0
     lam = np.sqrt(lam)
