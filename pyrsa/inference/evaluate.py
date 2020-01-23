@@ -200,6 +200,50 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
     return evaluations
 
 
+def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
+                      pattern_descriptor=None, rdm_descriptor=None):
+    """takes a bootstrap sample and evaluates on the rdms and patterns not
+    sampled
+
+    Args:
+        model(pyrsa.model.Model): Model to be evaluated
+        datat(pyrsa.rdm.RDMs): RDM data to use
+        train_set(list): a list of the training RDMs with 3-tuple entries:
+            (RDMs, pattern_sample, pattern_select)
+        test_set(list): a list of the test RDMs with 3-tuple entries:
+            (RDMs, pattern_sample, pattern_select)
+        method(string): comparison method to use
+        pattern_descriptor(string): descriptor to group patterns
+        rdm_descriptor(string): descriptor to group rdms
+
+    Returns:
+        numpy.ndarray: vector of evaluations of length N
+        numpy.ndarray: n
+
+    """
+    evaluations = np.zeros(N)
+    n_rdm = np.zeros(N, dtype=np.int)
+    n_pattern = np.zeros(N, dtype=np.int)
+    for i_sample in range(N):
+        sample, rdm_sample, pattern_sample = bootstrap_sample(data,
+            rdm_descriptor=rdm_descriptor,
+            pattern_descriptor=pattern_descriptor)
+        train_set = [[rdm_sample, pattern_sample]]
+        rdm_sample_test = data.rdm_descriptors[rdm_descriptor]
+        rdm_sample_test = np.setdiff1d(rdm_sample_test, rdm_sample)
+        pattern_sample_test = data.pattern_descriptors[pattern_descriptor]
+        pattern_sample_test = np.setdiff1d(pattern_sample_test, pattern_sample)
+        rdms_test = data.subsample_pattern(pattern_sample_test)
+        rdms_test = data.subsample_rdm(rdm_sample_test)
+        test_set = [[rdms_test, pattern_sample_test]]
+        evaluations[i_sample] = crossval(model, train_set, test_set,
+            method=method, fitter=fitter,
+            pattern_descriptor=pattern_descriptor)
+        n_rdm[i_sample] = rdms_test.n_rdm
+        n_pattern[i_sample] = rdms_test.n_cond
+    return evaluations, n_rdm, n_pattern
+
+
 def _concat_sampling(sample1, sample2):
     """ computes an index vector for the sequential sampling with sample1 
     and sample2
