@@ -142,5 +142,5 @@ class test_evaluation(unittest.TestCase):
         from pyrsa.model import ModelFixed
         rdms = RDMs(np.random.rand(11,10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
-        evaluations, n_cond = bootstrap_testset_rdm(m, rdms,
+        evaluations, n_rdms = bootstrap_testset_rdm(m, rdms,
             method='cosine', fitter=None, N=100, rdm_descriptor=None)
