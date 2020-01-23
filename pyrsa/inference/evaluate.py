@@ -154,9 +154,6 @@ def crossval(model, train_set, test_set, method='cosine', fitter=None,
                        pattern_descriptor=pattern_descriptor)
         pred = model.predict_rdm(theta)
         pred = pred.subsample_pattern(by=pattern_descriptor, value=test[1])
-        print(pred)
-        print(test[0])
-        print(test[1])
         evaluations.append(np.mean(compare(pred, test[0], method)))
     return np.array(evaluations)
 
