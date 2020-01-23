@@ -209,12 +209,9 @@ def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
 
     Args:
         model(pyrsa.model.Model): Model to be evaluated
-        datat(pyrsa.rdm.RDMs): RDM data to use
-        train_set(list): a list of the training RDMs with 3-tuple entries:
-            (RDMs, pattern_sample, pattern_select)
-        test_set(list): a list of the test RDMs with 3-tuple entries:
-            (RDMs, pattern_sample, pattern_select)
+        data(pyrsa.rdm.RDMs): RDM data to use
         method(string): comparison method to use
+        fitter(function): fitting function
         pattern_descriptor(string): descriptor to group patterns
         rdm_descriptor(string): descriptor to group rdms
 
@@ -252,9 +249,97 @@ def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
                 pattern_descriptor=pattern_descriptor)
         else:
             evaluations[i_sample] = np.nan
-        n_rdm[i_sample] = len(pattern_sample_test)
-        n_pattern[i_sample] = len(rdm_sample_test)
+        n_rdm[i_sample] = len(rdm_sample_test)
+        n_pattern[i_sample] = len(pattern_sample_test)
     return evaluations, n_rdm, n_pattern
+
+
+def bootstrap_testset_pattern(model, data, method='cosine', fitter=None,
+                              N=1000, pattern_descriptor=None):
+    """takes a bootstrap sample and evaluates on the patterns not
+    sampled
+    also returns the size of each test_set to allow later weighting
+    or selection if this is desired.
+
+    Args:
+        model(pyrsa.model.Model): Model to be evaluated
+        datat(pyrsa.rdm.RDMs): RDM data to use
+        method(string): comparison method to use
+        fitter(function): fitting function for the model
+        pattern_descriptor(string): descriptor to group patterns
+
+    Returns:
+        numpy.ndarray: vector of evaluations of length 
+        numpy.ndarray: n_pattern for each test_set
+
+    """
+    evaluations = np.zeros(N)
+    n_pattern = np.zeros(N, dtype=np.int)
+    if pattern_descriptor is None:
+        data.pattern_descriptors['index'] = np.arange(data.n_cond)
+        pattern_descriptor = 'index'
+    for i_sample in range(N):
+        sample, pattern_sample = bootstrap_sample_pattern(data,
+            pattern_descriptor=pattern_descriptor)
+        train_set = [[sample, pattern_sample]]
+        pattern_sample_test = data.pattern_descriptors[pattern_descriptor]
+        pattern_sample_test = np.setdiff1d(pattern_sample_test, pattern_sample)
+        if len(pattern_sample_test) >= 3:
+            rdms_test = data.subsample_pattern(pattern_descriptor,
+                                               pattern_sample_test)
+            test_set = [[rdms_test, pattern_sample_test]]
+            evaluations[i_sample] = crossval(model, train_set, test_set,
+                method=method, fitter=fitter,
+                pattern_descriptor=pattern_descriptor)
+        else:
+            evaluations[i_sample] = np.nan
+        n_pattern[i_sample] = len(pattern_sample_test)
+    return evaluations, n_pattern
+
+
+def bootstrap_testset_rdm(model, data, method='cosine', fitter=None, N=1000,
+                          rdm_descriptor=None):
+    """takes a bootstrap sample and evaluates on the patterns not
+    sampled
+    also returns the size of each test_set to allow later weighting
+    or selection if this is desired.
+
+    Args:
+        model(pyrsa.model.Model): Model to be evaluated
+        datat(pyrsa.rdm.RDMs): RDM data to use
+        method(string): comparison method to use
+        fitter(function): fitting function for the model
+        pattern_descriptor(string): descriptor to group patterns
+
+    Returns:
+        numpy.ndarray: vector of evaluations of length 
+        numpy.ndarray: n_pattern for each test_set
+
+    """
+    evaluations = np.zeros(N)
+    n_rdm = np.zeros(N, dtype=np.int)
+    if rdm_descriptor is None:
+        data.rdm_descriptors['index'] = np.arange(data.n_rdm)
+        rdm_descriptor = 'index'
+    data.pattern_descriptors['index'] = np.arange(data.n_cond)
+    pattern_descriptor = 'index'
+    for i_sample in range(N):
+        sample, rdm_sample = bootstrap_sample_rdm(data,
+            rdm_descriptor=rdm_descriptor)
+        pattern_sample = np.arange(data.n_cond)
+        train_set = [[sample, pattern_sample]]
+        rdm_sample_test = data.rdm_descriptors[rdm_descriptor]
+        rdm_sample_test = np.setdiff1d(rdm_sample_test, rdm_sample)
+        if len(rdm_sample_test) >= 1:
+            rdms_test = data.subsample(rdm_descriptor, rdm_sample_test)
+            test_set = [[rdms_test, pattern_sample]]
+            evaluations[i_sample] = crossval(model, train_set, test_set,
+                method=method, fitter=fitter,
+                pattern_descriptor=pattern_descriptor)
+        else:
+            evaluations[i_sample] = np.nan
+        n_rdm[i_sample] = len(rdm_sample_test)
+    return evaluations, n_rdm
 
 
 def _concat_sampling(sample1, sample2):

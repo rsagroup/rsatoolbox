@@ -117,12 +117,30 @@ class test_evaluation(unittest.TestCase):
         rdms = RDMs(np.random.rand(11,10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
         value = eval_bootstrap_rdm(m, rdms, N=10)
-        
+
     def test_bootstrap_testset(self):
         from pyrsa.inference import bootstrap_testset
         from pyrsa.rdm import RDMs
         from pyrsa.model import ModelFixed
         rdms = RDMs(np.random.rand(11,10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
-        bootstrap_testset(m, rdms, method='cosine', fitter=None, N=1000,
+        bootstrap_testset(m, rdms, method='cosine', fitter=None, N=100,
                           pattern_descriptor=None, rdm_descriptor=None)
+
+    def test_bootstrap_testset_pattern(self):
+        from pyrsa.inference import bootstrap_testset_pattern
+        from pyrsa.rdm import RDMs
+        from pyrsa.model import ModelFixed
+        rdms = RDMs(np.random.rand(11,10))  # 11 5x5 rdms
+        m = ModelFixed('test', rdms.get_vectors()[0])
+        evaluations, n_cond = bootstrap_testset_pattern(m, rdms,
+            method='cosine', fitter=None, N=100, pattern_descriptor=None)
+
+    def test_bootstrap_testset_rdm(self):
+        from pyrsa.inference import bootstrap_testset_rdm
+        from pyrsa.rdm import RDMs
+        from pyrsa.model import ModelFixed
+        rdms = RDMs(np.random.rand(11,10))  # 11 5x5 rdms
+        m = ModelFixed('test', rdms.get_vectors()[0])
+        evaluations, n_cond = bootstrap_testset_rdm(m, rdms,
+            method='cosine', fitter=None, N=100, rdm_descriptor=None)
