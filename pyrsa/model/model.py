@@ -76,6 +76,7 @@ class ModelFixed(Model):
         if isinstance(rdm, RDMs):
             self.rdm_obj = rdm
             self.rdm = np.mean(rdm.get_vectors(), axis=0)
+            self.n_cond = rdm.n_cond
         elif rdm.ndim == 1:  # User passed a vector
             self.rdm_obj = RDMs(np.array([rdm]))
             self.n_cond = (1 + np.sqrt(1 + 8 * rdm.size)) / 2
@@ -86,8 +87,10 @@ class ModelFixed(Model):
         else:  # User passed a matrix
             self.rdm_obj = RDMs(np.array([rdm]))
             self.rdm = batch_to_vectors(np.array([rdm]))[0]
+            self.n_cond = self.rdm_obj.n_cond
         self.n_param = 0
         self.default_fitter = fit_mock
+        self.rdm_obj.pattern_descriptors['index'] = np.arange(self.n_cond)
 
     def predict(self, theta=None):
         """ Returns the predicted rdm vector
