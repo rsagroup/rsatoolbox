@@ -204,6 +204,8 @@ def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
                       pattern_descriptor=None, rdm_descriptor=None):
     """takes a bootstrap sample and evaluates on the rdms and patterns not
     sampled
+    also returns the size of each test_set to allow later weighting
+    or selection if this is desired.
 
     Args:
         model(pyrsa.model.Model): Model to be evaluated
@@ -218,7 +220,8 @@ def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
 
     Returns:
         numpy.ndarray: vector of evaluations of length N
-        numpy.ndarray: n
+        numpy.ndarray: n_rdm for each test_set
+        numpy.ndarray: n_pattern for each test_set
 
     """
     evaluations = np.zeros(N)
