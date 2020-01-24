@@ -7,6 +7,10 @@ from .evaluate import eval_bootstrap_rdm
 from .evaluate import eval_bootstrap_pattern
 from .evaluate import bootstrap_crossval
 from .evaluate import crossval
-from .evaluate import bootstrap_testset
-from .evaluate import bootstrap_testset_pattern
-from .evaluate import bootstrap_testset_rdm
+from .boot_testset import bootstrap_testset
+from .boot_testset import bootstrap_testset_pattern
+from .boot_testset import bootstrap_testset_rdm
+from .crossvalsets import sets_leave_one_out_pattern
+from .crossvalsets import sets_k_fold
+from .crossvalsets import sets_k_fold_pattern
+from .crossvalsets import sets_of_k_pattern
