@@ -111,39 +111,3 @@ def _loss(theta, model, data, method='cosine', cov=None,
     if not (pattern_sample is None or pattern_descriptor is None):
         pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
     return np.mean(compare(pred, data, method=method))
-
-
-def loss_weighted_derivative(w,candidateRDMs, trueRDM,method='euclid',cov=None):
-    w = w.reshape((candidateRDMs.shape[0],1))
-    RDM = np.sum(w**2*candidateRDMs,axis=0)
-    if method == 'euclid':
-        if len(trueRDM.shape)==1:
-            jac = np.sum(2*(RDM-trueRDM)*2*w*candidateRDMs,axis=-1)
-        elif len(trueRDM.shape)==2:
-            jac = np.einsum('ij,kj->k',2*(RDM-trueRDM)*2,w*candidateRDMs)
-    elif method == 'cosine':
-        if len(trueRDM.shape)==1:
-            dnorm = np.sum(RDM*candidateRDMs,axis=1)
-            b = trueRDM/np.linalg.norm(trueRDM)
-            a = RDM/np.linalg.norm(RDM)
-            jac1 = np.sum(b*candidateRDMs,axis=1)/np.linalg.norm(RDM)
-            jacnorm = np.sum(b*a)*dnorm/(np.linalg.norm(RDM))/(np.linalg.norm(RDM))
-            dnorm2 = 0.02*((np.linalg.norm(RDM))-1)*dnorm/(np.linalg.norm(RDM))
-            jac = 2*w.flatten()*(jac1-jacnorm+dnorm2)
-        else:
-            dnorm = np.sum(RDM*candidateRDMs,axis=1)
-            b = trueRDM/np.linalg.norm(trueRDM,axis=1,keepdims=True)
-            a = RDM/np.linalg.norm(RDM)
-            jac1 = np.mean(np.einsum('ij,kj->ik',b,candidateRDMs)/np.linalg.norm(RDM),axis=0)
-            jacnorm = np.sum(b*a)*dnorm/(np.linalg.norm(RDM))/(np.linalg.norm(RDM))/b.shape[0]
-            dnorm2 = 0.02*((np.linalg.norm(RDM))-1)*dnorm/(np.linalg.norm(RDM))
-            jac = 2*w.flatten()*(jac1-jacnorm+dnorm2)
-    elif method == 'likelihood':
-        assert not cov is None, 'covariance has to be given for likelihood'
-        for i in range(cov.shape[0]):
-            cov[i] = np.linalg.inv(cov[i])
-        if len(trueRDM.shape)==1:
-            jac = 2*w.flatten()*np.matmul(candidateRDMs,np.matmul(RDM-trueRDM,(cov+cov.T)))
-        elif len(trueRDM.shape)==2:
-            jac = np.einsum('kj,ij->k',candidateRDMs,np.einsum('ij,ijl->il',RDM-trueRDM,2*cov))
-    return jac
