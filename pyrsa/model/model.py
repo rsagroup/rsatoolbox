@@ -204,7 +204,7 @@ class ModelWeighted(Model):
     def predict(self, theta=None):
         """ Returns the predicted rdm vector
 
-        For the fixed model there are no parameters. theta is ignored.
+        theta are the weights for the different rdms
 
         Args:
             theta(numpy.ndarray): the model parameter vector (one dimensional)
@@ -218,7 +218,7 @@ class ModelWeighted(Model):
         theta = np.array(theta)
         return np.matmul(self.rdm.T, theta.reshape(-1))
 
-    def predict_rdm(self, theta=0):
+    def predict_rdm(self, theta=None):
         """ Returns the predicted rdm vector
 
         For the fixed model there are no parameters.
@@ -232,6 +232,7 @@ class ModelWeighted(Model):
         """
         if theta is None:
             theta = np.ones(self.n_rdm)
+        theta = np.maximum(theta, 0)
         theta = np.array(theta)
         dissimilarities = np.matmul(self.rdm.T, theta.reshape(-1))
         rdms = RDMs(dissimilarities.reshape(1,-1),
