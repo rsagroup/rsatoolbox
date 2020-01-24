@@ -6,11 +6,9 @@ Definition of RSA Model class and subclasses
 """
 
 import numpy as np
-import scipy.optimize as opt
 from pyrsa.rdm import RDMs
-from pyrsa.rdm import compare
 from pyrsa.util.rdm_utils import batch_to_vectors
-from .fitter import fit_mock, fit_optimize, fit_select
+from .fitter import fit_mock, fit_optimize, fit_select, fit_interpolate
 
 class Model:
     """
@@ -216,6 +214,74 @@ class ModelWeighted(Model):
         """
         if theta is None:
             theta = np.ones(self.n_rdm)
+        theta = np.array(theta)
+        return np.matmul(self.rdm.T, theta.reshape(-1))
+
+    def predict_rdm(self, theta=None):
+        """ Returns the predicted rdm vector
+
+        For the fixed model there are no parameters.
+
+        Args:
+            theta(numpy.ndarray): the model parameter vector (one dimensional)
+
+        Returns:
+            pyrsa.rdm.RDMs: rdm object
+
+        """
+        if theta is None:
+            theta = np.ones(self.n_rdm)
+        theta = np.maximum(theta, 0)
+        theta = np.array(theta)
+        dissimilarities = np.matmul(self.rdm.T, theta.reshape(-1))
+        rdms = RDMs(dissimilarities.reshape(1,-1),
+                 dissimilarity_measure=self.rdm_obj.dissimilarity_measure,
+                 descriptors=self.rdm_obj.descriptors,
+                 pattern_descriptors=self.rdm_obj.pattern_descriptors)
+        return rdms
+
+
+class ModelInterpolate(Model):
+    """
+    inpterpolation Model 
+    models the RDM as an interpolation between 2 neigboring rdms
+    """
+    # Model Constructor
+    def __init__(self, name, rdm):
+        Model.__init__(self, name)
+        if isinstance(rdm, RDMs):
+            self.rdm_obj = rdm
+            self.rdm = rdm.get_vectors()
+        elif rdm.ndim == 2:  # User supplied vectors
+            self.rdm_obj = RDMs(rdm)
+            self.n_cond = (1 + np.sqrt(1 + 8 * rdm.shape[1])) / 2
+            if self.n_cond % 1 != 0:
+                raise NameError(
+                    "RDM vector needs to have size of ncond*(ncond-1)/2")
+            self.rdm = rdm
+        else:  # User passed matrixes
+            self.rdm_obj = RDMs(rdm)
+            self.rdm = batch_to_vectors(rdm)
+        self.n_param = self.rdm_obj.n_rdm
+        self.n_rdm = self.rdm_obj.n_rdm
+        self.default_fitter = fit_interpolate
+
+    def predict(self, theta=None):
+        """ Returns the predicted rdm vector
+
+        theta are the weights for the different rdms
+
+        Args:
+            theta(numpy.ndarray): the model parameter vector (one dimensional)
+
+        Returns:
+            rdm vector
+
+        """
+        if theta is None:
+            theta = np.zeros(self.n_rdm)
+            theta[0] = 0.5
+            theta[1] = 0.5
         theta = np.array(theta)
         return np.matmul(self.rdm.T, theta.reshape(-1))
 

@@ -85,6 +85,45 @@ def fit_optimize(model, data, method='cosine', pattern_sample=None,
     return theta.x
 
 
+def fit_interpolate(model, data, method='cosine', pattern_sample=None,
+                 pattern_descriptor=None):
+    """
+    fitting theta using bisection optimization
+    allowed for ModelInterpolate only
+
+    Args:
+        model(Model): the model to be fit
+        data(pyrsa.rdm.RDMs): data to be fit
+        method(String, optional): evaluation metric The default is 'cosine'.
+        pattern_sample(numpy.ndarray, optional)
+            sampled patterns The default is None.
+        pattern_descriptor (String, optional)
+            descriptor used for fitting. The default is None.
+
+    Returns:
+        numpy.ndarray: theta, parameter vector for the model
+
+    """
+    results = []
+    for i_pair in range(model.n_rdm-1):
+        def loss_opt(w):
+            theta = np.zeros(model.n_param)
+            theta[i_pair] = w
+            theta[i_pair+1] = 1-w
+            return _loss(theta, model, data, method=method,
+                     pattern_sample=pattern_sample,
+                     pattern_descriptor=pattern_descriptor)
+        results.append(
+            opt.minimize_scalar(loss_opt, np.array([.5]),
+                                method='bounded', bounds = (0,1)))
+    losses = [r.fun for r in results]
+    i_pair = np.argmin(losses)
+    result = results[i_pair]
+    theta = np.zeros(model.n_rdm)
+    theta[i_pair] = result.x
+    theta[i_pair+1] = 1-result.x
+    return theta
+
 def _loss(theta, model, data, method='cosine', cov=None,
           pattern_descriptor=None, pattern_sample=None):
     """Method for calculating a loss for a model and parameter combination
