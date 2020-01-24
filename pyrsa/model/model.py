@@ -6,10 +6,11 @@ Definition of RSA Model class and subclasses
 """
 
 import numpy as np
+import scipy.optimize as opt
 from pyrsa.rdm import RDMs
 from pyrsa.rdm import compare
 from pyrsa.util.rdm_utils import batch_to_vectors
-
+from .fitter import fit_mock, fit_optimize, fit_select
 
 class Model:
     """
@@ -199,7 +200,7 @@ class ModelWeighted(Model):
             self.rdm = batch_to_vectors(rdm)
         self.n_param = self.rdm_obj.n_rdm
         self.n_rdm = self.rdm_obj.n_rdm
-        self.default_fitter = fit_select
+        self.default_fitter = fit_optimize
 
     def predict(self, theta=None):
         """ Returns the predicted rdm vector
@@ -240,50 +241,3 @@ class ModelWeighted(Model):
                  descriptors=self.rdm_obj.descriptors,
                  pattern_descriptors=self.rdm_obj.pattern_descriptors)
         return rdms
-
-
-def fit_mock(model, data, method='cosine', pattern_sample=None,
-             pattern_descriptor=None):
-    """ formally acceptable fitting method which always returns a vector of
-    zeros
-
-    Args:
-        model(pyrsa.model.Model): model to be fit
-        data(pyrsa.rdm.RDMs): Data to fit to
-        method(String): Evaluation method
-        pattern_sample(numpy.ndarray): Which patterns are sampled
-        pattern_descriptor(String): Which descriptor is used
-
-    Returns:
-        theta(numpy.ndarray): parameter vector
-
-    """
-    return np.zeros(model.n_param)
-
-
-def fit_select(model, data, method='cosine', pattern_sample=None,
-               pattern_descriptor=None):
-    """ fits selection models by evaluating each rdm and selcting the one
-    with best performance. Works only for ModelSelect
-
-    Args:
-        model(pyrsa.model.Model): model to be fit
-        data(pyrsa.rdm.RDMs): Data to fit to
-        method(String): Evaluation method
-        pattern_sample(numpy.ndarray): Which patterns are sampled
-        pattern_descriptor(String): Which descriptor is used
-
-    Returns:
-        theta(int): parameter vector
-
-    """
-    assert isinstance(model, ModelSelect)
-    evaluations = np.zeros(model.n_rdm)
-    for i_rdm in range(model.n_rdm):
-        pred = model.predict_rdm(i_rdm)
-        if not (pattern_sample is None or pattern_descriptor is None):
-            pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
-        evaluations[i_rdm] = np.mean(compare(pred, data, method=method))
-    print(evaluations)
-    theta = np.argmin(evaluations)
-    return theta
