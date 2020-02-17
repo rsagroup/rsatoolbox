@@ -36,10 +36,10 @@ def eval_fixed(model, data, theta=None, method='cosine'):
     """
     if isinstance(model, Model):
         rdm_pred = model.predict_rdm(theta=theta)
-        return compare(rdm_pred, data, method)
+        return compare(rdm_pred, data, method)[0]
     elif isinstance(model, Iterable):
-        return [eval_fixed(mod, data, theta=None, method='cosine')
-                for mod in model]
+        return np.array([eval_fixed(mod, data, theta=None, method='cosine')
+                         for mod in model])
     else:
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
@@ -152,7 +152,7 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
     for i in range(N):
         sample = bootstrap_sample_rdm(data, rdm_descriptor)
         evaluations[i] = np.mean(eval_fixed(model, sample[0], theta=theta,
-                                            method=method))
+                                            method=method), axis=-1)
     return evaluations
 
 
