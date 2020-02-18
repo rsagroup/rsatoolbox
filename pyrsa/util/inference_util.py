@@ -8,7 +8,9 @@ Created on Thu Feb 13 14:56:15 2020
 
 import numpy as np
 from pyrsa.model import Model
+from pyrsa.rdm import RDMs
 from collections.abc import Iterable
+
 
 def input_check_model(model, theta, fitter=None, N=1):
     if isinstance(model, Model):
@@ -37,3 +39,45 @@ def input_check_model(model, theta, fitter=None, N=1):
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
     return evaluations, theta, fitter
+
+
+def pool_rdm(rdms, method='cosine'):
+    """pools multiple RDMs into the one with maximal performance under a given
+    evaluation metric
+    rdm_descriptors of the generated rdms are empty
+
+    Args:
+        rdms (pyrsa.rdm.RDMs):
+            RDMs to be pooled
+    method : String, optional
+        Which comparison method to optimize for. The default is 'cosine'.
+
+    Returns:
+        pyrsa.rdm.RDMs: the pooled RDM, i.e. a RDM with maximal performance
+            under the chosen method
+
+    """
+    rdm_vec = rdms.get_vectors()
+    if method == 'euclid':
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=False)
+    elif method == 'cosine':
+        rdm_vec = rdm_vec/np.mean(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=False)
+    elif method == 'corr':
+        rdm_vec = rdm_vec - np.mean(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = rdm_vec / np.std(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=False)
+        rdm_vec = rdm_vec - np.min(rdm_vec)
+    elif method == 'spearman':
+        raise NotImplementedError('pooling for ranks not yet implemented!')
+    elif method == 'kendall':
+        raise NotImplementedError('pooling for ranks not yet implemented!')
+    else:
+        raise ValueError('Unknown RDM comparison method requested!')
+        
+    return RDMs(rdm_vec,
+                dissimilarity_measure=rdms.dissimilarity_measure,
+                descriptors=rdms.descriptors,
+                rdm_descriptors=None,
+                pattern_descriptors=rdms.pattern_descriptors)
+        
