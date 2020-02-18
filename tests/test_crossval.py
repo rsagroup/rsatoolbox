@@ -55,7 +55,7 @@ class test_crossval(unittest.TestCase):
                            rdm_descriptor='session')
 
     def test_leave_one_out_pattern(self):
-        from pyrsa.inference.evaluate import sets_leave_one_out_pattern
+        from pyrsa.inference import sets_leave_one_out_pattern
         import pyrsa.rdm as rsr
         dis = np.zeros((8,10))
         mes = "Euclidean"
@@ -72,7 +72,7 @@ class test_crossval(unittest.TestCase):
             assert i_test[0].n_cond == 1
 
     def test_k_fold_pattern(self):
-        from pyrsa.inference.evaluate import sets_k_fold_pattern
+        from pyrsa.inference import sets_k_fold_pattern
         import pyrsa.rdm as rsr
         dis = np.zeros((8,10))
         mes = "Euclidean"
@@ -90,7 +90,7 @@ class test_crossval(unittest.TestCase):
         assert test_set[1][0].n_cond == 3
 
     def test_k_fold(self):
-        from pyrsa.inference.evaluate import sets_k_fold
+        from pyrsa.inference import sets_k_fold
         import pyrsa.rdm as rsr
         dis = np.zeros((8,10))
         mes = "Euclidean"
@@ -107,9 +107,35 @@ class test_crossval(unittest.TestCase):
             random=False)
         assert test_set[0][0].n_cond == 2
         assert test_set[1][0].n_cond == 3
+        
+    def test_k_fold_rdm(self):
+        from pyrsa.inference import sets_k_fold_rdm
+        import pyrsa.rdm as rsr
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        pattern_des = {'category':np.array([0,1,2,2,3])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        dissimilarity_measure=mes,
+                        pattern_descriptors=pattern_des,
+                        descriptors=des)
+        train_set, test_set = sets_k_fold_rdm(rdms, k_rdm=3,
+                                              rdm_descriptor='session',
+                                              random=False)
+        assert len(test_set) == 3
+        assert len(train_set) == 3
+        assert len(test_set[0]) == 2
+        assert len(train_set[0]) == 2
+        assert test_set[0][0].n_cond == 5
+        assert test_set[1][0].n_cond == 5
+        assert test_set[0][0].n_rdm == 3
+        assert test_set[1][0].n_rdm == 3
+        assert test_set[2][0].n_rdm == 2
 
     def test_sets_of_k_pattern(self):
-        from pyrsa.inference.evaluate import sets_of_k_pattern
+        from pyrsa.inference import sets_of_k_pattern
         import pyrsa.rdm as rsr
         dis = np.zeros((8,10))
         mes = "Euclidean"

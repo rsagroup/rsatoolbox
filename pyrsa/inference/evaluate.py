@@ -11,10 +11,7 @@ from pyrsa.inference import bootstrap_sample
 from pyrsa.inference import bootstrap_sample_rdm
 from pyrsa.inference import bootstrap_sample_pattern
 from pyrsa.util.rdm_utils import add_pattern_index
-from .crossvalsets import sets_leave_one_out_pattern
 from .crossvalsets import sets_k_fold
-from .crossvalsets import sets_k_fold_pattern
-from .crossvalsets import sets_of_k_pattern
 
 
 def eval_fixed(model, data, theta=None, method='cosine'):
