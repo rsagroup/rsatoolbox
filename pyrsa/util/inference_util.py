@@ -7,6 +7,7 @@ Created on Thu Feb 13 14:56:15 2020
 """
 
 import numpy as np
+from scipy.stats import rankdata
 from pyrsa.model import Model
 from pyrsa.rdm import RDMs
 from collections.abc import Iterable
@@ -59,22 +60,22 @@ def pool_rdm(rdms, method='cosine'):
     """
     rdm_vec = rdms.get_vectors()
     if method == 'euclid':
-        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=False)
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
     elif method == 'cosine':
         rdm_vec = rdm_vec/np.mean(rdm_vec, axis=1, keepdims=True)
-        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=False)
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
     elif method == 'corr':
         rdm_vec = rdm_vec - np.mean(rdm_vec, axis=1, keepdims=True)
         rdm_vec = rdm_vec / np.std(rdm_vec, axis=1, keepdims=True)
-        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=False)
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
         rdm_vec = rdm_vec - np.min(rdm_vec)
     elif method == 'spearman':
-        raise NotImplementedError('pooling for ranks not yet implemented!')
+        rdm_vec = np.array([rankdata(v) for v in rdm_vec])
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
     elif method == 'kendall':
         raise NotImplementedError('pooling for ranks not yet implemented!')
     else:
         raise ValueError('Unknown RDM comparison method requested!')
-        
     return RDMs(rdm_vec,
                 dissimilarity_measure=rdms.dissimilarity_measure,
                 descriptors=rdms.descriptors,

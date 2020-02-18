@@ -37,6 +37,10 @@ def batch_to_vectors(x):
         v = np.ndarray((n_rdm, int(n_cond * (n_cond - 1) / 2)))
         for idx in np.arange(n_rdm):
             v[idx, :] = squareform(m[idx, :, :], checks=False)
+    elif x.ndim == 1:
+        v = np.array([x])
+        n_rdm = 1
+        n_cond = _get_n_from_reduced_vectors(v)
     return v, n_rdm, n_cond
 
 
