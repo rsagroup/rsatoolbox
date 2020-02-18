@@ -13,4 +13,5 @@ from .boot_testset import bootstrap_testset_rdm
 from .crossvalsets import sets_leave_one_out_pattern
 from .crossvalsets import sets_k_fold
 from .crossvalsets import sets_k_fold_pattern
+from .crossvalsets import sets_k_fold_rdm
 from .crossvalsets import sets_of_k_pattern
