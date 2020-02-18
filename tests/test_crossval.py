@@ -133,6 +133,8 @@ class test_crossval(unittest.TestCase):
         assert test_set[0][0].n_rdm == 3
         assert test_set[1][0].n_rdm == 3
         assert test_set[2][0].n_rdm == 2
+        train_set, test_set = sets_k_fold_rdm(rdms, k_rdm=3,
+                                              random=False)
 
     def test_sets_of_k_pattern(self):
         from pyrsa.inference import sets_of_k_pattern

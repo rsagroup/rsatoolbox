@@ -117,6 +117,7 @@ def sets_k_fold_rdm(rdms, k_rdm=5, random=True, rdm_descriptor=None):
     if rdm_descriptor is None:
         rdm_select = np.arange(rdms.n_rdm)
         rdms.rdm_descriptors['index'] = rdm_select
+        rdm_descriptor = 'index'
     else:
         rdm_select = rdms.rdm_descriptors[rdm_descriptor]
         rdm_select = np.unique(rdm_select)

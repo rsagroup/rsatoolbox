@@ -15,3 +15,4 @@ from .crossvalsets import sets_k_fold
 from .crossvalsets import sets_k_fold_pattern
 from .crossvalsets import sets_k_fold_rdm
 from .crossvalsets import sets_of_k_pattern
+from .noise_ceiling import noise_ceiling
