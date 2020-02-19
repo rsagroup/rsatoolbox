@@ -109,7 +109,7 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
 def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
                            pattern_descriptor=None):
     """evaluates a model on data
-    performs bootstrapping to get a sampling distribution
+    performs bootstrapping over patterns to get a sampling distribution
 
     Args:
         model(pyrsa.model.Model): Model to be evaluated
@@ -124,10 +124,12 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
 
     """
     evaluations, theta, fitter = input_check_model(model, theta, None, N)
+    noise_min = []
+    noise_max = []
     for i in range(N):
+        sample, pattern_sample = \
+            bootstrap_sample_pattern(data, pattern_descriptor)
         if isinstance(model, Model):
-            sample, pattern_sample = \
-                bootstrap_sample_pattern(data, pattern_descriptor)
             rdm_pred = model.predict_rdm(theta=theta)
             pattern_descriptor, pattern_select = \
                 add_pattern_index(rdm_pred, pattern_descriptor)
@@ -137,15 +139,21 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
         elif isinstance(model, Iterable):
             j = 0
             for mod in model:
-                sample, pattern_sample = \
-                    bootstrap_sample_pattern(data, pattern_descriptor)
                 rdm_pred = mod.predict_rdm(theta=theta[j])
                 pattern_descriptor, pattern_select = \
                     add_pattern_index(rdm_pred, pattern_descriptor)
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_sample)
                 evaluations[i] = np.mean(compare(rdm_pred, sample, method))
-    return evaluations
+        noise_min_sample, noise_max_sample = boot_noise_ceiling(sample)
+        noise_min.append(noise_min_sample)
+        noise_max.append(noise_max_sample)
+    if isinstance(model, Model):
+        evaluations = evaluations.reshape((N,1))
+    noise_ceil = np.array([noise_min, noise_max])
+    result = Result(model, evaluations, method=method,
+                    cv_method='bootstrap_pattern', noise_ceiling=noise_ceil)
+    return result
 
 
 def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
