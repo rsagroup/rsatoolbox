@@ -166,8 +166,9 @@ class test_evaluation_lists(unittest.TestCase):
         rdms = RDMs(np.random.rand(11,10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
         m2 = ModelFixed('test2', rdms.get_vectors()[1])
-        value = eval_bootstrap([m, m2], rdms, N=10)
-        assert value.shape[1] == 2 and value.shape[0] == 10
+        result = eval_bootstrap([m, m2], rdms, N=10)
+        assert result.evaluations.shape[1] == 2 
+        assert result.evaluations.shape[0] == 10
 
     def test_eval_bootstrap_pattern(self):
         from pyrsa.inference import eval_bootstrap_pattern

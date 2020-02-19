@@ -72,6 +72,8 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
 
     """
     evaluations, theta, fitter = input_check_model(model, theta, None, N)
+    noise_min = []
+    noise_max = []
     for i in range(N):
         sample, rdm_sample, pattern_sample = \
             bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
@@ -93,7 +95,15 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
                                                       pattern_sample)
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample, method))
                 j += 1
-    return evaluations
+        noise_min_sample, noise_max_sample = boot_noise_ceiling(sample)
+        noise_min.append(noise_min_sample)
+        noise_max.append(noise_max_sample)
+    if isinstance(model, Model):
+        evaluations = evaluations.reshape((N,1))
+    noise_ceil = np.array([noise_min, noise_max])
+    result = Result(model, evaluations, method=method,
+                    cv_method='bootstrap', noise_ceiling=noise_ceil)
+    return result
 
 
 def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,

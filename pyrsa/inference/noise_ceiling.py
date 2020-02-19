@@ -50,19 +50,19 @@ def cv_noise_ceiling(train_set, test_set, method='cosine',
     return noise_min, noise_max
 
 
-def boot_noise_ceiling(rdms, method='cosine'):
+def boot_noise_ceiling(rdms, method='cosine', rdm_descriptor=None):
     """ calculates a noise ceiling by leave one out & full set
 
     Args:
         rdms(pyrsa.rdm.RDMs): data to calculate noise ceiling
         method(string): comparison method to use
-        pattern_descriptor(string): descriptor to group patterns
+        rdm_descriptor(string): descriptor to group rdms
 
     Returns:
         list: [lower nc-bound, upper nc-bound]
 
     """
-    train_set, test_set = sets_leave_one_out_rdm(rdms)
+    train_set, test_set = sets_leave_one_out_rdm(rdms, rdm_descriptor)
     noise_min = []
     noise_max = []
     for i in range(len(train_set)):
