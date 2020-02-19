@@ -14,8 +14,10 @@ from pyrsa.inference import bootstrap_sample_pattern
 from pyrsa.util.rdm_utils import add_pattern_index
 from pyrsa.model import Model
 from pyrsa.util.inference_util import input_check_model
+from .result import Result
 from .crossvalsets import sets_leave_one_out_pattern
 from .crossvalsets import sets_k_fold
+from .noise_ceiling import boot_noise_ceiling
 
 
 def eval_fixed(model, data, theta=None, method='cosine'):
@@ -32,15 +34,22 @@ def eval_fixed(model, data, theta=None, method='cosine'):
         float: evaluation
 
     """
+    evaluations, theta, _ = input_check_model(model, theta, None, 1)
     if isinstance(model, Model):
         rdm_pred = model.predict_rdm(theta=theta)
-        return compare(rdm_pred, data, method)[0]
+        evaluations = np.array([[compare(rdm_pred, data, method)[0]]])
     elif isinstance(model, Iterable):
-        return np.array([eval_fixed(mod, data, theta=None, method='cosine')
-                         for mod in model])
+        for k in range(len(model)):
+            rdm_pred = model[k].predict_rdm(theta=theta[k])
+            evaluations[k] = np.mean(compare(rdm_pred, data, method)[0])
+        evaluations = evaluations.reshape((1,len(model)))
     else:
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
+    noise_ceil = boot_noise_ceiling(data)
+    result = Result(model, evaluations, method=method,
+                    cv_method='fixed', noise_ceiling=noise_ceil)
+    return result
         
 
 
@@ -146,11 +155,12 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
         numpy.ndarray: vector of evaluations
 
     """
-    evaluations, theta, fitter = input_check_model(model, theta, None, N)
+    evaluations, theta, _ = input_check_model(model, theta, None, N)
     for i in range(N):
         sample = bootstrap_sample_rdm(data, rdm_descriptor)
-        evaluations[i] = np.mean(eval_fixed(model, sample[0], theta=theta,
-                                            method=method), axis=-1)
+        res_sample = eval_fixed(model, sample[0], theta=theta, method=method)
+        print(res_sample)
+        evaluations[i] = np.mean(res_sample.evaluations[0], axis=-1)
     return evaluations
 
 

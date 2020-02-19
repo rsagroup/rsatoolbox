@@ -71,6 +71,23 @@ class test_crossval(unittest.TestCase):
         for i_test in test_set:
             assert i_test[0].n_cond == 1
 
+    def test_leave_one_out_rdm(self):
+        from pyrsa.inference import sets_leave_one_out_rdm
+        import pyrsa.rdm as rsr
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        pattern_des = {'category':np.array([0,1,2,2,3])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        dissimilarity_measure=mes,
+                        pattern_descriptors=pattern_des,
+                        descriptors=des)
+        train_set, test_set = sets_leave_one_out_rdm(rdms)
+        for i_test in test_set:
+            assert i_test[0].n_rdm == 1
+
     def test_k_fold_pattern(self):
         from pyrsa.inference import sets_k_fold_pattern
         import pyrsa.rdm as rsr

@@ -6,6 +6,8 @@ Created on Wed Feb 19 14:42:47 2020
 @author: heiko
 """
 
+import pyrsa.model
+
 class Result:
     """ Result class storing results for a set of models with the models,
     the results matrix and the noise ceiling
@@ -31,9 +33,12 @@ class Result:
 
     """
     def __init__(self, models, evaluations, method, cv_method, noise_ceiling):
+        if isinstance(models, pyrsa.model.Model):
+            models = [models]
         assert len(models) == evaluations.shape[1], 'evaluations shape does' \
             + 'not match number of models'
         self.models = models
+        self.n_model = len(models)
         self.evaluations = evaluations
         self.method = method
         self.cv_method = cv_method

@@ -40,6 +40,40 @@ def sets_leave_one_out_pattern(rdms, pattern_descriptor=None):
     return train_set, test_set
 
 
+def sets_leave_one_out_rdm(rdms, rdm_descriptor=None):
+    """ generates training and test set combinations by leaving one level
+    of rdm_descriptor out as a test set.\
+
+    Args:
+        rdms(pyrsa.rdm.RDMs): rdms to use
+        rdm_descriptor(String): descriptor to select groups
+
+    Returns:
+        train_set(list): list of tuples (rdms, pattern_sample)
+        test_set(list): list of tuples (rdms, pattern_sample)
+
+    """
+    if rdm_descriptor is None:
+        rdm_select = np.arange(rdms.n_rdm)
+        rdms.rdm_descriptors['index'] = rdm_select
+        rdm_descriptor = 'index'
+    else:
+        rdm_select = rdms.rdm_descriptors[rdm_descriptor]
+        rdm_select = np.unique(rdm_select)
+    train_set = []
+    test_set = []
+    for i_pattern in rdm_select:
+        rdm_sample_train = np.setdiff1d(rdm_select, i_pattern)
+        rdms_train = rdms.subset(rdm_descriptor,
+                                 rdm_sample_train)
+        rdm_sample_test = [i_pattern]
+        rdms_test = rdms.subset(rdm_descriptor,
+                                rdm_sample_test)
+        train_set.append((rdms_train, np.arange(rdms.n_cond)))
+        test_set.append((rdms_test, np.arange(rdms.n_cond)))
+    return train_set, test_set
+
+
 def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
                 pattern_descriptor=None, rdm_descriptor=None):
     """ generates training and test set combinations by splitting into k
