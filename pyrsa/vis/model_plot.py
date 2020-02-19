@@ -30,13 +30,14 @@ def plot_model_comparison(evaluations, models=None, eb_alpha=0.05,
     """
     while len(evaluations.shape)>2:
         evaluations = np.mean(evaluations, axis=-1)
+    evaluations = 1 - evaluations
     mean = np.mean(evaluations, axis=0)
     errorbar_low = -(np.quantile(evaluations, eb_alpha / 2, axis=0)
                      - mean)
     errorbar_high = (np.quantile(evaluations, 1 - (eb_alpha / 2), axis=0)
                      - mean)
     # plotting start
-    if pair_tests:
+    if plot_pair_tests:
         plt.figure(figsize=(7.5,10))
         ax = plt.axes((0.05,0.05, 0.9, 0.9*0.75))
         axbar = plt.axes((0.05,0.75, 0.9, 0.9*0.2))
@@ -60,14 +61,15 @@ def plot_model_comparison(evaluations, models=None, eb_alpha=0.05,
     ax.spines['top'].set_visible(False)
     ax.set_xticks(np.arange(len(mean)))
     if models is not None:
-        ax.set_xticklabels([m.name for m in models])
+        ax.set_xticklabels([m.name for m in models], fontsize=18)
     if method == 'cosine':
         ax.set_ylabel('cosine distance', fontsize=18)
     elif method == 'spearman':
-        ax.set_ylabel('1 - Spearman rank correlation',fontsize=18)
+        ax.set_ylabel('Spearman rank correlation',fontsize=18)
     elif method == 'corr':
-        ax.set_ylabel('1 - Pearson correlation',fontsize=18)
-        
+        ax.set_ylabel('Pearson correlation',fontsize=18)
+    elif method == 'kendall':
+        ax.set_ylabel('Kendall-Tau',fontsize=18)
     if plot_pair_tests:
         res = pair_tests(evaluations)
         significant = res < eb_alpha
