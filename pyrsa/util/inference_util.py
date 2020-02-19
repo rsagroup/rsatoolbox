@@ -81,4 +81,3 @@ def pool_rdm(rdms, method='cosine'):
                 descriptors=rdms.descriptors,
                 rdm_descriptors=None,
                 pattern_descriptors=rdms.pattern_descriptors)
-        
