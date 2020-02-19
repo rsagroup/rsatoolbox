@@ -11,7 +11,7 @@ import numpy as np
 
 
 class test_noise_ceiling(unittest.TestCase):
-    def test_bootstrap_sample_descriptors(self):
+    def test_basic_noise_ceiling(self):
         from pyrsa.inference import noise_ceiling
         from pyrsa.inference import sets_k_fold_rdm
         from pyrsa.rdm import RDMs

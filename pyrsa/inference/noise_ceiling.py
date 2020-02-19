@@ -47,4 +47,4 @@ def noise_ceiling(train_set, test_set, method='cosine',
         noise_max.append(np.mean(compare(pred_test, test[0], method)))
     noise_min = np.mean(np.array(noise_min))
     noise_max = np.mean(np.array(noise_max))
-    return [noise_min,noise_max]
+    return noise_min, noise_max

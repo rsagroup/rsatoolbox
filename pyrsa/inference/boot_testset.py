@@ -7,7 +7,6 @@ Created on Fri Jan 24 16:55:20 2020
 """
 
 import numpy as np
-from pyrsa.rdm import compare
 from pyrsa.util.inference_util import input_check_model
 from .bootstrap import bootstrap_sample
 from .bootstrap import bootstrap_sample_rdm

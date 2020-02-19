@@ -50,8 +50,8 @@ def pool_rdm(rdms, method='cosine'):
     Args:
         rdms (pyrsa.rdm.RDMs):
             RDMs to be pooled
-    method : String, optional
-        Which comparison method to optimize for. The default is 'cosine'.
+        method : String, optional
+            Which comparison method to optimize for. The default is 'cosine'.
 
     Returns:
         pyrsa.rdm.RDMs: the pooled RDM, i.e. a RDM with maximal performance
