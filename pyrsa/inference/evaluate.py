@@ -174,12 +174,21 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
 
     """
     evaluations, theta, _ = input_check_model(model, theta, None, N)
+    noise_min = []
+    noise_max = []
     for i in range(N):
         sample = bootstrap_sample_rdm(data, rdm_descriptor)
         res_sample = eval_fixed(model, sample[0], theta=theta, method=method)
         print(res_sample)
         evaluations[i] = np.mean(res_sample.evaluations[0], axis=-1)
-    return evaluations
+        noise_min.append(res_sample.noise_ceiling[0])
+        noise_max.append(res_sample.noise_ceiling[1])
+    if isinstance(model, Model):
+        evaluations = evaluations.reshape((N,1))
+    noise_ceil = np.array([noise_min, noise_max])
+    result = Result(model, evaluations, method=method,
+                    cv_method='bootstrap_rdm', noise_ceiling=noise_ceil)
+    return result
 
 
 def crossval(model, train_set, test_set, method='cosine', fitter=None,
