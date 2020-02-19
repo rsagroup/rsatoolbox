@@ -81,3 +81,30 @@ def pool_rdm(rdms, method='cosine'):
                 descriptors=rdms.descriptors,
                 rdm_descriptors=None,
                 pattern_descriptors=rdms.pattern_descriptors)
+
+
+def pair_tests(evaluations):
+    """pairwise bootstrapping significant tests for a difference in model
+    performance
+
+    Args:
+        evaluations (numpy.ndarray):
+            RDMs to be pooled
+
+    Returns:
+        numpy.ndarray: matrix of proportions of opposit conclusions, i.e.
+        p-values for the bootstrap test
+    """
+    proportions = np.zeros((evaluations.shape[1], evaluations.shape[1]))
+    while len(evaluations.shape) > 2:
+        evaluations = np.mean(evaluations, axis=-1)
+    for i_model in range(evaluations.shape[1]-1):
+        for j_model in range(i_model + 1, evaluations.shape[1]):
+            proportions[i_model, j_model] = np.sum( \
+                evaluations[:, i_model] < evaluations[:, j_model]) \
+                / (evaluations.shape[0] - 
+                   np.sum(evaluations[:, i_model] == evaluations[:, j_model]))
+            proportions[j_model, i_model] = proportions[i_model, j_model]
+    proportions = np.minimum(proportions, 1 - proportions)
+    np.fill_diagonal(proportions,1)
+    return proportions

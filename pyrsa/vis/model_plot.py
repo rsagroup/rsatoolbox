@@ -69,8 +69,8 @@ def plot_model_comparison(evaluations, models=None, eb_alpha=0.05,
         ax.set_ylabel('1 - Pearson correlation',fontsize=18)
         
     if plot_pair_tests:
-        res, thresh = pair_tests(evaluations)
-        significant = np.triu(res<thresh)
+        res = pair_tests(evaluations)
+        significant = res < eb_alpha
         k = 0
         for i in range(significant.shape[0]):
             for j in range(significant.shape[0]):
