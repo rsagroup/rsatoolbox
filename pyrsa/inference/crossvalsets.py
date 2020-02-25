@@ -10,10 +10,13 @@ import numpy as np
 from pyrsa.util.rdm_utils import add_pattern_index
 
 
-def sets_leave_one_out_pattern(rdms, pattern_descriptor=None):
+def sets_leave_one_out_pattern(rdms, pattern_descriptor):
     """ generates training and test set combinations by leaving one level
     of pattern_descriptor out as a test set.
     This is only sensible if pattern_descriptor already defines larger groups!
+
+    the ceil_train_set contains the rdms for the test-patterns from the
+    training-rdms. This is required for computing the noise-ceiling
 
     Args:
         rdms(pyrsa.rdm.RDMs): rdms to use
@@ -22,12 +25,14 @@ def sets_leave_one_out_pattern(rdms, pattern_descriptor=None):
     Returns:
         train_set(list): list of tuples (rdms, pattern_sample)
         test_set(list): list of tuples (rdms, pattern_sample)
+        ceil_train_set(list): list of tuples (rdms, pattern_sample)
 
     """
     pattern_descriptor, pattern_select = \
         add_pattern_index(rdms, pattern_descriptor)
     train_set = []
     test_set = []
+    ceil_train_set = []
     for i_pattern in pattern_select:
         pattern_sample_train = np.setdiff1d(pattern_select, i_pattern)
         rdms_train = rdms.subset_pattern(pattern_descriptor,
@@ -35,9 +40,12 @@ def sets_leave_one_out_pattern(rdms, pattern_descriptor=None):
         pattern_sample_test = [i_pattern]
         rdms_test = rdms.subset_pattern(pattern_descriptor,
                                         pattern_sample_test)
+        rdms_ceil = rdms.subset_pattern(pattern_descriptor,
+                                        pattern_sample_test)
         train_set.append((rdms_train, pattern_sample_train))
         test_set.append((rdms_test, pattern_sample_test))
-    return train_set, test_set
+        ceil_train_set.append((rdms_ceil, pattern_sample_test))
+    return train_set, test_set, ceil_train_set
 
 
 def sets_leave_one_out_rdm(rdms, rdm_descriptor=None):

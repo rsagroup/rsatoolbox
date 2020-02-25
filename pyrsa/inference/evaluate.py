@@ -18,6 +18,7 @@ from .result import Result
 from .crossvalsets import sets_leave_one_out_pattern
 from .crossvalsets import sets_k_fold
 from .noise_ceiling import boot_noise_ceiling
+from .noise_ceiling import cv_noise_ceiling
 
 
 def eval_fixed(model, data, theta=None, method='cosine'):
@@ -236,7 +237,15 @@ def crossval(model, train_set, test_set, method='cosine', fitter=None,
                                               value=test[1])
                 evals[j] = np.mean(compare(pred, test[0], method))
         evaluations.append(evals)
-    return np.array(evaluations)
+    if isinstance(model, Model):
+        model = [model]
+    evaluations = np.array(evaluations).T # .T to switch model/set order
+    evaluations = evaluations.reshape((1, len(model), len(train_set)))
+    noise_ceil = cv_noise_ceiling(train_set, test_set, method=method,
+                                  pattern_descriptor=pattern_descriptor)
+    result = Result(model, evaluations, method=method,
+                    cv_method='crossvalidation', noise_ceiling=noise_ceil)
+    return result
 
 
 def bootstrap_crossval(model, data, method='cosine', fitter=None,
