@@ -106,6 +106,8 @@ def subset_descriptor(descriptor, indices):
             extracted_descriptor[k] = [v[index] for index in indices]
         else:
             extracted_descriptor[k] = np.array(v)[indices]
+        if len(np.array(extracted_descriptor[k]).shape) == 0:
+            extracted_descriptor[k] = [extracted_descriptor[k]]
     return extracted_descriptor
 
 
@@ -116,7 +118,7 @@ def check_descriptor_length_error(descriptor, name, n):
     Args:
         descriptor(dict/None): the descriptor dictionary
         name(String): Descriptor name used for error message
-        n: the indices to be extracted
+        n: the desired descriptor length
 
     Returns:
         ---

@@ -14,15 +14,6 @@ Collection of helper methods for data module
 import numpy as np
 
 
-def check_dict_length(dictionary, n):
-    """check if each value in dict matches length n
-    """
-    for _, v in dictionary.items():
-        if v.shape[0] != n:
-            return False
-    return True
-
-
 def extract_dict(dictionary, indices):
     """extract key-value pairs with values given indexes.
     """
@@ -40,12 +31,3 @@ def get_unique_unsorted(array):
     ranks = np.empty_like(temp)
     ranks[temp] = np.arange(len(indices))
     return u[ranks]
-
-
-def check_descriptors_dimension(des, name, n):
-    """ run check_dict_length and raise an error
-    """
-    if des is not None:
-        if not check_dict_length(des, n):
-            raise AttributeError(
-                name + " have mismatched dimension with measurements.")
