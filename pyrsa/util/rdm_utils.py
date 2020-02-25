@@ -25,7 +25,6 @@ def batch_to_vectors(x):
         **n_rdm** (int): number of rdms
 
         **n_cond** (int): number of conditions
-
     """
     if x.ndim == 2:
         v = x
@@ -53,7 +52,6 @@ def batch_to_matrices(x):
         **n_rdm** (int): number of rdms
 
         **n_cond** (int): number of conditions
-
     """
     if x.ndim == 2:
         v = x
@@ -70,4 +68,13 @@ def batch_to_matrices(x):
 
 
 def _get_n_from_reduced_vectors(x):
+    """
+    calculates the size of the RDM from the vector representation
+
+    Args:
+        x(np.ndarray): stack of RDM vectors (2D)
+
+    Returns:
+        int: n: size of the RDM
+    """
     return int(np.ceil(np.sqrt(x.shape[1] * 2)))
