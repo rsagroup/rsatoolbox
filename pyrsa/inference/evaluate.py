@@ -192,12 +192,13 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
     return result
 
 
-def crossval(model, train_set, test_set, ceil_set=None, method='cosine',
+def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
              fitter=None, pattern_descriptor=None):
     """evaluates a model on cross-validation sets
 
     Args:
         model(pyrsa.model.Model): Model to be evaluated
+        rdms(pyrsa.rdm.RDMs): full dataset
         train_set(list): a list of the training RDMs with 2-tuple entries:
             (RDMs, pattern_sample)
         test_set(list): a list of the test RDMs with 2-tuple entries:
@@ -211,13 +212,12 @@ def crossval(model, train_set, test_set, ceil_set=None, method='cosine',
     """
     assert len(train_set) == len(test_set), \
         'train_set and test_set must have the same length'
-    if ceil_set is None:
-        ceil_set = train_set
     assert len(ceil_set) == len(test_set), \
         'ceil_set and test_set must have the same length'
     if pattern_descriptor is None:
         pattern_descriptor = 'index'
     evaluations = []
+    noise_ceil = []
     for i in range(len(train_set)):
         train = train_set[i]
         test = test_set[i]
@@ -241,12 +241,18 @@ def crossval(model, train_set, test_set, ceil_set=None, method='cosine',
                                               value=test[1])
                 evals[j] = np.mean(compare(pred, test[0], method))
         evaluations.append(evals)
+        if ceil_set is None:
+            noise_ceil.append(boot_noise_ceiling(
+                rdms.subsample_pattern(by=pattern_descriptor, value=test[1])))
     if isinstance(model, Model):
         model = [model]
     evaluations = np.array(evaluations).T # .T to switch model/set order
     evaluations = evaluations.reshape((1, len(model), len(train_set)))
-    noise_ceil = cv_noise_ceiling(ceil_set, test_set, method=method,
-                                  pattern_descriptor=pattern_descriptor)
+    if ceil_set is not None:
+        noise_ceil = cv_noise_ceiling(rdms, ceil_set, test_set, method=method,
+                                      pattern_descriptor=pattern_descriptor)
+    else:
+        noise_ceil = np.array(noise_ceil).T
     result = Result(model, evaluations, method=method,
                     cv_method='crossvalidation', noise_ceiling=noise_ceil)
     return result

@@ -25,8 +25,9 @@ class test_noise_ceiling(unittest.TestCase):
                     pattern_descriptors=pattern_des,
                     dissimilarity_measure=mes,
                     descriptors=des)
-        train_sets, test_sets = sets_k_fold_rdm(rdms, k_rdm=3, random=False)
-        noise_min, noise_max = cv_noise_ceiling(train_sets, test_sets,
+        train_set, test_set, ceil_set = sets_k_fold_rdm(rdms, k_rdm=3,
+                                                          random=False)
+        noise_min, noise_max = cv_noise_ceiling(rdms, ceil_set, test_set,
                                                 method='cosine')
 
     def test_boot_noise_ceiling(self):
