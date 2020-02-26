@@ -212,8 +212,9 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
     """
     assert len(train_set) == len(test_set), \
         'train_set and test_set must have the same length'
-    assert len(ceil_set) == len(test_set), \
-        'ceil_set and test_set must have the same length'
+    if ceil_set is not None:
+        assert len(ceil_set) == len(test_set), \
+            'ceil_set and test_set must have the same length'
     if pattern_descriptor is None:
         pattern_descriptor = 'index'
     evaluations = []
@@ -221,29 +222,37 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
     for i in range(len(train_set)):
         train = train_set[i]
         test = test_set[i]
-        if isinstance(model, Model):
-            if fitter is None:
-                fitter = model.default_fitter
-            theta = fitter(model, train[0], method=method,
-                           pattern_sample=train[1],
-                           pattern_descriptor=pattern_descriptor)
-            pred = model.predict_rdm(theta)
-            pred = pred.subsample_pattern(by=pattern_descriptor, value=test[1])
-            evals = np.mean(compare(pred, test[0], method))
-        elif isinstance(model, Iterable):
-            evals, _, fitter = input_check_model(model, None, fitter)
-            for j in range(len(model)):
-                theta = fitter[j](model[j], train[0], method=method,
-                                    pattern_sample=train[1],
-                                    pattern_descriptor=pattern_descriptor)
-                pred = model[j].predict_rdm(theta)
+        if (train[0].n_rdm == 0 or test[0].n_rdm == 0 or
+                train[0].n_cond <= 2 or test[0].n_cond <= 2):
+            if isinstance(model, Model):
+                evals = np.nan
+            elif isinstance(model, Iterable):
+                evals = np.empty(len(model)) * np.nan
+        else:
+            if isinstance(model, Model):
+                if fitter is None:
+                    fitter = model.default_fitter
+                theta = fitter(model, train[0], method=method,
+                               pattern_sample=train[1],
+                               pattern_descriptor=pattern_descriptor)
+                pred = model.predict_rdm(theta)
                 pred = pred.subsample_pattern(by=pattern_descriptor,
                                               value=test[1])
-                evals[j] = np.mean(compare(pred, test[0], method))
+                evals = np.mean(compare(pred, test[0], method))
+            elif isinstance(model, Iterable):
+                evals, _, fitter = input_check_model(model, None, fitter)
+                for j in range(len(model)):
+                    theta = fitter[j](model[j], train[0], method=method,
+                                        pattern_sample=train[1],
+                                        pattern_descriptor=pattern_descriptor)
+                    pred = model[j].predict_rdm(theta)
+                    pred = pred.subsample_pattern(by=pattern_descriptor,
+                                                  value=test[1])
+                    evals[j] = np.mean(compare(pred, test[0], method))
+            if ceil_set is None:
+                noise_ceil.append(boot_noise_ceiling(
+                    rdms.subsample_pattern(by=pattern_descriptor, value=test[1])))
         evaluations.append(evals)
-        if ceil_set is None:
-            noise_ceil.append(boot_noise_ceiling(
-                rdms.subsample_pattern(by=pattern_descriptor, value=test[1])))
     if isinstance(model, Model):
         model = [model]
     evaluations = np.array(evaluations).T # .T to switch model/set order
@@ -298,18 +307,16 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
             train_set[idx][1] = _concat_sampling(pattern_sample,
                                                  train_set[idx][1])
         if isinstance(model, Model):    
-            evaluations[i_sample, :] = crossval(model, train_set,
-                test_set,
-                method=method,
-                fitter=fitter,
-                pattern_descriptor=pattern_descriptor)
+            evaluations[i_sample, :] = crossval(model, data,
+                train_set, test_set,
+                method=method, fitter=fitter,
+                pattern_descriptor=pattern_descriptor).evaluations
         elif isinstance(model, Iterable):
             for k in range(len(model)):
-                evaluations[i_sample, k, :] = crossval(model[k], train_set,
-                    test_set,
-                    method=method,
-                    fitter=fitter, 
-                    pattern_descriptor=pattern_descriptor)
+                evaluations[i_sample, k, :] = crossval(model[k], data,
+                    train_set, test_set,
+                    method=method, fitter=fitter, 
+                    pattern_descriptor=pattern_descriptor).evaluations
     return evaluations
 
 

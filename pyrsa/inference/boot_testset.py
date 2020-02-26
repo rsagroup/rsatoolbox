@@ -58,9 +58,9 @@ def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
                                                pattern_sample_test)
             rdms_test = rdms_test.subsample(rdm_descriptor, rdm_sample_test)
             test_set = [[rdms_test, pattern_sample_test]]
-            evaluations[i_sample] = crossval(model, train_set, test_set,
+            evaluations[i_sample] = crossval(model, data, train_set, test_set,
                 method=method, fitter=fitter,
-                pattern_descriptor=pattern_descriptor)
+                pattern_descriptor=pattern_descriptor).evaluations[:, 0]
         else:
             evaluations[i_sample] = np.nan
         n_rdm[i_sample] = len(rdm_sample_test)
@@ -102,9 +102,9 @@ def bootstrap_testset_pattern(model, data, method='cosine', fitter=None,
             rdms_test = data.subsample_pattern(pattern_descriptor,
                                                pattern_sample_test)
             test_set = [[rdms_test, pattern_sample_test]]
-            evaluations[i_sample] = crossval(model, train_set, test_set,
+            evaluations[i_sample] = crossval(model, data, train_set, test_set,
                 method=method, fitter=fitter,
-                pattern_descriptor=pattern_descriptor)
+                pattern_descriptor=pattern_descriptor).evaluations[:, 0]
         else:
             evaluations[i_sample] = np.nan
         n_pattern[i_sample] = len(pattern_sample_test)
@@ -147,9 +147,9 @@ def bootstrap_testset_rdm(model, data, method='cosine', fitter=None, N=1000,
         if len(rdm_sample_test) >= 1:
             rdms_test = data.subsample(rdm_descriptor, rdm_sample_test)
             test_set = [[rdms_test, pattern_sample]]
-            evaluations[i_sample] = crossval(model, train_set, test_set,
+            evaluations[i_sample] = crossval(model, data, train_set, test_set,
                 method=method, fitter=fitter,
-                pattern_descriptor=pattern_descriptor)
+                pattern_descriptor=pattern_descriptor).evaluations[:, 0]
         else:
             evaluations[i_sample] = np.nan
         n_rdm[i_sample] = len(rdm_sample_test)
