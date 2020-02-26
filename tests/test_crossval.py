@@ -33,7 +33,10 @@ class test_crossval(unittest.TestCase):
         test_set = [(rdms.subset_pattern('type', [2,4]), np.array([2,4])),
                     (rdms.subset_pattern('type', [1,2]), np.array([1,2])),
                     ]
-        crossval(m, train_set, test_set, pattern_descriptor='type')
+        ceil_set = [(rdms.subset_pattern('type', [2,4]), np.array([2,4])),
+                    (rdms.subset_pattern('type', [1,2]), np.array([1,2])),
+                    ]
+        crossval(m, train_set, test_set, ceil_set, pattern_descriptor='type')
         
     def test_bootstrap_crossval(self):
         from pyrsa.inference import bootstrap_crossval
@@ -67,9 +70,10 @@ class test_crossval(unittest.TestCase):
                         dissimilarity_measure=mes,
                         pattern_descriptors=pattern_des,
                         descriptors=des)
-        train_set, test_set = sets_leave_one_out_pattern(rdms)
+        train_set, test_set, noise_ceil = sets_leave_one_out_pattern(rdms, 'category')
+        assert len(test_set) == 4
         for i_test in test_set:
-            assert i_test[0].n_cond == 1
+            assert i_test[0].n_cond <= 2
 
     def test_leave_one_out_rdm(self):
         from pyrsa.inference import sets_leave_one_out_rdm
@@ -84,7 +88,7 @@ class test_crossval(unittest.TestCase):
                         dissimilarity_measure=mes,
                         pattern_descriptors=pattern_des,
                         descriptors=des)
-        train_set, test_set = sets_leave_one_out_rdm(rdms)
+        train_set, test_set, noise_ceil = sets_leave_one_out_rdm(rdms)
         for i_test in test_set:
             assert i_test[0].n_rdm == 1
 
