@@ -192,8 +192,8 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
     return result
 
 
-def crossval(model, train_set, test_set, method='cosine', fitter=None,
-             pattern_descriptor=None):
+def crossval(model, train_set, test_set, ceil_set=None, method='cosine',
+             fitter=None, pattern_descriptor=None):
     """evaluates a model on cross-validation sets
 
     Args:
@@ -211,6 +211,10 @@ def crossval(model, train_set, test_set, method='cosine', fitter=None,
     """
     assert len(train_set) == len(test_set), \
         'train_set and test_set must have the same length'
+    if ceil_set is None:
+        ceil_set = train_set
+    assert len(ceil_set) == len(test_set), \
+        'ceil_set and test_set must have the same length'
     if pattern_descriptor is None:
         pattern_descriptor = 'index'
     evaluations = []
@@ -241,7 +245,7 @@ def crossval(model, train_set, test_set, method='cosine', fitter=None,
         model = [model]
     evaluations = np.array(evaluations).T # .T to switch model/set order
     evaluations = evaluations.reshape((1, len(model), len(train_set)))
-    noise_ceil = cv_noise_ceiling(train_set, test_set, method=method,
+    noise_ceil = cv_noise_ceiling(ceil_set, test_set, method=method,
                                   pattern_descriptor=pattern_descriptor)
     result = Result(model, evaluations, method=method,
                     cv_method='crossvalidation', noise_ceiling=noise_ceil)
@@ -256,14 +260,15 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
 
     Args:
         model(pyrsa.model.Model): Model to be evaluated
-        datat(pyrsa.rdm.RDMs): RDM data to use
-        train_set(list): a list of the training RDMs with 3-tuple entries:
-            (RDMs, pattern_sample, pattern_select)
-        test_set(list): a list of the test RDMs with 3-tuple entries:
-            (RDMs, pattern_sample, pattern_select)
+        data(pyrsa.rdm.RDMs): RDM data to use
         method(string): comparison method to use
+        fitter(function): fitting method for model
+        k_pattern(int): #folds over patterns
+        k_rdm(int): #folds over rdms
+        N(int): number of bootstrap samples (default: 1000)
         pattern_descriptor(string): descriptor to group patterns
         rdm_descriptor(string): descriptor to group rdms
+        random(bool): randomize group assignments (default: True)
 
     Returns:
         numpy.ndarray: matrix of evaluations (N x k)
@@ -277,7 +282,7 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         sample, rdm_sample, pattern_sample = bootstrap_sample(data,
             rdm_descriptor=rdm_descriptor,
             pattern_descriptor=pattern_descriptor)
-        train_set, test_set = sets_k_fold(sample,
+        train_set, test_set, ceil_set = sets_k_fold(sample,
             pattern_descriptor=pattern_descriptor,
             rdm_descriptor=rdm_descriptor,
             k_pattern=k_pattern, k_rdm=k_rdm, random=random)
@@ -290,7 +295,7 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
             evaluations[i_sample, :] = crossval(model, train_set,
                 test_set,
                 method=method,
-                fitter=fitter, 
+                fitter=fitter,
                 pattern_descriptor=pattern_descriptor)
         elif isinstance(model, Iterable):
             for k in range(len(model)):
