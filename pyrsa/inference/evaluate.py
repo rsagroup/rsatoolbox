@@ -290,9 +290,10 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
 
     """
     if isinstance(model, Model):
-        evaluations = np.zeros((N, k_pattern*k_rdm))
+        evaluations = np.zeros((N, 1, k_pattern * k_rdm))
     elif isinstance(model, Iterable):
-        evaluations = np.zeros((N, len(model), k_pattern*k_rdm))
+        evaluations = np.zeros((N, len(model), k_pattern * k_rdm))
+    noise_ceil = np.zeros((2, N))
     for i_sample in range(N):
         sample, rdm_sample, pattern_sample = bootstrap_sample(data,
             rdm_descriptor=rdm_descriptor,
@@ -306,18 +307,18 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
                                                 test_set[idx][1])
             train_set[idx][1] = _concat_sampling(pattern_sample,
                                                  train_set[idx][1])
-        if isinstance(model, Model):    
-            evaluations[i_sample, :] = crossval(model, data,
-                train_set, test_set,
-                method=method, fitter=fitter,
-                pattern_descriptor=pattern_descriptor).evaluations
+        cv_result = crossval(model, sample,
+            train_set, test_set,
+            method=method, fitter=fitter, 
+            pattern_descriptor=pattern_descriptor)
+        if isinstance(model, Model):   
+            evaluations[i_sample, 0, :] = cv_result.evaluations[0, 0]
         elif isinstance(model, Iterable):
-            for k in range(len(model)):
-                evaluations[i_sample, k, :] = crossval(model[k], data,
-                    train_set, test_set,
-                    method=method, fitter=fitter, 
-                    pattern_descriptor=pattern_descriptor).evaluations
-    return evaluations
+            evaluations[i_sample, :, :] = cv_result.evaluations[0]
+            noise_ceil[:,i_sample] = cv_result.noise_ceiling
+    result = Result(model, evaluations, method=method,
+                    cv_method='bootstrap_crossval', noise_ceiling=noise_ceil)
+    return result
 
 
 def _concat_sampling(sample1, sample2):
