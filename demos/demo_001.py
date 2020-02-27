@@ -29,26 +29,26 @@ data_matlab = scipy.io.loadmat(os.path.join('92imageData',
     'Kriegeskorte_Neuron2008_supplementalData.mat'))
 
 category_vectors = data_matlab['categoryVectors']
-category_dict = {'animate':category_vectors[0],
-                 'animate':category_vectors[1],
-                 'animate':category_vectors[2],
-                 'animate':category_vectors[3],
-                 'animate':category_vectors[4],
-                 'animate':category_vectors[5],
-                 'animate':category_vectors[6],
-                 'animate':category_vectors[7],
-                 'animate':category_vectors[8],
-                 'animate':category_vectors[9],
-                 'animate':category_vectors[10],
-                 'animate':category_vectors[11],
+category_dict = {'animate':category_vectors[:,0],
+                 'inanim':category_vectors[:,1],
+                 'human':category_vectors[:,2],
+                 'nonhumani':category_vectors[:,3],
+                 'body':category_vectors[:,4],
+                 'face':category_vectors[:,5],
+                 'natObj':category_vectors[:,6],
+                 'artiObj':category_vectors[:,7],
+                 'rand24':category_vectors[:,8],
+                 'rand48':category_vectors[:,9],
+                 'other48':category_vectors[:,10],
+                 'monkeyape':category_vectors[:,11],
                  }
 
 rdms_mit_hit_fig1 = data_matlab['RDMs_mIT_hIT_fig1']
 rdm_monkey_vec = RDMs_mIT_hIT_fig1[0][0][2]
 rdm_human_vec = RDMs_mIT_hIT_fig1[0][1][2]
 
-rdm_monkey = pyrsa.rdm.RDMs(rdm_monkey_vec)
-rdm_human = pyrsa.rdm.RDMs(rdm_human_vec)
+rdm_monkey = pyrsa.rdm.RDMs(rdm_monkey_vec, pattern_descriptors=category_dict)
+rdm_human = pyrsa.rdm.RDMs(rdm_human_vec,  pattern_descriptors=category_dict)
 
 # show rdm objects
 print(rdm_monkey)
@@ -68,18 +68,24 @@ rdms_human = pyrsa.rdm.RDMs(rdms_array, rdm_descriptors = {
 # TODO: plot these rdms!
 
 # load reconstructed patterns for simulating models
-load([pwd,filesep,'92imageData',filesep,'simTruePatterns.mat'],'simTruePatterns','simTruePatterns2')
-[nCond nDim]=size(simTruePatterns);
+data_matlab3 = scipy.io.loadmat(os.path.join('92imageData',
+    'simTruePatterns.mat'))
+sim_true_patterns = data_matlab3['simTruePatterns']
+sim_true_patterns2 = data_matlab3['simTruePatterns2']
+n_cond,n_dim = sim_true_patterns.shape
 
 # simulate multiple subjects' noisy RDMs
-subjectRDMs=nan(nCond,nCond,nSubjects);
+# TODO: calculate from dataset objects -> implement batch processing of rdm
+# calculation
+subject_rdms = np.nan * np.empty((n_cond, n_cond, n_subjects))
 
-for subjectI=1:nSubjects
-    patterns_cSubject=simTruePatterns2+subjectPatternNoiseStd*randn(nCond,nDim);
-    subjectRDMs(:,:,subjectI)=rsa.rdm.squareRDMs(pdist(patterns_cSubject,patternDistanceMeasure));
-end
+for i_subject in range(n_subjects):
+    patterns_subject = sim_true_patterns2 \
+        + subject_pattern_noise_std * np.random.randn(n_cond, n_dim)
+    subject_rdms[:, :, i_subject] = rsa.rdm.squareRDMs(pdist(patterns_subject,patternDistanceMeasure));
 
-avgSubjectRDM=mean(subjectRDMs,3);
+
+avg_subject_rdm = mean(subjectRDMs,3);
 
 rsa.fig.showRDMs(rsa.rdm.concatRDMs_unwrapped(subjectRDMs,avgSubjectRDM),2);
 rsa.fig.handleCurrentFigure([userOptions.rootPath,filesep,'simulatedSubjAndAverage'],userOptions);
