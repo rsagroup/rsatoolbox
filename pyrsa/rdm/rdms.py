@@ -12,6 +12,7 @@ from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import bool_index
 from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
+from pyrsa.util.descriptor_utils import append_descriptor
 from pyrsa.util.data_utils import extract_dict
 
 
@@ -240,3 +241,44 @@ class RDMs:
                     rdm_descriptors=rdm_descriptors,
                     pattern_descriptors=pattern_descriptors)
         return rdms
+    def append(self, rdm):
+        """ appends an rdm to the object
+        The rdm should have the same shape and type as this object.
+        Its pattern_descriptor and descriptor are ignored
+
+        Args:
+            rdm(pyrsa.rdm.RDMs): the rdm to append
+
+        Returns:
+
+        """
+        assert isinstance(rdm, RDMs), 'appended rdm should be an RDMs'
+        assert rdm.n_cond == self.n_cond, 'appended rdm had wrong shape'
+        assert rdm.dissimilarity_measure == self.dissimilarity_measure, \
+            'appended rdm had wrong dissimilarity measure'
+        self.dissimilarities = np.concatenate((
+            self.dissimilarities, rdm.dissimilarities), axis=0)
+        self.rdm_descriptors = append_descriptor(self.rdm_descriptors,
+                                                 rdm.rdm_descriptors)
+        self.n_rdm = self.n_rdm + rdm.n_rdm
+
+
+def concat(rdms):
+    """ concatenates rdm objects
+    requires that the rdms have the same shape
+    descriptor and pattern descriptors are taken from the first rdms object
+    for rdm_descriptors concatenation is tried
+    the rdm index is reinitialized
+
+    Args:
+        rdms(list of pyrsa.rdm.RDMs): RDMs objects to be concatenated
+
+    Returns:
+        pyrsa.rdm.RDMs: concatenated rdms object
+
+    """
+    rdm = rdms[0]
+    assert isinstance(rdm, RDMs), 'rdms should be a list of RDMs objects'
+    for rdm_new in rdms[1:]:
+        rdm.append(rdm_new)
+    return rdm

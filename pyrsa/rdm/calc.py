@@ -6,6 +6,7 @@ Calculation of RDMs from datasets
 """
 
 import numpy as np
+from collections.abc import Iterable
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.data.dataset import Dataset
 from pyrsa.data import average_dataset_by
@@ -62,14 +63,20 @@ def calc_rdm_euclid(dataset, descriptor=None):
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
-    measurements, desc, descriptor = _parse_input(dataset, descriptor)
-    c_matrix = pairwise_contrast(np.arange(measurements.shape[0]))
-    diff = np.matmul(c_matrix, measurements)
-    rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
-    rdm = RDMs(dissimilarities=np.array([rdm]),
-               dissimilarity_measure='euclidean',
-               descriptors=dataset.descriptors)
-    rdm.pattern_descriptors[descriptor] = desc
+    if isinstance(dataset, Iterable):
+        rdms = []
+        for dat in dataset:
+            rdms.append(calc_rdm_euclid(dataset, descriptor=descriptor))
+        rdm = concat(rdms)
+    else:
+        measurements, desc, descriptor = _parse_input(dataset, descriptor)
+        c_matrix = pairwise_contrast(np.arange(measurements.shape[0]))
+        diff = np.matmul(c_matrix, measurements)
+        rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
+        rdm = RDMs(dissimilarities=np.array([rdm]),
+                   dissimilarity_measure='euclidean',
+                   descriptors=dataset.descriptors)
+        rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
 
