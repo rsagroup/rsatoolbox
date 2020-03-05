@@ -180,7 +180,6 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
     for i in range(N):
         sample = bootstrap_sample_rdm(data, rdm_descriptor)
         res_sample = eval_fixed(model, sample[0], theta=theta, method=method)
-        print(res_sample)
         evaluations[i] = np.mean(res_sample.evaluations[0], axis=-1)
         noise_min.append(res_sample.noise_ceiling[0])
         noise_max.append(res_sample.noise_ceiling[1])
