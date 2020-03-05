@@ -158,7 +158,7 @@ def _cosine(vector1, vector2):
             second vectors (2D)
     Returns:
         cos (float):
-            cosine angle between angles
+            cosine angle between vectors
 
     """
     cos = np.einsum('ij,kj->ik', vector1, vector2)

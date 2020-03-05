@@ -156,6 +156,40 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(rdms_sample.n_rdm,3)
         assert_array_equal(rdms_sample.dissimilarities[0], dis[3])
         
+    def test_rdm_append(self):
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        pattern_des = {'type':np.array([0,1,2,2,4])}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des,
+                        rdm_descriptors=rdm_des)
+        rdms.append(rdms)
+        assert rdms.n_rdm == 16
+    
+    def test_concat(self):
+        from pyrsa.rdm import concat
+        dis = np.zeros((8,10))
+        dis2 = np.random.rand(8,10)
+        mes = "Euclidean"
+        des = {'subj':0}
+        pattern_des = {'type':np.array([0,1,2,2,4])}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        rdms1 = rsr.RDMs(dissimilarities=dis,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des,
+                        rdm_descriptors=rdm_des)
+        rdms2 = rsr.RDMs(dissimilarities=dis2,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des,
+                        rdm_descriptors=rdm_des)
+        rdms = concat((rdms1,rdms2))
+        assert rdms.n_rdm == 16
 
 class TestCalcRDM(unittest.TestCase): 
     
