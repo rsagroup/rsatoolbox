@@ -86,17 +86,13 @@ for i_subject in range(n_subjects):
     data_list.append(dataset)
 subject_rdms = pyrsa.rdm.calc_rdm(data_list)
 
+# TODO: shorten import for this quite handy function
+avg_subject_rdm = pyrsa.util.inference_util.pool_rdm(subject_rdms,
+                                                     method=method)
 
-
-
-
-
-
-
-avg_subject_rdm = mean(subjectRDMs,3);
-
-rsa.fig.showRDMs(rsa.rdm.concatRDMs_unwrapped(subjectRDMs,avgSubjectRDM),2);
-rsa.fig.handleCurrentFigure([userOptions.rootPath,filesep,'simulatedSubjAndAverage'],userOptions);
+# TODO: Again showing RDMs missing!
+#rsa.fig.showRDMs(rsa.rdm.concatRDMs_unwrapped(subjectRDMs,avgSubjectRDM),2);
+#rsa.fig.handleCurrentFigure([userOptions.rootPath,filesep,'simulatedSubjAndAverage'],userOptions);
 
 
 # define categorical model RDMs
