@@ -100,7 +100,6 @@ def calc_rdm_correlation(dataset, descriptor=None):
 
     """
     ma, desc, descriptor = _parse_input(dataset, descriptor)
-
     ma = ma - ma.mean(axis=1, keepdims=True)
     ma /= np.sqrt(np.einsum('ij,ij->i', ma, ma))[:, None]
     rdm = 1 - np.einsum('ik,jk', ma, ma)

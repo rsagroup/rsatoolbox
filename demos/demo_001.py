@@ -76,14 +76,21 @@ sim_true_patterns2 = data_matlab3['simTruePatterns2']
 n_cond, n_dim = sim_true_patterns.shape
 
 # simulate multiple subjects' noisy RDMs
-# TODO: calculate from dataset objects -> implement batch processing of rdm
-# calculation
-subject_rdms = np.nan * np.empty((n_cond, n_cond, n_subjects))
 
+data_list = []
 for i_subject in range(n_subjects):
     patterns_subject = sim_true_patterns2 \
         + subject_pattern_noise_std * np.random.randn(n_cond, n_dim)
-    subject_rdms[:, :, i_subject] = rsa.rdm.squareRDMs(pdist(patterns_subject,patternDistanceMeasure));
+    dataset = pyrsa.data.Dataset(patterns_subject,
+                                 obs_descriptors=category_dict)
+    data_list.append(dataset)
+subject_rdms = pyrsa.rdm.calc_rdm(data_list)
+
+
+
+
+
+
 
 
 avg_subject_rdm = mean(subjectRDMs,3);
