@@ -62,9 +62,9 @@ def pairwise_contrast(index_vector):
     for i in range(n_unique):
         for j in np.arange(i + 1, n_unique):
             select = (index_vector == c_unique[i])
-            indicator_matrix[n_row, select] = 1. / sum(select)
+            indicator_matrix[n_row, select] = 1. / np.sum(select)
             select = (index_vector == c_unique[j])
-            indicator_matrix[n_row, select] = -1. / sum(select)
+            indicator_matrix[n_row, select] = -1. / np.sum(select)
             n_row = n_row + 1
     return indicator_matrix
 
