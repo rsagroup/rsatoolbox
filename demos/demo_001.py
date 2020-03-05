@@ -24,6 +24,7 @@ best_model_pattern_deviation_std = 0
 worst_model_pattern_deviation_std = 6
 method = 'corr'
 
+n_cond = 92 
 
 # load RDMs and category definitions from Kriegeskorte et al. (Neuron 2008)
 data_matlab = scipy.io.loadmat(os.path.join('92imageData',
@@ -96,29 +97,42 @@ avg_subject_rdm = pyrsa.util.inference_util.pool_rdm(subject_rdms,
 
 
 # define categorical model RDMs
-[binRDM_animacy, nCatCrossingsRDM]=rsa.rdm.categoricalRDM(categoryVectors(:,1),3,true);
-ITemphasizedCategories=[1 2 5 6]; % animate, inanimate, face, body
-[binRDM_cats, nCatCrossingsRDM]=rsa.rdm.categoricalRDM(categoryVectors(:,ITemphasizedCategories),4,true);
-load([pwd,filesep,'92imageData',filesep,'faceAnimateInaniClustersRDM.mat'])
+bin_rdm_animacy = pyrsa.rdm.get_categorical_rdm(category_dict['animate'])
 
+#ITemphasizedCategories=[1 2 5 6] # animate, inanimate, face, body
+#[binRDM_cats, nCatCrossingsRDM]=rsa.rdm.categoricalRDM(categoryVectors(:,ITemphasizedCategories),4,true);
+
+# so far unclear what this is for:
+data_matlab4 = scipy.io.loadmat(os.path.join('92imageData',
+    'faceAnimateInaniClustersRDM.mat'))
 
 # load behavioural RDM from Mur et al. (Frontiers Perc Sci 2013)
-load([pwd,filesep,'92imageData',filesep,'92_behavRDMs.mat'])
-rdm_simJudg=mean(rsa.rdm.stripNsquareRDMs(rdms_behav_92),3);
-
+data_matlab5 = scipy.io.loadmat(os.path.join('92imageData',
+    '92_behavRDMs.mat'))
+rdm_array = np.array([data_matlab5['rdms_behav_92'][0,i][0] for i in range(16)])
+rdm_sim_judg = pyrsa.rdm.RDMs(rdm_array,
+                              pattern_descriptors=category_dict,
+                              rdm_descriptors={'subject':np.arange(16)})
 
 # create modelRDMs of different degrees of noise
-gradedModelRDMs=nan(nCond,nCond,nModelGrades);
+pattern_dev_stds = np.linspace(best_model_pattern_deviation_std,
+                               worst_model_pattern_deviation_std,
+                               n_model_grades);
 
-patternDevStds=linspace(bestModelPatternDeviationStd,worstModelPatternDeviationStd,nModelGrades);
+data_list_graded_model = []
+for i_graded_model in range(n_model_grades):
+    patterns_c_graded_model = sim_true_patterns2 \
+        + pattern_dev_stds[i_graded_model] * np.random.randn(n_cond, n_dim)
+    dataset = pyrsa.data.Dataset(patterns_c_graded_model,
+                                 obs_descriptors=category_dict)
+    data_list_graded_model.append(dataset)
+graded_model_rdms = pyrsa.rdm.calc_rdm(data_list_graded_model)
+graded_model_rdms.rdm_descriptors['pattern_std'] = pattern_dev_stds
 
-for gradedModelI=1:nModelGrades
-    patterns_cGradedModel=simTruePatterns2+patternDevStds(gradedModelI)*randn(nCond,nDim);
-    gradedModelRDMs(:,:,gradedModelI)=rsa.rdm.squareRDMs(pdist(patterns_cGradedModel,patternDistanceMeasure));
-end
 
 
-# load RDMs for V1 model and HMAX model with natural image patches from Serre et al. (Computer Vision and Pattern Recognition 2005)
+# load RDMs for V1 model and HMAX model with natural image patches 
+# from Serre et al. (Computer Vision and Pattern Recognition 2005)
 load([pwd,filesep,'92imageData',filesep,'rdm92_V1model.mat'])
 load([pwd,filesep,'92imageData',filesep,'rdm92_HMAXnatImPatch.mat'])
 
