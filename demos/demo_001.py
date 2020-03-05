@@ -13,6 +13,7 @@ Analog of DEMO1_RSA_ROI_simulatedAndRealData
 
 import os
 import scipy.io
+import numpy as np
 import pyrsa
 
 # control variables
@@ -44,8 +45,8 @@ category_dict = {'animate':category_vectors[:,0],
                  }
 
 rdms_mit_hit_fig1 = data_matlab['RDMs_mIT_hIT_fig1']
-rdm_monkey_vec = RDMs_mIT_hIT_fig1[0][0][2]
-rdm_human_vec = RDMs_mIT_hIT_fig1[0][1][2]
+rdm_monkey_vec = rdms_mit_hit_fig1[0][0][2]
+rdm_human_vec = rdms_mit_hit_fig1[0][1][2]
 
 rdm_monkey = pyrsa.rdm.RDMs(rdm_monkey_vec, pattern_descriptors=category_dict)
 rdm_human = pyrsa.rdm.RDMs(rdm_human_vec,  pattern_descriptors=category_dict)
@@ -58,8 +59,8 @@ print(rdm_human)
 data_matlab2 = scipy.io.loadmat(os.path.join('92imageData',
     '92_brainRDMs.mat'))
 
-rdms_sess1 = np.array([data_matlab['RDMs'][0][i][0][0] for i in range(4)])
-rdms_sess2 = np.array([data_matlab['RDMs'][0][i][1][0] for i in range(4)])
+rdms_sess1 = np.array([data_matlab2['RDMs'][0][i][0][0] for i in range(4)])
+rdms_sess2 = np.array([data_matlab2['RDMs'][0][i][1][0] for i in range(4)])
 rdms_array = np.concatenate((rdms_sess1,rdms_sess2),0)
 rdms_human = pyrsa.rdm.RDMs(rdms_array, rdm_descriptors = {
     'session':np.array([1,1,1,1,2,2,2,2]),
@@ -72,7 +73,7 @@ data_matlab3 = scipy.io.loadmat(os.path.join('92imageData',
     'simTruePatterns.mat'))
 sim_true_patterns = data_matlab3['simTruePatterns']
 sim_true_patterns2 = data_matlab3['simTruePatterns2']
-n_cond,n_dim = sim_true_patterns.shape
+n_cond, n_dim = sim_true_patterns.shape
 
 # simulate multiple subjects' noisy RDMs
 # TODO: calculate from dataset objects -> implement batch processing of rdm
