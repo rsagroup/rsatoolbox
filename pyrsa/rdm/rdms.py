@@ -284,3 +284,25 @@ def concat(rdms):
     for rdm_new in rdms[1:]:
         rdm.append(rdm_new)
     return rdm
+
+def get_categorical_rdm(category_vector, category_name='category'):
+    """ generates an RDM object containing a categorical RDM, i.e. RDM = 0
+    if the category is the same and 1 if they are different
+
+    Args:
+        category_vector(iterable): a category index per condition
+        category_name(String): name for the descriptor in the object, defaults
+            to 'category'
+
+    Returns:
+        pyrsa.rdm.RDMs: constructed RDM
+
+    """
+    n = len(category_vector)
+    rdm_list = []
+    for i_cat in range(n):
+        for j_cat in range(i_cat+1,n):
+            rdm_list.append(category_vector[i_cat] != category_vector[j_cat])
+    rdm = RDMs(np.array(rdm_list, dtype=np.float),
+               pattern_descriptors={category_name:category_vector})
+    return rdm

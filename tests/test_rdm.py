@@ -191,6 +191,13 @@ class TestRDM(unittest.TestCase):
         rdms = concat((rdms1,rdms2))
         assert rdms.n_rdm == 16
 
+    def test_categorical_rdm(self):
+        from pyrsa.rdm import get_categorical_rdm
+        category_vector = [1,2,2,3]
+        rdm = get_categorical_rdm(category_vector)
+        np.testing.assert_array_almost_equal(rdm.dissimilarities,
+            np.array([[1., 1., 1., 0., 1., 1.]]))
+
 class TestCalcRDM(unittest.TestCase): 
     
     def setUp(self):
