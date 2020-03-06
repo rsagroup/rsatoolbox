@@ -6,6 +6,7 @@ inference module: evaluate models
 """
 
 import numpy as np
+import tqdm
 from collections.abc import Iterable
 from pyrsa.rdm import compare
 from pyrsa.inference import bootstrap_sample
@@ -75,7 +76,7 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
     evaluations, theta, fitter = input_check_model(model, theta, None, N)
     noise_min = []
     noise_max = []
-    for i in range(N):
+    for i in tqdm.trange(N):
         sample, rdm_sample, pattern_sample = \
             bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
                              pattern_descriptor=pattern_descriptor)
@@ -127,7 +128,7 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
     evaluations, theta, fitter = input_check_model(model, theta, None, N)
     noise_min = []
     noise_max = []
-    for i in range(N):
+    for i in tqdm.trange(N):
         sample, pattern_sample = \
             bootstrap_sample_pattern(data, pattern_descriptor)
         if isinstance(model, Model):
@@ -177,11 +178,10 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
     evaluations, theta, _ = input_check_model(model, theta, None, N)
     noise_min = []
     noise_max = []
-    for i in range(N):
+    for i in tqdm.trange(N):
         sample = bootstrap_sample_rdm(data, rdm_descriptor)
         res_sample = eval_fixed(model, sample[0], theta=theta, method=method)
-        print(res_sample)
-        evaluations[i] = np.mean(res_sample.evaluations[0], axis=-1)
+        evaluations[i] = res_sample.evaluations[0]
         noise_min.append(res_sample.noise_ceiling[0])
         noise_max.append(res_sample.noise_ceiling[1])
     if isinstance(model, Model):
@@ -294,7 +294,7 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
     elif isinstance(model, Iterable):
         evaluations = np.zeros((N, len(model), k_pattern * k_rdm))
     noise_ceil = np.zeros((2, N))
-    for i_sample in range(N):
+    for i_sample in tqdm.trange(N):
         sample, rdm_sample, pattern_sample = bootstrap_sample(data,
             rdm_descriptor=rdm_descriptor,
             pattern_descriptor=pattern_descriptor)
