@@ -264,6 +264,11 @@ results_simulation = pyrsa.inference.eval_bootstrap_rdm(models, subject_rdms,
                                                         N=1000)
 pyrsa.vis.plot_model_comparison(results_simulation)
 
+results_simulation2 = pyrsa.inference.eval_bootstrap(models, subject_rdms,
+                                                     method='spearman',
+                                                     N=1000)
+pyrsa.vis.plot_model_comparison(results_simulation2)
+
 ## Finally: real fMRI data (human IT RDM from Kriegeskorte et al. (Neuron 2008) as the reference RDM
 # userOptions.RDMcorrelationType='Kendall_taua';
 # userOptions.RDMcorrelationType='Spearman';
