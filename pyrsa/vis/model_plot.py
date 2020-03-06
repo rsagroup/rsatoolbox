@@ -12,22 +12,24 @@ import matplotlib.patches as patches
 from pyrsa.util.inference_util import pair_tests
 
 
-def plot_model_comparison(evaluations, models=None, eb_alpha=0.05,
-                          noise_ceiling=None, plot_pair_tests=False,
-                          method='cosine'):
+def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False):
     """ plots the results of a model comparison
-    Input should be a [bootstrap samples x models x ...] array of model 
+    Input should be a results object with model evaluations 
     evaluations, which uses the bootstrap samples for confidence intervals
     and significance tests and averages over all trailing dimensions 
     like cross-validation folds
 
     Args:
-        evaluations(numpy.ndarray): model performances
+        result(pyrsa.inference.result.Result): model evaluation result
 
     Returns:
         ---
 
     """
+    evaluations = result.evaluations
+    models = result.models
+    noise_ceiling = result.noise_ceiling
+    method = result.method
     while len(evaluations.shape)>2:
         evaluations = np.mean(evaluations, axis=-1)
     evaluations = 1 - evaluations
@@ -36,6 +38,7 @@ def plot_model_comparison(evaluations, models=None, eb_alpha=0.05,
                      - mean)
     errorbar_high = (np.quantile(evaluations, 1 - (eb_alpha / 2), axis=0)
                      - mean)
+    noise_ceiling = 1 - noise_ceiling
     # plotting start
     if plot_pair_tests:
         plt.figure(figsize=(7.5,10))
@@ -54,7 +57,8 @@ def plot_model_comparison(evaluations, models=None, eb_alpha=0.05,
         ax.add_patch(noiserect)
     ax.bar(np.arange(evaluations.shape[1]), mean)
     ax.errorbar(np.arange(evaluations.shape[1]), mean,
-                yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k')
+                yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
+                capsize=25, capthick=2)
     _,ymax = ax.get_ylim()
     ax.set_ylim(top = max(ymax,noise_max))
     ax.spines['right'].set_visible(False)
