@@ -194,7 +194,7 @@ def calc_rdm_crossnobis(dataset,
                dissimilarity_measure='crossnobis',
                descriptors=dataset.descriptors)
     if descriptor is None:
-        rdm.pattern_descriptors['pattern'] = list(np.arange(rdm.n_cond))
+        rdm.pattern_descriptors['pattern'] = np.arange(rdm.n_cond)
     else:
         rdm.pattern_descriptors[descriptor] = desc
     rdm.descriptors['noise'] = noise
@@ -214,7 +214,7 @@ def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
 def _parse_input(dataset, descriptor):
     if descriptor is None:
         measurements = dataset.measurements
-        desc = list(np.arange(measurements.shape[0]))
+        desc = np.arange(measurements.shape[0])
         descriptor = 'pattern'
     else:
         measurements, desc = average_dataset_by(dataset, descriptor)
