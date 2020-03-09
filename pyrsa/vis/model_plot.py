@@ -12,7 +12,8 @@ import matplotlib.patches as patches
 from pyrsa.util.inference_util import pair_tests
 
 
-def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False):
+def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
+                          sort=True):
     """ plots the results of a model comparison
     Input should be a results object with model evaluations 
     evaluations, which uses the bootstrap samples for confidence intervals
@@ -34,6 +35,11 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False):
         evaluations = np.mean(evaluations, axis=-1)
     evaluations = 1 - evaluations
     mean = np.mean(evaluations, axis=0)
+    if sort:
+        idx = np.argsort(mean)
+        mean = mean[idx]
+        evaluations = evaluations[:, idx]
+        models = [models[i] for i in idx]
     errorbar_low = -(np.quantile(evaluations, eb_alpha / 2, axis=0)
                      - mean)
     errorbar_high = (np.quantile(evaluations, 1 - (eb_alpha / 2), axis=0)
@@ -66,7 +72,7 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False):
     ax.set_xticks(np.arange(len(mean)))
     if models is not None:
         ax.set_xticklabels([m.name for m in models], fontsize=18,
-                           rotation='vertical')
+                           rotation=75)
     if method == 'cosine':
         ax.set_ylabel('cosine distance', fontsize=18)
     elif method == 'spearman':
