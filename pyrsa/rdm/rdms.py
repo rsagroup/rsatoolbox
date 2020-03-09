@@ -14,6 +14,7 @@ from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import append_descriptor
 from pyrsa.util.data_utils import extract_dict
+from collections.abc import Iterable
 
 
 class RDMs:
@@ -302,7 +303,13 @@ def get_categorical_rdm(category_vector, category_name='category'):
     rdm_list = []
     for i_cat in range(n):
         for j_cat in range(i_cat+1,n):
-            rdm_list.append(category_vector[i_cat] != category_vector[j_cat])
+            if isinstance(category_vector[i_cat], Iterable):
+                comparisons = [np.array(category_vector[i_cat][idx])
+                               != np.array(category_vector[j_cat][idx])
+                               for idx in range(len(category_vector[i_cat]))]
+                rdm_list.append(np.any(comparisons))
+            else:
+                rdm_list.append(category_vector[i_cat] != category_vector[j_cat])
     rdm = RDMs(np.array(rdm_list, dtype=np.float),
-               pattern_descriptors={category_name:category_vector})
+               pattern_descriptors={category_name:np.array(category_vector)})
     return rdm
