@@ -65,15 +65,16 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False):
     ax.spines['top'].set_visible(False)
     ax.set_xticks(np.arange(len(mean)))
     if models is not None:
-        ax.set_xticklabels([m.name for m in models], fontsize=18)
+        ax.set_xticklabels([m.name for m in models], fontsize=18,
+                           rotation='vertical')
     if method == 'cosine':
         ax.set_ylabel('cosine distance', fontsize=18)
     elif method == 'spearman':
-        ax.set_ylabel('Spearman rank correlation',fontsize=18)
+        ax.set_ylabel('Spearman rank correlation', fontsize=18)
     elif method == 'corr':
-        ax.set_ylabel('Pearson correlation',fontsize=18)
+        ax.set_ylabel('Pearson correlation', fontsize=18)
     elif method == 'kendall':
-        ax.set_ylabel('Kendall-Tau',fontsize=18)
+        ax.set_ylabel('Kendall-Tau', fontsize=18)
     if plot_pair_tests:
         res = pair_tests(evaluations)
         significant = res < eb_alpha
