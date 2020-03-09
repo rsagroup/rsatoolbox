@@ -139,10 +139,12 @@ graded_model_rdms.rdm_descriptors['pattern_std'] = pattern_dev_stds
 
 # load RADON and silhouette models and human early visual RDM
 #load(['92imageData',filesep,'92_modelRDMs.mat']);
-#FourCatsRDM=Models(2).RDM;
-#humanEarlyVisualRDM=Models(4).RDM;
-#silhouetteRDM=Models(7).RDM;
-#radonRDM=Models(8).RDM;
+data_matlab6 = scipy.io.loadmat(os.path.join('92imageData',
+    '92_modelRDMs.mat'))
+four_cats_rdm = data_matlab6['Models'][0][1][0]
+human_early_visual_rdm = data_matlab6['Models'][0][3][0]
+silhouette_rdm = data_matlab6['Models'][0][6][0]
+radon_rdm = data_matlab6['Models'][0][7][0]
 
 ####--------------------------------------------------------------------------
 #### from here on the new toolboax works actually differently 
@@ -155,8 +157,12 @@ graded_model_rdms.rdm_descriptors['pattern_std'] = pattern_dev_stds
 # generate model objects
 m1 = pyrsa.model.ModelFixed('ani./inani.', bin_rdm_animacy)
 m2 = pyrsa.model.ModelFixed('sim. judg.', rdm_sim_judg)
+m3 = pyrsa.model.ModelFixed('human early visual', human_early_visual_rdm)
+m4 = pyrsa.model.ModelFixed('four categories', four_cats_rdm)
+m5 = pyrsa.model.ModelFixed('silhouette', silhouette_rdm)
+m6 = pyrsa.model.ModelFixed('radon', radon_rdm)
 
-models = [m1, m2]
+models = [m1, m2, m3, m4, m5, m6]
 
 
 # A bunch of plotting and MDS plotting
