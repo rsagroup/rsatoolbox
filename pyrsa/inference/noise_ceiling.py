@@ -67,6 +67,7 @@ def boot_noise_ceiling(rdms, method='cosine', rdm_descriptor=None):
 
     """
     _, test_set, ceil_set = sets_leave_one_out_rdm(rdms, rdm_descriptor)
+    pred_test = pool_rdm(rdms, method=method)
     noise_min = []
     noise_max = []
     for i in range(len(ceil_set)):
@@ -74,7 +75,7 @@ def boot_noise_ceiling(rdms, method='cosine', rdm_descriptor=None):
         test = test_set[i]
         pred_train = pool_rdm(train[0], method=method)
         noise_min.append(np.mean(compare(pred_train, test[0], method)))
+        noise_max.append(np.mean(compare(pred_test, test[0], method)))
     noise_min = np.mean(np.array(noise_min))
-    pred_test = pool_rdm(rdms, method=method)
-    noise_max = np.mean(compare(pred_test, test[0], method))
+    noise_max = np.mean(np.array(noise_max))
     return noise_min, noise_max
