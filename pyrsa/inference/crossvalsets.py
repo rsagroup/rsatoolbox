@@ -69,18 +69,24 @@ def sets_leave_one_out_rdm(rdms, rdm_descriptor=None):
     else:
         rdm_select = rdms.rdm_descriptors[rdm_descriptor]
         rdm_select = np.unique(rdm_select)
-    train_set = []
-    test_set = []
-    for i_pattern in rdm_select:
-        rdm_sample_train = np.setdiff1d(rdm_select, i_pattern)
-        rdms_train = rdms.subset(rdm_descriptor,
-                                 rdm_sample_train)
-        rdm_sample_test = [i_pattern]
-        rdms_test = rdms.subset(rdm_descriptor,
-                                rdm_sample_test)
-        train_set.append((rdms_train, np.arange(rdms.n_cond)))
-        test_set.append((rdms_test, np.arange(rdms.n_cond)))
-    ceil_set = train_set
+    if len(rdm_select) > 1: 
+        train_set = []
+        test_set = []
+        for i_pattern in rdm_select:
+            rdm_sample_train = np.setdiff1d(rdm_select, i_pattern)
+            rdms_train = rdms.subset(rdm_descriptor,
+                                     rdm_sample_train)
+            rdm_sample_test = [i_pattern]
+            rdms_test = rdms.subset(rdm_descriptor,
+                                    rdm_sample_test)
+            train_set.append((rdms_train, np.arange(rdms.n_cond)))
+            test_set.append((rdms_test, np.arange(rdms.n_cond)))
+        ceil_set = train_set
+    else:
+        Warning('leave one out called with only one group')
+        train_set = [(rdms, np.arange(rdms.n_cond))]
+        test_set = [(rdms, np.arange(rdms.n_cond))]
+        ceil_set = [(rdms, np.arange(rdms.n_cond))]
     return train_set, test_set, ceil_set
 
 

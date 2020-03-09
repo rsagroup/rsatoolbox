@@ -48,7 +48,8 @@ def eval_fixed(model, data, theta=None, method='cosine'):
     else:
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
-    noise_ceil = boot_noise_ceiling(data)
+    noise_ceil = boot_noise_ceiling(data,
+            method=method, rdm_descriptor='index')
     result = Result(model, evaluations, method=method,
                     cv_method='fixed', noise_ceiling=noise_ceil)
     return result
@@ -97,7 +98,8 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
                                                       pattern_sample)
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample, method))
                 j += 1
-        noise_min_sample, noise_max_sample = boot_noise_ceiling(sample)
+        noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
+            method=method, rdm_descriptor=rdm_descriptor)
         noise_min.append(noise_min_sample)
         noise_max.append(noise_max_sample)
     if isinstance(model, Model):
@@ -109,7 +111,7 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
 
 
 def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
-                           pattern_descriptor=None):
+                           pattern_descriptor=None, rdm_descriptor=None):
     """evaluates a model on data
     performs bootstrapping over patterns to get a sampling distribution
 
@@ -120,6 +122,8 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
         method(string): comparison method to use
         N(int): number of samples
         pattern_descriptor(string): descriptor to group patterns for bootstrap
+        rdm_descriptor(string): descriptor to group patterns for noise
+            ceiling calculation
 
     Returns:
         numpy.ndarray: vector of evaluations
@@ -149,7 +153,8 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample[0],
                                                     method))
                 j += 1
-        noise_min_sample, noise_max_sample = boot_noise_ceiling(sample)
+        noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
+            method=method, rdm_descriptor=rdm_descriptor)
         noise_min.append(noise_min_sample)
         noise_max.append(noise_max_sample)
     if isinstance(model, Model):
@@ -192,7 +197,8 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample[0],
                                                     method))
                 j += 1
-        noise_min_sample, noise_max_sample = boot_noise_ceiling(sample[0])
+        noise_min_sample, noise_max_sample = boot_noise_ceiling(sample[0],
+            method=method, rdm_descriptor=rdm_descriptor)
         noise_min.append(noise_min_sample)
         noise_max.append(noise_max_sample)
     if isinstance(model, Model):
@@ -262,7 +268,8 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
                     evals[j] = np.mean(compare(pred, test[0], method))
             if ceil_set is None:
                 noise_ceil.append(boot_noise_ceiling(
-                    rdms.subsample_pattern(by=pattern_descriptor, value=test[1])))
+                    rdms.subsample_pattern(by=pattern_descriptor, value=test[1])
+                    , method=method))
         evaluations.append(evals)
     if isinstance(model, Model):
         model = [model]
