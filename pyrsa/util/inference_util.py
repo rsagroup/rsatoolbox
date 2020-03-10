@@ -73,7 +73,9 @@ def pool_rdm(rdms, method='cosine'):
         rdm_vec = np.array([rankdata(v) for v in rdm_vec])
         rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
     elif method == 'kendall':
-        raise NotImplementedError('pooling for ranks not yet implemented!')
+        Warning('Noise ceiling for tau based on averaged ranks!')
+        rdm_vec = np.array([rankdata(v) for v in rdm_vec])
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
     return RDMs(rdm_vec,
