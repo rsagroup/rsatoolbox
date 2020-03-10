@@ -290,8 +290,7 @@ results_simulation2 = pyrsa.inference.eval_bootstrap(models, subject_rdms,
 pyrsa.vis.plot_model_comparison(results_simulation2)
 
 ## Finally: real fMRI data (human IT RDM from Kriegeskorte et al. (Neuron 2008) as the reference RDM
-# userOptions.RDMcorrelationType='Kendall_taua';
-# userOptions.RDMcorrelationType='Spearman';
+# userOptions.RDMcorrelationType = 'Spearman';
 # userOptions.RDMrelatednessTest = 'randomisation';
 # userOptions.RDMrelatednessThreshold = 0.05;
 # userOptions.RDMrelatednessMultipleTesting = 'none';%'FWE'
@@ -313,8 +312,9 @@ results_fmri = pyrsa.inference.eval_bootstrap(models, rdms_human,
                                               N=1000)
 pyrsa.vis.plot_model_comparison(results_fmri)
 
-results_fmri = pyrsa.inference.eval_bootstrap(models, rdms_human,
-                                              rdm_descriptor='subject',
-                                              method='kendall',
-                                              N=100)
+results_fmri_tau = pyrsa.inference.eval_bootstrap(models, rdms_human,
+                                                  rdm_descriptor='subject',
+                                                  method='kendall',
+                                                  N=100)
+pyrsa.vis.plot_model_comparison(results_fmri_tau)
 
