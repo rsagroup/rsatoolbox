@@ -16,7 +16,6 @@ from pyrsa.util.rdm_utils import add_pattern_index
 from pyrsa.model import Model
 from pyrsa.util.inference_util import input_check_model
 from .result import Result
-from .crossvalsets import sets_leave_one_out_pattern
 from .crossvalsets import sets_k_fold
 from .noise_ceiling import boot_noise_ceiling
 from .noise_ceiling import cv_noise_ceiling
@@ -83,8 +82,6 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
                              pattern_descriptor=pattern_descriptor)
         if isinstance(model, Model):
             rdm_pred = model.predict_rdm(theta=theta)
-            pattern_descriptor, pattern_select = \
-                add_pattern_index(rdm_pred, pattern_descriptor)
             rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                   pattern_sample)
             evaluations[i] = np.mean(compare(rdm_pred, sample, method))
@@ -92,8 +89,6 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
             j = 0
             for mod in model:
                 rdm_pred = mod.predict_rdm(theta=theta[j])
-                pattern_descriptor, pattern_select = \
-                    add_pattern_index(rdm_pred, pattern_descriptor)
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_sample)
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample, method))
@@ -137,8 +132,6 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
             bootstrap_sample_pattern(data, pattern_descriptor)
         if isinstance(model, Model):
             rdm_pred = model.predict_rdm(theta=theta)
-            pattern_descriptor, pattern_select = \
-                add_pattern_index(rdm_pred, pattern_descriptor)
             rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                   pattern_sample)
             evaluations[i] = np.mean(compare(rdm_pred, sample, method))
@@ -146,8 +139,6 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
             j = 0
             for mod in model:
                 rdm_pred = mod.predict_rdm(theta=theta[j])
-                pattern_descriptor, pattern_select = \
-                    add_pattern_index(rdm_pred, pattern_descriptor)
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_sample)
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample[0],

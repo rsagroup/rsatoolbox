@@ -142,6 +142,8 @@ class RDMs:
             RDMs object, with fewer patterns
 
         """
+        if by is None:
+            by = 'index'
         selection = bool_index(self.pattern_descriptors[by], value)
         dissimilarities = self.get_matrices()[:, selection][:, :, selection]
         descriptors = self.descriptors
@@ -167,6 +169,8 @@ class RDMs:
             RDMs object, with subsampled patterns
 
         """
+        if by is None:
+            by = 'index'
         if (
                 type(value) is list or
                 type(value) is tuple or
@@ -201,6 +205,8 @@ class RDMs:
             RDMs object, with fewer RDMs
 
         """
+        if by is None:
+            by = 'index'
         selection = bool_index(self.rdm_descriptors[by], value)
         dissimilarities = self.dissimilarities[selection, :]
         descriptors = self.descriptors
@@ -225,6 +231,8 @@ class RDMs:
             RDMs object, with subsampled RDMs
 
         """
+        if by is None:
+            by = 'index'
         if (
                 type(value) is list or
                 type(value) is tuple or
