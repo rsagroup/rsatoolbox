@@ -47,11 +47,11 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
     noise_ceiling = 1 - noise_ceiling
     # plotting start
     if plot_pair_tests:
-        plt.figure(figsize=(7.5,10))
+        plt.figure(figsize=(12.5,10))
         ax = plt.axes((0.05,0.05, 0.9, 0.9*0.75))
         axbar = plt.axes((0.05,0.75, 0.9, 0.9*0.2))
     else:
-        plt.figure(figsize=(7.5,7.5))
+        plt.figure(figsize=(12.5,7.5))
         ax = plt.axes((0.05,0.05,0.9,0.9))
     if noise_ceiling is not None:
         noise_min = np.mean(noise_ceiling[0])
