@@ -219,15 +219,8 @@ def _tau_a(vector1, vector2):
 
     """
     size = vector1.size
-    perm = np.argsort(vector2)
-    vector1 = vector1[perm]
-    vector2 = vector2[perm]
-    vector2 = np.r_[True, vector2[1:] != vector2[:-1]].cumsum(dtype=np.intp)
-    # stable sort on x and convert x to dense ranks
-    perm = np.argsort(vector1, kind='mergesort')
-    vector1 = vector1[perm]
-    vector2 = vector2[perm]
-    vector1 = np.r_[True, vector1[1:] != vector1[:-1]].cumsum(dtype=np.intp)
+    vector1, vector2 = _sort_and_rank(vector1, vector2)
+    vector2, vector1 = _sort_and_rank(vector2, vector1)
     dis = _kendall_dis(vector1, vector2)  # discordant pairs
     obs = np.r_[True, (vector1[1:] != vector1[:-1]) |
                       (vector2[1:] != vector2[:-1]), True]
@@ -244,6 +237,15 @@ def _tau_a(vector1, vector2):
     tau = min(1., max(-1., tau))
     return tau
 
+
+def _sort_and_rank(vector1, vector2):
+    """does the sort and rank step of the _tau calculation"""
+    perm = np.argsort(vector2, kind='mergesort')
+    vector1 = vector1[perm]
+    vector2 = vector2[perm]
+    vector2 = np.r_[True, vector2[1:] != vector2[:-1]].cumsum(dtype=np.intp)
+    return vector1, vector2
+    
 
 def _count_rank_tie(ranks):
     """ counts tied ranks for kendall-tau calculation"""
