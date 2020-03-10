@@ -313,3 +313,8 @@ results_fmri = pyrsa.inference.eval_bootstrap(models, rdms_human,
                                               N=1000)
 pyrsa.vis.plot_model_comparison(results_fmri)
 
+results_fmri = pyrsa.inference.eval_bootstrap(models, rdms_human,
+                                              rdm_descriptor='subject',
+                                              method='kendall',
+                                              N=100)
+
