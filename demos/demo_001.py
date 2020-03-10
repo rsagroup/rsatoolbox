@@ -101,10 +101,15 @@ bin_rdm_animacy = pyrsa.rdm.get_categorical_rdm(category_dict['animate'])
 
 #ITemphasizedCategories=[1 2 5 6] # animate, inanimate, face, body
 #[binRDM_cats, nCatCrossingsRDM]=rsa.rdm.categoricalRDM(categoryVectors(:,ITemphasizedCategories),4,true);
+#cat_vecs = np.array(
+#            [category_dict['animate'],
+#            category_dict['face'],
+#            category_dict['natObj']]).T
+#bin_rdm_cats = pyrsa.rdm.get_categorical_rdm(cat_vecs)
 
-# so far unclear what this is for:
 data_matlab4 = scipy.io.loadmat(os.path.join('92imageData',
     'faceAnimateInaniClustersRDM.mat'))
+rdm_face_animate_inani = data_matlab4['faceAnimateInaniClustersRDM']
 
 # load behavioural RDM from Mur et al. (Frontiers Perc Sci 2013)
 data_matlab5 = scipy.io.loadmat(os.path.join('92imageData',
@@ -135,16 +140,19 @@ graded_model_rdms.rdm_descriptors['pattern_std'] = pattern_dev_stds
 # from Serre et al. (Computer Vision and Pattern Recognition 2005)
 #load([pwd,filesep,'92imageData',filesep,'rdm92_V1model.mat'])
 #load([pwd,filesep,'92imageData',filesep,'rdm92_HMAXnatImPatch.mat'])
-
+data_matlab6 = scipy.io.loadmat(os.path.join('92imageData',
+    'rdm92_V1model.mat'))
+V1_model_rdm = data_matlab6['rdm92_V1model']
+hmax_rdm = data_matlab6['rdm92_HMAXnatImPatch']
 
 # load RADON and silhouette models and human early visual RDM
 #load(['92imageData',filesep,'92_modelRDMs.mat']);
-data_matlab6 = scipy.io.loadmat(os.path.join('92imageData',
+data_matlab7 = scipy.io.loadmat(os.path.join('92imageData',
     '92_modelRDMs.mat'))
-four_cats_rdm = data_matlab6['Models'][0][1][0]
-human_early_visual_rdm = data_matlab6['Models'][0][3][0]
-silhouette_rdm = data_matlab6['Models'][0][6][0]
-radon_rdm = data_matlab6['Models'][0][7][0]
+four_cats_rdm = data_matlab7['Models'][0][1][0]
+human_early_visual_rdm = data_matlab7['Models'][0][3][0]
+silhouette_rdm = data_matlab7['Models'][0][6][0]
+radon_rdm = data_matlab7['Models'][0][7][0]
 
 ####--------------------------------------------------------------------------
 #### from here on the new toolboax works actually differently 
@@ -158,11 +166,17 @@ radon_rdm = data_matlab6['Models'][0][7][0]
 m1 = pyrsa.model.ModelFixed('ani./inani.', bin_rdm_animacy)
 m2 = pyrsa.model.ModelFixed('sim. judg.', rdm_sim_judg)
 m3 = pyrsa.model.ModelFixed('human early visual', human_early_visual_rdm)
-m4 = pyrsa.model.ModelFixed('four categories', four_cats_rdm)
+m4 = pyrsa.model.ModelFixed('face/body/nat/artificial', four_cats_rdm)
 m5 = pyrsa.model.ModelFixed('silhouette', silhouette_rdm)
 m6 = pyrsa.model.ModelFixed('radon', radon_rdm)
+m7 = pyrsa.model.ModelFixed('V1 model', V1_model_rdm)
+m8 = pyrsa.model.ModelFixed('HMAX model', hmax_rdm)
+m9 = pyrsa.model.ModelFixed('face/ani./inani.', rdm_face_animate_inani)
+m10 = pyrsa.model.ModelFixed('monkey IT', rdm_monkey)
+# m11 = pyrsa.model.ModelFixed('face/body/nat/artificial', bin_rdm_cats)
+# is the same as m4
 
-models = [m1, m2, m3, m4, m5, m6]
+models = [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10]
 
 
 # A bunch of plotting and MDS plotting
@@ -293,9 +307,9 @@ pyrsa.vis.plot_model_comparison(results_simulation2)
 # userOptions.figureIndex = [16 17];
 # stats_p_r=rsa.compareRefRDM2candRDMs(RDMs_hIT_bySubject, modelRDMs_cell(1:end-1), userOptions);
 
-results_fmri = pyrsa.inference.eval_bootstrap_rdm(models, rdms_human,
-                                                  rdm_descriptor='subject',
-                                                  method='spearman',
-                                                  N=1000)
+results_fmri = pyrsa.inference.eval_bootstrap(models, rdms_human,
+                                              rdm_descriptor='subject',
+                                              method='spearman',
+                                              N=1000)
 pyrsa.vis.plot_model_comparison(results_fmri)
 
