@@ -57,7 +57,7 @@ def eval_fixed(model, data, theta=None, method='cosine'):
 
 def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
                    pattern_descriptor=None, rdm_descriptor=None,
-                   bootstrap_noise_ceil=False):
+                   boot_noise_ceil=False):
     """evaluates a model on data
     performs bootstrapping to get a sampling distribution
 
@@ -94,14 +94,14 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
                                                       pattern_sample)
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample, method))
                 j += 1
-        if bootstrap_noise_ceil:
+        if boot_noise_ceil:
             noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
                 method=method, rdm_descriptor=rdm_descriptor)
             noise_min.append(noise_min_sample)
             noise_max.append(noise_max_sample)
     if isinstance(model, Model):
         evaluations = evaluations.reshape((N,1))
-    if bootstrap_noise_ceil:
+    if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
     else:
         noise_ceil = np.array(boot_noise_ceiling(data,
@@ -112,7 +112,8 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
 
 
 def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
-                           pattern_descriptor=None, rdm_descriptor=None):
+                           pattern_descriptor=None, rdm_descriptor=None,
+                           boot_noise_ceil=True):
     """evaluates a model on data
     performs bootstrapping over patterns to get a sampling distribution
 
@@ -150,20 +151,25 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample[0],
                                                     method))
                 j += 1
-        noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
-            method=method, rdm_descriptor=rdm_descriptor)
-        noise_min.append(noise_min_sample)
-        noise_max.append(noise_max_sample)
+        if boot_noise_ceil:
+            noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
+                method=method, rdm_descriptor=rdm_descriptor)
+            noise_min.append(noise_min_sample)
+            noise_max.append(noise_max_sample)
     if isinstance(model, Model):
         evaluations = evaluations.reshape((N,1))
-    noise_ceil = np.array([noise_min, noise_max])
+    if boot_noise_ceil:
+        noise_ceil = np.array([noise_min, noise_max])
+    else:
+        noise_ceil = np.array(boot_noise_ceiling(data,
+            method=method, rdm_descriptor=rdm_descriptor))
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap_pattern', noise_ceiling=noise_ceil)
     return result
 
 
 def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
-                       rdm_descriptor=None):
+                       rdm_descriptor=None, boot_noise_ceil=False):
     """evaluates a model on data
     performs bootstrapping to get a sampling distribution
 
@@ -194,13 +200,18 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample[0],
                                                     method))
                 j += 1
-        noise_min_sample, noise_max_sample = boot_noise_ceiling(sample[0],
-            method=method, rdm_descriptor=rdm_descriptor)
-        noise_min.append(noise_min_sample)
-        noise_max.append(noise_max_sample)
+        if boot_noise_ceil:
+            noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
+                method=method, rdm_descriptor=rdm_descriptor)
+            noise_min.append(noise_min_sample)
+            noise_max.append(noise_max_sample)
     if isinstance(model, Model):
         evaluations = evaluations.reshape((N,1))
-    noise_ceil = np.array([noise_min, noise_max])
+    if boot_noise_ceil:
+        noise_ceil = np.array([noise_min, noise_max])
+    else:
+        noise_ceil = np.array(boot_noise_ceiling(data,
+            method=method, rdm_descriptor=rdm_descriptor))
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap_rdm', noise_ceiling=noise_ceil)
     return result
