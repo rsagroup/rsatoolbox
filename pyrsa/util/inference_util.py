@@ -72,7 +72,11 @@ def pool_rdm(rdms, method='cosine'):
     elif method == 'spearman':
         rdm_vec = np.array([rankdata(v) for v in rdm_vec])
         rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
-    elif method == 'kendall':
+    elif method == 'kendall' or method == 'tau-b':
+        Warning('Noise ceiling for tau based on averaged ranks!')
+        rdm_vec = np.array([rankdata(v) for v in rdm_vec])
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
+    elif method == 'tau-a':
         Warning('Noise ceiling for tau based on averaged ranks!')
         rdm_vec = np.array([rankdata(v) for v in rdm_vec])
         rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
