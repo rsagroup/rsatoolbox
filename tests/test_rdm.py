@@ -379,6 +379,13 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm2)
         assert np.all(result>0)
 
+    def test_compare_kendall_tau_a(self):
+        from pyrsa.rdm.compare import compare_kendall_tau_a
+        result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm2)
+        assert np.all(result>0)
+
     def test_compare(self):
         from pyrsa.rdm.compare import compare
         result = compare(self.test_rdm1, self.test_rdm1)
