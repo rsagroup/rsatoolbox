@@ -30,23 +30,32 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
     """
     if do_rank_transform:
         rdm = rank_transform(rdm)
-    if pattern_descriptor is None:
-        pattern_descriptor = 'index'
-        rdm.pattern_descriptors['index'] = np.arange(rdm.n_cond)
     rdm_mat = rdm.get_matrices()
     if rdm.n_rdm  > 1:
         m = np.ceil(np.sqrt(rdm.n_rdm+1))
         n = np.ceil((1 + rdm.n_rdm) / m)
         for idx in range(rdm.n_rdm):
-            plt.subplot(n, m, idx + 1)
+            ax = plt.subplot(n, m, idx + 1)
             plt.imshow(rdm_mat[idx], cmap=cmap)
-            _add_descriptor_labels(rdm, pattern_descriptor)
-        plt.subplot(n, m, n * m)
+            if pattern_descriptor is not None:
+                _add_descriptor_labels(rdm, pattern_descriptor)
+            else:
+                ax.set_xticks([])
+                ax.set_yticks([])
+        ax = plt.subplot(n, m, n * m)
         plt.imshow(np.mean(rdm_mat, axis=0), cmap=cmap)
-        _add_descriptor_labels(rdm, pattern_descriptor)
+        if pattern_descriptor is not None:
+            _add_descriptor_labels(rdm, pattern_descriptor)
+        else:
+            ax.set_xticks([])
+            ax.set_yticks([])
     elif rdm.n_rdm == 1:
         plt.imshow(rdm_mat[0], cmap=cmap)
-        _add_descriptor_labels(rdm, pattern_descriptor)
+        if pattern_descriptor is not None:
+            _add_descriptor_labels(rdm, pattern_descriptor)
+        else:
+            plt.gca().set_xticks([])
+            plt.gca().set_yticks([])
     plt.show()
 
 
