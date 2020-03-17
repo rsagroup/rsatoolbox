@@ -67,7 +67,8 @@ rdms_human = pyrsa.rdm.RDMs(rdms_array, rdm_descriptors = {
     'session':np.array([1,1,1,1,2,2,2,2]),
     'subject':np.array([1,2,3,4,1,2,3,4])})
 
-# TODO: plot these rdms!
+# plot the RDMs
+pyrsa.vis.show_rdm(rdms_human)
 
 # load reconstructed patterns for simulating models
 data_matlab3 = scipy.io.loadmat(os.path.join('92imageData',
