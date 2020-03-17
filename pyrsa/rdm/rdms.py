@@ -6,6 +6,7 @@ Definition of RSA RDMs class and subclasses
 """
 
 import numpy as np
+from scipy.stats import rankdata
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -252,6 +253,7 @@ class RDMs:
                     rdm_descriptors=rdm_descriptors,
                     pattern_descriptors=pattern_descriptors)
         return rdms
+
     def append(self, rdm):
         """ appends an rdm to the object
         The rdm should have the same shape and type as this object.
@@ -322,3 +324,16 @@ def get_categorical_rdm(category_vector, category_name='category'):
     rdm = RDMs(np.array(rdm_list, dtype=np.float),
                pattern_descriptors={category_name:np.array(category_vector)})
     return rdm
+
+
+def rank_transform(rdms):
+    """ applyes a rank_transform and generates a new RDMs object"""
+    dissimilarities = rdms.get_vectors()
+    dissimilarities = np.array([rankdata(dissimilarities[i])
+                                for i in range(rdms.n_rdm)])
+    rdms_new = RDMs(dissimilarities,
+                    dissimilarity_measure=rdms.dissimilarity_measure,
+                    descriptors=rdms.descriptors,
+                    rdm_descriptors=rdms.rdm_descriptors,
+                    pattern_descriptors=rdms.pattern_descriptors)
+    return rdms_new

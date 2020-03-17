@@ -1,6 +1,7 @@
 from .rdms import RDMs
 from .rdms import concat
 from .rdms import get_categorical_rdm
+from .rdms import rank_transform
 from .calc import calc_rdm
 from .calc import calc_rdm_euclid
 from .calc import calc_rdm_mahalanobis
