@@ -92,10 +92,8 @@ subject_rdms = pyrsa.rdm.calc_rdm(data_list)
 avg_subject_rdm = pyrsa.util.inference_util.pool_rdm(subject_rdms,
                                                      method=method)
 
-# TODO: Again showing RDMs missing!
-#rsa.fig.showRDMs(rsa.rdm.concatRDMs_unwrapped(subjectRDMs,avgSubjectRDM),2);
-#rsa.fig.handleCurrentFigure([userOptions.rootPath,filesep,'simulatedSubjAndAverage'],userOptions);
-
+# show simulated subjects rdms
+pyrsa.vis.show_rdm(subject_rdms)
 
 # define categorical model RDMs
 bin_rdm_animacy = pyrsa.rdm.get_categorical_rdm(category_dict['animate'])
@@ -174,8 +172,6 @@ m7 = pyrsa.model.ModelFixed('V1 model', V1_model_rdm)
 m8 = pyrsa.model.ModelFixed('HMAX model', hmax_rdm)
 m9 = pyrsa.model.ModelFixed('face/ani./inani.', rdm_face_animate_inani)
 m10 = pyrsa.model.ModelFixed('monkey IT', rdm_monkey)
-# m11 = pyrsa.model.ModelFixed('face/body/nat/artificial', bin_rdm_cats)
-# is the same as m4
 
 models = [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10]
 
@@ -190,129 +186,29 @@ models = [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10]
 #     modelRDMs_cell{modelRDMI}=modelRDMs(modelRDMI);
 # end
 
-# %% activity pattern MDS
-# categoryIs=[5 6 7 8];
-# categoryCols=[0 0 0
-#               0 0 0
-#               0 0 0
-#               0 0 0
-#               1 0.5 0
-#               1 0 0
-#               0 1 0
-#               0 0.5 1];
-
-
-
-# % MDS plot
-# categoryIs=[5 6 7 8];
-# categoryCols=[0 0 0
-#     0 0 0
-#     0 0 0
-#     0 0 0
-#     1 0.5 0
-#     1 0 0
-#     0 1 0
-#     0 0.5 1];
-
-
-# for condI = 1:92
-#     for catI = 1:numel(categoryIs)
-#         if categoryVectors(condI,categoryIs(catI))
-#             userOptions.conditionColours(condI,:) = categoryCols(categoryIs(catI),:);
-#         end
-#     end
-# end
-# avgRDM.RDM = avgSubjectRDM;
-# avgRDM.name = 'subject-averaged RDM';
-# avgRDM.color = [0 0 0];
-# [blankConditionLabels{1:size(modelRDMs_cell{1}.RDM,1)}] = deal(' ');
-
-# % true-model MDS
-# rsa.MDSConditions(modelRDMs_cell{11}, userOptions,struct('titleString','ground-truth MDS',...
-#     'fileName','trueRDM_MDS','figureNumber',6));
-# % true-model dendrogram
-
-# rsa.dendrogramConditions(modelRDMs_cell{11}, userOptions,...
-# struct('titleString', 'Dendrogram of the ground truth RDM', 'useAlternativeConditionLabels', true, 'alternativeConditionLabels', {blankConditionLabels}, 'figureNumber', 7));
-# % subject-averaged MDS
-# rsa.MDSConditions(avgRDM, userOptions,struct('titleString','subject-averaged MDS',...
-#     'fileName','ssMDS','figureNumber',8));
-# % subject-averaged Dendrogram
-# rsa.dendrogramConditions(avgRDM, userOptions,...
-# struct('titleString', 'Dendrogram of the subject-averaged RDM', 'useAlternativeConditionLabels', true, 'alternativeConditionLabels', {blankConditionLabels}, 'figureNumber', 9));
-
-# % one-subject MDS (e.g. simulated subject1), noisier
-# rsa.MDSConditions(rsa.rdm.wrapAndNameRDMs(subjectRDMs(:,:,1),{'single-subject RDM'}), userOptions,struct('titleString','sample subject MDS',...
-#     'fileName','single-subject RDM','figureNumber',10));
-
-# % one-subject Dendrogram
-# rsa.dendrogramConditions(rsa.rdm.wrapAndNameRDMs(subjectRDMs(:,:,3),{'single-subject RDM'}), userOptions,...
-# struct('titleString', 'Dendrogram of a single-subject RDM', 'useAlternativeConditionLabels', true, 'alternativeConditionLabels', {blankConditionLabels}, 'figureNumber', 11));
-
-
-
-# %% RDM correlation matrix and MDS
-# % 2nd order correlation matrix
-# userOptions.RDMcorrelationType='Kendall_taua';
-
-# rsa.pairwiseCorrelateRDMs({avgRDM, modelRDMs}, userOptions, struct('figureNumber', 12,'fileName','RDMcorrelationMatrix'));
-
-# % 2nd order MDS
-# rsa.MDSRDMs({avgRDM, modelRDMs}, userOptions, struct('titleString', 'MDS of different RDMs', 'figureNumber', 13,'fileName','2ndOrderMDSplot'));
-
-##############################################################################
-### statistical inference part
-##############################################################################
-
-# userOptions.RDMcorrelationType='Kendall_taua';
-# userOptions.RDMrelatednessTest = 'subjectRFXsignedRank';
-# userOptions.RDMrelatednessThreshold = 0.05;
-# userOptions.RDMrelatednessMultipleTesting = 'FDR';
-# userOptions.saveFiguresPDF = 1;
-# userOptions.candRDMdifferencesTest = 'subjectRFXsignedRank';
-# userOptions.candRDMdifferencesThreshold = 0.05;
-# userOptions.candRDMdifferencesMultipleTesting = 'FDR';
-# userOptions.plotpValues = '=';
-# userOptions.barsOrderedByRDMCorr=true;
-# userOptions.resultsPath = userOptions.rootPath;
-# userOptions.figureIndex = [14 15];
-# userOptions.figure1filename = 'compareRefRDM2candRDMs_barGraph_simulatedITasRef';
-#userOptions.figure2filename = 'compareRefRDM2candRDMs_pValues_simulatedITasRef';
-#stats_p_r=rsa.compareRefRDM2candRDMs(subjectRDMs, modelRDMs_cell, userOptions);
-
+# evaluations on simulated data
+# bootstrap over rdms
 results_simulation = pyrsa.inference.eval_bootstrap_rdm(models, subject_rdms,
                                                         method='spearman',
                                                         N=1000)
 pyrsa.vis.plot_model_comparison(results_simulation)
 
+# bootstrap over rdms and conditions
 results_simulation2 = pyrsa.inference.eval_bootstrap(models, subject_rdms,
                                                      method='spearman',
                                                      N=1000)
 pyrsa.vis.plot_model_comparison(results_simulation2)
 
-## Finally: real fMRI data (human IT RDM from Kriegeskorte et al. (Neuron 2008) as the reference RDM
-# userOptions.RDMcorrelationType = 'Spearman';
-# userOptions.RDMrelatednessTest = 'randomisation';
-# userOptions.RDMrelatednessThreshold = 0.05;
-# userOptions.RDMrelatednessMultipleTesting = 'none';%'FWE'
-# userOptions.candRDMdifferencesTest = 'conditionRFXbootstrap';
-# userOptions.candRDMdifferencesMultipleTesting = 'FDR';
-# userOptions.plotpValues = '*';
-# userOptions.nRandomisations = 100;
-# userOptions.nBootstrap = 100;
-# userOptions.candRDMdifferencesThreshold = 0.05;
-# userOptions.candRDMdifferencesMultipleTesting = 'FDR';
-# userOptions.figure1filename = 'compareRefRDM2candRDMs_barGraph_hITasRef';
-# userOptions.figure2filename = 'compareRefRDM2candRDMs_pValues_hITasRef';
-# userOptions.figureIndex = [16 17];
-# stats_p_r=rsa.compareRefRDM2candRDMs(RDMs_hIT_bySubject, modelRDMs_cell(1:end-1), userOptions);
 
+# evaluations on real data (4 subjects)
+# spearman
 results_fmri = pyrsa.inference.eval_bootstrap(models, rdms_human,
                                               rdm_descriptor='subject',
                                               method='spearman',
                                               N=1000)
 pyrsa.vis.plot_model_comparison(results_fmri)
 
+# kendall-tau: Fewer simulations to reduce waiting time
 results_fmri_tau = pyrsa.inference.eval_bootstrap(models, rdms_human,
                                                   rdm_descriptor='subject',
                                                   method='kendall',
