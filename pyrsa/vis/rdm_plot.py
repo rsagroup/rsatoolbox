@@ -35,27 +35,15 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
         m = np.ceil(np.sqrt(rdm.n_rdm+1))
         n = np.ceil((1 + rdm.n_rdm) / m)
         for idx in range(rdm.n_rdm):
-            ax = plt.subplot(n, m, idx + 1)
+            plt.subplot(n, m, idx + 1)
             plt.imshow(rdm_mat[idx], cmap=cmap)
-            if pattern_descriptor is not None:
-                _add_descriptor_labels(rdm, pattern_descriptor)
-            else:
-                ax.set_xticks([])
-                ax.set_yticks([])
-        ax = plt.subplot(n, m, n * m)
-        plt.imshow(np.mean(rdm_mat, axis=0), cmap=cmap)
-        if pattern_descriptor is not None:
             _add_descriptor_labels(rdm, pattern_descriptor)
-        else:
-            ax.set_xticks([])
-            ax.set_yticks([])
+        plt.subplot(n, m, n * m)
+        plt.imshow(np.mean(rdm_mat, axis=0), cmap=cmap)
+        _add_descriptor_labels(rdm, pattern_descriptor)
     elif rdm.n_rdm == 1:
         plt.imshow(rdm_mat[0], cmap=cmap)
-        if pattern_descriptor is not None:
-            _add_descriptor_labels(rdm, pattern_descriptor)
-        else:
-            plt.gca().set_xticks([])
-            plt.gca().set_yticks([])
+        _add_descriptor_labels(rdm, pattern_descriptor)
     plt.show()
 
 
@@ -63,10 +51,14 @@ def _add_descriptor_labels(rdm, descriptor, ax=None):
     """ adds a descriptor as ticklabels """
     if ax is None:
         ax = plt.gca()
-    desc = rdm.pattern_descriptors[descriptor]
-    ax.set_xticks(np.arange(rdm.n_cond))
-    ax.set_xticklabels(desc)
-    ax.set_yticks(np.arange(rdm.n_cond))
-    ax.set_yticklabels(desc)
-    plt.ylim(rdm.n_cond - 0.5, -0.5)
-    plt.xlim(-0.5, rdm.n_cond - 0.5)
+    if descriptor is not None:
+        desc = rdm.pattern_descriptors[descriptor]
+        ax.set_xticks(np.arange(rdm.n_cond))
+        ax.set_xticklabels(desc)
+        ax.set_yticks(np.arange(rdm.n_cond))
+        ax.set_yticklabels(desc)
+        plt.ylim(rdm.n_cond - 0.5, -0.5)
+        plt.xlim(-0.5, rdm.n_cond - 0.5)
+    else:
+        ax.set_xticks([])
+        ax.set_yticks([])
