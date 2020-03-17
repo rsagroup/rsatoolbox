@@ -1,4 +1,5 @@
 from .rdms import RDMs
+from .rdms import rank_transform
 from .calc import calc_rdm
 from .calc import calc_rdm_euclid
 from .calc import calc_rdm_mahalanobis
