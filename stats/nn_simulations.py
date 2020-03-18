@@ -18,10 +18,10 @@ import PIL
 import numpy as np
 from scipy.ndimage import gaussian_filter as gaussian_filter
 import scipy.signal as signal
-import pyRSA as RSA
 import tqdm
 import os
-from hrf import spm_hrf 
+from hrf import spm_hrf
+import pyrsa
 
 # initial transormation expected by all torchvision models
 normalize = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -123,14 +123,15 @@ def get_random_sample(U,sigmaP,sigmaNoise=None,N=10):
     return Usamp
 
 
-def get_true_RDM(model,layer,stimuli):
+def get_true_RDM(model, layer, stimuli, method='euclidean'):
     U = list([])
     for istimulus in stimuli:
         Ustim = get_complete_representation(model=model,layer=layer,stimulus=istimulus)
         U.append(Ustim.flatten())
     U = np.array(U)
-    d = RSA.calc_RDM_euclid(U)
-    return(d)
+    data = pyrsa.data.Dataset(U)
+    return pyrsa.rdm.calc_rdm(data, method=method)
+
 
 def get_sampled_representations(model,layer,sd,stimList,N):
     U = get_complete_representation(model=model,layer=layer,stimulus=stimList[0])
@@ -142,6 +143,7 @@ def get_sampled_representations(model,layer,sd,stimList,N):
         U.append(sample_representation(np.squeeze(Ustim),indices_space,weights,sd))
     return (np.array(U),sigmaP,indices_space,weights)
 
+
 def get_sampled_representation_random(model,layer,sd,stimulus,N):
     U = get_complete_representation(model=model,layer=layer,stimulus=stimulus)
     indices_space, weights = get_random_indices_conv(U.shape,N)
@@ -149,10 +151,12 @@ def get_sampled_representation_random(model,layer,sd,stimulus,N):
     U = sample_representation(np.squeeze(U),indices_space,weights,sd)
     return (U,sigmaP,indices_space,weights)
 
+
 def get_sampled_representation(indices_space,weights,sd,model=None,layer=0,stimulus=None):
     U = get_complete_representation(model=model,layer=layer,stimulus=stimulus)
     U = sample_representation(U,indices_space=indices_space,weights=weights,sd=sd)
     return U
+
 
 def sample_representation(U,indices_space,weights,sd):
     if len(U.shape)==3:
@@ -164,6 +168,7 @@ def sample_representation(U,indices_space,weights,sd):
         U = U[:,:,indices_space[0],indices_space[1]]
         U = np.einsum('kin,in->kn',U,weights)
     return U
+
 
 def get_sampled_sigmaP(Ushape,indices_space,weights,sd):
     if len(Ushape)==4:
@@ -177,7 +182,8 @@ def get_sampled_sigmaP(Ushape,indices_space,weights,sd):
     sigmaP = covGauss*covWeights
     return sigmaP
 
-def get_complete_representation(model=None,layer=0,stimulus=None):
+
+def get_complete_representation(model=None, layer=0, stimulus=None):
     if model is None:
         model = get_default_model()
     if stimulus is None:
@@ -196,6 +202,7 @@ def get_complete_representation(model=None,layer=0,stimulus=None):
         U = U.view(U.shape[0],-1)
         U = model.classifier[:(layer-len(model.features))](U)
     return U.detach().numpy()
+
 
 def get_random_indices_conv(Ushape,N):
     # gets N randomly placed indices for a representation with shape U
