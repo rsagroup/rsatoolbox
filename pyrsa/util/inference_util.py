@@ -13,7 +13,7 @@ from pyrsa.rdm import RDMs
 from collections.abc import Iterable
 
 
-def input_check_model(model, theta, fitter=None, N=1):
+def input_check_model(model, theta=None, fitter=None, N=1):
     if isinstance(model, Model):
         evaluations = np.zeros(N)
     elif isinstance(model, Iterable):

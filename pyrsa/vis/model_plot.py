@@ -80,7 +80,7 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
         ax.set_ylabel('Spearman rank correlation', fontsize=24)
     elif method == 'corr':
         ax.set_ylabel('Pearson correlation', fontsize=24)
-    elif method == 'kendall' and method == 'tau-b':
+    elif method == 'kendall' or method == 'tau-b':
         ax.set_ylabel('Kendall-Tau', fontsize=24)
     elif method == 'tau-a':
         ax.set_ylabel('Kendall-Tau A', fontsize=24)

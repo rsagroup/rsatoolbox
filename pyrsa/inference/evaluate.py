@@ -12,7 +12,6 @@ from pyrsa.rdm import compare
 from pyrsa.inference import bootstrap_sample
 from pyrsa.inference import bootstrap_sample_rdm
 from pyrsa.inference import bootstrap_sample_pattern
-from pyrsa.util.rdm_utils import add_pattern_index
 from pyrsa.model import Model
 from pyrsa.util.inference_util import input_check_model
 from .result import Result
