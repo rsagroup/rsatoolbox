@@ -255,9 +255,13 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
     for i in tqdm.trange(Nsim):
         U = np.load(fname_base + 'U%04d.npy' % i)
         data = []
+        desc = {'stim': np.tile(np.arange(Nstimuli), Nrepeat),
+                'repeat': np.repeat(np.arange(Nrepeat), Nstimuli)}
         for iSubj in range(U.shape[0]):
-            data.append(pyrsa.data.Dataset(U[iSubj,:,:Nstimuli,:]))
-        rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type)
+            u_subj = U[iSubj,:,:Nstimuli,:].reshape(Nrepeat*Nstimuli, Nvoxel)
+            data.append(pyrsa.data.Dataset(u_subj, obs_descriptors=desc))
+        rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
+                                  cv_descriptor='repeat')
         score = np.array([pyrsa.crossvalidate(m, rdms, method=rdm_comparison,
                                               nFold=nFold)
                           for m in models])

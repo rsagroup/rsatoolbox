@@ -14,7 +14,8 @@ from pyrsa.data import average_dataset_by
 from pyrsa.util.matrix import pairwise_contrast_sparse
 
 
-def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
+def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
+             cv_descriptor=None):
     """
     calculates an RDM from an input dataset
 
@@ -29,6 +30,8 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
             dataset.n_channel x dataset.n_channel
             precision matrix used to calculate the RDM
             used only for Mahalanobis and Crossnobis estimators
+        cv_descriptor (String):
+            descriptor for crossvalidation for CrossNobis
 
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
@@ -38,7 +41,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
         rdms = []
         for dat in dataset:
             rdms.append(calc_rdm(dat, method=method, descriptor=descriptor,
-                                 noise=noise))
+                                 noise=noise, cv_descriptor=cv_descriptor))
         rdm = concat(rdms)
     else:
         if method == 'euclidean':
@@ -48,7 +51,8 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
         elif method == 'mahalanobis':
             rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
         elif method == 'crossnobis':
-            rdm = calc_rdm_crossnobis(dataset, descriptor, noise)
+            rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
+                                      cv_descriptor=cv_descriptor)
         else:
             raise(NotImplementedError)
     return rdm
