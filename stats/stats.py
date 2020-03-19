@@ -66,7 +66,7 @@ def get_residuals_cross(designs, timecourses, betas):
                                           beta)
     return residuals
 
-# sampling from a neural network layer
+
 def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
                  model=None, layer=3, sd=np.array([5, 5]),
                  sigma_noise=None, resolution=None, ar_coeff=None,
@@ -74,11 +74,13 @@ def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
                  cross_residuals=True, sigmaKestimator='eye',
                  sigmaRestimator='eye', use_cor_noise=True,
                  get_cov_estimate=True):
-    # shrinkage governs how strongly sigmaP is shrunk, 0 is raw estimate,
-    # 1 is only diagonal, np.inf is eye
-    # Noise estimation choices:
-    #     generating noise:
-    #         - on representation-> correlated noise over voxels
+    """ sampling from a neural network layer
+    shrinkage governs how strongly sigmaP is shrunk, 0 is raw estimate,
+    1 is only diagonal, np.inf is eye
+    Noise estimation choices:
+        generating noise:
+            - on representation-> correlated noise over voxels
+    """
     if model is None:
         model = dnn.get_default_model()
     print('\n getting true RDM')
@@ -149,10 +151,9 @@ def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
     return RDM_true, RDM_true_subj, RDM_samples, covs
 
 
-
 def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
                             stimList=get_stimuli_96(), Nvoxel=100, Nsubj=10,
-                            simulation_folder='test', Nsim=1000, Nrepeat=2,
+                            simulation_folder='sim', Nsim=1000, Nrepeat=2,
                             duration=5, pause=1, endzeros=25,
                             use_cor_noise=True, resolution=2,
                             sigma_noise = 1, ar_coeff = .5):
@@ -214,8 +215,7 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
         np.save(fname_base + 'indices_space%04d' % i, indices_space)
         np.save(fname_base + 'weights%04d' % i, weights)
         np.save(fname_base + 'U%04d' % i, U)
-        #np.save(fname_base+'design%04d'%i,des)
-        #np.save(fname_base+'timecourse%04d'%i,tim)
+
         
 def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
                       Nsubj=10, simulation_folder='test', Nsim=100, Nrepeat=2,
