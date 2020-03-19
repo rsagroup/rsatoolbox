@@ -63,8 +63,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
 
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
-    c_matrix = pairwise_contrast_sparse(np.arange(measurements.shape[0]))
-    diff = c_matrix @ measurements
+    diff = _calc_pairwise_differences(measurements)
     rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='euclidean',
@@ -124,8 +123,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
     noise = _check_noise(noise, dataset.n_channel)
-    c_matrix = pairwise_contrast_sparse(np.arange(measurements.shape[0]))
-    diff = c_matrix @ measurements
+    diff = _calc_pairwise_differences(measurements)
     diff2 = (noise @ diff.T).T
     rdm = np.einsum('ij,ij->i', diff, diff2) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
@@ -194,13 +192,32 @@ def calc_rdm_crossnobis(dataset,
     return rdm
 
 
-def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
+def _calc_rdm_crossnobis_single_sparse(measurements1, measurements2, noise):
     c_matrix = pairwise_contrast_sparse(np.arange(measurements1.shape[0]))
     diff_1 = c_matrix @ measurements1
     diff_2 = c_matrix @ measurements2
     diff_2 = noise @ diff_2.transpose()
     rdm = np.einsum('kj,jk->k', diff_1, diff_2) / measurements1.shape[1]
     return rdm
+
+
+def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
+    diff_1 = _calc_pairwise_differences(measurements1)
+    diff_2 = _calc_pairwise_differences(measurements2)
+    diff_2 = noise @ diff_2.transpose()
+    rdm = np.einsum('kj,jk->k', diff_1, diff_2) / measurements1.shape[1]
+    return rdm
+
+
+def _calc_pairwise_differences(measurements):
+    n, m = measurements.shape
+    diff = np.zeros((int(n * (n - 1) / 2), m))
+    k = 0
+    for i in range(measurements.shape[0]):
+        for j in range(i+1, measurements.shape[0]):
+            diff[k] = measurements[i] - measurements[j]
+            k += 1
+    return diff
 
 
 def _parse_input(dataset, descriptor):
