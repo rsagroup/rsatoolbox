@@ -83,10 +83,10 @@ def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
     """
     if model is None:
         model = dnn.get_default_model()
-    print('\n getting true RDM')
-    RDM_true = dnn.get_true_RDM(model, layer, stimuli)
-    RDM_true_subj = []
-    RDM_samples = []
+    print('\n getting true rdm')
+    rdm_true = dnn.get_true_rdm(model, layer, stimuli)
+    rdm_true_subj = []
+    rdm_samples = []
     covs = []
     total_dur = len(stimuli) * repeats * (duration + pause) + endzeros
     print('\n starting simulations')
@@ -95,7 +95,7 @@ def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
             dnn.get_sampled_representations(
                 model, layer, sd, stimuli, Nvox)
         data_clean  = pyrsa.data.Dataset(Usubj)
-        RDM_true_subj.append(pyrsa.rdm.calc_rdm(data_clean, noise=sigmaP))
+        rdm_true_subj.append(pyrsa.rdm.calc_rdm(data_clean, noise=sigmaP))
         # replaced with proper sampling of a timecourse
         #Usamp = dnn.get_random_sample(Usubj,sigmaP,sigmaNoise,N)
         rdm_samples_subj = np.zeros((len(stimuli), len(stimuli)))
@@ -133,7 +133,7 @@ def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
         data_samples = [pyrsa.data.Dataset(betas[i, :len(stimuli)])
                         for i in range(len(betas))]
         rdm_samples_subj = pyrsa.rdm.calc_rdm(data_samples, noise=sigma_p_est)
-        RDM_samples.append(rdm_samples_subj)
+        rdm_samples.append(rdm_samples_subj)
         if get_cov_estimate:
             t = np.arange(0, 30, resolution)
             hrf = spm_hrf(t)
@@ -148,7 +148,7 @@ def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
                                     sigmaKestimator=sigmaKestimator,
                                     sigmaRestimator=sigmaRestimator)
             covs.append(cov)
-    return RDM_true, RDM_true_subj, RDM_samples, covs
+    return rdm_true, rdm_true_subj, rdm_samples, covs
 
 
 def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
@@ -218,12 +218,12 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
 
         
 def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
-                      Nsubj=10, simulation_folder='test', Nsim=100, Nrepeat=2,
+                      Nsubj=10, simulation_folder='sim', Nsim=100, Nrepeat=2,
                       duration=5, pause=1, endzeros=25, use_cor_noise=True,
                       resolution=2, sigma_noise=1, ar_coeff=0.5,
-                      modelType='fixed', model_RDM='average_true',
-                      RDM_comparison='cosine', NLayer=7, nFold=5,
-                      RDM_type='crossnobis', Nstimuli=92):
+                      modelType='fixed', model_rdm='average_true',
+                      rdm_comparison='cosine', NLayer=7, nFold=5,
+                      rdm_type='crossnobis', Nstimuli=92):
     fname_base = simulation_folder + ('/layer%02d' % layer) \
         + ('/pars_%03d_%02d_%02d_%.2f/' % (Nvoxel, Nsubj, Nrepeat, sd)) \
         + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (duration, pause,
@@ -231,47 +231,49 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
     assert os.path.isdir(fname_base), 'simulated data not found!'
     models = []
     for iLayer in range(NLayer):
-        if model_RDM == 'average_true':
+        if model_rdm == 'average_true':
             fname_baseL = simulation_folder + ('/layer%02d' % (iLayer+1)) \
                 + ('/pars_%03d_%02d_%02d_%.2f/' % (Nvoxel, Nsubj, 
                                                    Nrepeat, sd)) \
                 + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (
                     duration, pause, endzeros, use_cor_noise, resolution,
                     sigma_noise, ar_coeff))
-            RDMtrue_average = 0
+            rdm_true_average = 0
             for i in range(Nsim):
                 Utrue = np.load(fname_baseL + 'Utrue%04d.npy' % i)
-                RDMtrue = pyrsa.calc_RDM(Utrue[:, :Nstimuli,:],
-                                         method='euclid')
-                RDMtrue = RDMtrue / np.mean(RDMtrue)
-                RDMtrue_average = RDMtrue_average + np.mean(RDMtrue,0)
-            RDM = RDMtrue_average/Nsim
+                dat_true = [pyrsa.data.Dataset(Utrue[i, :Nstimuli,:])
+                            for i in range(Utrue.shape[0])]
+                rdm_true = pyrsa.rdm.calc_rdm(dat_true, method='euclidean')
+                rdm_mat = rdm_true.get_vectors()
+                rdm_mat = rdm_mat / np.mean(rdm_mat)
+                rdm_true_average = rdm_true_average + np.mean(rdm_mat, 0)
+            rdm = rdm_true_average / Nsim
         if modelType == 'fixed':
-            models.append(pyrsa.model_fix(RDM))
+            models.append(pyrsa.model.ModelFixed('Layer%02d' % iLayer, rdm))
     scores = []
     noise_ceilings = []
     for i in tqdm.trange(Nsim):
         U = np.load(fname_base + 'U%04d.npy' % i)
-        RDMs = []
+        data = []
         for iSubj in range(U.shape[0]):
-            RDMs.append(pyrsa.calc_RDM(U[iSubj,:,:Nstimuli,:], method=RDM_type))
-        RDMs = np.array(RDMs)
-        score = np.array([pyrsa.crossvalidate(m, RDMs, method=RDM_comparison,
+            data.append(pyrsa.data.Dataset(U[iSubj,:,:Nstimuli,:]))
+        rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type)
+        score = np.array([pyrsa.crossvalidate(m, rdms, method=rdm_comparison,
                                               nFold=nFold)
                           for m in models])
-        [noise_min,noise_max] = pyrsa.noise_ceiling(RDMs,
-                                                    method=RDM_comparison,
-                                                    nFold=nFold)
-        np.save(fname_base + 'RDMs_%s_%04d.npy' % (RDM_type, i), RDMs)
+        [noise_min, noise_max] = pyrsa.noise_ceiling(rdms,
+                                                     method=rdm_comparison,
+                                                     nFold=nFold)
+        #np.save(fname_base + 'rdms_%s_%04d.npy' % (rdm_type, i), rdms)
         scores.append(score)
-        noise_ceilings.append([noise_min,noise_max])
+        #noise_ceilings.append([noise_min,noise_max])
     scores = np.array(scores)
     noise_ceilings = np.array(noise_ceilings)
     np.save(fname_base + 'scores_%s_%s_%s_%s_%d_%d.npy' % (
-        RDM_type, modelType, model_RDM, RDM_comparison, Nstimuli, nFold),
+        rdm_type, modelType, model_rdm, rdm_comparison, Nstimuli, nFold),
         scores)
     np.save(fname_base + 'noisec_%s_%s_%s_%s_%d_%d.npy' % (
-        RDM_type, modelType, model_RDM, RDM_comparison, Nstimuli, nFold),
+        rdm_type, modelType, model_rdm, rdm_comparison, Nstimuli, nFold),
         noise_ceilings)
 
 
@@ -279,9 +281,9 @@ def plot_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
                    Nsubj=10, simulation_folder='test', Nsim=100, Nrepeat=2,
                    duration=5, pause=1, endzeros=25, use_cor_noise = True,
                    resolution=2, sigma_noise=2, ar_coeff=0.5,
-                   modelType='fixed', model_RDM='average_true',
-                   RDM_comparison='cosine', NLayer=12, nFold=5,
-                   RDM_type='crossnobis', Nstimuli=96, fname_base=None):
+                   modelType='fixed', model_rdm='average_true',
+                   rdm_comparison='cosine', NLayer=12, nFold=5,
+                   rdm_type='crossnobis', Nstimuli=96, fname_base=None):
     if fname_base is None:
         fname_base = simulation_folder + ('/layer%02d' % layer) \
             + ('/pars_%03d_%02d_%02d_%.2f/' % (Nvoxel, Nsubj, Nrepeat, sd)) \
@@ -290,9 +292,9 @@ def plot_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
                 sigma_noise, ar_coeff))
     assert os.path.isdir(fname_base), 'simulated data not found!'
     scores = np.load(fname_base + 'scores_%s_%s_%s_%s_%d_%d.npy' % (
-        RDM_type, modelType, model_RDM, RDM_comparison, Nstimuli, nFold))
+        rdm_type, modelType, model_rdm, rdm_comparison, Nstimuli, nFold))
     noise_ceilings = np.load(fname_base + 'noisec_%s_%s_%s_%s_%d_%d.npy' % (
-        RDM_type,modelType,model_RDM,RDM_comparison,Nstimuli,nFold))
+        rdm_type,modelType,model_rdm,rdm_comparison,Nstimuli,nFold))
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.tick_params(labelsize=12)
     for iSim in range(Nsim):
@@ -308,16 +310,16 @@ def plot_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
     ax.spines['right'].set_visible(False)
     ax.set_xlabel('Layer', fontsize=18)
     ax.set_title('Layer %d' % layer, fontsize=28)
-    if RDM_comparison=='cosine':
+    if rdm_comparison=='cosine':
         plt.ylim([0, 1])
         ax.set_ylabel('Cosine Distance', fontsize=18)
-    elif RDM_comparison=='eudlid':
+    elif rdm_comparison=='eudlid':
         ax.set_ylabel('Euclidean Distance', fontsize=18)
-    elif RDM_comparison=='kendall-tau':
+    elif rdm_comparison=='kendall-tau':
         ax.set_ylabel('Kendall Tau', fontsize=18)
-    elif RDM_comparison=='pearson':
+    elif rdm_comparison=='pearson':
         ax.set_ylabel('Pearson Correlation', fontsize=18)
-    elif RDM_comparison=='spearman':
+    elif rdm_comparison=='spearman':
         ax.set_ylabel('Spearman Rho', fontsize=18)
         
 def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
@@ -325,9 +327,9 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
                            Nsim=100, Nrepeat=2, duration=5, pause=1,
                            endzeros=25, use_cor_noise=True, resolution = 2,
                            sigma_noise=2, ar_coeff=.5, modelType = 'fixed',
-                           model_RDM = 'average_true', Nstimuli=96,
-                           RDM_comparison = 'cosine', NLayer = 12, nFold=5,
-                           RDM_type='crossnobis', fname_base=None):
+                           model_rdm = 'average_true', Nstimuli=96,
+                           rdm_comparison = 'cosine', NLayer = 12, nFold=5,
+                           rdm_type='crossnobis', fname_base=None):
     if fname_base is None:
         fname_base = simulation_folder + ('/layer%02d' % layer) \
             + ('/pars_%03d_%02d_%02d_%.2f/' % (Nvoxel, Nsubj, Nrepeat, sd)) \
@@ -336,9 +338,9 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
                 sigma_noise, ar_coeff))
     assert os.path.isdir(fname_base), 'simulated data not found!'
     scores = np.load(fname_base + 'scores_%s_%s_%s_%s_%d_%d.npy' % (
-        RDM_type, modelType, model_RDM, RDM_comparison, Nstimuli, nFold))
+        rdm_type, modelType, model_rdm, rdm_comparison, Nstimuli, nFold))
     noise_ceilings = np.load(fname_base + 'noisec_%s_%s_%s_%s_%d_%d.npy' % (
-        RDM_type, modelType, model_RDM, RDM_comparison, Nstimuli, nFold))
+        rdm_type, modelType, model_rdm, rdm_comparison, Nstimuli, nFold))
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.tick_params(labelsize=12)
     for iSim in range(Nsim):
@@ -354,16 +356,16 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
     ax.spines['right'].set_visible(False)
     ax.set_xlabel('Layer', fontsize=18)
     ax.set_title('Layer %d' % layer, fontsize=28)
-    if RDM_comparison=='cosine':
+    if rdm_comparison=='cosine':
         plt.ylim([0,1])
         ax.set_ylabel('Cosine Distance', fontsize=18)
-    elif RDM_comparison=='eudlid':
+    elif rdm_comparison=='eudlid':
         ax.set_ylabel('Euclidean Distance', fontsize=18)
-    elif RDM_comparison=='kendall-tau':
+    elif rdm_comparison=='kendall-tau':
         ax.set_ylabel('Kendall Tau', fontsize=18)
-    elif RDM_comparison=='pearson':
+    elif rdm_comparison=='pearson':
         ax.set_ylabel('Pearson Correlation', fontsize=18)
-    elif RDM_comparison=='spearman':
+    elif rdm_comparison=='spearman':
         ax.set_ylabel('Spearman Rho', fontsize=18)
 
 
@@ -392,8 +394,8 @@ def calc_cov_estimate(us, sigma_p_est, sigmaP, design=None,
     return pyrsa.likelihood_cov(u, sigmaK, sigmaR, Nrepeat)
 
 
-# sampling distribution of one RDM
-def sampling_one_RDM(U0=None, N=1000, sigmaP=None, shrinkage=0.4,
+# sampling distribution of one rdm
+def sampling_one_rdm(U0=None, N=1000, sigmaP=None, shrinkage=0.4,
                      sigma=0.1, M=5, P=4):
     if U0 is None:
         U0 = pyrsa.generate_random_data(None,sigma=1,Nreps=1)
@@ -404,16 +406,16 @@ def sampling_one_RDM(U0=None, N=1000, sigmaP=None, shrinkage=0.4,
         
     sigma_p_est,sigmaR = pyrsa.shrink_sigma_residual(sigmaP,shrinkage=shrinkage)
     sigmaK = np.eye(U0.shape[0])
-    RDM_theory = pyrsa.calc_RDM_mahalanobis(U0,sigma_p_est)
-    #RDM_theory,cov_theory = pyrsa.extract_from_u(U0,sigmaP,shrinkage=shrinkage)
+    rdm_theory = pyrsa.calc_rdm_mahalanobis(U0,sigma_p_est)
+    #rdm_theory,cov_theory = pyrsa.extract_from_u(U0,sigmaP,shrinkage=shrinkage)
     #print(sigmaR)
     cov_theory = pyrsa.likelihood_cov(U0,sigmaK,sigmaR,M)
-    RDM_samples = np.zeros((N,RDM_theory.shape[0]))
+    rdm_samples = np.zeros((N,rdm_theory.shape[0]))
     covs = np.zeros((N,cov_theory.shape[0],cov_theory.shape[1]))
     for i in range(N):
         Usamp = pyrsa.generate_random_data(U0,sigma=sigma,Nreps=M)
-        RDM_samples[i],covs[i] = pyrsa.extract_from_u(Usamp,sigmaP,shrinkage=shrinkage,sigmaK=sigmaK)
-    return RDM_theory,cov_theory,RDM_samples,covs
+        rdm_samples[i],covs[i] = pyrsa.extract_from_u(Usamp,sigmaP,shrinkage=shrinkage,sigmaK=sigmaK)
+    return rdm_theory,cov_theory,rdm_samples,covs
 
 
 
@@ -426,7 +428,7 @@ def explore_cov_formula(u=np.array([[0, 0, 0, 0, 0], [1, 2, 3, 0, 0],
     K = u.shape[0]
     C = pyrsa.get_cotrast_matrix(K)
     deltas = np.matmul(C, u)
-    RDMtheory = np.sum(np.matmul(C,u) ** 2, axis=1) / P
+    rdmtheory = np.sum(np.matmul(C,u) ** 2, axis=1) / P
     mapMat = np.eye(P)
     mapMat[1, 3] = 1
     sigmaRtheory = np.matmul(mapMat, mapMat.transpose())
@@ -452,21 +454,21 @@ def explore_cov_formula(u=np.array([[0, 0, 0, 0, 0], [1, 2, 3, 0, 0],
     D = np.matmul(np.matmul(deltas,sigmaRtheory),deltas.transpose())
     cov_pred = 4/(P**2*M)*number*D + 2*(number**2)*np.sum(sigmaRtheory**2)/M/(M-1)/(P**2)
     
-    covRDMs = np.zeros((Nrep,cov_pred.shape[0],cov_pred.shape[0]))
+    covrdms = np.zeros((Nrep,cov_pred.shape[0],cov_pred.shape[0]))
     for iRep in tqdm.trange(Nrep):
         usamp = np.squeeze(np.matmul(mapMat,np.random.randn(M,N,4,5,1))) + u
         Ds = np.matmul(C,usamp) # difference vectors
-        RDMs = np.zeros((M,N,6))
+        rdms = np.zeros((M,N,6))
         for im in range(M):
             idx = np.arange(M) !=im
-            RDMs[im] = np.einsum('ijk,ijk->ij',Ds[im],np.mean(Ds[idx],axis=0))/P
-        RDMs = np.mean(RDMs,axis=0)
-        covRDMs[iRep] = np.cov(RDMs.transpose())
+            rdms[im] = np.einsum('ijk,ijk->ij',Ds[im],np.mean(Ds[idx],axis=0))/P
+        rdms = np.mean(rdms,axis=0)
+        covrdms[iRep] = np.cov(rdms.transpose())
     
     plt.figure(figsize=(10,5))
     plt.subplot(1,2,1)
     for iRep in range(Nrep):
-        plt.plot(covRDMs[iRep][:],cov_pred[:],'k.')
+        plt.plot(covrdms[iRep][:],cov_pred[:],'k.')
     plt.plot([-5,30],[-5,30],'k--')
     plt.title('ours',fontsize=24)
     plt.xlabel('sampled/true covariance',fontsize = 15)
@@ -475,7 +477,7 @@ def explore_cov_formula(u=np.array([[0, 0, 0, 0, 0], [1, 2, 3, 0, 0],
     
     plt.subplot(1,2,2)
     for iRep in range(Nrep):
-        plt.plot(covRDMs[iRep][:],covMatrix[:],'k.')
+        plt.plot(covrdms[iRep][:],covMatrix[:],'k.')
     plt.plot([-5,30],[-5,30],'k--')
     plt.title('Diedrichsen et. al.',fontsize=24)
     plt.xlabel('sampled/true covariance',fontsize = 15)
@@ -502,7 +504,7 @@ def explore_cov_formula_random(N=100000, M=3, P=5, K=4, Nrep=100, mapMat=None):
 
     Nds = int(K * (K-1) / 2)
 
-    covRDMs = np.zeros((Nrep,Nds,Nds))
+    covrdms = np.zeros((Nrep,Nds,Nds))
     covMatrix = np.zeros((Nrep,Nds,Nds))
     cov_pred = np.zeros((Nrep,Nds,Nds))
     for iRep in tqdm.trange(Nrep):
@@ -522,20 +524,20 @@ def explore_cov_formula_random(N=100000, M=3, P=5, K=4, Nrep=100, mapMat=None):
     
         usamp = np.squeeze(np.matmul(mapMat, np.random.randn(M, N, K, P, 1))) + u
         Ds = np.matmul(C,usamp) # difference vectors
-        RDMs = np.zeros((M, N, 6))
+        rdms = np.zeros((M, N, 6))
         for im in range(M):
             idx = np.arange(M) != im
-            RDMs[im] = np.einsum('ijk,ijk->ij', Ds[im],
+            rdms[im] = np.einsum('ijk,ijk->ij', Ds[im],
                                  np.mean(Ds[idx], axis=0)) / P
-        RDMs = np.mean(RDMs,axis=0)
-        covRDMs[iRep] = np.cov(RDMs.transpose())
+        rdms = np.mean(rdms,axis=0)
+        covrdms[iRep] = np.cov(rdms.transpose())
     
     plt.figure(figsize=(10,5))
     plt.subplot(1,2,1)
     for iRep in range(Nrep):
-        plt.plot(covRDMs[iRep][:],cov_pred[iRep][:], 'k.')
-    plt.plot([np.min(covRDMs),np.max(covRDMs)],
-             [np.min(covRDMs),np.max(covRDMs)],
+        plt.plot(covrdms[iRep][:],cov_pred[iRep][:], 'k.')
+    plt.plot([np.min(covrdms),np.max(covrdms)],
+             [np.min(covrdms),np.max(covrdms)],
              'k--')
     plt.title('ours', fontsize=24)
     plt.xlabel('sampled/true covariance', fontsize=15)
@@ -544,9 +546,9 @@ def explore_cov_formula_random(N=100000, M=3, P=5, K=4, Nrep=100, mapMat=None):
     
     plt.subplot(1,2,2)
     for iRep in range(Nrep):
-        plt.plot(covRDMs[iRep][:],covMatrix[iRep][:],'k.')
-    plt.plot([np.min(covRDMs), np.max(covRDMs)],
-             [np.min(covRDMs), np.max(covRDMs)],
+        plt.plot(covrdms[iRep][:],covMatrix[iRep][:],'k.')
+    plt.plot([np.min(covrdms), np.max(covrdms)],
+             [np.min(covrdms), np.max(covrdms)],
              'k--')
     plt.title('Diedrichsen et. al.',fontsize=24)
     plt.xlabel('sampled/true covariance',fontsize = 15)
@@ -556,13 +558,13 @@ def explore_cov_formula_random(N=100000, M=3, P=5, K=4, Nrep=100, mapMat=None):
     plt.figure(figsize=(10,10))
     for iRep in range(Nrep):
         plt.plot(cov_pred[iRep][:],covMatrix[iRep][:],'k.')
-    plt.plot([np.min(covRDMs), np.max(covRDMs)],
-             [np.min(covRDMs), np.max(covRDMs)],
+    plt.plot([np.min(covrdms), np.max(covrdms)],
+             [np.min(covrdms), np.max(covrdms)],
              'k--')
     plt.xlabel('ours',fontsize = 15)
     plt.ylabel('Diedrichsen et. al.',fontsize = 15)
     plt.gca().set_aspect('equal', adjustable='box')
-    return covMatrix,cov_pred,covRDMs
+    return covMatrix,cov_pred,covrdms
     
     
 def test_cov_mult():
@@ -584,14 +586,14 @@ def plot_n_zeros(k=np.arange(4,50)):
     plt.ylim([0,1])
     
    
-def sampling_pool_RDM(U0,Nsubj,sigmaP,N=1000):
+def sampling_pool_rdm(U0,Nsubj,sigmaP,N=1000):
     return None 
     
 def pipeline_pooling_dnn(model=None, Nvox=10, fname='alexnet', Nsubj=10,
                          Nrepeat=5, cross_residuals=True, shrinkage=0.4,
                          layer=3, Nsamp=3, Nstimuli=92):
     # runs the simulations to calculate a specific result for the pooling analysis
-    # this produces 7 pooled RDMs for every sample:
+    # this produces 7 pooled rdms for every sample:
     # 0 : Mean
     # 1 : sigmaR = eye, sigmaK = eye
     # 2 : sigmaR = eye, sigmaK = design
@@ -629,13 +631,13 @@ def pipeline_pooling_dnn(model=None, Nvox=10, fname='alexnet', Nsubj=10,
     sigma_noise = None
     resolution = None
     ar_coeff = None
-    RDMs_true_subj = []
-    RDMs_samples = []
-    RDMs_covs = []
+    rdms_true_subj = []
+    rdms_samples = []
+    rdms_covs = []
     for iSamp in tqdm.trange(Nsamp, position=0):
-        RDM_true = dnn.get_true_RDM(model,layer,stimuli)
-        RDM_true_subj = np.zeros((Nsubj,)+RDM_true.shape)
-        RDM_samples = []
+        rdm_true = dnn.get_true_rdm(model,layer,stimuli)
+        rdm_true_subj = np.zeros((Nsubj,)+rdm_true.shape)
+        rdm_samples = []
         covs11 = []
         covs12 = []
         covs13 = []
@@ -647,7 +649,7 @@ def pipeline_pooling_dnn(model=None, Nvox=10, fname='alexnet', Nsubj=10,
         for iSubj in tqdm.trange(Nsubj,position=1):
             Usubj, sigmaP, indices_space, weights = \
                 dnn.get_sampled_representations(model,layer,sd,stimuli,Nvox)
-            RDM_true_subj[iSubj] = pyrsa.calc_RDM_mahalanobis(Usubj,sigmaP)
+            rdm_true_subj[iSubj] = pyrsa.calc_rdm_mahalanobis(Usubj,sigmaP)
             # replaced with proper sampling of a timecourse
             #Usamp = dnn.get_random_sample(Usubj,sigmaP,sigmaNoise,N) 
             rdm_samples_subj = np.zeros((len(stimuli),len(stimuli)))
@@ -688,9 +690,9 @@ def pipeline_pooling_dnn(model=None, Nvox=10, fname='alexnet', Nsubj=10,
                     + (1-shrinkage)* sigma_p_est
             elif shrinkage ==np.inf:
                 sigma_p_est = np.eye(Nvox)
-            rdm_samples_subj = pyrsa.calc_RDM_crossnobis(
+            rdm_samples_subj = pyrsa.calc_rdm_crossnobis(
                 betas[:, :len(stimuli)], sigma_p_est)
-            RDM_samples.append(rdm_samples_subj) 
+            rdm_samples.append(rdm_samples_subj) 
             t = np.arange(0,30,resolution)
             hrf = spm_hrf(t)
             hrf = np.array([hrf]).transpose()
@@ -754,37 +756,37 @@ def pipeline_pooling_dnn(model=None, Nvox=10, fname='alexnet', Nsubj=10,
                                             sigmaKestimator='sample',
                                             sigmaRestimator='sample'))
         #print('\n starting pooling')
-        RDM_samples = np.array(RDM_samples)
-        RDMs_true_subj.append(RDM_true_subj)
-        RDM_pool = []
+        rdm_samples = np.array(rdm_samples)
+        rdms_true_subj.append(rdm_true_subj)
+        rdm_pool = []
         cov_pool = []
-        pool = pyrsa.pool_rdms(RDM_samples)
-        RDM_pool.append(pyrsa.get_rdm_vector(pool))
-        pool = pyrsa.pool_rdms(RDM_samples, covs11)
-        RDM_pool.append(pool[0])
+        pool = pyrsa.pool_rdms(rdm_samples)
+        rdm_pool.append(pyrsa.get_rdm_vector(pool))
+        pool = pyrsa.pool_rdms(rdm_samples, covs11)
+        rdm_pool.append(pool[0])
         cov_pool.append(pool[1])
-        pool = pyrsa.pool_rdms(RDM_samples, covs12)
-        RDM_pool.append(pool[0])
+        pool = pyrsa.pool_rdms(rdm_samples, covs12)
+        rdm_pool.append(pool[0])
         cov_pool.append(pool[1])
-        pool = pyrsa.pool_rdms(RDM_samples, covs13)
-        RDM_pool.append(pool[0])
+        pool = pyrsa.pool_rdms(rdm_samples, covs13)
+        rdm_pool.append(pool[0])
         cov_pool.append(pool[1])
-        pool = pyrsa.pool_rdms(RDM_samples, covs21)
-        RDM_pool.append(pool[0])
+        pool = pyrsa.pool_rdms(rdm_samples, covs21)
+        rdm_pool.append(pool[0])
         cov_pool.append(pool[1])
-        pool = pyrsa.pool_rdms(RDM_samples, covs22)
-        RDM_pool.append(pool[0])
+        pool = pyrsa.pool_rdms(rdm_samples, covs22)
+        rdm_pool.append(pool[0])
         cov_pool.append(pool[1])
-        pool = pyrsa.pool_rdms(RDM_samples, covs23)
-        RDM_pool.append(pool[0])
+        pool = pyrsa.pool_rdms(rdm_samples, covs23)
+        rdm_pool.append(pool[0])
         cov_pool.append(pool[1])
-        RDMs_samples.append(np.array(RDM_pool))
-        RDMs_covs.append(cov_pool)
-    RDMs_samples = np.array(RDMs_samples)
-    RDMs_true_subj = np.array(RDMs_true_subj)
-    np.save(fnameTrue, RDM_true)
-    np.save(fnameSubj, RDMs_true_subj)
-    np.save(fnameSamples, RDMs_samples)
+        rdms_samples.append(np.array(rdm_pool))
+        rdms_covs.append(cov_pool)
+    rdms_samples = np.array(rdms_samples)
+    rdms_true_subj = np.array(rdms_true_subj)
+    np.save(fnameTrue, rdm_true)
+    np.save(fnameSubj, rdms_true_subj)
+    np.save(fnameSamples, rdms_samples)
 
 
 def plot_dnn_pooling(fname='alexnet', Nstimuli=40, layer=3, Nsubj=10,
@@ -797,7 +799,7 @@ def plot_dnn_pooling(fname='alexnet', Nstimuli=40, layer=3, Nsubj=10,
     else:
         fnameTrue = fname + 'True%d_%04d_%02d_%02dS_%02dR.npy' % (
             layer, 10, Nstimuli, Nsubj, Nrepeat)
-    trueRDM = np.load(fnameTrue)
+    truerdm = np.load(fnameTrue)
     error = np.zeros((5, 7))
     corr = np.zeros((5, 7))
     errorSubj = np.zeros((5))
@@ -818,19 +820,19 @@ def plot_dnn_pooling(fname='alexnet', Nstimuli=40, layer=3, Nsubj=10,
         Nsamp = trueSubj.shape[0]
         trueSubj = trueSubj.reshape(Nsubj * Nsamp, Nstimuli, Nstimuli)
         samples = np.load(fnameSamples)
-        errorSubj[k] = np.mean(pyrsa.error_rdm(trueSubj, trueRDM))
-        corrSubj[k] = np.mean(pyrsa.corr_rdm(trueSubj, trueRDM))
-        for iPool in range(7):
-            error[k, iPool] = np.mean(pyrsa.error_rdm(samples[:, iPool],
-                                                      trueRDM))
-            corr[k, iPool] = np.mean(pyrsa.corr_rdm(samples[:, iPool],
-                                                    trueRDM))
+        errorSubj[k] = np.mean(pyrsa.error_rdm(trueSubj, truerdm))
+        corrSubj[k] = np.mean(pyrsa.corr_rdm(trueSubj, truerdm))
+        for i_pool in range(7):
+            error[k, i_pool] = np.mean(pyrsa.error_rdm(samples[:, i_pool],
+                                                      truerdm))
+            corr[k, i_pool] = np.mean(pyrsa.corr_rdm(samples[:, i_pool],
+                                                    truerdm))
         k = k+1
     plt.figure()
     plt.plot(corr)
     plt.xticks(ticks=[0, 1, 2, 3, 4], labels=['10', '25', '75', '200', '500'])
     plt.xlabel('Number of Voxels')
-    plt.ylabel('RDM correlation')
+    plt.ylabel('rdm correlation')
     plt.legend(['simple Mean', 'I,I', 'I,design', 'I,sample', 'sample,I',
                 'sample,design', 'sample,sample'], frameon=False)
     plt.figure()
