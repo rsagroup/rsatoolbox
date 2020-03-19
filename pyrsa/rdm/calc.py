@@ -12,7 +12,8 @@ from pyrsa.data import average_dataset_by
 from pyrsa.util.matrix import pairwise_contrast_sparse
 
 
-def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
+def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
+             cv_descriptor=None):
     """
     calculates an RDM from an input dataset
 
@@ -39,7 +40,8 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
     elif method == 'mahalanobis':
         rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
     elif method == 'crossnobis':
-        rdm = calc_rdm_crossnobis(dataset, descriptor, noise)
+        rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
+                                  cv_descriptor=cv_descriptor)
     else:
         raise(NotImplementedError)
     return rdm
