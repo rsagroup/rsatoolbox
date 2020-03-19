@@ -83,7 +83,7 @@ def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
         model = dnn.get_default_model()
     print('\n getting true RDM')
     RDM_true = dnn.get_true_RDM(model, layer, stimuli)
-    RDM_true_subj = np.zeros((Nsubj, ) + RDM_true.shape)
+    RDM_true_subj = []
     RDM_samples = []
     covs = []
     total_dur = len(stimuli) * repeats * (duration + pause) + endzeros
@@ -92,7 +92,8 @@ def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
         Usubj, sigmaP, indices_space, weights = \
             dnn.get_sampled_representations(
                 model, layer, sd, stimuli, Nvox)
-        RDM_true_subj[iSubj] = pyrsa.calc_RDM_mahalanobis(Usubj, sigmaP)
+        data_clean  = pyrsa.data.Dataset(Usubj)
+        RDM_true_subj.append(pyrsa.rdm.calc_rdm(data_clean, noise=sigmaP))
         # replaced with proper sampling of a timecourse
         #Usamp = dnn.get_random_sample(Usubj,sigmaP,sigmaNoise,N)
         rdm_samples_subj = np.zeros((len(stimuli), len(stimuli)))
@@ -127,10 +128,11 @@ def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
                 + (1 - shrinkage) * sigma_p_est
         elif shrinkage == np.inf:
             sigma_p_est = np.eye(Nvox)
-        rdm_samples_subj = pyrsa.calc_RDM_crossnobis(betas[:, :len(stimuli)],
-                                                     sigma_p_est)
+        data_samples = [pyrsa.data.Dataset(betas[i, :len(stimuli)])
+                        for i in range(len(betas))]
+        rdm_samples_subj = pyrsa.rdm.calc_rdm(data_samples, noise=sigma_p_est)
         RDM_samples.append(rdm_samples_subj)
-        if calc_cov_estimate:
+        if get_cov_estimate:
             t = np.arange(0, 30, resolution)
             hrf = spm_hrf(t)
             hrf = np.array([hrf]).transpose()
@@ -144,7 +146,6 @@ def sampling_DNN(stimuli, Nsubj=3, Nvox=100, Nrepeat=5, shrinkage=0,
                                     sigmaKestimator=sigmaKestimator,
                                     sigmaRestimator=sigmaRestimator)
             covs.append(cov)
-    RDM_samples = np.array(RDM_samples)
     return RDM_true, RDM_true_subj, RDM_samples, covs
 
 
@@ -365,7 +366,8 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
     elif RDM_comparison=='spearman':
         ax.set_ylabel('Spearman Rho', fontsize=18)
 
-def calc_cov_estimate(us,sigma_p_est, sigmaP, design=None,
+
+def calc_cov_estimate(us, sigma_p_est, sigmaP, design=None,
                       sigmaKestimator='eye', sigmaRestimator='eye'):
     # the design should already be convolved with the hrf!
     # this is only necessary for 'design' as sigmaK estimator
@@ -378,8 +380,7 @@ def calc_cov_estimate(us,sigma_p_est, sigmaP, design=None,
     elif sigmaKestimator == 'design':
         sigmaK = np.linalg.inv(np.matmul(design.transpose(),design))
     else:
-        raise ValueError('sigmaKestimator should be \'eye\' or \'sample\' or \'design\'')   
-       
+        raise ValueError('sigmaKestimator should be \'eye\' or \'sample\' or \'design\'')
     if sigmaRestimator == 'eye':
         sigmaR = np.eye(u.shape[1])
     elif sigmaRestimator == 'sample':
@@ -388,11 +389,12 @@ def calc_cov_estimate(us,sigma_p_est, sigmaP, design=None,
     else:
         raise ValueError('sigmaRestimator should be \'eye\' or \'sample\'') 
     #cov = scipy.sparse.csc_matrix(pyrsa.likelihood_cov(u,sigmaK,sigmaR,Nrepeat))
-    return pyrsa.likelihood_cov(u,sigmaK,sigmaR,Nrepeat)
+    return pyrsa.likelihood_cov(u, sigmaK, sigmaR, Nrepeat)
 
 
 # sampling distribution of one RDM
-def sampling_one_RDM(U0 = None, N = 1000, sigmaP = None, shrinkage=0.4, sigma=0.1,M=5,P=4):
+def sampling_one_RDM(U0=None, N=1000, sigmaP=None, shrinkage=0.4,
+                     sigma=0.1, M=5, P=4):
     if U0 is None:
         U0 = pyrsa.generate_random_data(None,sigma=1,Nreps=1)
     if sigmaP is None:
