@@ -176,6 +176,10 @@ def calc_rdm_crossnobis(dataset,
     if descriptor is None:
         raise ValueError('descriptor must be a string! Crossvalidation' +
                          'requires multiple measurements to be grouped')
+    if cv_descriptor is None:
+        cv_desc = _gen_default_cv_descriptor(dataset, descriptor)
+        dataset.obs_descriptors['cv_desc'] = cv_desc
+        cv_descriptor = 'cv_desc'
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     weights = []
     rdms = []
@@ -220,6 +224,22 @@ def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
     diff_2 = noise @ diff_2.transpose()
     rdm = np.einsum('kj,jk->k', diff_1, diff_2) / measurements1.shape[1]
     return rdm
+
+
+def _gen_default_cv_descriptor(dataset, descriptor):
+    """ generates a default cv_descriptor for crossnobis 
+    This assumes that the first occurence each descriptor value forms the
+    first group, the second occurence forms the second group, etc.
+    """
+    desc = dataset.obs_descriptors[descriptor]
+    values, counts = np.unique(desc, return_counts=True)
+    assert np.all(counts==counts[0]), ('cv_descriptor generation failed:\n'
+        + 'different number of observations per pattern')
+    n_repeats = counts[0]
+    cv_descriptor = np.zeros_like(desc)
+    for i_val in values:
+        cv_descriptor[desc==i_val] = np.arange(n_repeats)
+    return cv_descriptor
 
 
 def _calc_pairwise_differences(measurements):
