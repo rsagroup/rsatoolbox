@@ -340,7 +340,7 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
             evaluations[i_sample, 0, :] = cv_result.evaluations[0, 0]
         elif isinstance(model, Iterable):
             evaluations[i_sample, :, :] = cv_result.evaluations[0]
-            noise_ceil[:,i_sample] = cv_result.noise_ceiling
+        noise_ceil[:, i_sample] = np.mean(cv_result.noise_ceiling, axis=-1)
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap_crossval', noise_ceiling=noise_ceil)
     return result

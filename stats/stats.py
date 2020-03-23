@@ -230,6 +230,7 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
             endzeros, use_cor_noise, resolution, sigma_noise, ar_coeff))
     assert os.path.isdir(fname_base), 'simulated data not found!'
     models = []
+    pat_desc = {'stim':np.arange(Nstimuli)}
     for iLayer in range(NLayer):
         if model_rdm == 'average_true':
             fname_baseL = simulation_folder + ('/layer%02d' % (iLayer+1)) \
@@ -249,7 +250,8 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
                 rdm_true_average = rdm_true_average + np.mean(rdm_mat, 0)
             rdm = rdm_true_average / Nsim
         if modelType == 'fixed':
-            models.append(pyrsa.model.ModelFixed('Layer%02d' % iLayer, rdm))
+            models.append(pyrsa.model.ModelFixed('Layer%02d' % iLayer,
+                pyrsa.rdm.RDMs(rdm, pattern_descriptors=pat_desc)))
     scores = []
     noise_ceilings = []
     for i in tqdm.trange(Nsim):
@@ -262,17 +264,10 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
             data.append(pyrsa.data.Dataset(u_subj, obs_descriptors=desc))
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor='repeat')
-        score = np.array([pyrsa.crossvalidate(m, rdms, method=rdm_comparison,
-                                              nFold=nFold)
-                          for m in models])
-        [noise_min, noise_max] = pyrsa.noise_ceiling(rdms,
-                                                     method=rdm_comparison,
-                                                     nFold=nFold)
-        #np.save(fname_base + 'rdms_%s_%04d.npy' % (rdm_type, i), rdms)
-        scores.append(score)
-        #noise_ceilings.append([noise_min,noise_max])
+        results = pyrsa.inference.bootstrap_crossval(models, rdms,
+            pattern_descriptor='stim', rdm_descriptor='index')
+        scores.append(results)
     scores = np.array(scores)
-    noise_ceilings = np.array(noise_ceilings)
     np.save(fname_base + 'scores_%s_%s_%s_%s_%d_%d.npy' % (
         rdm_type, modelType, model_rdm, rdm_comparison, Nstimuli, nFold),
         scores)
