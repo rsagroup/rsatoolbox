@@ -18,3 +18,4 @@ from .crossvalsets import sets_k_fold_rdm
 from .crossvalsets import sets_of_k_pattern
 from .noise_ceiling import cv_noise_ceiling
 from .noise_ceiling import boot_noise_ceiling
+from .result import Result
