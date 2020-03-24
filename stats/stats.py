@@ -229,6 +229,10 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
         + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (duration, pause,
             endzeros, use_cor_noise, resolution, sigma_noise, ar_coeff))
     assert os.path.isdir(fname_base), 'simulated data not found!'
+    res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d' % (
+        rdm_type, modelType, model_rdm, rdm_comparison, Nstimuli, nFold)
+    if not os.path.isdir(res_path):
+        os.mkdir(res_path)
     models = []
     pat_desc = {'stim':np.arange(Nstimuli)}
     for iLayer in range(NLayer):
@@ -252,8 +256,6 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
         if modelType == 'fixed':
             models.append(pyrsa.model.ModelFixed('Layer%02d' % iLayer,
                 pyrsa.rdm.RDMs(rdm, pattern_descriptors=pat_desc)))
-    scores = []
-    noise_ceilings = []
     for i in tqdm.trange(Nsim):
         U = np.load(fname_base + 'U%04d.npy' % i)
         data = []
@@ -266,14 +268,9 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
                                   cv_descriptor='repeat')
         results = pyrsa.inference.bootstrap_crossval(models, rdms,
             pattern_descriptor='stim', rdm_descriptor='index')
-        scores.append(results)
-    scores = np.array(scores)
-    np.save(fname_base + 'scores_%s_%s_%s_%s_%d_%d.npy' % (
-        rdm_type, modelType, model_rdm, rdm_comparison, Nstimuli, nFold),
-        scores)
-    np.save(fname_base + 'noisec_%s_%s_%s_%s_%d_%d.npy' % (
-        rdm_type, modelType, model_rdm, rdm_comparison, Nstimuli, nFold),
-        noise_ceilings)
+        results.save(fname_base + 'results_%s_%s_%s_%s_%d_%d/res%04d' % (
+            rdm_type, modelType, model_rdm, rdm_comparison, Nstimuli,
+            nFold, i))
 
 
 def plot_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), Nvoxel=100,
