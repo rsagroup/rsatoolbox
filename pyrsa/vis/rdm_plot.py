@@ -9,7 +9,7 @@ Created on Thu Mar 12 16:21:53 2020
 import numpy as np
 import matplotlib.pyplot as plt
 from pyrsa.rdm import rank_transform
-
+from pyrsa.vis.colors import rdm_colormap
 
 def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
              cmap=None):
@@ -28,6 +28,8 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
         conventions as for matplotlib colormaps
 
     """
+    if cmap is None:
+        cmap = rdm_colormap() 
     if do_rank_transform:
         rdm = rank_transform(rdm)
     rdm_mat = rdm.get_matrices()
