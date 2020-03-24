@@ -134,5 +134,30 @@ class TestDataComputations(unittest.TestCase):
         self.assertEqual(descriptor[-1],5)
         assert(np.all(self.test_data.measurements[-1]==avg[-1]))
         
+
+class testSave(unittest.TestCase):
+    def test_save_load(self):
+        measurements = np.zeros((10,5))
+        des = {'session':0,'subj':0}
+        obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5])}
+        chn_des = {'rois':np.array(['V1','V1','IT','IT','V4'])}
+        data = rsd.Dataset(measurements=measurements,
+                           descriptors=des,
+                           obs_descriptors=obs_des,
+                           channel_descriptors=chn_des
+                           )
+        try:
+            data.save('test')
+            data_loaded = rsd.load_dataset('test')
+        finally:
+            import os
+            os.remove('test.npy')
+            os.remove('test_desc.pkl')
+        assert data_loaded.n_channel == data.n_channel
+        assert np.all(data_loaded.obs_descriptors['conds'] == obs_des['conds'])
+        assert np.all(data_loaded.channel_descriptors['rois'] == chn_des['rois'])
+        assert data_loaded.descriptors['subj'] == 0
+        
+
 if __name__ == '__main__':
     unittest.main()  

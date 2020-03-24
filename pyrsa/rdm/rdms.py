@@ -6,6 +6,7 @@ Definition of RSA RDMs class and subclasses
 """
 
 import numpy as np
+import pickle
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -251,6 +252,7 @@ class RDMs:
                     rdm_descriptors=rdm_descriptors,
                     pattern_descriptors=pattern_descriptors)
         return rdms
+
     def append(self, rdm):
         """ appends an rdm to the object
         The rdm should have the same shape and type as this object.
@@ -271,6 +273,40 @@ class RDMs:
         self.rdm_descriptors = append_descriptor(self.rdm_descriptors,
                                                  rdm.rdm_descriptors)
         self.n_rdm = self.n_rdm + rdm.n_rdm
+    def save(self, filename):
+        """ saves the RDMs object into files
+
+        This function generates two files:
+            [filename].npy : a numpy array file to save the dissimilarities
+            [filename]_desc.pkl : a pickled file of the descriptors
+
+        Args:
+            filename(String): path to file to save to
+
+        """
+        np.save(filename + '.npy', self.dissimilarities)
+        pickle.dump([self.descriptors,
+                     self.rdm_descriptors,
+                     self.pattern_descriptors,
+                     self.dissimilarity_measure],
+                    open(filename + '_desc.pkl','wb'))
+
+
+def load_rdm(filename):
+    """ loads a RDMs object from disc
+    
+    Args:
+        filename(String): path to file to load
+
+    """
+    diss = np.load(filename + '.npy')
+    desc = pickle.load(open(filename + '_desc.pkl','rb'))
+    rdms = RDMs(diss,
+                dissimilarity_measure=desc[3],
+                descriptors=desc[0],
+                rdm_descriptors=desc[1],
+                pattern_descriptors=desc[2])
+    return rdms
 
 
 def concat(rdms):

@@ -6,6 +6,8 @@ Definition of RSA Dataset class and subclasses
 """
 
 
+import numpy as np
+import pickle
 from pyrsa.util.data_utils import get_unique_unsorted
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import subset_descriptor
@@ -137,6 +139,20 @@ class DatasetBase:
         """
         raise NotImplementedError(
             "subset_channel function not implemented in used Dataset class!")
+    def save(self, filename):
+        """ Saves the dataset object to two files:
+            [filename].npy : the data in numpy format
+            [filename]_desc.pkl : pickle of the descriptors
+            
+        Args:
+            filename(String): path to the file(s)
+
+        """
+        np.save(filename + '.npy', self.measurements)
+        pickle.dump([self.descriptors,
+                     self.obs_descriptors,
+                     self.channel_descriptors],
+                    open(filename + '_desc.pkl','wb'))
 
 
 class Dataset(DatasetBase):
@@ -244,3 +260,19 @@ class Dataset(DatasetBase):
                           obs_descriptors=obs_descriptors,
                           channel_descriptors=channel_descriptors)
         return dataset
+
+
+def load_dataset(filename):
+    """ loads a Dataset object from disc
+    
+    Args:
+        filename(String): path to file to load
+
+    """
+    measurements = np.load(filename + '.npy')
+    desc = pickle.load(open(filename + '_desc.pkl','rb'))
+    data = Dataset(measurements,
+                   descriptors=desc[0],
+                   obs_descriptors=desc[1],
+                   channel_descriptors=desc[2])
+    return data
