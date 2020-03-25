@@ -217,3 +217,25 @@ class test_evaluation_lists(unittest.TestCase):
         m2 = ModelFixed('test2', rdms.get_vectors()[1])
         evaluations, n_rdms = bootstrap_testset_rdm([m, m2], rdms,
             method='cosine', fitter=None, N=100, rdm_descriptor=None)
+
+class test_save_load_result(unittest.TestCase):
+    def test_save_load_result(self):
+        from pyrsa.inference import Result
+        from pyrsa.inference import load_results
+        from pyrsa.model import ModelFixed
+        import io
+        f = io.BytesIO() # Essentially a Mock file
+        m1 = ModelFixed('test1', np.random.rand(10))
+        m2 = ModelFixed('test2', np.random.rand(10))
+        models = [m1, m2]
+        evaluations = np.random.rand(100,2)
+        method = 'test_method'
+        cv_method = 'test_cv_method'
+        noise_ceiling = np.array([0.5, 0.2])
+        res = Result(models, evaluations, method, cv_method, noise_ceiling)
+        res.save(f)
+        res_loaded = load_results(f)
+        assert res_loaded.method == method
+        assert res_loaded.cv_method == cv_method
+        assert np.all(res_loaded.evaluations == evaluations)
+        

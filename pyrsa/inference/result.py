@@ -7,7 +7,8 @@ Created on Wed Feb 19 14:42:47 2020
 """
 
 import numpy as np
-import pickle
+import h5py
+import os
 import pyrsa.model
 
 class Result:
@@ -47,11 +48,7 @@ class Result:
         self.noise_ceiling = noise_ceiling
 
     def save(self, filename):
-        """ saves the evaluations into a file. This will create 3 files:
-            [filename].npy: the model evaluations
-            [filename]_ns.npy: the noise_ceiling
-            [filename]_desc.pkl: the descriptors about the results
-                                 (method, cv_method)
+        """ saves the results into a file. 
 
         the list of models is currently not saved!
 
@@ -59,11 +56,14 @@ class Result:
             filename(String): path to the filelocation
 
         """
-        np.save(filename + '.npy', self.evaluations)
-        np.save(filename + '_ns.npy', self.noise_ceiling)
-        pickle.dump([self.method,
-                     self.cv_method],
-                    open(filename + '_desc.pkl','wb'))
+        if isinstance(filename, str) and os.path.isfile(filename):
+            raise FileExistsError('File already exists')
+        file = h5py.File(filename, 'a')
+        file['evaluations'] = self.evaluations
+        file['noise_ceiling'] = self.noise_ceiling
+        file.attrs['method'] = self.method
+        file.attrs['cv_method'] = self.cv_method
+        file.attrs['version'] = 3
 
 
 def load_results(filename):
@@ -73,8 +73,10 @@ def load_results(filename):
         filename(String): path to the filelocation
 
     """
-    evaluations = np.load(filename + '.npy')
+    file = h5py.File(filename, 'a')
+    evaluations = np.array(file['evaluations'])
     models = [None] * evaluations.shape[1]
-    noise_ceiling = np.load(filename + '_ns.npy')
-    desc = pickle.load(open(filename + '_desc.pkl', 'rb'))
-    return Result(models, evaluations, desc[0], desc[1], noise_ceiling)
+    noise_ceiling = np.array(file['noise_ceiling'])
+    method = file.attrs['method']
+    cv_method = file.attrs['cv_method']
+    return Result(models, evaluations, method, cv_method, noise_ceiling)
