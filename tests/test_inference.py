@@ -273,7 +273,6 @@ class test_save_load(unittest.TestCase):
         assert res_loaded.cv_method == cv_method
         assert np.all(res_loaded.evaluations == evaluations)
         assert np.all(res_loaded.models[0].rdm == m1.rdm)
-        
 
     def test_save_load_result(self):
         from pyrsa.inference import Result
