@@ -218,7 +218,44 @@ class test_evaluation_lists(unittest.TestCase):
         evaluations, n_rdms = bootstrap_testset_rdm([m, m2], rdms,
             method='cosine', fitter=None, N=100, rdm_descriptor=None)
 
-class test_save_load_result(unittest.TestCase):
+class test_save_load(unittest.TestCase):
+    def test_model_dict(self):
+        from pyrsa.model import model_from_dict
+        from pyrsa.model import ModelFixed
+        m = ModelFixed('test1', np.random.rand(10))
+        model_dict = m.to_dict()
+        model_loaded = model_from_dict(model_dict)
+        assert m.name == model_loaded.name
+        assert np.all(m.rdm_obj.dissimilarities == model_loaded.rdm_obj.dissimilarities)
+
+        from pyrsa.model import ModelInterpolate
+        m = ModelInterpolate('test1', np.random.rand(10))
+        model_dict = m.to_dict()
+        model_loaded = model_from_dict(model_dict)
+        assert m.name == model_loaded.name
+        assert np.all(m.rdm_obj.dissimilarities == model_loaded.rdm_obj.dissimilarities)
+
+        from pyrsa.model import ModelSelect
+        m = ModelSelect('test1', np.random.rand(10))
+        model_dict = m.to_dict()
+        model_loaded = model_from_dict(model_dict)
+        assert m.name == model_loaded.name
+        assert np.all(m.rdm_obj.dissimilarities == model_loaded.rdm_obj.dissimilarities)
+
+        from pyrsa.model import ModelWeighted
+        m = ModelWeighted('test1', np.random.rand(10))
+        model_dict = m.to_dict()
+        model_loaded = model_from_dict(model_dict)
+        assert m.name == model_loaded.name
+        assert np.all(m.rdm_obj.dissimilarities == model_loaded.rdm_obj.dissimilarities)
+
+        from pyrsa.model import Model
+        m = Model('test1')
+        model_dict = m.to_dict()
+        model_loaded = model_from_dict(model_dict)
+        assert m.name == model_loaded.name
+
+
     def test_save_load_result(self):
         from pyrsa.inference import Result
         from pyrsa.inference import load_results

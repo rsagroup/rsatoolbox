@@ -7,6 +7,7 @@ Definition of RSA Model class and subclasses
 
 import numpy as np
 from pyrsa.rdm import RDMs
+from pyrsa.rdm import rdms_from_dict
 from pyrsa.util.rdm_utils import batch_to_vectors
 from .fitter import fit_mock, fit_optimize, fit_select, fit_interpolate
 
@@ -21,6 +22,7 @@ class Model:
         self.name = name
         self.n_param = 0
         self.default_fitter = fit_mock
+        self.rdm_obj = None
 
     def predict(self, theta=None):
         """ Returns the predicted rdm vector
@@ -58,6 +60,23 @@ class Model:
         return self.default_fitter(self, data, method='cosine',
                                    pattern_sample=None,
                                    pattern_descriptor=None)
+
+    def to_dict(self):
+        """ Converts the model into a dictionary, which can be used for saving
+        
+        Returns:
+            model_dict(dict): A dictionary containting all data needed to
+                recreate the object
+
+        """
+        model_dict = {}
+        if self.rdm_obj:
+            model_dict['rdm'] = self.rdm_obj.to_dict()
+        else:
+            model_dict['rdm'] = None
+        model_dict['name'] = self.name
+        model_dict['type'] = type(self).__name__
+        return model_dict
 
 
 class ModelFixed(Model):
@@ -307,3 +326,28 @@ class ModelInterpolate(Model):
                  descriptors=self.rdm_obj.descriptors,
                  pattern_descriptors=self.rdm_obj.pattern_descriptors)
         return rdms
+
+
+def model_from_dict(model_dict):
+    """ recreates a model object from a dictionary
+
+    Args:
+        model_dict(dict): The dictionary to be turned into a model
+
+    Returns
+        model(Model): The recreated model
+
+    """
+    if model_dict['rdm']:
+        rdm_obj = rdms_from_dict(model_dict['rdm'])
+    if model_dict['type'] == 'Model':
+        model = Model(model_dict['name'])
+    elif model_dict['type'] == 'ModelFixed':
+        model = ModelFixed(model_dict['name'], rdm_obj)
+    elif model_dict['type'] == 'ModelSelect':
+        model = ModelSelect(model_dict['name'], rdm_obj)
+    elif model_dict['type'] == 'ModelWeighted':\
+        model = ModelWeighted(model_dict['name'], rdm_obj)
+    elif model_dict['type'] == 'ModelInterpolate':
+        model = ModelInterpolate(model_dict['name'], rdm_obj)
+    return model
