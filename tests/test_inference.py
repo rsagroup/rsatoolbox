@@ -255,6 +255,25 @@ class test_save_load(unittest.TestCase):
         model_loaded = model_from_dict(model_dict)
         assert m.name == model_loaded.name
 
+    def test_result_dict(self):
+        from pyrsa.inference import Result
+        from pyrsa.inference import result_from_dict
+        from pyrsa.model import ModelFixed
+        m1 = ModelFixed('test1', np.random.rand(10))
+        m2 = ModelFixed('test2', np.random.rand(10))
+        models = [m1, m2]
+        evaluations = np.random.rand(100,2)
+        method = 'test_method'
+        cv_method = 'test_cv_method'
+        noise_ceiling = np.array([0.5, 0.2])
+        res = Result(models, evaluations, method, cv_method, noise_ceiling)
+        result_dict = res.to_dict()
+        res_loaded = result_from_dict(result_dict)
+        assert res_loaded.method == method
+        assert res_loaded.cv_method == cv_method
+        assert np.all(res_loaded.evaluations == evaluations)
+        assert np.all(res_loaded.models[0].rdm == m1.rdm)
+        
 
     def test_save_load_result(self):
         from pyrsa.inference import Result

@@ -65,6 +65,25 @@ class Result:
         file.attrs['cv_method'] = self.cv_method
         file.attrs['version'] = 3
 
+    def to_dict(self):
+        """ Converts the RDMs object into a dict, which can be used for saving
+
+        Returns:
+            results_dict(dict): A dictionary with all the information needed
+                to regenerate the object
+
+        """
+        result_dict = {}
+        result_dict['evaluations'] = self.evaluations
+        result_dict['noise_ceiling'] = self.noise_ceiling
+        result_dict['method'] = self.method
+        result_dict['cv_method'] = self.cv_method
+        result_dict['models'] = {}
+        for i_model in range(len(self.models)):
+            key = 'model_%d' % i_model
+            result_dict['models'][key] = self.models[i_model].to_dict()
+        return result_dict
+
 
 def load_results(filename):
     """ loads a Result object from disc
@@ -79,4 +98,26 @@ def load_results(filename):
     noise_ceiling = np.array(file['noise_ceiling'])
     method = file.attrs['method']
     cv_method = file.attrs['cv_method']
+    return Result(models, evaluations, method, cv_method, noise_ceiling)
+
+
+def result_from_dict(result_dict):
+    """ recreate Results object from dictionary
+    
+    Args:
+        result_dict(dict): dictionary to regenerate
+
+    Returns:
+        result(Result): the recreated object
+
+    """
+    evaluations = result_dict['evaluations']
+    method = result_dict['method']
+    cv_method = result_dict['cv_method']
+    noise_ceiling = result_dict['noise_ceiling']
+    models = [None] * len(result_dict['models'])
+    for i_model in range(len(result_dict['models'])):
+        key = 'model_%d' % i_model
+        models[i_model] = pyrsa.model.model_from_dict(
+            result_dict['models'][key])
     return Result(models, evaluations, method, cv_method, noise_ceiling)
