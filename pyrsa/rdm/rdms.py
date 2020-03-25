@@ -273,6 +273,7 @@ class RDMs:
         self.rdm_descriptors = append_descriptor(self.rdm_descriptors,
                                                  rdm.rdm_descriptors)
         self.n_rdm = self.n_rdm + rdm.n_rdm
+
     def save(self, filename):
         """ saves the RDMs object into files
 
@@ -290,10 +291,43 @@ class RDMs:
                      self.pattern_descriptors,
                      self.dissimilarity_measure],
                     open(filename + '_desc.pkl','wb'))
+    
+    def to_dict(self):
+        """ converts the object into a dictionary, which can be saved to disk
+        
+        Returns:
+            rdm_dict(dict): dictionary containing all information required to
+                recreate the RDMs object
+        """
+        rdm_dict = {}
+        rdm_dict['dissimilarities'] = self.dissimilarities
+        rdm_dict['descriptors'] = self.descriptors
+        rdm_dict['rdm_descriptors'] = self.rdm_descriptors
+        rdm_dict['pattern_descriptors'] = self.pattern_descriptors
+        rdm_dict['dissimilarity_measure'] = self.dissimilarity_measure
+        return rdm_dict
+
+
+def rdms_from_dict(rdm_dict):
+    """ creates a RDMs object from a dictionary
+
+    Args:
+        rdm_dict(dict): dictionary with information
+
+    Returns:
+        rdms(RDMs): the regenerated RDMs object
+
+    """
+    rdms = RDMs(dissimilarities=rdm_dict['dissimilarities'],
+                descriptors=rdm_dict['descriptors'],
+                rdm_descriptors=rdm_dict['rdm_descriptors'],
+                pattern_descriptors=rdm_dict['pattern_descriptors'],
+                dissimilarity_measure=rdm_dict['dissimilarity_measure'])
+    return rdms
 
 
 def load_rdm(filename):
-    """ loads a RDMs object from disc
+    """ loads a RDMs object from disk
     
     Args:
         filename(String): path to file to load

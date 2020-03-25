@@ -397,6 +397,24 @@ class TestCompareRDM(unittest.TestCase):
 
 
 class testSave(unittest.TestCase):
+    def test_dict_conversion(self):
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        pattern_des = {'type':np.array([0,1,2,2,4])}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        rdms = rsa.rdm.RDMs(dissimilarities=dis,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des,
+                        rdm_descriptors=rdm_des)
+        rdm_dict = rdms.to_dict()
+        rdms_loaded = rsa.rdm.rdms_from_dict(rdm_dict)
+        assert rdms_loaded.n_cond == rdms.n_cond
+        assert np.all(rdms_loaded.pattern_descriptors['type'] == pattern_des['type'])
+        assert np.all(rdms_loaded.rdm_descriptors['session'] == rdm_des['session'])
+        assert rdms_loaded.descriptors['subj'] == 0
+
     def test_save_load(self):
         dis = np.zeros((8,10))
         mes = "Euclidean"
