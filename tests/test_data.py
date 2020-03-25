@@ -136,6 +136,25 @@ class TestDataComputations(unittest.TestCase):
         
 
 class testSave(unittest.TestCase):
+    def test_dict_conversion(self):
+        measurements = np.zeros((10,5))
+        des = {'session':0,'subj':0}
+        obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5])}
+        chn_des = {'rois':np.array(['V1','V1','IT','IT','V4'])}
+        data = rsd.Dataset(measurements=measurements,
+                           descriptors=des,
+                           obs_descriptors=obs_des,
+                           channel_descriptors=chn_des
+                           )
+        data_dict = data.to_dict()
+        data_loaded = rsd.dataset_from_dict(data_dict)
+        assert type(data_loaded) == type(data)
+        assert data_loaded.n_channel == data.n_channel
+        assert np.all(data_loaded.obs_descriptors['conds'] == obs_des['conds'])
+        assert np.all(data_loaded.channel_descriptors['rois'] == chn_des['rois'])
+        assert data_loaded.descriptors['subj'] == 0
+        
+        
     def test_save_load(self):
         measurements = np.zeros((10,5))
         des = {'session':0,'subj':0}

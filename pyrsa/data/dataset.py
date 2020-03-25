@@ -153,6 +153,21 @@ class DatasetBase:
                      self.obs_descriptors,
                      self.channel_descriptors],
                     open(filename + '_desc.pkl','wb'))
+    def to_dict(self):
+        """ Generates a dictionary which contains the information to
+        recreate the dataset object. Used for saving to disc
+        
+        Returns:
+            data_dict(dict): dictionary with dataset information
+
+        """
+        data_dict = {}
+        data_dict['measurements'] = self.measurements
+        data_dict['descriptors'] = self.descriptors
+        data_dict['obs_descriptors'] = self.obs_descriptors
+        data_dict['channel_descriptors'] = self.channel_descriptors
+        data_dict['type'] =  type(self).__name__
+        return data_dict
 
 
 class Dataset(DatasetBase):
@@ -276,3 +291,31 @@ def load_dataset(filename):
                    obs_descriptors=desc[1],
                    channel_descriptors=desc[2])
     return data
+
+
+def dataset_from_dict(data_dict):
+    """ regenerates a Dataset object from the dictionary representation
+
+    Currently this function works for Dataset and DatasetBase objects
+
+    Args:
+        data_dict(dict): the dictionary representation
+    
+    Returns:
+        data(Dataset): the regenerated Dataset
+
+    """
+    if data_dict['type'] == 'Dataset':
+        data = Dataset(data_dict['measurements'],
+                       descriptors=data_dict['descriptors'],
+                       obs_descriptors=data_dict['obs_descriptors'],
+                       channel_descriptors=data_dict['channel_descriptors'])
+    elif data_dict['type'] == 'DatasetBase':
+        data = DatasetBase(data_dict['measurements'],
+                       descriptors=data_dict['descriptors'],
+                       obs_descriptors=data_dict['obs_descriptors'],
+                       channel_descriptors=data_dict['channel_descriptors'])
+    else:
+        raise ValueError('type of Dataset not recognized')
+    return data
+        
