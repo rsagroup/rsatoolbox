@@ -29,7 +29,7 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
 
     """
     if cmap is None:
-        cmap = rdm_colormap() 
+        cmap = rdm_colormap()
     if do_rank_transform:
         rdm = rank_transform(rdm)
     rdm_mat = rdm.get_matrices()
