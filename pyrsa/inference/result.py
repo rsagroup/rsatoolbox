@@ -10,6 +10,10 @@ import numpy as np
 import h5py
 import os
 import pyrsa.model
+from pyrsa.util.file_io import write_dict_hdf5
+from pyrsa.util.file_io import write_dict_pkl
+from pyrsa.util.file_io import read_dict_hdf5
+from pyrsa.util.file_io import read_dict_pkl
 
 class Result:
     """ Result class storing results for a set of models with the models,
@@ -47,23 +51,22 @@ class Result:
         self.cv_method = cv_method
         self.noise_ceiling = noise_ceiling
 
-    def save(self, filename):
+    def save(self, filename, file_type='hdf5'):
         """ saves the results into a file. 
-
-        the list of models is currently not saved!
-
+            
         Args:
-            filename(String): path to the filelocation
+            filename(String): path to the file
+                [or opened file]
+            file_type(String): Type of file to create:
+                hdf5: hdf5 file
+                pkl: pickle file 
 
         """
-        if isinstance(filename, str) and os.path.isfile(filename):
-            raise FileExistsError('File already exists')
-        file = h5py.File(filename, 'a')
-        file['evaluations'] = self.evaluations
-        file['noise_ceiling'] = self.noise_ceiling
-        file.attrs['method'] = self.method
-        file.attrs['cv_method'] = self.cv_method
-        file.attrs['version'] = 3
+        result_dict = self.to_dict()
+        if file_type == 'hdf5':
+            write_dict_hdf5(filename, result_dict)
+        elif file_type == 'pkl':
+            write_dict_pkl(filename, result_dict)
 
     def to_dict(self):
         """ Converts the RDMs object into a dict, which can be used for saving
@@ -85,20 +88,26 @@ class Result:
         return result_dict
 
 
-def load_results(filename):
+def load_results(filename, file_type=None):
     """ loads a Result object from disc
 
     Args:
         filename(String): path to the filelocation
 
     """
-    file = h5py.File(filename, 'a')
-    evaluations = np.array(file['evaluations'])
-    models = [None] * evaluations.shape[1]
-    noise_ceiling = np.array(file['noise_ceiling'])
-    method = file.attrs['method']
-    cv_method = file.attrs['cv_method']
-    return Result(models, evaluations, method, cv_method, noise_ceiling)
+    if file_type is None:
+        if isinstance(filename, str):
+            if filename[-4:] == '.pkl':
+                file_type = 'pkl'
+            elif filename[-3:] == '.h5' or filename[-4:] == 'hdf5':
+                file_type = 'hdf5'
+    if file_type == 'hdf5':
+        data_dict = read_dict_hdf5(filename)
+    elif file_type == 'pkl':
+        data_dict = read_dict_pkl(filename)
+    else:
+        raise ValueError('filetype not understood')
+    return result_from_dict(data_dict)
 
 
 def result_from_dict(result_dict):

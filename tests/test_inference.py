@@ -279,7 +279,6 @@ class test_save_load(unittest.TestCase):
         from pyrsa.inference import load_results
         from pyrsa.model import ModelFixed
         import io
-        f = io.BytesIO() # Essentially a Mock file
         m1 = ModelFixed('test1', np.random.rand(10))
         m2 = ModelFixed('test2', np.random.rand(10))
         models = [m1, m2]
@@ -288,8 +287,9 @@ class test_save_load(unittest.TestCase):
         cv_method = 'test_cv_method'
         noise_ceiling = np.array([0.5, 0.2])
         res = Result(models, evaluations, method, cv_method, noise_ceiling)
-        res.save(f)
-        res_loaded = load_results(f)
+        f = io.BytesIO() # Essentially a Mock file
+        res.save(f, file_type='hdf5')
+        res_loaded = load_results(f, file_type='hdf5')
         assert res_loaded.method == method
         assert res_loaded.cv_method == cv_method
         assert np.all(res_loaded.evaluations == evaluations)

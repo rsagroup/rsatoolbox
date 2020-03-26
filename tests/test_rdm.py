@@ -416,6 +416,8 @@ class testSave(unittest.TestCase):
         assert rdms_loaded.descriptors['subj'] == 0
 
     def test_save_load(self):
+        import io
+        f = io.BytesIO() # Essentially a Mock file
         dis = np.zeros((8,10))
         mes = "Euclidean"
         des = {'subj':0}
@@ -426,13 +428,8 @@ class testSave(unittest.TestCase):
                         dissimilarity_measure=mes,
                         descriptors=des,
                         rdm_descriptors=rdm_des)
-        try:
-            rdms.save('test')
-            rdms_loaded = rsa.rdm.load_rdm('test')
-        finally:
-            import os
-            os.remove('test.npy')
-            os.remove('test_desc.pkl')
+        rdms.save(f, file_type='hdf5')
+        rdms_loaded = rsa.rdm.load_rdm(f, file_type='hdf5')
         assert rdms_loaded.n_cond == rdms.n_cond
         assert np.all(rdms_loaded.pattern_descriptors['type'] == pattern_des['type'])
         assert np.all(rdms_loaded.rdm_descriptors['session'] == rdm_des['session'])

@@ -156,6 +156,8 @@ class testSave(unittest.TestCase):
         
         
     def test_save_load(self):
+        import io
+        f = io.BytesIO() # Essentially a Mock file
         measurements = np.zeros((10,5))
         des = {'session':0,'subj':0}
         obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5])}
@@ -165,13 +167,8 @@ class testSave(unittest.TestCase):
                            obs_descriptors=obs_des,
                            channel_descriptors=chn_des
                            )
-        try:
-            data.save('test')
-            data_loaded = rsd.load_dataset('test')
-        finally:
-            import os
-            os.remove('test.npy')
-            os.remove('test_desc.pkl')
+        data.save(f, file_type='hdf5')
+        data_loaded = rsd.load_dataset(f, file_type='hdf5')
         assert data_loaded.n_channel == data.n_channel
         assert np.all(data_loaded.obs_descriptors['conds'] == obs_des['conds'])
         assert np.all(data_loaded.channel_descriptors['rois'] == chn_des['rois'])

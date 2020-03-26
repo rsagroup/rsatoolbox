@@ -15,6 +15,10 @@ from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import append_descriptor
 from pyrsa.util.data_utils import extract_dict
+from pyrsa.util.file_io import write_dict_hdf5
+from pyrsa.util.file_io import write_dict_pkl
+from pyrsa.util.file_io import read_dict_hdf5
+from pyrsa.util.file_io import read_dict_pkl
 
 
 class RDMs:
@@ -274,23 +278,23 @@ class RDMs:
                                                  rdm.rdm_descriptors)
         self.n_rdm = self.n_rdm + rdm.n_rdm
 
-    def save(self, filename):
-        """ saves the RDMs object into files
-
-        This function generates two files:
-            [filename].npy : a numpy array file to save the dissimilarities
-            [filename]_desc.pkl : a pickled file of the descriptors
+    def save(self, filename, file_type='hdf5'):
+        """ saves the RDMs object into a file
 
         Args:
             filename(String): path to file to save to
+                [or opened file]
+            file_type(String): Type of file to create:
+                hdf5: hdf5 file
+                pkl: pickle file 
 
         """
-        np.save(filename + '.npy', self.dissimilarities)
-        pickle.dump([self.descriptors,
-                     self.rdm_descriptors,
-                     self.pattern_descriptors,
-                     self.dissimilarity_measure],
-                    open(filename + '_desc.pkl','wb'))
+        rdm_dict = self.to_dict()
+        if file_type == 'hdf5':
+            write_dict_hdf5(filename, rdm_dict)
+        elif file_type == 'pkl':
+            write_dict_pkl(filename, rdm_dict)
+        
     
     def to_dict(self):
         """ converts the object into a dictionary, which can be saved to disk
@@ -326,21 +330,26 @@ def rdms_from_dict(rdm_dict):
     return rdms
 
 
-def load_rdm(filename):
+def load_rdm(filename, file_type=None):
     """ loads a RDMs object from disk
     
     Args:
         filename(String): path to file to load
 
     """
-    diss = np.load(filename + '.npy')
-    desc = pickle.load(open(filename + '_desc.pkl','rb'))
-    rdms = RDMs(diss,
-                dissimilarity_measure=desc[3],
-                descriptors=desc[0],
-                rdm_descriptors=desc[1],
-                pattern_descriptors=desc[2])
-    return rdms
+    if file_type is None:
+        if isinstance(filename, str):
+            if filename[-4:] == '.pkl':
+                file_type = 'pkl'
+            elif filename[-3:] == '.h5' or filename[-4:] == 'hdf5':
+                file_type = 'hdf5'
+    if file_type == 'hdf5':
+        rdm_dict = read_dict_hdf5(filename)
+    elif file_type == 'pkl':
+        rdm_dict = read_dict_pkl(filename)
+    else:
+        raise ValueError('filetype not understood')
+    return rdms_from_dict(rdm_dict)
 
 
 def concat(rdms):
