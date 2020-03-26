@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 
 
-class test_noise_ceiling(unittest.TestCase):
+class TestNoiseCeiling(unittest.TestCase):
     def test_cv_noise_ceiling(self):
         from pyrsa.inference import cv_noise_ceiling
         from pyrsa.inference import sets_k_fold_rdm

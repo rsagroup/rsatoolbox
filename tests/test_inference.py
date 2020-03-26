@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 
 
-class test_bootstrap(unittest.TestCase):
+class TestBootstrap(unittest.TestCase):
     """ bootstrap tests
     """
     def test_bootstrap_sample(self):
@@ -83,7 +83,7 @@ class test_bootstrap(unittest.TestCase):
         rdm_sample = bootstrap_sample_pattern(rdms,'type')
 
 
-class test_evaluation(unittest.TestCase):
+class TestEvaluation(unittest.TestCase):
     """ evaluation tests
     """
     def test_eval_fixed(self):
@@ -145,7 +145,7 @@ class test_evaluation(unittest.TestCase):
         evaluations, n_rdms = bootstrap_testset_rdm(m, rdms,
             method='cosine', fitter=None, N=100, rdm_descriptor=None)
 
-class test_evaluation_lists(unittest.TestCase):
+class TestEvaluationLists(unittest.TestCase):
     """ evaluation tests
     """
     def test_eval_fixed(self):
@@ -218,7 +218,7 @@ class test_evaluation_lists(unittest.TestCase):
         evaluations, n_rdms = bootstrap_testset_rdm([m, m2], rdms,
             method='cosine', fitter=None, N=100, rdm_descriptor=None)
 
-class test_save_load(unittest.TestCase):
+class TestSaveLoad(unittest.TestCase):
     def test_model_dict(self):
         from pyrsa.model import model_from_dict
         from pyrsa.model import ModelFixed

@@ -396,7 +396,7 @@ class TestCompareRDM(unittest.TestCase):
         result = compare(self.test_rdm1, self.test_rdm2, method='kendall')
 
 
-class testSave(unittest.TestCase):
+class TestSave(unittest.TestCase):
     def test_dict_conversion(self):
         dis = np.zeros((8,10))
         mes = "Euclidean"

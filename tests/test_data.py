@@ -135,7 +135,7 @@ class TestDataComputations(unittest.TestCase):
         assert(np.all(self.test_data.measurements[-1]==avg[-1]))
         
 
-class testSave(unittest.TestCase):
+class TestSave(unittest.TestCase):
     def test_dict_conversion(self):
         measurements = np.zeros((10,5))
         des = {'session':0,'subj':0}
