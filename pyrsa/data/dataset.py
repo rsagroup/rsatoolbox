@@ -14,6 +14,10 @@ from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import bool_index
 from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import parse_input_descriptor
+from pyrsa.util.file_io import write_dict_hdf5
+from pyrsa.util.file_io import write_dict_pkl
+from pyrsa.util.file_io import read_dict_hdf5
+from pyrsa.util.file_io import read_dict_pkl
 
 
 class DatasetBase:
@@ -139,20 +143,38 @@ class DatasetBase:
         """
         raise NotImplementedError(
             "subset_channel function not implemented in used Dataset class!")
-    def save(self, filename):
-        """ Saves the dataset object to two files:
-            [filename].npy : the data in numpy format
-            [filename]_desc.pkl : pickle of the descriptors
+    def save(self, filename, file_type='hdf5'):
+        """ Saves the dataset object to a file
             
         Args:
-            filename(String): path to the file(s)
+            filename(String): path to the file
+                [or opened file]
+            file_type(String): Type of file to create:
+                hdf5: hdf5 file
+                pkl: pickle file 
 
         """
-        np.save(filename + '.npy', self.measurements)
-        pickle.dump([self.descriptors,
-                     self.obs_descriptors,
-                     self.channel_descriptors],
-                    open(filename + '_desc.pkl','wb'))
+        data_dict = self.to_dict()
+        if file_type == 'hdf5':
+            write_dict_hdf5(filename, data_dict)
+        elif file_type == 'pkl':
+            write_dict_pkl(filename, data_dict)
+
+    def to_dict(self):
+        """ Generates a dictionary which contains the information to
+        recreate the dataset object. Used for saving to disc
+        
+        Returns:
+            data_dict(dict): dictionary with dataset information
+
+        """
+        data_dict = {}
+        data_dict['measurements'] = self.measurements
+        data_dict['descriptors'] = self.descriptors
+        data_dict['obs_descriptors'] = self.obs_descriptors
+        data_dict['channel_descriptors'] = self.channel_descriptors
+        data_dict['type'] =  type(self).__name__
+        return data_dict
 
 
 class Dataset(DatasetBase):
@@ -262,17 +284,51 @@ class Dataset(DatasetBase):
         return dataset
 
 
-def load_dataset(filename):
+def load_dataset(filename, file_type=None):
     """ loads a Dataset object from disc
     
     Args:
         filename(String): path to file to load
 
     """
-    measurements = np.load(filename + '.npy')
-    desc = pickle.load(open(filename + '_desc.pkl','rb'))
-    data = Dataset(measurements,
-                   descriptors=desc[0],
-                   obs_descriptors=desc[1],
-                   channel_descriptors=desc[2])
+    if file_type is None:
+        if isinstance(filename, str):
+            if filename[-4:] == '.pkl':
+                file_type = 'pkl'
+            elif filename[-3:] == '.h5' or filename[-4:] == 'hdf5':
+                file_type = 'hdf5'
+    if file_type == 'hdf5':
+        data_dict = read_dict_hdf5(filename)
+    elif file_type == 'pkl':
+        data_dict = read_dict_pkl(filename)
+    else:
+        raise ValueError('filetype not understood')
+    return dataset_from_dict(data_dict)
+
+
+def dataset_from_dict(data_dict):
+    """ regenerates a Dataset object from the dictionary representation
+
+    Currently this function works for Dataset and DatasetBase objects
+
+    Args:
+        data_dict(dict): the dictionary representation
+    
+    Returns:
+        data(Dataset): the regenerated Dataset
+
+    """
+    if data_dict['type'] == 'Dataset':
+        data = Dataset(data_dict['measurements'],
+                       descriptors=data_dict['descriptors'],
+                       obs_descriptors=data_dict['obs_descriptors'],
+                       channel_descriptors=data_dict['channel_descriptors'])
+    elif data_dict['type'] == 'DatasetBase':
+        data = DatasetBase(data_dict['measurements'],
+                       descriptors=data_dict['descriptors'],
+                       obs_descriptors=data_dict['obs_descriptors'],
+                       channel_descriptors=data_dict['channel_descriptors'])
+    else:
+        raise ValueError('type of Dataset not recognized')
     return data
+        

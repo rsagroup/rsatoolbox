@@ -9,7 +9,7 @@ import numpy as np
 import unittest
 
 
-class test_crossval(unittest.TestCase):
+class TestCrossval(unittest.TestCase):
     """ crossvalidation tests
     """
     def test_crossval(self):
