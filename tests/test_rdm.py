@@ -174,6 +174,40 @@ class TestRDM(unittest.TestCase):
         
         
         
+    def test_rdm_append(self):
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        pattern_des = {'type':np.array([0,1,2,2,4])}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des,
+                        rdm_descriptors=rdm_des)
+        rdms.append(rdms)
+        assert rdms.n_rdm == 16
+    
+    def test_concat(self):
+        from pyrsa.rdm import concat
+        dis = np.zeros((8,10))
+        dis2 = np.random.rand(8,10)
+        mes = "Euclidean"
+        des = {'subj':0}
+        pattern_des = {'type':np.array([0,1,2,2,4])}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        rdms1 = rsr.RDMs(dissimilarities=dis,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des,
+                        rdm_descriptors=rdm_des)
+        rdms2 = rsr.RDMs(dissimilarities=dis2,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des,
+                        rdm_descriptors=rdm_des)
+        rdms = concat((rdms1,rdms2))
+        assert rdms.n_rdm == 16
 
 class TestCalcRDM(unittest.TestCase): 
     
@@ -361,6 +395,13 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 0)
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm2)
+        assert np.all(result>0)
+
+    def test_compare_kendall_tau_a(self):
+        from pyrsa.rdm.compare import compare_kendall_tau_a
+        result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm2)
         assert np.all(result>0)
 
     def test_compare(self):

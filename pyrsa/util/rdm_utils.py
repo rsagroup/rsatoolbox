@@ -37,6 +37,10 @@ def batch_to_vectors(x):
         v = np.ndarray((n_rdm, int(n_cond * (n_cond - 1) / 2)))
         for idx in np.arange(n_rdm):
             v[idx, :] = squareform(m[idx, :, :], checks=False)
+    elif x.ndim == 1:
+        v = np.array([x])
+        n_rdm = 1
+        n_cond = _get_n_from_reduced_vectors(v)
     return v, n_rdm, n_cond
 
 
@@ -95,7 +99,6 @@ def add_pattern_index(rdms, pattern_descriptor):
     """
     if pattern_descriptor is None:
         pattern_select = np.arange(rdms.n_cond)
-        rdms.pattern_descriptors['index'] = pattern_select
         pattern_descriptor = 'index'
     else:
         pattern_select = rdms.pattern_descriptors[pattern_descriptor]

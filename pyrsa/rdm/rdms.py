@@ -13,6 +13,7 @@ from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import bool_index
 from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
+from pyrsa.util.descriptor_utils import append_descriptor
 from pyrsa.util.data_utils import extract_dict
 
 
@@ -62,6 +63,10 @@ class RDMs:
                                           'pattern_descriptors',
                                           self.n_cond)
             self.pattern_descriptors = pattern_descriptors
+        if 'index' not in self.pattern_descriptors.keys():
+            self.pattern_descriptors['index'] = np.arange(self.n_cond)
+        if 'index' not in self.rdm_descriptors.keys():
+            self.rdm_descriptors['index'] = np.arange(self.n_rdm)
         self.dissimilarity_measure = dissimilarity_measure
 
     def __repr__(self):
@@ -140,6 +145,8 @@ class RDMs:
             RDMs object, with fewer patterns
 
         """
+        if by is None:
+            by = 'index'
         selection = bool_index(self.pattern_descriptors[by], value)
         dissimilarities = self.get_matrices()[:, selection][:, :, selection]
         descriptors = self.descriptors
@@ -165,6 +172,8 @@ class RDMs:
             RDMs object, with subsampled patterns
 
         """
+        if by is None:
+            by = 'index'
         if (
                 type(value) is list or
                 type(value) is tuple or
@@ -199,6 +208,8 @@ class RDMs:
             RDMs object, with fewer RDMs
 
         """
+        if by is None:
+            by = 'index'
         selection = bool_index(self.rdm_descriptors[by], value)
         dissimilarities = self.dissimilarities[selection, :]
         descriptors = self.descriptors
@@ -223,6 +234,8 @@ class RDMs:
             RDMs object, with subsampled RDMs
 
         """
+        if by is None:
+            by = 'index'
         if (
                 type(value) is list or
                 type(value) is tuple or
@@ -242,6 +255,27 @@ class RDMs:
                     pattern_descriptors=pattern_descriptors)
         return rdms
 
+    def append(self, rdm):
+        """ appends an rdm to the object
+        The rdm should have the same shape and type as this object.
+        Its pattern_descriptor and descriptor are ignored
+
+        Args:
+            rdm(pyrsa.rdm.RDMs): the rdm to append
+
+        Returns:
+
+        """
+        assert isinstance(rdm, RDMs), 'appended rdm should be an RDMs'
+        assert rdm.n_cond == self.n_cond, 'appended rdm had wrong shape'
+        assert rdm.dissimilarity_measure == self.dissimilarity_measure, \
+            'appended rdm had wrong dissimilarity measure'
+        self.dissimilarities = np.concatenate((
+            self.dissimilarities, rdm.dissimilarities), axis=0)
+        self.rdm_descriptors = append_descriptor(self.rdm_descriptors,
+                                                 rdm.rdm_descriptors)
+        self.n_rdm = self.n_rdm + rdm.n_rdm
+
 
 def rank_transform(rdms):
     """ applyes a rank_transform and generates a new RDMs object"""
@@ -254,3 +288,24 @@ def rank_transform(rdms):
                     rdm_descriptors=rdms.rdm_descriptors,
                     pattern_descriptors=rdms.pattern_descriptors)
     return rdms_new
+
+
+def concat(rdms):
+    """ concatenates rdm objects
+    requires that the rdms have the same shape
+    descriptor and pattern descriptors are taken from the first rdms object
+    for rdm_descriptors concatenation is tried
+    the rdm index is reinitialized
+
+    Args:
+        rdms(list of pyrsa.rdm.RDMs): RDMs objects to be concatenated
+
+    Returns:
+        pyrsa.rdm.RDMs: concatenated rdms object
+
+    """
+    rdm = rdms[0]
+    assert isinstance(rdm, RDMs), 'rdms should be a list of RDMs objects'
+    for rdm_new in rdms[1:]:
+        rdm.append(rdm_new)
+    return rdm
