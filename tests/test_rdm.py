@@ -325,6 +325,15 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_cosine(self.test_rdm1, self.test_rdm2)
         assert np.all(result>0)
         
+    def test_compare_cosine_cov(self):
+        from pyrsa.rdm.compare import compare_cosine_cov_weighted
+        result = compare_cosine_cov_weighted(self.test_rdm1,
+                                                     self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_cosine_cov_weighted(self.test_rdm1,
+                                                     self.test_rdm2)
+        assert np.all(result>0)
+
     def test_compare_cosine_loop(self):
         from pyrsa.rdm.compare import compare_cosine
         result = compare_cosine(self.test_rdm2, self.test_rdm3)
@@ -345,6 +354,13 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_correlation(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 0)
         result = compare_correlation(self.test_rdm1, self.test_rdm2)
+        assert np.all(result>0)
+        
+    def test_compare_correlation_cov(self):
+        from pyrsa.rdm.compare import compare_correlation_cov_weighted
+        result = compare_correlation_cov_weighted(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_correlation_cov_weighted(self.test_rdm1, self.test_rdm2)
         assert np.all(result>0)
         
     def test_compare_corr_loop(self):
@@ -416,8 +432,10 @@ class TestCompareRDM(unittest.TestCase):
         result = compare(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 0)
         result = compare(self.test_rdm1, self.test_rdm2, method='corr')
+        result = compare(self.test_rdm1, self.test_rdm2, method='corr_cov')
         result = compare(self.test_rdm1, self.test_rdm2, method='spearman')
         result = compare(self.test_rdm1, self.test_rdm2, method='cosine')
+        result = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov')
         result = compare(self.test_rdm1, self.test_rdm2, method='kendall')
 
 if __name__ == '__main__':

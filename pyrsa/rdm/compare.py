@@ -7,9 +7,13 @@ Created on Fri Dec  6 13:01:12 2019
 """
 import numpy as np
 import scipy.stats
+import scipy.sparse.linalg as s_lin
 from scipy.stats._stats import _kendall_dis
+from pyrsa.util.matrix import pairwise_contrast_sparse
+from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
 
-def compare(rdm1, rdm2, method='cosine'):
+
+def compare(rdm1, rdm2, method='cosine', sigma_k=None):
     """calculates the distances between two RDMs objects using a chosen method
 
     Args:
@@ -38,6 +42,10 @@ def compare(rdm1, rdm2, method='cosine'):
         dist = compare_kendall_tau(rdm1, rdm2)
     elif method == 'tau-a':
         dist = compare_kendall_tau_a(rdm1, rdm2)
+    elif method == 'corr_cov':
+        dist = compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
+    elif method == 'cosine_cov':
+        dist = compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
     return dist
@@ -78,6 +86,44 @@ def compare_correlation(rdm1, rdm2):
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     sim = _cosine(vector1, vector2)
+    return 1 - sim
+
+
+def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
+    """calculates the cosine distances between two RDMs objects
+
+    Args:
+        rdm1 (pyrsa.rdm.RDMs):
+            first set of RDMs
+        rdm2 (pyrsa.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            cosine distance between the two RDMs
+
+    """
+    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    sim = _cosine_cov_weighted(vector1, vector2, sigma_k)
+    return 1 - sim
+
+
+def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
+    """calculates the correlation distances between two RDMs objects
+
+    Args:
+        rdm1 (pyrsa.rdm.RDMs):
+            first set of RDMs
+        rdm2 (pyrsa.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            correlation distance between the two RDMs
+
+    """
+    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
+    vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
+    sim = _cosine_cov_weighted(vector1, vector2, sigma_k)
     return 1 - sim
 
 
@@ -168,6 +214,36 @@ def _all_combinations(vectors1, vectors2, func):
     return value
 
 
+def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
+    """computes the cosine angles between two sets of vectors
+
+    Args:
+        vector1 (numpy.ndarray):
+            first vectors (2D)
+        vector1 (numpy.ndarray):
+            second vectors (2D)
+        sigma_k (Matrix):
+            optional, covariance between pattern estimates
+
+    Returns:
+        cos (float):
+            cosine angle between vectors
+
+    """
+    n_cond = _get_n_from_reduced_vectors(vector1)
+    v = _get_v(n_cond, sigma_k)
+    vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
+                          for i in range(vector1.shape[0])])
+    vector2_m = np.array([scipy.sparse.linalg.cg(v, vector2[i], atol=0)[0]
+                          for i in range(vector2.shape[0])])
+    cos = np.einsum('ij,kj->ik', vector1, vector2_m)
+    cos /= np.sqrt(np.einsum('ij,ij->i', vector1,
+                             vector1_m)).reshape((-1, 1))
+    cos /= np.sqrt(np.einsum('ij,ij->i', vector2,
+                             vector2_m)).reshape((1, -1))
+    return cos
+
+
 def _cosine(vector1, vector2):
     """computes the cosine angles between two sets of vectors
 
@@ -245,7 +321,7 @@ def _sort_and_rank(vector1, vector2):
     vector2 = vector2[perm]
     vector2 = np.r_[True, vector2[1:] != vector2[:-1]].cumsum(dtype=np.intp)
     return vector1, vector2
-    
+
 
 def _count_rank_tie(ranks):
     """ counts tied ranks for kendall-tau calculation"""
@@ -254,6 +330,19 @@ def _count_rank_tie(ranks):
     return ((cnt * (cnt - 1) // 2).sum(),
         (cnt * (cnt - 1.) * (cnt - 2)).sum(),
         (cnt * (cnt - 1.) * (2*cnt + 5)).sum())
+
+
+def _get_v(n_cond, sigma_k):
+    """ get the rdm covariance from sigma_k """
+    # calculate Xi
+    c_mat = pairwise_contrast_sparse(np.arange(n_cond))
+    if sigma_k is None:
+        xi = c_mat @ c_mat.transpose()
+    else:
+        xi = c_mat @ sigma_k @ c_mat.transpose()
+    # calculate V
+    v = xi.multiply(xi).tocsc()
+    return v
 
 
 def _parse_input_rdms(rdm1, rdm2):
