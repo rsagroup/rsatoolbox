@@ -10,8 +10,10 @@ from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import bool_index
+from pyrsa.util.descriptor_utils import subset_descriptor
+from pyrsa.util.descriptor_utils import check_descriptor_length_error
+from pyrsa.util.descriptor_utils import append_descriptor
 from pyrsa.util.data_utils import extract_dict
-from pyrsa.util.data_utils import check_descriptors_dimension
 
 
 class RDMs:
@@ -49,17 +51,21 @@ class RDMs:
         if rdm_descriptors is None:
             self.rdm_descriptors = {}
         else:
-            check_descriptors_dimension(rdm_descriptors,
-                                        'rdm_descriptors',
-                                        self.n_rdm)
+            check_descriptor_length_error(rdm_descriptors,
+                                          'rdm_descriptors',
+                                          self.n_rdm)
             self.rdm_descriptors = rdm_descriptors
         if pattern_descriptors is None:
             self.pattern_descriptors = {}
         else:
-            check_descriptors_dimension(pattern_descriptors,
-                                        'pattern_descriptors',
-                                        self.n_cond)
+            check_descriptor_length_error(pattern_descriptors,
+                                          'pattern_descriptors',
+                                          self.n_cond)
             self.pattern_descriptors = pattern_descriptors
+        if 'index' not in self.pattern_descriptors.keys():
+            self.pattern_descriptors['index'] = np.arange(self.n_cond)
+        if 'index' not in self.rdm_descriptors.keys():
+            self.rdm_descriptors['index'] = np.arange(self.n_rdm)
         self.dissimilarity_measure = dissimilarity_measure
 
     def __repr__(self):
@@ -91,6 +97,21 @@ class RDMs:
                 f'pattern_descriptors: \n{pattern_desc}\n'
                 )
 
+    def __getitem__(self, idx):
+        """
+        allows indexing with []
+        """
+        idx = np.array(idx)
+        dissimilarities = self.dissimilarities[idx].reshape(-1,
+                                self.dissimilarities.shape[1])
+        rdm_descriptors = subset_descriptor(self.rdm_descriptors, idx)
+        rdms = RDMs(dissimilarities,
+                    dissimilarity_measure=self.dissimilarity_measure,
+                    descriptors=self.descriptors,
+                    rdm_descriptors=rdm_descriptors,
+                    pattern_descriptors=self.pattern_descriptors)
+        return rdms
+
     def get_vectors(self):
         """ Returns RDMs as np.ndarray with each RDM as a vector
 
@@ -112,6 +133,7 @@ class RDMs:
 
     def subset_pattern(self, by, value):
         """ Returns a smaller RDMs with patterns with certain descriptor values
+
         Args:
             by(String): the descriptor by which the subset selection
                         is made from pattern_descriptors
@@ -120,8 +142,47 @@ class RDMs:
 
         Returns:
             RDMs object, with fewer patterns
+
         """
+        if by is None:
+            by = 'index'
         selection = bool_index(self.pattern_descriptors[by], value)
+        dissimilarities = self.get_matrices()[:, selection][:, :, selection]
+        descriptors = self.descriptors
+        pattern_descriptors = extract_dict(
+            self.pattern_descriptors, selection)
+        rdm_descriptors = self.rdm_descriptors
+        rdms = RDMs(dissimilarities=dissimilarities,
+                    descriptors=descriptors,
+                    rdm_descriptors=rdm_descriptors,
+                    pattern_descriptors=pattern_descriptors)
+        return rdms
+
+    def subsample_pattern(self, by, value):
+        """ Returns a subsampled RDMs with repetitions if values are repeated
+
+        Args:
+            by(String): the descriptor by which the subset selection
+                        is made from descriptors
+            value:      the value by which the subset selection is made
+                        from descriptors
+
+        Returns:
+            RDMs object, with subsampled patterns
+
+        """
+        if by is None:
+            by = 'index'
+        if (
+                type(value) is list or
+                type(value) is tuple or
+                type(value) is np.ndarray):
+            desc = self.pattern_descriptors[by]
+            selection = [np.asarray(desc == i).nonzero()[0]
+                         for i in value]
+            selection = np.concatenate(selection)
+        else:
+            selection = np.where(self.rdm_descriptors[by] == value)
         dissimilarities = self.get_matrices()[:, selection][:, :, selection]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
@@ -135,6 +196,7 @@ class RDMs:
 
     def subset(self, by, value):
         """ Returns a set of fewer RDMs matching descriptor values
+
         Args:
             by(String): the descriptor by which the subset selection
                         is made from descriptors
@@ -143,7 +205,10 @@ class RDMs:
 
         Returns:
             RDMs object, with fewer RDMs
+
         """
+        if by is None:
+            by = 'index'
         selection = bool_index(self.rdm_descriptors[by], value)
         dissimilarities = self.dissimilarities[selection, :]
         descriptors = self.descriptors
@@ -154,3 +219,78 @@ class RDMs:
                     rdm_descriptors=rdm_descriptors,
                     pattern_descriptors=pattern_descriptors)
         return rdms
+
+    def subsample(self, by, value):
+        """ Returns a subsampled RDMs with repetitions if values are repeated
+
+        Args:
+            by(String): the descriptor by which the subset selection
+                        is made from descriptors
+            value:      the value by which the subset selection is made
+                        from descriptors
+
+        Returns:
+            RDMs object, with subsampled RDMs
+
+        """
+        if by is None:
+            by = 'index'
+        if (
+                type(value) is list or
+                type(value) is tuple or
+                type(value) is np.ndarray):
+            selection = [np.asarray(self.rdm_descriptors[by] == i).nonzero()[0]
+                         for i in value]
+            selection = np.concatenate(selection)
+        else:
+            selection = np.where(self.rdm_descriptors[by] == value)
+        dissimilarities = self.dissimilarities[selection, :]
+        descriptors = self.descriptors
+        pattern_descriptors = self.pattern_descriptors
+        rdm_descriptors = extract_dict(self.rdm_descriptors, selection)
+        rdms = RDMs(dissimilarities=dissimilarities,
+                    descriptors=descriptors,
+                    rdm_descriptors=rdm_descriptors,
+                    pattern_descriptors=pattern_descriptors)
+        return rdms
+    def append(self, rdm):
+        """ appends an rdm to the object
+        The rdm should have the same shape and type as this object.
+        Its pattern_descriptor and descriptor are ignored
+
+        Args:
+            rdm(pyrsa.rdm.RDMs): the rdm to append
+
+        Returns:
+
+        """
+        assert isinstance(rdm, RDMs), 'appended rdm should be an RDMs'
+        assert rdm.n_cond == self.n_cond, 'appended rdm had wrong shape'
+        assert rdm.dissimilarity_measure == self.dissimilarity_measure, \
+            'appended rdm had wrong dissimilarity measure'
+        self.dissimilarities = np.concatenate((
+            self.dissimilarities, rdm.dissimilarities), axis=0)
+        self.rdm_descriptors = append_descriptor(self.rdm_descriptors,
+                                                 rdm.rdm_descriptors)
+        self.n_rdm = self.n_rdm + rdm.n_rdm
+
+
+def concat(rdms):
+    """ concatenates rdm objects
+    requires that the rdms have the same shape
+    descriptor and pattern descriptors are taken from the first rdms object
+    for rdm_descriptors concatenation is tried
+    the rdm index is reinitialized
+
+    Args:
+        rdms(list of pyrsa.rdm.RDMs): RDMs objects to be concatenated
+
+    Returns:
+        pyrsa.rdm.RDMs: concatenated rdms object
+
+    """
+    rdm = rdms[0]
+    assert isinstance(rdm, RDMs), 'rdms should be a list of RDMs objects'
+    for rdm_new in rdms[1:]:
+        rdm.append(rdm_new)
+    return rdm

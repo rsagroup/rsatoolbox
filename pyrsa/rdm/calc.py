@@ -6,7 +6,9 @@ Calculation of RDMs from datasets
 """
 
 import numpy as np
+from collections.abc import Iterable
 from pyrsa.rdm.rdms import RDMs
+from pyrsa.rdm.rdms import concat
 from pyrsa.data.dataset import Dataset
 from pyrsa.data import average_dataset_by
 from pyrsa.util.matrix import pairwise_contrast
@@ -32,16 +34,23 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None):
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
-    if method == 'euclidean':
-        rdm = calc_rdm_euclid(dataset, descriptor)
-    elif method == 'correlation':
-        rdm = calc_rdm_correlation(dataset, descriptor)
-    elif method == 'mahalanobis':
-        rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
-    elif method == 'crossnobis':
-        rdm = calc_rdm_crossnobis(dataset, descriptor, noise)
+    if isinstance(dataset, Iterable):
+        rdms = []
+        for dat in dataset:
+            rdms.append(calc_rdm(dat, method=method, descriptor=descriptor,
+                                 noise=noise))
+        rdm = concat(rdms)
     else:
-        raise(NotImplementedError)
+        if method == 'euclidean':
+            rdm = calc_rdm_euclid(dataset, descriptor)
+        elif method == 'correlation':
+            rdm = calc_rdm_correlation(dataset, descriptor)
+        elif method == 'mahalanobis':
+            rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
+        elif method == 'crossnobis':
+            rdm = calc_rdm_crossnobis(dataset, descriptor, noise)
+        else:
+            raise(NotImplementedError)
     return rdm
 
 
@@ -186,7 +195,7 @@ def calc_rdm_crossnobis(dataset,
                dissimilarity_measure='crossnobis',
                descriptors=dataset.descriptors)
     if descriptor is None:
-        rdm.pattern_descriptors['pattern'] = list(np.arange(rdm.n_cond))
+        rdm.pattern_descriptors['pattern'] = np.arange(rdm.n_cond)
     else:
         rdm.pattern_descriptors[descriptor] = desc
     rdm.descriptors['noise'] = noise
@@ -206,7 +215,7 @@ def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
 def _parse_input(dataset, descriptor):
     if descriptor is None:
         measurements = dataset.measurements
-        desc = list(np.arange(measurements.shape[0]))
+        desc = np.arange(measurements.shape[0])
         descriptor = 'pattern'
     else:
         measurements, desc = average_dataset_by(dataset, descriptor)

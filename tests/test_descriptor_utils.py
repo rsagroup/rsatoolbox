@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from unittest import TestCase
+import numpy as np
 
 
 class TestDescriptorUtils(TestCase):
@@ -25,6 +26,12 @@ class TestDescriptorUtils(TestCase):
             {}
         )
 
+    def test_append_descriptor(self):
+        from pyrsa.util.descriptor_utils import append_descriptor
+        desc = {'index':np.arange(3),'test1':[1,3,2], 'test2':['a','b','c']}
+        desc_app = append_descriptor(desc,desc)
+        assert np.all(desc_app['test1']==np.array([1,3,2,1,3,2]))
+
     def test_check_descriptor_length(self):
         from pyrsa.util.descriptor_utils import check_descriptor_length
         descriptors = {'foo': ['bar', 'bar2']}
@@ -39,7 +46,7 @@ class TestDescriptorUtils(TestCase):
         descriptors = {'foo': ['bar', 'bar2']}
         self.assertEqual(
                 subset_descriptor(descriptors,0),
-                {'foo': 'bar'}
+                {'foo': ['bar']}
                 )
         self.assertEqual(
                 subset_descriptor(descriptors,np.array([True,False])),

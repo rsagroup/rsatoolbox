@@ -25,7 +25,6 @@ def batch_to_vectors(x):
         **n_rdm** (int): number of rdms
 
         **n_cond** (int): number of conditions
-
     """
     if x.ndim == 2:
         v = x
@@ -38,6 +37,10 @@ def batch_to_vectors(x):
         v = np.ndarray((n_rdm, int(n_cond * (n_cond - 1) / 2)))
         for idx in np.arange(n_rdm):
             v[idx, :] = squareform(m[idx, :, :], checks=False)
+    elif x.ndim == 1:
+        v = np.array([x])
+        n_rdm = 1
+        n_cond = _get_n_from_reduced_vectors(v)
     return v, n_rdm, n_cond
 
 
@@ -53,7 +56,6 @@ def batch_to_matrices(x):
         **n_rdm** (int): number of rdms
 
         **n_cond** (int): number of conditions
-
     """
     if x.ndim == 2:
         v = x
@@ -70,4 +72,35 @@ def batch_to_matrices(x):
 
 
 def _get_n_from_reduced_vectors(x):
+    """
+    calculates the size of the RDM from the vector representation
+
+    Args:
+        x(np.ndarray): stack of RDM vectors (2D)
+
+    Returns:
+        int: n: size of the RDM
+
+    """
     return int(np.ceil(np.sqrt(x.shape[1] * 2)))
+
+
+def add_pattern_index(rdms, pattern_descriptor):
+    """
+    adds index if pattern_descriptor is None
+
+    Args:
+        rdms(pyrsa.rdm.RDMs): rdms object to be parsed
+
+    Returns:
+        pattern_descriptor
+        pattern_select
+
+    """
+    if pattern_descriptor is None:
+        pattern_select = np.arange(rdms.n_cond)
+        pattern_descriptor = 'index'
+    else:
+        pattern_select = rdms.pattern_descriptors[pattern_descriptor]
+        pattern_select = np.unique(pattern_select)
+    return pattern_descriptor, pattern_select
