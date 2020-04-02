@@ -56,7 +56,7 @@ def eval_fixed(model, data, theta=None, method='cosine'):
 
 def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
                    pattern_descriptor=None, rdm_descriptor=None,
-                   boot_noise_ceil=False):
+                   boot_noise_ceil=True):
     """evaluates a model on data
     performs bootstrapping to get a sampling distribution
 
