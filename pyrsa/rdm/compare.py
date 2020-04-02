@@ -232,9 +232,9 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
     """
     n_cond = _get_n_from_reduced_vectors(vector1)
     v = _get_v(n_cond, sigma_k)
-    vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i])[0]
+    vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
                           for i in range(vector1.shape[0])])
-    vector2_m = np.array([scipy.sparse.linalg.cg(v, vector2[i])[0]
+    vector2_m = np.array([scipy.sparse.linalg.cg(v, vector2[i], atol=0)[0]
                           for i in range(vector2.shape[0])])
     cos = np.einsum('ij,kj->ik', vector1, vector2_m)
     cos /= np.sqrt(np.einsum('ij,ij->i', vector1,
