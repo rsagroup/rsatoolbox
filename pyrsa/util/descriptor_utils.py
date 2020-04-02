@@ -111,6 +111,25 @@ def subset_descriptor(descriptor, indices):
     return extracted_descriptor
 
 
+def append_descriptor(descriptor, desc_new):
+    """
+    appends a descriptor to an existing one
+
+    Args:
+        descriptor(dict): the descriptor dictionary
+        desc_new(dict): the descriptor dictionary to append
+
+    Returns:
+        descriptor(dict): the longer descriptor
+
+    """
+    for k, v in descriptor.items():
+        assert k in desc_new.keys(), f'appended descriptors misses key {k}'
+        descriptor[k] = np.concatenate((v, desc_new[k]), axis=0)
+    descriptor['index'] = np.arange(len(descriptor['index']))
+    return descriptor
+
+
 def check_descriptor_length_error(descriptor, name, n):
     """
     Raises an error if the given descriptor does not have the right length
