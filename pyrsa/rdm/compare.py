@@ -206,7 +206,7 @@ def _kendall_tau(vector1, vector2):
 
 def _tau_a(vector1, vector2):
     """computes kendall-tau a between two vectors
-    basede on modifying scipy.stats.kendalltau
+    based on modifying scipy.stats.kendalltau
 
     Args:
         vector1 (numpy.ndarray):

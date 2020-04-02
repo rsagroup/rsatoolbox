@@ -90,7 +90,7 @@ def pool_rdm(rdms, method='cosine'):
 
 
 def pair_tests(evaluations):
-    """pairwise bootstrapping significant tests for a difference in model
+    """pairwise bootstrapping significance tests for a difference in model
     performance
 
     Args:
