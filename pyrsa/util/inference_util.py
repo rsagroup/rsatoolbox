@@ -42,7 +42,7 @@ def input_check_model(model, theta=None, fitter=None, N=1):
     return evaluations, theta, fitter
 
 
-def pool_rdm(rdms, method='cosine'):
+def pool_rdm(rdms, method='cosine', sigma_k=None):
     """pools multiple RDMs into the one with maximal performance under a given
     evaluation metric
     rdm_descriptors of the generated rdms are empty
@@ -69,6 +69,14 @@ def pool_rdm(rdms, method='cosine'):
         rdm_vec = rdm_vec / np.std(rdm_vec, axis=1, keepdims=True)
         rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
         rdm_vec = rdm_vec - np.min(rdm_vec)
+    elif method == 'corr_cov':
+        rdm_vec = rdm_vec - np.mean(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = rdm_vec / np.std(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
+        rdm_vec = rdm_vec - np.min(rdm_vec)
+    elif method == 'cosine_cov':
+        rdm_vec = rdm_vec/np.mean(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
     elif method == 'spearman':
         rdm_vec = np.array([rankdata(v) for v in rdm_vec])
         rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)

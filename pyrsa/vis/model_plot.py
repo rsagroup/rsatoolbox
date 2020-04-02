@@ -76,10 +76,14 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
                            rotation=75)
     if method == 'cosine':
         ax.set_ylabel('cosine distance', fontsize=24)
+    if method == 'cosine_cov':
+        ax.set_ylabel('Cov-weighted cosine distance', fontsize=24)
     elif method == 'spearman':
         ax.set_ylabel('Spearman rank correlation', fontsize=24)
     elif method == 'corr':
         ax.set_ylabel('Pearson correlation', fontsize=24)
+    elif method == 'corr_cov':
+        ax.set_ylabel('Cov-weighted correlation', fontsize=24)
     elif method == 'kendall' or method == 'tau-b':
         ax.set_ylabel('Kendall-Tau', fontsize=24)
     elif method == 'tau-a':
