@@ -154,7 +154,7 @@ silhouette_rdm = data_matlab7['Models'][0][6][0]
 radon_rdm = data_matlab7['Models'][0][7][0]
 
 ####--------------------------------------------------------------------------
-#### from here on the new toolboax works actually differently 
+#### from here on the new toolbox works actually differently 
 ####--------------------------------------------------------------------------
 # concatenate and name the modelRDMs
 #modelRDMs=cat(3,binRDM_animacy,faceAnimateInaniClustersRDM,FourCatsRDM,rdm_simJudg,humanEarlyVisualRDM,rdm_mIT,silhouetteRDM,rdm92_V1model,rdm92_HMAXnatImPatch,radonRDM,gradedModelRDMs);
