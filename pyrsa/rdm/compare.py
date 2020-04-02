@@ -7,7 +7,7 @@ Created on Fri Dec  6 13:01:12 2019
 """
 import numpy as np
 import scipy.stats
-
+from scipy.stats._stats import _kendall_dis
 
 def compare(rdm1, rdm2, method='cosine'):
     """calculates the distances between two RDMs objects using a chosen method
@@ -34,8 +34,10 @@ def compare(rdm1, rdm2, method='cosine'):
         dist = compare_spearman(rdm1, rdm2)
     elif method == 'corr':
         dist = compare_correlation(rdm1, rdm2)
-    elif method == 'kendall':
+    elif method == 'kendall' or method == 'tau-b':
         dist = compare_kendall_tau(rdm1, rdm2)
+    elif method == 'tau-a':
+        dist = compare_kendall_tau_a(rdm1, rdm2)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
     return dist
@@ -104,7 +106,7 @@ def compare_spearman(rdm1, rdm2):
 
 def compare_kendall_tau(rdm1, rdm2):
     """calculates the Kendall-tau b based distance between two RDMs objects.
-    Kendall-tau b is the version, which can deal well with ties.
+    Kendall-tau b is the version, which corrects for ties.
     We here use the implementation from scipy.
 
         Args:
@@ -118,6 +120,24 @@ def compare_kendall_tau(rdm1, rdm2):
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     sim = _all_combinations(vector1, vector2, _kendall_tau)
+    return 1 - sim
+
+
+def compare_kendall_tau_a(rdm1, rdm2):
+    """calculates the Kendall-tau a based distance between two RDMs objects.
+    adequate when some models predict ties
+
+        Args:
+            rdm1 (pyrsa.rdm.RDMs):
+                first set of RDMs
+            rdm2 (pyrsa.rdm.RDMs):
+                second set of RDMs
+        Returns:
+            numpy.ndarray: dist:
+                kendall-tau a based distance between the two RDMs
+    """
+    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    sim = _all_combinations(vector1, vector2, _tau_a)
     return 1 - sim
 
 
@@ -158,7 +178,7 @@ def _cosine(vector1, vector2):
             second vectors (2D)
     Returns:
         cos (float):
-            cosine angle between angles
+            cosine angle between vectors
 
     """
     cos = np.einsum('ij,kj->ik', vector1, vector2)
@@ -182,6 +202,58 @@ def _kendall_tau(vector1, vector2):
     """
     tau = scipy.stats.kendalltau(vector1, vector2).correlation
     return tau
+
+
+def _tau_a(vector1, vector2):
+    """computes kendall-tau a between two vectors
+    basede on modifying scipy.stats.kendalltau
+
+    Args:
+        vector1 (numpy.ndarray):
+            first vector
+        vector1 (numpy.ndarray):
+            second vector
+    Returns:
+        tau (float):
+            kendall-tau a
+
+    """
+    size = vector1.size
+    vector1, vector2 = _sort_and_rank(vector1, vector2)
+    vector2, vector1 = _sort_and_rank(vector2, vector1)
+    dis = _kendall_dis(vector1, vector2)  # discordant pairs
+    obs = np.r_[True, (vector1[1:] != vector1[:-1]) |
+                      (vector2[1:] != vector2[:-1]), True]
+    cnt = np.diff(np.nonzero(obs)[0]).astype('int64', copy=False)
+    ntie = (cnt * (cnt - 1) // 2).sum()  # joint ties
+    xtie, x0, x1 = _count_rank_tie(vector1)     # ties in x, stats
+    ytie, y0, y1 = _count_rank_tie(vector2)     # ties in y, stats
+    tot = (size * (size - 1)) // 2
+    # Note that tot = con + dis + (xtie - ntie) + (ytie - ntie) + ntie
+    #               = con + dis + xtie + ytie - ntie
+    con_minus_dis = tot - xtie - ytie + ntie - 2 * dis
+    tau = con_minus_dis / tot
+    # Limit range to fix computational errors
+    tau = min(1., max(-1., tau))
+    return tau
+
+
+def _sort_and_rank(vector1, vector2):
+    """does the sort and rank step of the _tau calculation"""
+    perm = np.argsort(vector2, kind='mergesort')
+    vector1 = vector1[perm]
+    vector2 = vector2[perm]
+    vector2 = np.r_[True, vector2[1:] != vector2[:-1]].cumsum(dtype=np.intp)
+    return vector1, vector2
+    
+
+def _count_rank_tie(ranks):
+    """ counts tied ranks for kendall-tau calculation"""
+    cnt = np.bincount(ranks).astype('int64', copy=False)
+    cnt = cnt[cnt > 1]
+    return ((cnt * (cnt - 1) // 2).sum(),
+        (cnt * (cnt - 1.) * (cnt - 2)).sum(),
+        (cnt * (cnt - 1.) * (2*cnt + 5)).sum())
 
 
 def _parse_input_rdms(rdm1, rdm2):

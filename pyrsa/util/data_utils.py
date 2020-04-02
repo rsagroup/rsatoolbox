@@ -19,7 +19,7 @@ def extract_dict(dictionary, indices):
     """
     extracted_dictionary = dictionary.copy()
     for k, v in dictionary.items():
-        extracted_dictionary[k] = v[indices]
+        extracted_dictionary[k] = np.array(v)[indices]
     return extracted_dictionary
 
 
