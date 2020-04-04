@@ -7,7 +7,7 @@ Created on Thu Feb 13 14:56:15 2020
 """
 
 import numpy as np
-from scipy.stats.mstats import rankdata
+from scipy.stats import rankdata
 from pyrsa.model import Model
 from pyrsa.rdm import RDMs
 from collections.abc import Iterable
@@ -108,8 +108,9 @@ def _nan_rank_data(rdm_vector):
             had nans
 
     """
-    ranks = rankdata(np.ma.masked_invalid(rdm_vector))
-    ranks[ranks==0] = np.nan
+    ranks_no_nan = rankdata(rdm_vector[~np.isnan(rdm_vector)])
+    ranks = np.ones_like(rdm_vector) * np.nan
+    ranks[~np.isnan(rdm_vector)] = ranks_no_nan
     return ranks
 
 
