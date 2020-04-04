@@ -7,7 +7,7 @@ Created on Thu Feb 13 14:56:15 2020
 """
 
 import numpy as np
-from scipy.stats import rankdata
+from scipy.stats.mstats import rankdata
 from pyrsa.model import Model
 from pyrsa.rdm import RDMs
 from collections.abc import Iterable
@@ -60,14 +60,14 @@ def pool_rdm(rdms, method='cosine', sigma_k=None):
     """
     rdm_vec = rdms.get_vectors()
     if method == 'euclid':
-        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
+        rdm_vec = np.nanmean(rdm_vec, axis=0, keepdims=True)
     elif method == 'cosine':
-        rdm_vec = rdm_vec/np.mean(rdm_vec, axis=1, keepdims=True)
-        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
+        rdm_vec = rdm_vec / np.nanmean(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = np.nanmean(rdm_vec, axis=0, keepdims=True)
     elif method == 'corr':
-        rdm_vec = rdm_vec - np.mean(rdm_vec, axis=1, keepdims=True)
-        rdm_vec = rdm_vec / np.std(rdm_vec, axis=1, keepdims=True)
-        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
+        rdm_vec = rdm_vec - np.nanmean(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = np.nanmean(rdm_vec, axis=0, keepdims=True)
         rdm_vec = rdm_vec - np.min(rdm_vec)
     elif method == 'corr_cov':
         rdm_vec = rdm_vec - np.mean(rdm_vec, axis=1, keepdims=True)
@@ -78,16 +78,16 @@ def pool_rdm(rdms, method='cosine', sigma_k=None):
         rdm_vec = rdm_vec/np.mean(rdm_vec, axis=1, keepdims=True)
         rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
     elif method == 'spearman':
-        rdm_vec = np.array([rankdata(v) for v in rdm_vec])
-        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
+        rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
+        rdm_vec = np.nanmean(rdm_vec, axis=0, keepdims=True)
     elif method == 'kendall' or method == 'tau-b':
         Warning('Noise ceiling for tau based on averaged ranks!')
-        rdm_vec = np.array([rankdata(v) for v in rdm_vec])
-        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
+        rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
+        rdm_vec = np.nanmean(rdm_vec, axis=0, keepdims=True)
     elif method == 'tau-a':
         Warning('Noise ceiling for tau based on averaged ranks!')
-        rdm_vec = np.array([rankdata(v) for v in rdm_vec])
-        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
+        rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
+        rdm_vec = np.nanmean(rdm_vec, axis=0, keepdims=True)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
     return RDMs(rdm_vec,
@@ -95,6 +95,22 @@ def pool_rdm(rdms, method='cosine', sigma_k=None):
                 descriptors=rdms.descriptors,
                 rdm_descriptors=None,
                 pattern_descriptors=rdms.pattern_descriptors)
+
+
+def _nan_rank_data(rdm_vector):
+    """ rank_data for vectors with nan entries
+    
+    Args:
+        rdm_vector(numpy.ndarray): the vector to be rank_transformed
+    
+    Returns:
+        ranks(numpy.ndarray): the ranks with nans where the original vector
+            had nans
+
+    """
+    ranks = rankdata(np.ma.masked_invalid(rdm_vector))
+    ranks[ranks==0] = np.nan
+    return ranks
 
 
 def pair_tests(evaluations):
