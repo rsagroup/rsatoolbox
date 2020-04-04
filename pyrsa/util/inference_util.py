@@ -68,12 +68,12 @@ def pool_rdm(rdms, method='cosine', sigma_k=None):
         rdm_vec = rdm_vec - np.nanmean(rdm_vec, axis=1, keepdims=True)
         rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
         rdm_vec = np.nanmean(rdm_vec, axis=0, keepdims=True)
-        rdm_vec = rdm_vec - np.min(rdm_vec)
+        rdm_vec = rdm_vec - np.nanmin(rdm_vec)
     elif method == 'corr_cov':
         rdm_vec = rdm_vec - np.mean(rdm_vec, axis=1, keepdims=True)
         rdm_vec = rdm_vec / np.std(rdm_vec, axis=1, keepdims=True)
         rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
-        rdm_vec = rdm_vec - np.min(rdm_vec)
+        rdm_vec = rdm_vec - np.nanmin(rdm_vec)
     elif method == 'cosine_cov':
         rdm_vec = rdm_vec/np.mean(rdm_vec, axis=1, keepdims=True)
         rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
