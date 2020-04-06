@@ -83,6 +83,7 @@ def compare_correlation(rdm1, rdm2):
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     sim = _cosine(vector1, vector2)
@@ -121,6 +122,7 @@ def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     sim = _cosine_cov_weighted(vector1, vector2, sigma_k)
@@ -232,13 +234,17 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
     """
     n_cond = _get_n_from_reduced_vectors(vector1)
     v = _get_v(n_cond, sigma_k)
+    # compute V^-1 vector1/2 for all vectors by solving Vx = vector1/2
     vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
                           for i in range(vector1.shape[0])])
     vector2_m = np.array([scipy.sparse.linalg.cg(v, vector2[i], atol=0)[0]
                           for i in range(vector2.shape[0])])
+    # compute the inner products v1^T (V^-1 v2) for all combinations
     cos = np.einsum('ij,kj->ik', vector1, vector2_m)
+    # divide by sqrt(v1^T (V^-1 v1))
     cos /= np.sqrt(np.einsum('ij,ij->i', vector1,
                              vector1_m)).reshape((-1, 1))
+    # divide by sqrt(v2^T (V^-1 v2))
     cos /= np.sqrt(np.einsum('ij,ij->i', vector2,
                              vector2_m)).reshape((1, -1))
     return cos
@@ -257,7 +263,9 @@ def _cosine(vector1, vector2):
             cosine angle between vectors
 
     """
+    # compute all inner products
     cos = np.einsum('ij,kj->ik', vector1, vector2)
+    # divide by sqrt of the inner products with themselves
     cos /= np.sqrt(np.einsum('ij,ij->i', vector1, vector1)).reshape((-1, 1))
     cos /= np.sqrt(np.einsum('ij,ij->i', vector2, vector2)).reshape((1, -1))
     return cos
