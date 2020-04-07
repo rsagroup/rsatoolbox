@@ -226,7 +226,7 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
                       duration=5, pause=1, endzeros=25, use_cor_noise=True,
                       resolution=2, sigma_noise=1, ar_coeff=0.5,
                       modelType='fixed', model_rdm='average_true',
-                      rdm_comparison='cosine', n_Layer=7, nFold=5,
+                      rdm_comparison='cosine', n_Layer=7, n_fold=5,
                       rdm_type='crossnobis', n_stimuli=92):
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_voxel, n_subj=n_subj,
@@ -238,14 +238,14 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
                                 ar_coeff=ar_coeff)
     assert os.path.isdir(fname_base), 'simulated data not found!'
     res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d' % (
-        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, nFold)
+        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, n_fold)
     if not os.path.isdir(res_path):
         os.mkdir(res_path)
     models = []
     pat_desc = {'stim':np.arange(n_stimuli)}
-    for iLayer in range(n_Layer):
+    for i_layer in range(n_Layer):
         if model_rdm == 'average_true':
-            fname_base_l = simulation_folder + ('/layer%02d' % (iLayer + 1)) \
+            fname_base_l = simulation_folder + ('/layer%02d' % (i_layer + 1)) \
                 + ('/pars_%03d_%02d_%02d_%.2f/' % (n_voxel, n_subj, 
                                                    n_repeat, sd)) \
                 + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (
@@ -262,7 +262,7 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
                 rdm_true_average = rdm_true_average + np.mean(rdm_mat, 0)
             rdm = rdm_true_average / n_sim
         if modelType == 'fixed':
-            models.append(pyrsa.model.ModelFixed('Layer%02d' % iLayer,
+            models.append(pyrsa.model.ModelFixed('Layer%02d' % i_layer,
                 pyrsa.rdm.RDMs(rdm, pattern_descriptors=pat_desc)))
     for i in tqdm.trange(n_sim):
         U = np.load(fname_base + 'U%04d.npy' % i)
@@ -278,7 +278,7 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
             pattern_descriptor='stim', rdm_descriptor='index')
         results.save(fname_base + 'results_%s_%s_%s_%s_%d_%d/res%04d' % (
             rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli,
-            nFold, i))
+            n_fold, i))
 
 
 def plot_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
@@ -286,7 +286,7 @@ def plot_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
                    duration=5, pause=1, endzeros=25, use_cor_noise = True,
                    resolution=2, sigma_noise=2, ar_coeff=0.5,
                    modelType='fixed', model_rdm='average_true',
-                   rdm_comparison='cosine', n_Layer=12, nFold=5,
+                   rdm_comparison='cosine', n_Layer=12, n_fold=5,
                    rdm_type='crossnobis', n_stimuli=96, fname_base=None):
     if fname_base is None:
         fname_base = get_fname_base(simulation_folder=simulation_folder,
@@ -299,9 +299,9 @@ def plot_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
                                     ar_coeff=ar_coeff)
     assert os.path.isdir(fname_base), 'simulated data not found!'
     scores = np.load(fname_base + 'scores_%s_%s_%s_%s_%d_%d.npy' % (
-        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, nFold))
+        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, n_fold))
     noise_ceilings = np.load(fname_base + 'noisec_%s_%s_%s_%s_%d_%d.npy' % (
-        rdm_type,modelType,model_rdm,rdm_comparison,n_stimuli,nFold))
+        rdm_type,modelType,model_rdm,rdm_comparison,n_stimuli,n_fold))
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.tick_params(labelsize=12)
     for iSim in range(n_sim):
@@ -310,8 +310,8 @@ def plot_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
                         alpha=1 / n_sim)
     #ax.plot(np.array([0.5,NLayer+0.5]),np.repeat(noise_ceilings[:,0],2).reshape([Nsim,2]).T,'k',alpha=.1)
     #ax.plot(np.array([0.5,NLayer+0.5]),np.repeat(noise_ceilings[:,1],2).reshape([Nsim,2]).T,'k',alpha=.1)
-    for iFold in range(nFold):
-        ax.plot(np.arange(n_Layer) + 1 - nFold / 20 + 0.1 * iFold,
+    for iFold in range(n_fold):
+        ax.plot(np.arange(n_Layer) + 1 - n_fold / 20 + 0.1 * iFold,
                 scores[:, :n_Layer, iFold].T, 'k.')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -347,7 +347,7 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
                            endzeros=25, use_cor_noise=True, resolution = 2,
                            sigma_noise=2, ar_coeff=.5, modelType = 'fixed',
                            model_rdm = 'average_true', n_stimuli=96,
-                           rdm_comparison = 'cosine', n_Layer = 12, nFold=5,
+                           rdm_comparison = 'cosine', n_Layer = 12, n_fold=5,
                            rdm_type='crossnobis', fname_base=None):
     if fname_base is None:
         fname_base = get_fname_base(simulation_folder=simulation_folder,
@@ -360,9 +360,9 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
                                     ar_coeff=ar_coeff)
     assert os.path.isdir(fname_base), 'simulated data not found!'
     scores = np.load(fname_base + 'scores_%s_%s_%s_%s_%d_%d.npy' % (
-        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, nFold))
+        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, n_fold))
     noise_ceilings = np.load(fname_base + 'noisec_%s_%s_%s_%s_%d_%d.npy' % (
-        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, nFold))
+        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, n_fold))
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.tick_params(labelsize=12)
     for iSim in range(n_sim):
@@ -371,7 +371,7 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
                         alpha=1 / n_sim)
     #ax.plot(np.array([0.5,NLayer+0.5]),np.repeat(noise_ceilings[:,0],2).reshape([Nsim,2]).T,'k',alpha=.1)
     #ax.plot(np.array([0.5,NLayer+0.5]),np.repeat(noise_ceilings[:,1],2).reshape([Nsim,2]).T,'k',alpha=.1)
-    ax.plot(np.arange(n_Layer) + 1 - nFold / 20, np.mean(scores[:, :n_Layer, :],
+    ax.plot(np.arange(n_Layer) + 1 - n_fold / 20, np.mean(scores[:, :n_Layer, :],
                                                         axis=2).T,
             'k.')
     ax.spines['top'].set_visible(False)
@@ -423,16 +423,14 @@ def sampling_one_rdm(U0=None, N=1000, sigmaP=None, shrinkage=0.4,
     if U0 is None:
         U0 = pyrsa.generate_random_data(None, sigma=1, n_reps=1)
     if sigmaP is None:
-        sigmaP = sigma*np.eye(U0.shape[-1])
-    if len(U0.shape)==3:
+        sigmaP = sigma * np.eye(U0.shape[-1])
+    if len(U0.shape) == 3:
         U0 = np.mean(U0, axis=0)
         
     sigma_p_est, sigmaR = pyrsa.shrink_sigma_residual(sigmaP,
                                                       shrinkage=shrinkage)
     sigmaK = np.eye(U0.shape[0])
     rdm_theory = pyrsa.calc_rdm_mahalanobis(U0,sigma_p_est)
-    #rdm_theory,cov_theory = pyrsa.extract_from_u(U0,sigmaP,shrinkage=shrinkage)
-    #print(sigmaR)
     cov_theory = pyrsa.likelihood_cov(U0,sigmaK,sigmaR,M)
     rdm_samples = np.zeros((N,rdm_theory.shape[0]))
     covs = np.zeros((N, cov_theory.shape[0], cov_theory.shape[1]))
@@ -612,7 +610,7 @@ def plot_n_zeros(k=np.arange(4,50)):
     plt.ylim([0,1])
 
     
-def pipeline_pooling_dnn(model=None, Nvox=10, fname='alexnet', n_subj=10,
+def pipeline_pooling_dnn(model=None, n_vox=10, fname='alexnet', n_subj=10,
                          n_repeat=5, cross_residuals=True, shrinkage=0.4,
                          layer=3, n_samp=3, n_stimuli=92):
     # runs the simulations to calculate a specific result for the pooling analysis
@@ -671,14 +669,15 @@ def pipeline_pooling_dnn(model=None, Nvox=10, fname='alexnet', n_subj=10,
         #print('\n starting simulations')
         for i_subj in tqdm.trange(n_subj,position=1):
             Usubj, sigmaP, indices_space, weights = \
-                dnn.get_sampled_representations(model,layer,sd,stimuli,n_vox)
+                dnn.get_sampled_representations(model, layer, sd, stimuli,
+                                                n_vox)
             rdm_true_subj[i_subj] = pyrsa.calc_rdm_mahalanobis(Usubj,sigmaP)
             # replaced with proper sampling of a timecourse
             #Usamp = dnn.get_random_sample(Usubj,sigmaP,sigmaNoise,N) 
-            rdm_samples_subj = np.zeros((len(stimuli),len(stimuli)))
-            betas = np.zeros((n_repeat,len(stimuli)+1,n_vox))
-            timecourses = np.zeros((n_repeat,total_dur,n_vox))
-            designs = np.zeros((n_repeat,total_dur,len(stimuli)+1))
+            rdm_samples_subj = np.zeros((len(stimuli), len(stimuli)))
+            betas = np.zeros((n_repeat, len(stimuli) + 1, n_vox))
+            timecourses = np.zeros((n_repeat,total_dur, n_vox))
+            designs = np.zeros((n_repeat, total_dur, len(stimuli) + 1))
             for i_repeat in range(n_repeat):
                 design = dnn.generate_design_random(len(stimuli), repeats=1,
                                                     duration=duration,
@@ -869,18 +868,18 @@ def plot_dnn_pooling(fname='alexnet', n_stimuli=40, layer=3, n_subj=10,
                 'sample,design', 'sample,sample'], frameon=False)
 
 
-def get_rdm_vector(RDM):
-    if len(RDM.shape)== 1: # assume it is one vector
-        return RDM
-    elif len(RDM.shape)==2:
-        if RDM.shape[0]==RDM.shape[1]: # it is a single RDM
-            idx = np.triu_indices_from(RDM,1)
-            return RDM[idx]
-        else: # assume it already is a set of vectors
-            return RDM
-    elif len(RDM.shape)==3 and RDM.shape[1]==RDM.shape[2]: # it is a set of RDMs
-        idx = np.triu_indices_from(RDM[0],1)
-        return RDM[:,idx[0],idx[1]]
+def get_rdm_vector(rdm):
+    if len(rdm.shape) == 1: # assume it is one vector
+        return rdm
+    elif len(rdm.shape) == 2:
+        if rdm.shape[0] == rdm.shape[1]: # it is a single RDM
+            idx = np.triu_indices_from(rdm,1)
+            return rdm[idx]
+        # assume it already is a set of vectors
+        return rdm
+    elif len(rdm.shape)==3 and rdm.shape[1] == rdm.shape[2]: # it is a set of RDMs
+        idx = np.triu_indices_from(rdm[0],1)
+        return rdm[:, idx[0], idx[1]]
     else:
         raise(ValueError('get_rdm_vector received unrecognized shape'))
 
@@ -888,25 +887,25 @@ def get_rdm_vector(RDM):
 def get_rdm_matrix(rdm):
     if len(rdm.shape)==1:
         N = int(np.sqrt(2*rdm.shape[0]+0.25)+0.5)
-        RDM = np.zeros((N,N))
-        RDM[np.triu_indices_from(RDM,1)]=rdm
+        rdm_out = np.zeros((N,N))
+        rdm_out[np.triu_indices_from(rdm_out,1)]=rdm
         #RDM[np.tril_indices_from(RDM,-1)]=rdm-> wrong indices!
-        RDM = RDM+RDM.T
+        rdm_out = rdm_out+rdm_out.T
     elif len(rdm.shape)==2:
         if (rdm.shape[0] != rdm.shape[1]) or not np.allclose(rdm,rdm.transpose()):
             N = int(np.sqrt(2*rdm.shape[1]+0.25)+0.5)
-            RDM = np.zeros((rdm.shape[0],N,N))
-            idx = np.triu_indices_from(RDM[0],1)
-            RDM[:,idx[0],idx[1]]=rdm
-            RDM = RDM+RDM.transpose(0,2,1)
+            rdm_out = np.zeros((rdm.shape[0],N,N))
+            idx = np.triu_indices_from(rdm_out[0],1)
+            rdm_out[:,idx[0],idx[1]] = rdm
+            rdm_out = rdm_out + rdm_out.transpose(0,2,1)
         else:
-            RDM = rdm
+            rdm_out = rdm
     elif len(rdm.shape) == 3:
         if rdm.shape[1]==rdm.shape[2]:
-            RDM = rdm
+            rdm_out = rdm
     else:
         raise(ValueError('get_rdm_matrix received unrecognized shape'))
-    return RDM
+    return rdm_out
 
 
 def multiply_gaussians(mus, covs):
@@ -917,12 +916,12 @@ def multiply_gaussians(mus, covs):
         precision = covs[0].toarray()   
     for i in range(1,len(mus)):
         if (type(covs[i]) is np.ndarray):
-            precI = np.linalg.inv(covs[i])
+            prec_i = np.linalg.inv(covs[i])
         else:
-            precI = np.linalg.inv(covs[i].toarray())
-        prec_new = precision + precI
+            prec_i = np.linalg.inv(covs[i].toarray())
+        prec_new = precision + prec_i
         mu = np.linalg.solve(prec_new,np.matmul(precision,mu)) \
-            + np.linalg.solve(prec_new,np.matmul(precI,mus[i]))
+            + np.linalg.solve(prec_new,np.matmul(prec_i,mus[i]))
         precision = prec_new
     cov = np.linalg.inv(precision)
     return mu, cov
@@ -931,38 +930,42 @@ def multiply_gaussians(mus, covs):
 def multiply_gaussians_normalize(mus, covs):
     mu = mus[0]
     precision = np.linalg.inv(covs[0])
-    z = 1/np.sqrt(np.linalg.det(covs[0])) * np.exp(-0.5*np.matmul(mu,np.matmul(precision,mu)))
+    z = 1 / np.sqrt(np.linalg.det(covs[0])) \
+        * np.exp(-0.5 * np.matmul(mu, np.matmul(precision, mu)))
     for i in range(1,len(mus)):
-        precI = np.linalg.inv(covs[i])
-        prec_new = precision + precI
-        mu = np.linalg.solve(prec_new,np.matmul(precision,mu)) \
-            + np.linalg.solve(prec_new,np.matmul(precI,mus[i]))
+        prec_i = np.linalg.inv(covs[i])
+        prec_new = precision + prec_i
+        mu = np.linalg.solve(prec_new, np.matmul(precision, mu)) \
+            + np.linalg.solve(prec_new, np.matmul(prec_i, mus[i]))
         precision = prec_new
-        z = z / np.sqrt(np.linalg.det(covs[0])) * np.exp(-0.5*np.matmul(mus[i],np.matmul(precI,mus[i])))
+        z = z / np.sqrt(np.linalg.det(covs[0])) \
+            * np.exp(-0.5 * np.matmul(mus[i], np.matmul(prec_i, mus[i])))
     cov = np.linalg.inv(precision)
-    z = z*np.sqrt(np.linalg.det(covs[0])) * np.exp(0.5*np.matmul(mu,np.matmul(precision,mu)))
-    z = (2*np.pi)**(-len(mu)/2) * z
-    return mu,cov,z
+    z = z * np.sqrt(np.linalg.det(covs[0]))\
+        * np.exp(0.5 * np.matmul(mu, np.matmul(precision, mu)))
+    z = (2 * np.pi) ** (-len(mu) / 2) * z
+    return mu, cov, z
 
 
 def pool_rdms(rdms, covs=None):
-    # will automatically return cov if you pass a covariance 
-    if len(rdms.shape)==3:
-        means = np.mean(np.mean(rdms,axis=1,keepdims=True),axis=2,keepdims=True)
+    # will automatically return cov if you pass a covariance
+    if len(rdms.shape) == 3:
+        means = np.mean(np.mean(rdms, axis=1, keepdims=True),
+                        axis=2, keepdims=True)
     else:
-        means = np.mean(rdms,axis=1, keepdims=True)
+        means = np.mean(rdms, axis=1, keepdims=True)
     rdms = rdms / means
     if covs is None:
-        rdm = np.mean(rdms,axis=0)
+        rdm = np.mean(rdms, axis=0)
     else:
         for i in range(rdms.shape[0]):
-            covs[i] = covs[i]/means[i]/means[i]
+            covs[i] = covs[i] / means[i] / means[i]
         rdm = pool_rdms_hard(rdms, covs)
     return rdm
 
 
 def pool_rdms_hard(rdms, covs):
-    matrixform = len(rdms.shape)==3
+    matrixform = len(rdms.shape) == 3
     if matrixform:
         rdms = get_rdm_vector(rdms)
     rdm, cov = multiply_gaussians(rdms, covs)
