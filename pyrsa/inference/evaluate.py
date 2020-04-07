@@ -323,24 +323,32 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         sample, rdm_sample, pattern_sample = bootstrap_sample(data,
             rdm_descriptor=rdm_descriptor,
             pattern_descriptor=pattern_descriptor)
-        train_set, test_set, ceil_set = sets_k_fold(sample,
-            pattern_descriptor=pattern_descriptor,
-            rdm_descriptor=rdm_descriptor,
-            k_pattern=k_pattern, k_rdm=k_rdm, random=random)
-        for idx in range(len(test_set)):
-            test_set[idx][1] = _concat_sampling(pattern_sample,
-                                                test_set[idx][1])
-            train_set[idx][1] = _concat_sampling(pattern_sample,
-                                                 train_set[idx][1])
-        cv_result = crossval(model, sample,
-            train_set, test_set,
-            method=method, fitter=fitter, 
-            pattern_descriptor=pattern_descriptor)
-        if isinstance(model, Model):   
-            evaluations[i_sample, 0, :] = cv_result.evaluations[0, 0]
-        elif isinstance(model, Iterable):
-            evaluations[i_sample, :, :] = cv_result.evaluations[0]
-        noise_ceil[:,i_sample] = np.mean(cv_result.noise_ceiling, axis=-1)
+        if len(np.unique(rdm_sample)) >= k_rdm \
+           and len(np.unique(pattern_sample)) >= k_pattern:
+            train_set, test_set, ceil_set = sets_k_fold(sample,
+                pattern_descriptor=pattern_descriptor,
+                rdm_descriptor=rdm_descriptor,
+                k_pattern=k_pattern, k_rdm=k_rdm, random=random)
+            for idx in range(len(test_set)):
+                test_set[idx][1] = _concat_sampling(pattern_sample,
+                                                    test_set[idx][1])
+                train_set[idx][1] = _concat_sampling(pattern_sample,
+                                                     train_set[idx][1])
+            cv_result = crossval(model, sample,
+                train_set, test_set,
+                method=method, fitter=fitter, 
+                pattern_descriptor=pattern_descriptor)
+            if isinstance(model, Model):   
+                evaluations[i_sample, 0, :] = cv_result.evaluations[0, 0]
+            elif isinstance(model, Iterable):
+                evaluations[i_sample, :, :] = cv_result.evaluations[0]
+            noise_ceil[:,i_sample] = np.mean(cv_result.noise_ceiling, axis=-1)
+        else: # sample does not allow desired crossvalidation
+            if isinstance(model, Model):   
+                evaluations[i_sample, 0, :] = np.nan
+            elif isinstance(model, Iterable):
+                evaluations[i_sample, :, :] = np.nan
+            noise_ceil[:,i_sample] = np.nan
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap_crossval', noise_ceiling=noise_ceil)
     return result
