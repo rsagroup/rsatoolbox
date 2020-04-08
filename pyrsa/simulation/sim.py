@@ -37,7 +37,7 @@ def make_design(n_cond, n_part):
 
 def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
                  signal=1, noise=1, signal_cov_channel=None, noise_cov_channel=None,
-                 noise_cov_trial=None, part_vec=None, use_exact_signal=False, 
+                 noise_cov_trial=None, part_vec=None, use_exact_signal=False,
                  use_same_signal=False):
     """
     Simulates a fMRI-style data set with a set of partitions
@@ -56,12 +56,12 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         signal_cov_channel(numpy.ndarray): Covariance matrix of signal across channels
         noise (float)             Noise variance
         noise_cov_channel(numpy.ndarray):Covariance matrix of noise (default = identity)
-        noise_cov_trial(numpy.ndarray): Covariance matrix of noise across trials 
+        noise_cov_trial(numpy.ndarray): Covariance matrix of noise across trials
         part_vec (numpy.ndarray): optional partition vector if within-partition
                                   covariance is specified
-        use_exact_signal (bool):  Makes the signal so that G is exactly as 
+        use_exact_signal (bool):  Makes the signal so that G is exactly as
                                   specified (default: False)
-        use_same_signal (bool):   Uses the same signal for all simulation 
+        use_same_signal (bool):   Uses the same signal for all simulation
                                   (default: False)
     Returns:
         data (list):              List of pyrsa.Dataset with obs_descriptors
@@ -91,7 +91,7 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         signal_chol_channel = np.linalg.cholesky(signal_cov_channel)
     else:
         signal_chol_channel = None
-        
+
     # If noise_cov_channel is given, precalculate the cholinsky decomp
     if (noise_cov_channel is not None):
         if (noise_cov_channel.shape is not (n_channel, n_channel)):
@@ -121,8 +121,8 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     des = {"signal": signal, "noise": noise,
            "model": model.name, "theta": theta}
     dataset_list = []
-    for i in range(0, n_sim):        
-        # If necessary - make a new signal 
+    for i in range(0, n_sim):
+        # If necessary - make a new signal
         if (use_same_signal == False):
             true_U = make_signal(G, n_channel, use_exact_signal, signal_chol_channel)
         # Make noise with normal distribution - allows later plugin of other dists
@@ -130,7 +130,7 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         epsilon = ss.norm.ppf(epsilon) * np.sqrt(noise)
         # Now add spatial and temporal covariance structure as required
         if (noise_chol_channel is not None):
-            epsilon = epsilon @ noise_chol_channel 
+            epsilon = epsilon @ noise_chol_channel
         if (noise_chol_trial is not None):
             epsilon = noise_chol_trial @ epsilon
         # Assemble the data set
@@ -148,9 +148,9 @@ def make_signal(G, n_channel,make_exact=False, chol_channel=None):
     Args:
         G(np.array)        : desired second moment matrix (ncond x ncond)
         n_channel (int)    : Number of channels
-        make_exact (bool)  : Make the signal so the second moment matrix is exact 
+        make_exact (bool)  : Make the signal so the second moment matrix is exact
                              (default: False)
-        chol_channel: Cholensky decomposition of the signal covariance matrix 
+        chol_channel: Cholensky decomposition of the signal covariance matrix
                              (default: None - makes signal i.i.d.)
     Returns:
         np.array (n_cond x n_channel): random signal
@@ -165,8 +165,8 @@ def make_signal(G, n_channel,make_exact=False, chol_channel=None):
     if (make_exact):
         E = true_U @ true_U.transpose()
         L = np.linalg.cholesky(E)
-        true_U = np.linalg.solve(L, true_U)
-    # Impose spatial covariance matrix 
+        true_U = np.linalg.solve(L, true_U) * np.sqrt(n_channel)
+    # Impose spatial covariance matrix
     if (chol_channel is not None):
         true_U = true_U @ chol_channel
     # Now produce data with the known second-moment matrix
@@ -176,5 +176,5 @@ def make_signal(G, n_channel,make_exact=False, chol_channel=None):
     lam[lam < 1e-15] = 0
     lam = np.sqrt(lam)
     chol_G = V * lam.reshape((1, V.shape[1]))
-    true_U = (chol_G @ true_U) * np.sqrt(n_channel)
+    true_U = (chol_G @ true_U)
     return true_U
