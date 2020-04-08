@@ -226,7 +226,7 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
                       duration=5, pause=1, endzeros=25, use_cor_noise=True,
                       resolution=2, sigma_noise=1, ar_coeff=0.5,
                       modelType='fixed', model_rdm='averagetrue',
-                      rdm_comparison='cosine', n_Layer=7, k_pattern=3,
+                      rdm_comparison='cosine', n_Layer=12, k_pattern=3,
                       k_rdm = 3, rdm_type='crossnobis', n_stimuli=92):
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_voxel, n_subj=n_subj,
@@ -281,16 +281,16 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
         results = pyrsa.inference.bootstrap_crossval(models, rdms,
             pattern_descriptor='stim', rdm_descriptor='index',
             k_pattern=k_pattern, k_rdm=k_rdm)
-        results.save(res_path + '/res%04d' % (i))
+        results.save(res_path + '/res%04d.hdf5' % (i))
 
 
 def plot_saved_dnn(layer=2, sd=3, n_voxel=100, idx=0,
                    n_subj=10, simulation_folder='sim', n_repeat=2,
-                   duration=5, pause=1, endzeros=25, use_cor_noise = True,
-                   resolution=2, sigma_noise=2, ar_coeff=0.5,
+                   duration=5, pause=1, endzeros=25, use_cor_noise=True,
+                   resolution=2, sigma_noise=1, ar_coeff=0.5,
                    modelType='fixed', model_rdm='averagetrue',
                    rdm_comparison='cosine', n_Layer=12, k_pattern=3, k_rdm=3,
-                   rdm_type='crossnobis', n_stimuli=96, fname_base=None):
+                   rdm_type='crossnobis', n_stimuli=92, fname_base=None):
     if fname_base is None:
         fname_base = get_fname_base(simulation_folder=simulation_folder,
                                     layer=layer, n_voxel=n_voxel, n_subj=n_subj,
@@ -304,7 +304,7 @@ def plot_saved_dnn(layer=2, sd=3, n_voxel=100, idx=0,
     res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d_%d' % (
         rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli,
         k_pattern, k_rdm)
-    results = pyrsa.inference.load_results(res_path + '/res%04d' % idx)
+    results = pyrsa.inference.load_results(res_path + '/res%04d.hdf5' % idx)
     pyrsa.vis.plot_model_comparison(results)
 
 
@@ -324,7 +324,7 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
                            n_sim=100, n_repeat=2, duration=5, pause=1,
                            endzeros=25, use_cor_noise=True, resolution = 2,
                            sigma_noise=2, ar_coeff=.5, modelType = 'fixed',
-                           model_rdm = 'averagetrue', n_stimuli=96,
+                           model_rdm = 'averagetrue', n_stimuli=92,
                            rdm_comparison = 'cosine', n_Layer = 12, n_fold=5,
                            rdm_type='crossnobis', fname_base=None):
     if fname_base is None:
