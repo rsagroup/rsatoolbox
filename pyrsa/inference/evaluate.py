@@ -328,7 +328,7 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
             rdm_descriptor=rdm_descriptor,
             pattern_descriptor=pattern_descriptor)
         if len(np.unique(rdm_sample)) >= k_rdm \
-           and len(np.unique(pattern_sample)) >= k_pattern:
+           and len(np.unique(pattern_sample)) >= 3 * k_pattern:
             train_set, test_set, ceil_set = sets_k_fold(sample,
                 pattern_descriptor=pattern_descriptor,
                 rdm_descriptor=rdm_descriptor,
