@@ -83,7 +83,7 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         raise(NameError("cond_vec needs to be either vector or design matrix"))
     n_obs, n_cond = Zcond.shape
 
-    # If signal_cov_channel is given, precalculate the cholinsky decomp
+    # If signal_cov_channel is given, precalculate the cholesky decomp
     if (signal_cov_channel is not None):
         if (signal_cov_channel.shape is not (n_channel, n_channel)):
             raise(NameError("Signal covariance for channels needs to be \
@@ -172,9 +172,9 @@ def make_signal(G, n_channel,make_exact=False, chol_channel=None):
     # Now produce data with the known second-moment matrix
     # Use positive eigenvectors only
     # (cholesky does not work with rank-deficient matrices)
-    lam, V = np.linalg.eig(G)
+    lam, V = np.linalg.eigh(G)
     lam[lam < 1e-15] = 0
     lam = np.sqrt(lam)
-    chol_G = V.real * lam.real.reshape((1, V.shape[1]))
+    chol_G = V * lam.reshape((1, V.shape[1]))
     true_U = (chol_G @ true_U) * np.sqrt(n_channel)
     return true_U
