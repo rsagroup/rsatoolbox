@@ -225,9 +225,9 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
                       n_subj=10, simulation_folder='sim', n_sim=100, n_repeat=2,
                       duration=5, pause=1, endzeros=25, use_cor_noise=True,
                       resolution=2, sigma_noise=1, ar_coeff=0.5,
-                      modelType='fixed', model_rdm='average_true',
-                      rdm_comparison='cosine', n_Layer=7, n_fold=5,
-                      rdm_type='crossnobis', n_stimuli=92):
+                      modelType='fixed', model_rdm='averagetrue',
+                      rdm_comparison='cosine', n_Layer=7, k_pattern=3,
+                      k_rdm = 3, rdm_type='crossnobis', n_stimuli=92):
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_voxel, n_subj=n_subj,
                                 n_repeat=n_repeat, sd=sd, duration=duration,
@@ -237,20 +237,23 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
                                 sigma_noise=sigma_noise,
                                 ar_coeff=ar_coeff)
     assert os.path.isdir(fname_base), 'simulated data not found!'
-    res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d' % (
-        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, n_fold)
+    res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d_%d' % (
+        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli,
+        k_pattern, k_rdm)
     if not os.path.isdir(res_path):
         os.mkdir(res_path)
     models = []
     pat_desc = {'stim':np.arange(n_stimuli)}
     for i_layer in range(n_Layer):
-        if model_rdm == 'average_true':
-            fname_base_l = simulation_folder + ('/layer%02d' % (i_layer + 1)) \
-                + ('/pars_%03d_%02d_%02d_%.2f/' % (n_voxel, n_subj, 
-                                                   n_repeat, sd)) \
-                + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (
-                    duration, pause, endzeros, use_cor_noise, resolution,
-                    sigma_noise, ar_coeff))
+        if model_rdm == 'averagetrue':
+            fname_base_l = get_fname_base(simulation_folder=simulation_folder,
+                                layer=i_layer, n_voxel=n_voxel, n_subj=n_subj,
+                                n_repeat=n_repeat, sd=sd, duration=duration,
+                                pause=pause, endzeros=endzeros,
+                                use_cor_noise=use_cor_noise,
+                                resolution=resolution,
+                                sigma_noise=sigma_noise,
+                                ar_coeff=ar_coeff)
             rdm_true_average = 0
             for i in range(n_sim):
                 Utrue = np.load(fname_base_l + 'Utrue%04d.npy' % i)
@@ -264,29 +267,29 @@ def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
         if modelType == 'fixed':
             models.append(pyrsa.model.ModelFixed('Layer%02d' % i_layer,
                 pyrsa.rdm.RDMs(rdm, pattern_descriptors=pat_desc)))
-    for i in tqdm.trange(n_sim):
+    for i in tqdm.trange(n_sim, position=1):
         U = np.load(fname_base + 'U%04d.npy' % i)
         data = []
         desc = {'stim': np.tile(np.arange(n_stimuli), n_repeat),
                 'repeat': np.repeat(np.arange(n_repeat), n_stimuli)}
         for i_subj in range(U.shape[0]):
-            u_subj = U[i_subj,:,:n_stimuli,:].reshape(n_repeat*n_stimuli, n_voxel)
+            u_subj = U[i_subj, :, :n_stimuli, :].reshape(n_repeat * n_stimuli,
+                                                         n_voxel)
             data.append(pyrsa.data.Dataset(u_subj, obs_descriptors=desc))
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor='repeat')
         results = pyrsa.inference.bootstrap_crossval(models, rdms,
-            pattern_descriptor='stim', rdm_descriptor='index')
-        results.save(fname_base + 'results_%s_%s_%s_%s_%d_%d/res%04d' % (
-            rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli,
-            n_fold, i))
+            pattern_descriptor='stim', rdm_descriptor='index',
+            k_pattern=k_pattern, k_rdm=k_rdm)
+        results.save(res_path + '/res%04d' % (i))
 
 
-def plot_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
-                   n_subj=10, simulation_folder='test', n_sim=100, n_repeat=2,
+def plot_saved_dnn(layer=2, sd=3, n_voxel=100, idx=0,
+                   n_subj=10, simulation_folder='sim', n_repeat=2,
                    duration=5, pause=1, endzeros=25, use_cor_noise = True,
                    resolution=2, sigma_noise=2, ar_coeff=0.5,
-                   modelType='fixed', model_rdm='average_true',
-                   rdm_comparison='cosine', n_Layer=12, n_fold=5,
+                   modelType='fixed', model_rdm='averagetrue',
+                   rdm_comparison='cosine', n_Layer=12, k_pattern=3, k_rdm=3,
                    rdm_type='crossnobis', n_stimuli=96, fname_base=None):
     if fname_base is None:
         fname_base = get_fname_base(simulation_folder=simulation_folder,
@@ -298,36 +301,11 @@ def plot_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
                                     sigma_noise=sigma_noise,
                                     ar_coeff=ar_coeff)
     assert os.path.isdir(fname_base), 'simulated data not found!'
-    scores = np.load(fname_base + 'scores_%s_%s_%s_%s_%d_%d.npy' % (
-        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, n_fold))
-    noise_ceilings = np.load(fname_base + 'noisec_%s_%s_%s_%s_%d_%d.npy' % (
-        rdm_type,modelType,model_rdm,rdm_comparison,n_stimuli,n_fold))
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.tick_params(labelsize=12)
-    for iSim in range(n_sim):
-        ax.fill_between(np.array([0.5, n_Layer + 0.5]), noise_ceilings[iSim, 0],
-                        noise_ceilings[iSim, 1], facecolor='blue',
-                        alpha=1 / n_sim)
-    #ax.plot(np.array([0.5,NLayer+0.5]),np.repeat(noise_ceilings[:,0],2).reshape([Nsim,2]).T,'k',alpha=.1)
-    #ax.plot(np.array([0.5,NLayer+0.5]),np.repeat(noise_ceilings[:,1],2).reshape([Nsim,2]).T,'k',alpha=.1)
-    for iFold in range(n_fold):
-        ax.plot(np.arange(n_Layer) + 1 - n_fold / 20 + 0.1 * iFold,
-                scores[:, :n_Layer, iFold].T, 'k.')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.set_xlabel('Layer', fontsize=18)
-    ax.set_title('Layer %d' % layer, fontsize=28)
-    if rdm_comparison=='cosine':
-        plt.ylim([0, 1])
-        ax.set_ylabel('Cosine Distance', fontsize=18)
-    elif rdm_comparison=='eudlid':
-        ax.set_ylabel('Euclidean Distance', fontsize=18)
-    elif rdm_comparison=='kendall-tau':
-        ax.set_ylabel('Kendall Tau', fontsize=18)
-    elif rdm_comparison=='pearson':
-        ax.set_ylabel('Pearson Correlation', fontsize=18)
-    elif rdm_comparison=='spearman':
-        ax.set_ylabel('Spearman Rho', fontsize=18)
+    res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d_%d' % (
+        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli,
+        k_pattern, k_rdm)
+    results = pyrsa.inference.load_results(res_path + '/res%04d' % idx)
+    pyrsa.vis.plot_model_comparison(results)
 
 
 def get_fname_base(simulation_folder, layer, n_voxel, n_subj, n_repeat, sd,
@@ -346,7 +324,7 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
                            n_sim=100, n_repeat=2, duration=5, pause=1,
                            endzeros=25, use_cor_noise=True, resolution = 2,
                            sigma_noise=2, ar_coeff=.5, modelType = 'fixed',
-                           model_rdm = 'average_true', n_stimuli=96,
+                           model_rdm = 'averagetrue', n_stimuli=96,
                            rdm_comparison = 'cosine', n_Layer = 12, n_fold=5,
                            rdm_type='crossnobis', fname_base=None):
     if fname_base is None:
