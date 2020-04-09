@@ -217,7 +217,7 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
 
 
 def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
-             fitter=None, pattern_descriptor=None):
+             fitter=None, pattern_descriptor=None, calc_noise_ceil = True):
     """evaluates a model on cross-validation sets
 
     Args:
@@ -273,7 +273,7 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
                     pred = pred.subsample_pattern(by=pattern_descriptor,
                                                   value=test[1])
                     evals[j] = np.mean(compare(pred, test[0], method))
-            if ceil_set is None:
+            if ceil_set is None and calc_noise_ceil:
                 noise_ceil.append(boot_noise_ceiling(
                     rdms.subsample_pattern(by=pattern_descriptor, value=test[1])
                     , method=method))
@@ -282,11 +282,13 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
         model = [model]
     evaluations = np.array(evaluations).T # .T to switch model/set order
     evaluations = evaluations.reshape((1, len(model), len(train_set)))
-    if ceil_set is not None:
+    if ceil_set is not None and calc_noise_ceil:
         noise_ceil = cv_noise_ceiling(rdms, ceil_set, test_set, method=method,
                                       pattern_descriptor=pattern_descriptor)
-    else:
+    elif calc_noise_ceil:
         noise_ceil = np.array(noise_ceil).T
+    else:
+        noise_ceil = np.array([np.nan,np.nan])
     result = Result(model, evaluations, method=method,
                     cv_method='crossvalidation', noise_ceiling=noise_ceil)
     return result
@@ -324,25 +326,28 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
             rdm_descriptor=rdm_descriptor,
             pattern_descriptor=pattern_descriptor)
         if len(np.unique(rdm_sample)) >= k_rdm \
-           and len(np.unique(pattern_sample)) >= k_pattern:
+           and len(np.unique(pattern_sample)) >= 3 * k_pattern:
             train_set, test_set, ceil_set = sets_k_fold(sample,
                 pattern_descriptor=pattern_descriptor,
                 rdm_descriptor=rdm_descriptor,
                 k_pattern=k_pattern, k_rdm=k_rdm, random=random)
+            cv_nc = cv_noise_ceiling(sample, ceil_set, test_set, method=method,
+                                     pattern_descriptor=pattern_descriptor)
+            noise_ceil[:,i_sample] = np.mean(cv_nc, axis=-1)
             for idx in range(len(test_set)):
                 test_set[idx][1] = _concat_sampling(pattern_sample,
                                                     test_set[idx][1])
                 train_set[idx][1] = _concat_sampling(pattern_sample,
                                                      train_set[idx][1])
-            cv_result = crossval(model, sample,
-                train_set, test_set,
-                method=method, fitter=fitter, 
-                pattern_descriptor=pattern_descriptor)
+            cv_result = crossval(model, sample, train_set, test_set,
+                                 ceil_set=ceil_set, method=method,
+                                 fitter=fitter, 
+                                 pattern_descriptor=pattern_descriptor,
+                                 calc_noise_ceil=False)
             if isinstance(model, Model):   
                 evaluations[i_sample, 0, :] = cv_result.evaluations[0, 0]
             elif isinstance(model, Iterable):
                 evaluations[i_sample, :, :] = cv_result.evaluations[0]
-            noise_ceil[:,i_sample] = np.mean(cv_result.noise_ceiling, axis=-1)
         else: # sample does not allow desired crossvalidation
             if isinstance(model, Model):   
                 evaluations[i_sample, 0, :] = np.nan

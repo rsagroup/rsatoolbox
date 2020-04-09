@@ -45,7 +45,7 @@ def _write_to_group(group, dictionary):
 
 
 def read_dict_hdf5(file):
-    """ writes a nested dictionary containing strings & arrays as data into 
+    """ reads a nested dictionary containing strings & arrays as data from 
     a hdf5 file
 
     Args:

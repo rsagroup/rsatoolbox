@@ -6,6 +6,7 @@ Created on Mon Jan 20 09:44:04 2020
 @author: heiko
 """
 
+from copy import deepcopy
 import numpy as np
 from pyrsa.util.rdm_utils import add_pattern_index
 
@@ -141,7 +142,7 @@ def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
                                     rdm_sample_train)
         train_new, test_new, _ = sets_k_fold_pattern(rdms_train, k=k_pattern,
             pattern_descriptor=pattern_descriptor, random=random)
-        ceil_new = test_new.copy()
+        ceil_new = deepcopy(test_new)
         for i_pattern in range(k_pattern):
             test_new[i_pattern][0] = rdms_test.subsample_pattern(
                 by=pattern_descriptor,
