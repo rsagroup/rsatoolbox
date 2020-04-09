@@ -333,14 +333,14 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
                 k_pattern=k_pattern, k_rdm=k_rdm, random=random)
             cv_nc = cv_noise_ceiling(sample, ceil_set, test_set, method=method,
                                      pattern_descriptor=pattern_descriptor)
-            noise_ceil[:,i_sample] = np.mean(cv_nc, axis=-1)
+            noise_ceil[:,i_sample] = cv_nc
             for idx in range(len(test_set)):
                 test_set[idx][1] = _concat_sampling(pattern_sample,
                                                     test_set[idx][1])
                 train_set[idx][1] = _concat_sampling(pattern_sample,
                                                      train_set[idx][1])
             cv_result = crossval(model, sample, train_set, test_set,
-                                 ceil_set=ceil_set, method=method,
+                                 method=method,
                                  fitter=fitter, 
                                  pattern_descriptor=pattern_descriptor,
                                  calc_noise_ceil=False)

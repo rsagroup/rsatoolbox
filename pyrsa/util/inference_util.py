@@ -62,7 +62,8 @@ def pool_rdm(rdms, method='cosine'):
     if method == 'euclid':
         rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
     elif method == 'cosine':
-        rdm_vec = rdm_vec/np.mean(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = rdm_vec / np.sqrt(np.sum(rdm_vec ** 2, axis=1,
+                                           keepdims=True))
         rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
     elif method == 'corr':
         rdm_vec = rdm_vec - np.mean(rdm_vec, axis=1, keepdims=True)
