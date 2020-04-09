@@ -62,6 +62,9 @@ class Result:
                 pkl: pickle file 
 
         """
+        if isinstance(filename, str):
+            if os.path.isfile(filename):
+                os.remove(filename)
         result_dict = self.to_dict()
         if file_type == 'hdf5':
             write_dict_hdf5(filename, result_dict)

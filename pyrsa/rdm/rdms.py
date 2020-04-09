@@ -5,6 +5,7 @@ Definition of RSA RDMs class and subclasses
 @author: baihan
 """
 
+import os
 import numpy as np
 import pickle
 from pyrsa.util.rdm_utils import batch_to_vectors
@@ -291,6 +292,9 @@ class RDMs:
                 pkl: pickle file 
 
         """
+        if isinstance(filename, str):
+            if os.path.isfile(filename):
+                os.remove(filename)
         rdm_dict = self.to_dict()
         if file_type == 'hdf5':
             write_dict_hdf5(filename, rdm_dict)

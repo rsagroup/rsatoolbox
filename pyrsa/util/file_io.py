@@ -103,7 +103,6 @@ def read_dict_pkl(file):
     Returns:
         dictionary(dict): the loaded dict
 
-
     """
     if isinstance(file, str):
         file = open(file, 'rb')

@@ -5,7 +5,7 @@ Definition of RSA Dataset class and subclasses
 @author: baihan, jdiedrichsen
 """
 
-
+import os
 import numpy as np
 import pickle
 from pyrsa.util.data_utils import get_unique_unsorted
@@ -154,6 +154,9 @@ class DatasetBase:
                 pkl: pickle file 
 
         """
+        if isinstance(filename, str):
+            if os.path.isfile(filename):
+                os.remove(filename)
         data_dict = self.to_dict()
         if file_type == 'hdf5':
             write_dict_hdf5(filename, data_dict)
