@@ -45,7 +45,7 @@ def get_stimuli_96():
     return stimuli
 
 
-def generate_design_random(nStimuli,repeats=3,duration=5,pause=0,endzeros=20):
+def generate_design_random(nStimuli, repeats=3, duration=5, pause=0, endzeros=20):
     # generates a design matrix for a given number of stimuli presented in random order 
     # each stimulus is shown before any repetitions happen
     # duration and pause are measured in measurement cycles
@@ -62,14 +62,13 @@ def generate_design_random(nStimuli,repeats=3,duration=5,pause=0,endzeros=20):
     return design
 
 
-def generate_timecourse(design,U0,sigma_noise=None,hrf=None,resolution=None,ar_coeff=None,sigmaP = None):
+def generate_timecourse(design, U0, sigma_noise=1, hrf=None,
+                        resolution=None, ar_coeff=None, sigmaP = None):
     # generates a timecourse with random normal noise added after the convolution with the hrf
     if ar_coeff is None:
         ar_coeff = .5
     if resolution is None:
         resolution = 2
-    if sigma_noise is None:
-        sigma_noise = 1
     if hrf is None:
         t = np.arange(0,40,resolution)
         hrf = resolution*spm_hrf(t)
@@ -82,9 +81,9 @@ def generate_timecourse(design,U0,sigma_noise=None,hrf=None,resolution=None,ar_c
     data = np.einsum('ki,ij->kj',data,Ubias)
     noise = np.random.randn(data.shape[0],data.shape[1])
     for iNoise in range(1,noise.shape[0]):
-        noise[iNoise] = ar_coeff*noise[iNoise-1] + + np.sqrt((1-ar_coeff**2))*noise[iNoise] 
+        noise[iNoise] = ar_coeff*noise[iNoise-1] + np.sqrt((1-ar_coeff**2))*noise[iNoise] 
     noise = np.matmul(np.linalg.cholesky(sigmaP),noise.T).T
-    data = data+sigma_noise*noise
+    data = data + sigma_noise * noise
     return data
 
 
@@ -170,16 +169,17 @@ def sample_representation(U,indices_space,weights,sd):
     return U
 
 
-def get_sampled_sigmaP(Ushape,indices_space,weights,sd):
+def get_sampled_sigmaP(Ushape, indices_space, weights, sd):
     if len(Ushape)==4:
         Ushape = Ushape[1:]
-    stack = np.zeros((indices_space.shape[1],Ushape[1],Ushape[2]))
+    stack = np.zeros((indices_space.shape[1], Ushape[1], Ushape[2]))
     for iC in range(indices_space.shape[1]):
-        stack[iC,indices_space[0,iC],indices_space[1,iC]]=1
-    stack = gaussian_filter(stack,[0,sd[0],sd[1]])
+        stack[iC, indices_space[0,iC], indices_space[1,iC]]=1
+    stack = gaussian_filter(stack,[0, sd[0], sd[1]])
     covGauss = np.einsum('nij,kij->nk',stack,stack)/stack.shape[1]/stack.shape[2]
     covWeights = np.einsum('in,ik->nk',weights,weights)/weights.shape[0]
-    sigmaP = covGauss*covWeights
+    sigmaP = covGauss * covWeights
+    sigmaP = sigmaP / np.max(sigmaP)
     return sigmaP
 
 

@@ -157,7 +157,6 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
                             duration=5, pause=1, endzeros=25,
                             use_cor_noise=True, resolution=2,
                             sigma_noise = 1, ar_coeff = .5):
-    
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_voxel, n_subj=n_subj,
                                 n_repeat=n_repeat, sd=sd, duration=duration,
@@ -221,13 +220,13 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
         np.save(fname_base + 'U%04d' % i, U)
 
         
-def analyse_saved_dnn(layer=2, sd=3, stimList=get_stimuli_96(), n_voxel=100,
+def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                       n_subj=10, simulation_folder='sim', n_sim=100, n_repeat=2,
                       duration=5, pause=1, endzeros=25, use_cor_noise=True,
                       resolution=2, sigma_noise=1, ar_coeff=0.5,
                       modelType='fixed', model_rdm='averagetrue',
                       rdm_comparison='cosine', n_Layer=12, k_pattern=3,
-                      k_rdm = 3, rdm_type='crossnobis', n_stimuli=92):
+                      k_rdm=3, rdm_type='crossnobis', n_stimuli=92):
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_voxel, n_subj=n_subj,
                                 n_repeat=n_repeat, sd=sd, duration=duration,
