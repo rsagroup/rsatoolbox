@@ -260,7 +260,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                             for i in range(Utrue.shape[0])]
                 rdm_true = pyrsa.rdm.calc_rdm(dat_true, method='euclidean')
                 rdm_mat = rdm_true.get_vectors()
-                rdm_mat = rdm_mat / np.mean(rdm_mat)
+                rdm_mat = rdm_mat / np.sqrt(np.mean(rdm_mat ** 2))
                 rdm_true_average = rdm_true_average + np.mean(rdm_mat, 0)
             rdm = rdm_true_average / n_sim
         if modelType == 'fixed':
