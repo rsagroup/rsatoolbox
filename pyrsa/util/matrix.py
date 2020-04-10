@@ -122,3 +122,47 @@ def centering(size):
     """
     centering_matrix = np.identity(size) - np.ones(size) / size
     return centering_matrix
+
+
+def row_col_indicator_RDM(n_cond):
+    """ generates a row and column indicator matrix for an RDM vector
+
+    Args:
+        n_cond (int): Number of conditions underlying the RDM 
+
+    Returns:
+        row_indicator (numpy.ndarray): n_cond (n_cond-1)/2 * n_cond 
+        col_indicator (numpy.ndarray): n_cond (n_cond-1)/2 * n_cond
+    """
+    n_dist=int(n_cond*(n_cond-1)/2)
+    rowI=np.zeros((n_dist,n_cond))
+    colI=np.zeros((n_dist,n_cond))
+    j=0
+    for i in range(n_cond):
+        rowI[j:j+n_cond-i-1,i]=1
+        np.fill_diagonal(colI[j:j+n_cond-i-1,i+1:],1)
+        j=j+(n_cond-i-1)
+    return (rowI,colI)
+
+def row_col_indicator_G(n_cond):
+    """ generates a row and column indicator matrix for a vectorized second moment matrix. The vectorized version has the off-diagonal elements first (like in an RDM), and then appends the diagnoal. You can vectorize a second momement matrix G by 
+    np.diag(rowI@G@colI.T) =  np.sum(colI*(rowI@G)),axis=1)
+
+    Args:
+        n_cond (int): Number of conditions underlying the second moment 
+
+    Returns:
+        row_indicator (numpy.ndarray): n_cond (n_cond-1)/2+n_cond * n_cond
+        col_indicator (numpy.ndarray): n_cond (n_cond-1)/2+n_cond * n_cond
+    """
+    n_elem = int(n_cond * (n_cond - 1) / 2)+n_cond # Number of elements in G
+    rowI = np.zeros((n_elem, n_cond))
+    colI = np.zeros((n_elem, n_cond))
+    j = 0
+    for i in range(n_cond):
+        rowI[j:j+n_cond-i-1, i] = 1
+        np.fill_diagonal(colI[j:j+n_cond-i-1, i+1:] ,1)
+        j = j + (n_cond - i - 1)
+    np.fill_diagonal(rowI[j:, :], 1)
+    np.fill_diagonal(colI[j:, :], 1)
+    return (rowI,colI)
