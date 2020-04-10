@@ -179,7 +179,8 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
             (Utrue_subj,sigmaP_subj, indices_space_subj, weights_subj) = \
                 dnn.get_sampled_representations(model, layer, [sd, sd],
                                                 stimList, n_voxel)
-            Utrue_subj = Utrue_subj / np.mean(Utrue_subj)
+            Utrue_subj = Utrue_subj / np.sqrt(np.sum(Utrue_subj ** 2)) \
+                * np.sqrt(Utrue_subj.size)
             designs = []
             timecourses = []
             Usamps = []
@@ -279,7 +280,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                                   cv_descriptor='repeat')
         results = pyrsa.inference.bootstrap_crossval(models, rdms,
             pattern_descriptor='stim', rdm_descriptor='index',
-            k_pattern=k_pattern, k_rdm=k_rdm)
+            k_pattern=k_pattern, k_rdm=k_rdm, method=rdm_comparison)
         results.save(res_path + '/res%04d.hdf5' % (i))
 
 
