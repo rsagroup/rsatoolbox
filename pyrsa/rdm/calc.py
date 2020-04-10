@@ -39,9 +39,15 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
     """
     if isinstance(dataset, Iterable):
         rdms = []
+        k = 0
         for dat in dataset:
-            rdms.append(calc_rdm(dat, method=method, descriptor=descriptor,
-                                 noise=noise, cv_descriptor=cv_descriptor))
+            if isinstance(noise, Iterable):
+                rdms.append(calc_rdm(dat, method=method, descriptor=descriptor,
+                                     noise=noise[k], cv_descriptor=cv_descriptor))
+            else:
+                rdms.append(calc_rdm(dat, method=method, descriptor=descriptor,
+                                     noise=noise, cv_descriptor=cv_descriptor))
+            k += 1
         rdm = concat(rdms)
     else:
         if method == 'euclidean':
