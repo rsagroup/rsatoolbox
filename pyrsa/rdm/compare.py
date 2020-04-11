@@ -216,7 +216,7 @@ def _all_combinations(vectors1, vectors2, func):
     return value
 
 
-def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
+def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None):
     """computes the cosine angles between two sets of vectors
 
     Args:
@@ -249,9 +249,11 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
                              vector2_m)).reshape((1, -1))
     return cos
 
-def _cosine_cov_weighted_fast(vector1, vector2):
+
+def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
     """computes the cosine angles between two sets of vectors
     weighted by the covariance - linearCKA
+
     Args:
         vector1 (numpy.ndarray):
             first vectors (2D)
@@ -263,18 +265,22 @@ def _cosine_cov_weighted_fast(vector1, vector2):
             cosine angle between vectors (linear CKA)
 
     """
-    # Compute the extended version of RDM vectors in whitened space 
-    vector1_m = _cov_weighting(vector1)
-    vector2_m = _cov_weighting(vector2)
-    # compute the inner products v1^T V^-1 v2 for all combinations
-    cos = np.einsum('ij,kj->ik', vector1_m, vector2_m)
-    # divide by sqrt(v1^T V^-1 v1)
-    cos /= np.sqrt(np.einsum('ij,ij->i', vector1_m,
-                             vector1_m)).reshape((-1, 1))
-    # divide by sqrt(v2^T V^-1 v2)
-    cos /= np.sqrt(np.einsum('ij,ij->i', vector2_m,
-                             vector2_m)).reshape((1, -1))
+    if sigma_k is not None:
+        cos = _cosine_cov_weighted_slow(vector1, vector2, sigma_k=sigma_k)
+    else:
+        # Compute the extended version of RDM vectors in whitened space 
+        vector1_m = _cov_weighting(vector1)
+        vector2_m = _cov_weighting(vector2)
+        # compute the inner products v1^T V^-1 v2 for all combinations
+        cos = np.einsum('ij,kj->ik', vector1_m, vector2_m)
+        # divide by sqrt(v1^T V^-1 v1)
+        cos /= np.sqrt(np.einsum('ij,ij->i', vector1_m,
+                                 vector1_m)).reshape((-1, 1))
+        # divide by sqrt(v2^T V^-1 v2)
+        cos /= np.sqrt(np.einsum('ij,ij->i', vector2_m,
+                                 vector2_m)).reshape((1, -1))
     return cos
+
 
 def _cov_weighting(vector):
     """Transforms a array of RDM vectors in to representation 
@@ -303,6 +309,7 @@ def _cov_weighting(vector):
     # Weight the off-diagnoal terms double 
     vector_w[:,:n_dist] = vector_w[:,:n_dist] * np.sqrt(2)
     return vector_w
+
 
 def _cosine(vector1, vector2):
     """computes the cosine angles between two sets of vectors
