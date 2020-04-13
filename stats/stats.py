@@ -169,7 +169,6 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
         des = []
         tim = []
         sigma_res = []
-        sigma_cross_res = []
         for i_subj in range(n_subj):
             (Utrue_subj,sigmaP_subj, indices_space_subj, weights_subj) = \
                 dnn.get_sampled_representations(model, layer, [sd, sd],
@@ -200,12 +199,6 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
                                               resolution=resolution))
             res_subj = np.concatenate(res_subj, axis=0)
             sigma_res.append(np.cov(res_subj.T))
-            res_cross = get_residuals_cross(np.array(designs),
-                                            np.array(timecourses), 
-                                            np.array(Usamps),
-                                            resolution=resolution)
-            res_cross = res_cross.reshape(-1, res_cross.shape[-1])
-            sigma_cross_res.append(np.cov(res_cross.T))
             U.append(np.array(Usamps))
             des.append(np.array(designs))
             tim.append(np.array(timecourses))
@@ -216,7 +209,6 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
         Utrue = np.array(Utrue)
         sigmaP = np.array(sigmaP)
         sigma_res = np.array(sigma_res)
-        sigma_cross_res = np.array(sigma_cross_res)
         indices_space = np.array(indices_space)
         weights = np.array(weights)
         U = np.array(U)
@@ -225,12 +217,11 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
         np.save(fname_base + 'Utrue%04d' % i, Utrue)
         np.save(fname_base + 'sigmaP%04d' % i, sigmaP)
         np.save(fname_base + 'sigmaRes%04d' % i, sigma_res)
-        np.save(fname_base + 'sigmaCrossRes%04d' % i, sigma_cross_res)
         np.save(fname_base + 'indices_space%04d' % i, indices_space)
         np.save(fname_base + 'weights%04d' % i, weights)
         np.save(fname_base + 'U%04d' % i, U)
 
-        
+
 def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                       n_subj=10, simulation_folder='sim', n_sim=100, n_repeat=2,
                       duration=5, pause=1, endzeros=25, use_cor_noise=True,
