@@ -74,4 +74,3 @@ def get_prec_from_residuals(residuals, df=None):
     else:
         cov = np.linalg.inv(cov)
     return cov
-    
