@@ -168,7 +168,7 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
         U = []
         des = []
         tim = []
-        sigma_res = []
+        residuals = []
         for i_subj in range(n_subj):
             (Utrue_subj,sigmaP_subj, indices_space_subj, weights_subj) = \
                 dnn.get_sampled_representations(model, layer, [sd, sd],
@@ -198,7 +198,7 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
                 res_subj.append(get_residuals(design, timecourse, Usamp,
                                               resolution=resolution))
             res_subj = np.concatenate(res_subj, axis=0)
-            sigma_res.append(np.cov(res_subj.T))
+            residuals.append(res_subj)
             U.append(np.array(Usamps))
             des.append(np.array(designs))
             tim.append(np.array(timecourses))
@@ -208,7 +208,7 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
             weights.append(weights_subj)
         Utrue = np.array(Utrue)
         sigmaP = np.array(sigmaP)
-        sigma_res = np.array(sigma_res)
+        residuals = np.array(residuals)
         indices_space = np.array(indices_space)
         weights = np.array(weights)
         U = np.array(U)
@@ -216,7 +216,7 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
         tim = np.array(tim)
         np.save(fname_base + 'Utrue%04d' % i, Utrue)
         np.save(fname_base + 'sigmaP%04d' % i, sigmaP)
-        np.save(fname_base + 'sigmaRes%04d' % i, sigma_res)
+        np.save(fname_base + 'residuals%04d' % i, residuals)
         np.save(fname_base + 'indices_space%04d' % i, indices_space)
         np.save(fname_base + 'weights%04d' % i, weights)
         np.save(fname_base + 'U%04d' % i, U)
@@ -229,7 +229,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                       model_type='fixed_averagetrue',
                       rdm_comparison='cosine', n_Layer=12, k_pattern=3,
                       k_rdm=3, rdm_type='crossnobis', n_stimuli=92,
-                      noise_type = 'eye', shrinkage=0.4):
+                      noise_type = 'eye'):
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_voxel, n_subj=n_subj,
                                 n_repeat=n_repeat, sd=sd, duration=duration,
@@ -285,14 +285,11 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
             u_subj = U[i_subj, :, :n_stimuli, :].reshape(n_repeat * n_stimuli,
                                                          n_voxel)
             data.append(pyrsa.data.Dataset(u_subj, obs_descriptors=desc))
-            if noise_type == 'eye':
-                noise = None
-            elif noise_type == 'residuals':
-                noise = np.load(fname_base + 'sigmaRes%04d.npy' % i)
-                noise = shrink_noise(noise, shrinkage)
-            elif noise_type == 'crossresiduals':
-                noise = np.load(fname_base + 'sigmaCrossRes%04d.npy' % i)
-                noise = shrink_noise(noise, shrinkage)
+        if noise_type == 'eye':
+            noise = None
+        elif noise_type == 'residuals':
+            residuals = np.load(fname_base + 'residuals%04d.npy' % i)
+            noise = pyrsa.data.get_prec_from_residuals(residuals)
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor='repeat', noise=noise)
         results = pyrsa.inference.bootstrap_crossval(models, rdms,
@@ -307,7 +304,8 @@ def plot_saved_dnn(layer=2, sd=3, n_voxel=100, idx=0,
                    resolution=2, sigma_noise=1, ar_coeff=0.5,
                    model_type='fixed_averagetrue',
                    rdm_comparison='cosine', n_Layer=12, k_pattern=3, k_rdm=3,
-                   rdm_type='crossnobis', n_stimuli=92, fname_base=None):
+                   rdm_type='crossnobis', n_stimuli=92, fname_base=None,
+                   noise_type='eye'):
     if fname_base is None:
         fname_base = get_fname_base(simulation_folder=simulation_folder,
                                     layer=layer, n_voxel=n_voxel, n_subj=n_subj,
@@ -318,8 +316,8 @@ def plot_saved_dnn(layer=2, sd=3, n_voxel=100, idx=0,
                                     sigma_noise=sigma_noise,
                                     ar_coeff=ar_coeff)
     assert os.path.isdir(fname_base), 'simulated data not found!'
-    res_path = fname_base + 'results_%s_%s_%s_%d_%d_%d' % (
-        rdm_type, model_type, rdm_comparison, n_stimuli,
+    res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d_%d' % (
+        rdm_type, model_type, rdm_comparison, noise_type, n_stimuli,
         k_pattern, k_rdm)
     results = pyrsa.inference.load_results(res_path + '/res%04d.hdf5' % idx)
     pyrsa.vis.plot_model_comparison(results)
