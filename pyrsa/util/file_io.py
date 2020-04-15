@@ -21,6 +21,7 @@ def write_dict_hdf5(file, dictionary):
 
     """
     file = h5py.File(file, 'a')
+    file.attrs['pyrsa_version'] = '3.0'
     _write_to_group(file, dictionary)
     
     
@@ -90,6 +91,7 @@ def write_dict_pkl(file, dictionary):
     """
     if isinstance(file, str):
         file = open(file, 'wb')
+    dictionary['pyrsa_version'] = '3.0'
     pickle.dump(dictionary, file, protocol=-1)
 
 
