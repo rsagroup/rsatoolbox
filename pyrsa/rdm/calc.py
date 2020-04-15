@@ -39,15 +39,21 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
     """
     if isinstance(dataset, Iterable):
         rdms = []
-        k = 0
-        for dat in dataset:
-            if isinstance(noise, Iterable):
-                rdms.append(calc_rdm(dat, method=method, descriptor=descriptor,
-                                     noise=noise[k], cv_descriptor=cv_descriptor))
-            else:
-                rdms.append(calc_rdm(dat, method=method, descriptor=descriptor,
-                                     noise=noise, cv_descriptor=cv_descriptor))
-            k += 1
+        for i_dat in range(len(dataset)):
+            if noise is None:
+                rdms.append(calc_rdm(dataset[i_dat], method=method,
+                                     descriptor=descriptor,
+                                     cv_descriptor=cv_descriptor))
+            elif isinstance(noise, np.ndarray) and noise.ndim==2:
+                rdms.append(calc_rdm(dataset[i_dat], method=method,
+                                     descriptor=descriptor,
+                                     noise=noise,
+                                     cv_descriptor=cv_descriptor))
+            elif isinstance(noise, Iterable):
+                rdms.append(calc_rdm(dataset[i_dat], method=method,
+                                     descriptor=descriptor,
+                                     noise=noise[i_dat],
+                                     cv_descriptor=cv_descriptor))
         rdm = concat(rdms)
     else:
         if method == 'euclidean':
@@ -140,24 +146,24 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
-    measurements, desc, descriptor = _parse_input(dataset, descriptor)
-    noise = _check_noise(noise, dataset.n_channel)
-    diff = _calc_pairwise_differences(measurements)
-    diff2 = (noise @ diff.T).T
-    rdm = np.einsum('ij,ij->i', diff, diff2) / measurements.shape[1]
-    rdm = RDMs(dissimilarities=np.array([rdm]),
-               dissimilarity_measure='Mahalanobis',
-               descriptors=dataset.descriptors)
-    rdm.pattern_descriptors[descriptor] = desc
-    rdm.descriptors['noise'] = noise
+    if noise is None:
+        rdm = calc_rdm_euclid(dataset, descriptor)
+    else:
+        measurements, desc, descriptor = _parse_input(dataset, descriptor)
+        noise = _check_noise(noise, dataset.n_channel)
+        diff = _calc_pairwise_differences(measurements)
+        diff2 = (noise @ diff.T).T
+        rdm = np.einsum('ij,ij->i', diff, diff2) / measurements.shape[1]
+        rdm = RDMs(dissimilarities=np.array([rdm]),
+                   dissimilarity_measure='Mahalanobis',
+                   descriptors=dataset.descriptors)
+        rdm.pattern_descriptors[descriptor] = desc
+        rdm.descriptors['noise'] = noise
     return rdm
 
 
-def calc_rdm_crossnobis(dataset,
-                        descriptor,
-                        noise=None,
-                        cv_descriptor=None
-                        ):
+def calc_rdm_crossnobis(dataset, descriptor, noise=None,
+                        cv_descriptor=None, subversion='whiten'):
     """
     calculates an RDM from an input dataset using Cross-nobis distance
     This performs leave one out crossvalidation over the cv_descriptor
@@ -173,6 +179,11 @@ def calc_rdm_crossnobis(dataset,
             precision matrix used to calculate the RDM
         cv_descriptor (String):
             obs_descriptor which determines the cross-validation folds
+        subversion (String):
+            switch the version of Crossnobis to run:
+            'pool': prewhiten each estimate with their precision
+            'average': run each combination of \delta_i \Sigma_j^-1 \delta_j
+            'pool_sum': run each combination of \delta_i \Sigma_j^-1 \delta_j
 
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
@@ -189,17 +200,46 @@ def calc_rdm_crossnobis(dataset,
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     weights = []
     rdms = []
-    for i_fold in cv_folds:
-        data_train = dataset.subset_obs(cv_descriptor, i_fold)
-        data_test = dataset.subset_obs(cv_descriptor,
-                                       np.setdiff1d(cv_folds, i_fold))
-        measurements_train, desc = average_dataset_by(data_train, descriptor)
-        measurements_test, desc = average_dataset_by(data_test, descriptor)
-        rdm = _calc_rdm_crossnobis_single(measurements_train,
-                                          measurements_test,
-                                          noise)
+    if noise is None or (isinstance(noise, np.ndarray) and noise.ndim==2):
+        for i_fold in range(len(cv_folds)):
+            fold = cv_folds[i_fold]
+            data_test = dataset.subset_obs(cv_descriptor, fold)
+            data_train = dataset.subset_obs(cv_descriptor,
+                                           np.setdiff1d(cv_folds, fold))
+            measurements_train, _ = average_dataset_by(data_train, descriptor)
+            measurements_test, _ = average_dataset_by(data_test, descriptor)
+            n_cond = measurements_train.shape[0]
+            rdm = np.empty(int(n_cond * (n_cond-1) / 2))
+            k = 0
+            for i_cond in range(n_cond - 1):
+                for j_cond in range(i_cond + 1, n_cond):
+                    diff_train = measurements_train[i_cond] \
+                        - measurements_train[j_cond]
+                    diff_test = measurements_test[i_cond] \
+                        - measurements_test[j_cond]
+                    if noise is None:
+                        rdm[k] = np.sum(diff_train * diff_test)
+                    else:
+                        rdm[k] = np.sum(diff_train
+                                        * np.matmul(noise, diff_test))
+                    k += 1
         rdms.append(rdm)
         weights.append(data_test.n_obs)
+    else: # a list of noises was provided
+        measurements = []
+        w_fold = []
+        for i_fold in range(len(cv_folds)):
+            data = dataset.subset_obs(cv_descriptor, cv_folds[i_fold])
+            measurements.append(average_dataset_by(data, descriptor)[0])
+            w_fold.append(data.n_obs)
+        for i_fold in range(len(cv_folds)):
+            for j_fold in range(len(cv_folds)):
+                if i_fold != j_fold:
+                    rdm = _calc_rdm_crossnobis_single(measurements[i_fold],
+                                                      measurements[j_fold],
+                                                      noise[j_fold])
+                    rdms.append(rdm)
+                    weights.append(w_fold[i_fold] * w_fold[j_fold])
     rdms = np.array(rdms)
     weights = np.array(weights)
     rdm = np.einsum('ij,i->j', rdms, weights) / np.sum(weights)
@@ -209,6 +249,7 @@ def calc_rdm_crossnobis(dataset,
     if descriptor is None:
         rdm.pattern_descriptors['pattern'] = np.arange(rdm.n_cond)
     else:
+        _, desc = average_dataset_by(dataset, descriptor)
         rdm.pattern_descriptors[descriptor] = desc
     rdm.descriptors['noise'] = noise
     rdm.descriptors['cv_descriptor'] = cv_descriptor
@@ -282,10 +323,15 @@ def _check_noise(noise, n_channel):
 
     """
     if noise is None:
-        noise = np.eye(n_channel)
-    elif isinstance(noise, np.ndarray):
-        assert noise.ndim == 2
+        pass
+    elif isinstance(noise, np.ndarray) and noise.ndim == 2:
         assert np.all(noise.shape == (n_channel, n_channel))
+    elif isinstance(noise, Iterable):
+        for i in range(len(noise)):
+            noise[i] = _check_noise(noise[i], n_channel)
+    elif isinstance(noise, dict):
+        for key in noise.keys():
+            noise[key] = _check_noise(noise[key], n_channel)
     else:
-        raise ValueError('noise must have shape n_channel x n_channel')
+        raise ValueError('noise(s) must have shape n_channel x n_channel')
     return noise

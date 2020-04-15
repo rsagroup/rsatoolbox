@@ -133,7 +133,36 @@ class TestDataComputations(unittest.TestCase):
         self.assertEqual(len(descriptor),6)
         self.assertEqual(descriptor[-1],5)
         assert(np.all(self.test_data.measurements[-1]==avg[-1]))
+
+
+class TestNoiseComputations(unittest.TestCase):
+    def setUp(self):
+        self.residuals = np.random.rand(100, 25)
+        self.residuals = self.residuals - np.mean(self.residuals, axis=0,
+                                                  keepdims=True)
+        res_list = []
+        for i in range(3):
+            residuals = np.random.rand(100, 25)
+            residuals = residuals - np.mean(residuals, axis=0, keepdims=True)
+            res_list.append(residuals)
+        self.res_list = res_list
+
+    def test_cov(self):
+        from pyrsa.data import get_cov_from_residuals
+        cov = get_cov_from_residuals(self.residuals)
+
+    def test_cov_list(self):
+        from pyrsa.data import get_cov_from_residuals
+        cov = get_cov_from_residuals(self.res_list)
         
+    def test_prec(self):
+        from pyrsa.data import get_prec_from_residuals
+        cov = get_prec_from_residuals(self.residuals)
+        
+    def test_prec_list(self):
+        from pyrsa.data import get_prec_from_residuals
+        cov = get_prec_from_residuals(self.res_list)
+
 
 class TestSave(unittest.TestCase):
     def test_dict_conversion(self):
@@ -173,7 +202,7 @@ class TestSave(unittest.TestCase):
         assert np.all(data_loaded.obs_descriptors['conds'] == obs_des['conds'])
         assert np.all(data_loaded.channel_descriptors['rois'] == chn_des['rois'])
         assert data_loaded.descriptors['subj'] == 0
-        
+
 
 if __name__ == '__main__':
     unittest.main()  
