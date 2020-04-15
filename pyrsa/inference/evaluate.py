@@ -300,6 +300,10 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
                        random=True):
     """evaluates a model by k-fold crossvalidation within a bootstrap
 
+    If a k is set to 1 no crossvalidation is performed over the
+    corresponding dimension.
+
+
     Args:
         model(pyrsa.model.Model): Model to be evaluated
         data(pyrsa.rdm.RDMs): RDM data to use
