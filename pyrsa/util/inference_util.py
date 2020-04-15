@@ -62,21 +62,23 @@ def pool_rdm(rdms, method='cosine'):
     if method == 'euclid':
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'cosine':
-        rdm_vec = rdm_vec / np.nanmean(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = rdm_vec / np.sqrt(np.nanmean(rdm_vec **2, axis=1,
+                                               keepdims=True))
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'corr':
         rdm_vec = rdm_vec - np.nanmean(rdm_vec, axis=1, keepdims=True)
         rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
         rdm_vec = _nan_mean(rdm_vec)
         rdm_vec = rdm_vec - np.nanmin(rdm_vec)
+    elif method == 'cosine_cov':
+        rdm_vec = rdm_vec / np.sqrt(np.nanmean(rdm_vec **2, axis=1,
+                                               keepdims=True))
+        rdm_vec = _nan_mean(rdm_vec)
     elif method == 'corr_cov':
-        rdm_vec = rdm_vec - np.mean(rdm_vec, axis=1, keepdims=True)
-        rdm_vec = rdm_vec / np.std(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = rdm_vec - np.nanmean(rdm_vec, axis=1, keepdims=True)
+        rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
         rdm_vec = _nan_mean(rdm_vec)
         rdm_vec = rdm_vec - np.nanmin(rdm_vec)
-    elif method == 'cosine_cov':
-        rdm_vec = rdm_vec/np.mean(rdm_vec, axis=1, keepdims=True)
-        rdm_vec = _nan_mean(rdm_vec)
     elif method == 'spearman':
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
