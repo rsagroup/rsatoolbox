@@ -78,7 +78,7 @@ def pool_rdm(rdms, method='cosine'):
     elif method == 'cosine_cov':
         rdm_vec = rdm_vec / np.sqrt(np.nanmean(rdm_vec ** 2, axis=1,
                                                keepdims=True))
-        rdm_vec = np.mean(rdm_vec, axis=0, keepdims=True)
+        rdm_vec = np.nanmean(rdm_vec, axis=0, keepdims=True)
     elif method == 'spearman':
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = np.nanmean(rdm_vec, axis=0, keepdims=True)
