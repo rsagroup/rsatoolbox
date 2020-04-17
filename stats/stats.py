@@ -11,11 +11,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import tqdm
-import scipy.special as special
 import scipy.signal as signal
-import scipy.linalg as linalg
-import scipy.sparse
-import scipy.stats as stats
 from hrf import spm_hrf
 import pyrsa
 import nn_simulations as dnn
