@@ -384,10 +384,3 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
     elif rdm_comparison=='spearman':
         ax.set_ylabel('Spearman Rho', fontsize=18)
 
-
-def shrink_noise(noise, shrinkage):
-    idx = np.diag_indices(noise.shape[1])
-    noise_diag = noise[:,idx[0], idx[1]]
-    noise = (1 - shrinkage) * noise
-    noise[:,idx[0], idx[1]] = noise_diag
-    return noise
