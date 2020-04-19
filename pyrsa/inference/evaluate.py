@@ -168,7 +168,7 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
 
 
 def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
-                       rdm_descriptor=None, boot_noise_ceil=False):
+                       rdm_descriptor=None, boot_noise_ceil=True):
     """evaluates a model on data
     performs bootstrapping to get a sampling distribution
 
@@ -200,7 +200,7 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
                                                     method))
                 j += 1
         if boot_noise_ceil:
-            noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
+            noise_min_sample, noise_max_sample = boot_noise_ceiling(sample[0],
                 method=method, rdm_descriptor=rdm_descriptor)
             noise_min.append(noise_min_sample)
             noise_max.append(noise_max_sample)
