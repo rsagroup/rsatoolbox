@@ -32,7 +32,8 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
     noise_ceiling = result.noise_ceiling
     method = result.method
     while len(evaluations.shape)>2:
-        evaluations = np.mean(evaluations, axis=-1)
+        evaluations = np.nanmean(evaluations, axis=-1)
+    evaluations = evaluations[~np.isnan(evaluations[:,0])]
     evaluations = 1 - evaluations
     mean = np.mean(evaluations, axis=0)
     if sort:
@@ -54,8 +55,8 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
         plt.figure(figsize=(12.5, 7.5))
         ax = plt.axes((0.05, 0.05, 0.9, 0.9))
     if noise_ceiling is not None:
-        noise_min = np.mean(noise_ceiling[0])
-        noise_max = np.mean(noise_ceiling[1])
+        noise_min = np.nanmean(noise_ceiling[0])
+        noise_max = np.nanmean(noise_ceiling[1])
         noiserect = patches.Rectangle((-0.5, noise_min), len(mean),
                                       noise_max - noise_min, linewidth=1,
                                       edgecolor=[0.25, 0.25, 1, 0.4],
