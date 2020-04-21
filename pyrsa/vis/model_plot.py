@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from pyrsa.util.inference_util import pair_tests
+from pyrsa.util.rdm_utils import batch_to_vectors
 
 
 def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
@@ -47,8 +48,8 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
         errorbar_high = (np.quantile(evaluations, 1 - (eb_alpha / 2), axis=0)
                          - mean)
     elif error_bars == 'SEM':
-        errorbar_low = np.std(evaluations)
-        errorbar_high = np.std(evaluations)
+        errorbar_low = np.std(evaluations, axis=0)
+        errorbar_high = np.std(evaluations, axis=0)
     noise_ceiling = 1 - noise_ceiling
     # plotting start
     if plot_pair_tests:
@@ -69,7 +70,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
     ax.bar(np.arange(evaluations.shape[1]), mean)
     ax.errorbar(np.arange(evaluations.shape[1]), mean,
                 yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
-                capsize=25, capthick=2)
+                capsize=0, linewidth=4)
     _,ymax = ax.get_ylim()
     ax.set_ylim(top = max(ymax, noise_max))
     ax.spines['right'].set_visible(False)
@@ -95,10 +96,19 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
         ax.set_ylabel('Kendall-Tau A', fontsize=24)
     if plot_pair_tests:
         res = pair_tests(evaluations)
-        if plot_pair_tests == 'bonferroni':
+        if plot_pair_tests == 'Bonferroni' or plot_pair_tests == 'FWER':
             significant = res < (alpha / evaluations.shape[1])
         elif plot_pair_tests == 'FDR':
-            significant = res < alpha
+            ps = batch_to_vectors(np.array([res]))[0][0]
+            ps = np.sort(ps)
+            criterion = alpha * (np.arange(ps.shape[0]) + 1) / ps.shape[0]
+            k_ok = ps < criterion
+            if np.any(k_ok):
+                k_max = np.max(np.where(ps<criterion)[0])
+                crit = criterion[k_max]
+            else:
+                crit = 0
+            significant = res < crit
         else:
             significant = res < alpha
         k = 0
