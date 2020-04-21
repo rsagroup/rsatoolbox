@@ -183,6 +183,7 @@ class RDMs:
             selection = np.concatenate(selection)
         else:
             selection = np.where(self.rdm_descriptors[by] == value)
+        selection = np.sort(selection)
         dissimilarities = self.get_matrices()[:, selection][:, :, selection]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
