@@ -12,8 +12,8 @@ import matplotlib.patches as patches
 from pyrsa.util.inference_util import pair_tests
 
 
-def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
-                          sort=True):
+def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
+                          sort=True, error_bars='SEM', eb_alpha=0.05):
     """ plots the results of a model comparison
     Input should be a results object with model evaluations 
     evaluations, which uses the bootstrap samples for confidence intervals
@@ -41,10 +41,14 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
         mean = mean[idx]
         evaluations = evaluations[:, idx]
         models = [models[i] for i in idx]
-    errorbar_low = -(np.quantile(evaluations, eb_alpha / 2, axis=0)
-                     - mean)
-    errorbar_high = (np.quantile(evaluations, 1 - (eb_alpha / 2), axis=0)
-                     - mean)
+    if error_bars == 'CI':
+        errorbar_low = -(np.quantile(evaluations, eb_alpha / 2, axis=0)
+                         - mean)
+        errorbar_high = (np.quantile(evaluations, 1 - (eb_alpha / 2), axis=0)
+                         - mean)
+    elif error_bars == 'SEM':
+        errorbar_low = np.std(evaluations)
+        errorbar_high = np.std(evaluations)
     noise_ceiling = 1 - noise_ceiling
     # plotting start
     if plot_pair_tests:
@@ -91,12 +95,17 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
         ax.set_ylabel('Kendall-Tau A', fontsize=24)
     if plot_pair_tests:
         res = pair_tests(evaluations)
-        significant = res < eb_alpha
+        if plot_pair_tests == 'bonferroni':
+            significant = res < (alpha / evaluations.shape[1])
+        elif plot_pair_tests == 'FDR':
+            significant = res < alpha
+        else:
+            significant = res < alpha
         k = 0
         for i in range(significant.shape[0]-1,0,-1):
             for j in range(i-1,-1,-1):
                 if significant[i,j]:
-                    axbar.plot((i,j),(k,k),'k-',linewidth=2)
+                    axbar.plot((i,j), (k,k), 'k-', linewidth=2)
                     k = k+1
         xlim = ax.get_xlim()
         axbar.set_xlim(xlim)
