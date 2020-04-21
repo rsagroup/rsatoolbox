@@ -7,6 +7,7 @@ Definition of RSA RDMs class and subclasses
 
 import numpy as np
 from scipy.stats import rankdata
+import pickle
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -16,6 +17,10 @@ from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import append_descriptor
 from pyrsa.util.data_utils import extract_dict
 from collections.abc import Iterable
+from pyrsa.util.file_io import write_dict_hdf5
+from pyrsa.util.file_io import write_dict_pkl
+from pyrsa.util.file_io import read_dict_hdf5
+from pyrsa.util.file_io import read_dict_pkl
 
 
 class RDMs:
@@ -283,6 +288,79 @@ class RDMs:
         self.rdm_descriptors = append_descriptor(self.rdm_descriptors,
                                                  rdm.rdm_descriptors)
         self.n_rdm = self.n_rdm + rdm.n_rdm
+
+    def save(self, filename, file_type='hdf5'):
+        """ saves the RDMs object into a file
+
+        Args:
+            filename(String): path to file to save to
+                [or opened file]
+            file_type(String): Type of file to create:
+                hdf5: hdf5 file
+                pkl: pickle file 
+
+        """
+        rdm_dict = self.to_dict()
+        if file_type == 'hdf5':
+            write_dict_hdf5(filename, rdm_dict)
+        elif file_type == 'pkl':
+            write_dict_pkl(filename, rdm_dict)
+        
+    
+    def to_dict(self):
+        """ converts the object into a dictionary, which can be saved to disk
+        
+        Returns:
+            rdm_dict(dict): dictionary containing all information required to
+                recreate the RDMs object
+        """
+        rdm_dict = {}
+        rdm_dict['dissimilarities'] = self.dissimilarities
+        rdm_dict['descriptors'] = self.descriptors
+        rdm_dict['rdm_descriptors'] = self.rdm_descriptors
+        rdm_dict['pattern_descriptors'] = self.pattern_descriptors
+        rdm_dict['dissimilarity_measure'] = self.dissimilarity_measure
+        return rdm_dict
+
+
+def rdms_from_dict(rdm_dict):
+    """ creates a RDMs object from a dictionary
+
+    Args:
+        rdm_dict(dict): dictionary with information
+
+    Returns:
+        rdms(RDMs): the regenerated RDMs object
+
+    """
+    rdms = RDMs(dissimilarities=rdm_dict['dissimilarities'],
+                descriptors=rdm_dict['descriptors'],
+                rdm_descriptors=rdm_dict['rdm_descriptors'],
+                pattern_descriptors=rdm_dict['pattern_descriptors'],
+                dissimilarity_measure=rdm_dict['dissimilarity_measure'])
+    return rdms
+
+
+def load_rdm(filename, file_type=None):
+    """ loads a RDMs object from disk
+    
+    Args:
+        filename(String): path to file to load
+
+    """
+    if file_type is None:
+        if isinstance(filename, str):
+            if filename[-4:] == '.pkl':
+                file_type = 'pkl'
+            elif filename[-3:] == '.h5' or filename[-4:] == 'hdf5':
+                file_type = 'hdf5'
+    if file_type == 'hdf5':
+        rdm_dict = read_dict_hdf5(filename)
+    elif file_type == 'pkl':
+        rdm_dict = read_dict_pkl(filename)
+    else:
+        raise ValueError('filetype not understood')
+    return rdms_from_dict(rdm_dict)
 
 
 def concat(rdms):

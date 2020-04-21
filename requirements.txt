@@ -3,3 +3,5 @@ numpy
 scipy
 scikit-image
 tqdm
+h5py
+
