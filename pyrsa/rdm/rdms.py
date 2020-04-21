@@ -197,6 +197,7 @@ class RDMs:
         dissimilarities = self.get_matrices()
         for i_rdm in range(self.n_rdm):
             np.fill_diagonal(dissimilarities[i_rdm], np.nan)
+        selection = np.sort(selection)
         dissimilarities = dissimilarities[:, selection][:, :, selection]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
