@@ -93,8 +93,8 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
         res = pair_tests(evaluations)
         significant = res < eb_alpha
         k = 0
-        for i in range(significant.shape[0]):
-            for j in range(significant.shape[0]):
+        for i in range(significant.shape[0]-1,0,-1):
+            for j in range(i-1,-1,-1):
                 if significant[i,j]:
                     axbar.plot((i,j),(k,k),'k-',linewidth=2)
                     k = k+1
