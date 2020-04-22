@@ -46,6 +46,8 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
         dist = compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
     elif method == 'cosine_cov':
         dist = compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
+    elif method == 'rho-a':
+        dist = compare_rho_a(rdm1, rdm2)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
     return dist
@@ -147,6 +149,30 @@ def compare_spearman(rdm1, rdm2):
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     sim = _cosine(vector1, vector2)
+    return 1 - sim
+
+
+def compare_rho_a(rdm1, rdm2):
+    """calculates the spearman rank correlation distances between
+    two RDMs objects
+
+    Args:
+        rdm1 (pyrsa.rdm.RDMs):
+            first set of RDMs
+        rdm2 (pyrsa.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            rank correlation distance between the two RDMs
+
+    """
+    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    vector1 = np.apply_along_axis(scipy.stats.rankdata, 1, vector1)
+    vector2 = np.apply_along_axis(scipy.stats.rankdata, 1, vector2)
+    vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
+    vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
+    n = vector1.shape[1]
+    sim = np.einsum('ij,kj->ik', vector1, vector2) / (n ** 3 - n) * 12
     return 1 - sim
 
 

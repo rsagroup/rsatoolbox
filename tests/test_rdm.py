@@ -387,6 +387,13 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_spearman(self.test_rdm1, self.test_rdm2)
         assert np.all(result>0)
         
+    def test_compare_rho_a(self):
+        from pyrsa.rdm.compare import compare_rho_a
+        result = compare_rho_a(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_rho_a(self.test_rdm1, self.test_rdm2)
+        assert np.all(result>0)
+        
     def test_spearman_equal_scipy(self):
         from pyrsa.rdm.compare import _parse_input_rdms
         from pyrsa.rdm.compare import _all_combinations
