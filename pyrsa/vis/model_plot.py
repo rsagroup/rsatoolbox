@@ -39,7 +39,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
     evaluations = 1 - evaluations
     mean = np.mean(evaluations, axis=0)
     if sort:
-        idx = np.argsort(mean)
+        idx = np.flip(np.argsort(mean))
         mean = mean[idx]
         evaluations = evaluations[:, idx]
         models = [models[i] for i in idx]
@@ -113,8 +113,8 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
         else:
             significant = res < alpha
         k = 0
-        for i in range(significant.shape[0]-1,0,-1):
-            for j in range(i-1,-1,-1):
+        for i in range(significant.shape[0]):
+            for j in range(i+1,significant.shape[0]):
                 if significant[i,j]:
                     axbar.plot((i,j), (k,k), 'k-', linewidth=2)
                     k = k+1
