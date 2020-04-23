@@ -141,7 +141,7 @@ def sampling_DNN(stimuli, n_subj=3, n_vox=100, n_repeat=5, shrinkage=0,
     return rdm_true, rdm_true_subj, rdm_samples, covs
 
 
-def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
+def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
                             stimList=get_stimuli_96(), n_voxel=100, n_subj=10,
                             simulation_folder='sim', n_sim=1000, n_repeat=2,
                             duration=1, pause=1, endzeros=25,
@@ -219,10 +219,10 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=3,
         np.save(fname_base + 'U%04d' % i, U)
 
 
-def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
+def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100,
                       n_subj=10, simulation_folder='sim', n_sim=100, n_repeat=2,
                       duration=1, pause=1, endzeros=25, use_cor_noise=True,
-                      resolution=2, sigma_noise=1, ar_coeff=0.5,
+                      resolution=2, sigma_noise=2, ar_coeff=0.5,
                       model_type='fixed_averagetrue',
                       rdm_comparison='cosine', n_Layer=12, k_pattern=3,
                       k_rdm=3, rdm_type='crossnobis', n_stimuli=92,
@@ -235,6 +235,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                                 resolution=resolution,
                                 sigma_noise=sigma_noise,
                                 ar_coeff=ar_coeff)
+    print(fname_base)
     assert os.path.isdir(fname_base), 'simulated data not found!'
     res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d_%d' % (
         rdm_type, model_type, rdm_comparison, noise_type, n_stimuli,
@@ -244,6 +245,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
     models = []
     pat_desc = {'stim':np.arange(n_stimuli)}
     print('\n generating models\n')
+    stimuli = dnn.get_stimuli_96()[:n_stimuli]
     for i_layer in tqdm.trange(n_Layer):
         if model_type == 'fixed_averagetrue':
             fname_base_l = get_fname_base(simulation_folder=simulation_folder,
@@ -270,7 +272,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
             rdm = dnn.get_true_RDM(
                 model=dnn.get_default_model(),
                 layer=i_layer,
-                stimuli=dnn.get_stimuli_92())
+                stimuli=stimuli)
             rdm.pattern_descriptors = pat_desc
             model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
         elif model_type == 'select_full':
@@ -280,7 +282,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
-                    stimuli=dnn.get_stimuli_92(),
+                    stimuli=stimuli,
                     smoothing=smoothings[i_smooth],
                     average=False)
                 rdm.pattern_descriptors = pat_desc
@@ -294,7 +296,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
-                    stimuli=dnn.get_stimuli_92(),
+                    stimuli=stimuli,
                     smoothing=smoothings[i_smooth],
                     average=True)
                 rdm.pattern_descriptors = pat_desc
@@ -308,7 +310,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
-                    stimuli=dnn.get_stimuli_92(),
+                    stimuli=stimuli,
                     smoothing=smoothings[i_smooth],
                     average=False)
                 rdm.pattern_descriptors = pat_desc
@@ -316,7 +318,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
-                    stimuli=dnn.get_stimuli_92(),
+                    stimuli=stimuli,
                     smoothing=smoothings[i_smooth],
                     average=True)
                 rdm.pattern_descriptors = pat_desc
@@ -330,7 +332,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
-                    stimuli=dnn.get_stimuli_92(),
+                    stimuli=stimuli,
                     smoothing=smoothings[i_smooth],
                     average=False)
                 rdm.pattern_descriptors = pat_desc
@@ -344,7 +346,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
-                    stimuli=dnn.get_stimuli_92(),
+                    stimuli=stimuli,
                     smoothing=smoothings[i_smooth],
                     average=True)
                 rdm.pattern_descriptors = pat_desc
@@ -358,7 +360,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
-                    stimuli=dnn.get_stimuli_92(),
+                    stimuli=stimuli,
                     smoothing=smoothings[i_smooth],
                     average=True)
                 rdm.pattern_descriptors = pat_desc
@@ -367,7 +369,7 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
-                    stimuli=dnn.get_stimuli_92(),
+                    stimuli=stimuli,
                     smoothing=smoothings[i_smooth],
                     average=False)
                 rdm.pattern_descriptors = pat_desc
@@ -379,28 +381,28 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
             rdm = dnn.get_true_RDM(
                 model=dnn.get_default_model(),
                 layer=i_layer,
-                stimuli=dnn.get_stimuli_92(),
+                stimuli=stimuli,
                 smoothing=None,
                 average=True)
             rdms.append(rdm)
             rdm = dnn.get_true_RDM(
                 model=dnn.get_default_model(),
                 layer=i_layer,
-                stimuli=dnn.get_stimuli_92(),
+                stimuli=stimuli,
                 smoothing=False,
                 average=False)
             rdms.append(rdm)
             rdm = dnn.get_true_RDM(
                 model=dnn.get_default_model(),
                 layer=i_layer,
-                stimuli=dnn.get_stimuli_92(),
+                stimuli=stimuli,
                 smoothing=np.inf,
                 average=False)
             rdms.append(rdm)
             rdm = dnn.get_true_RDM(
                 model=dnn.get_default_model(),
                 layer=i_layer,
-                stimuli=dnn.get_stimuli_92(),
+                stimuli=stimuli,
                 smoothing=np.inf,
                 average=False)
             rdms.append(rdm)
@@ -428,10 +430,10 @@ def analyse_saved_dnn(layer=2, sd=3, n_voxel=100,
         results.save(res_path + '/res%04d.hdf5' % (i))
 
 
-def plot_saved_dnn(layer=2, sd=3, n_voxel=100, idx=0,
+def plot_saved_dnn(layer=2, sd=0.05, n_voxel=100, idx=0,
                    n_subj=10, simulation_folder='sim', n_repeat=2,
-                   duration=5, pause=1, endzeros=25, use_cor_noise=True,
-                   resolution=2, sigma_noise=1, ar_coeff=0.5,
+                   duration=1, pause=1, endzeros=25, use_cor_noise=True,
+                   resolution=2, sigma_noise=2, ar_coeff=0.5,
                    model_type='fixed_averagetrue',
                    rdm_comparison='cosine', n_Layer=12, k_pattern=3, k_rdm=3,
                    rdm_type='crossnobis', n_stimuli=92, fname_base=None,
@@ -458,7 +460,7 @@ def get_fname_base(simulation_folder, layer, n_voxel, n_subj, n_repeat, sd,
                    sigma_noise, ar_coeff):
     """ generates the filename base from parameters """
     fname_base = simulation_folder + ('/layer%02d' % layer) \
-        + ('/pars_%03d_%02d_%02d_%.2f/' % (n_voxel, n_subj, n_repeat, sd)) \
+        + ('/pars_%03d_%02d_%02d_%.3f/' % (n_voxel, n_subj, n_repeat, sd)) \
         + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (
             duration, pause, endzeros, use_cor_noise, resolution,
             sigma_noise, ar_coeff))

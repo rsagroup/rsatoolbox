@@ -143,41 +143,47 @@ def get_true_RDM(model, layer, stimuli, method='euclidean', smoothing=None,
 
 
 def get_sampled_representations(model, layer, sd, stimList, N):
-    U = get_complete_representation(model=model,layer=layer,stimulus=stimList[0])
+    U = get_complete_representation(model=model, layer=layer,
+                                    stimulus=stimList[0])
     indices_space, weights = get_random_indices_conv(U.shape,N)
     sigmaP = get_sampled_sigmaP(U.shape,indices_space,weights,sd)
     U = [sample_representation(np.squeeze(U),indices_space,weights,sd)]
     for stimulus in stimList[1:]:
-        Ustim = get_complete_representation(model=model,layer=layer,stimulus=stimulus)
-        U.append(sample_representation(np.squeeze(Ustim),indices_space,weights,sd))
-    return (np.array(U),sigmaP,indices_space,weights)
+        Ustim = get_complete_representation(model=model, layer=layer,
+                                            stimulus=stimulus)
+        U.append(sample_representation(np.squeeze(Ustim), indices_space,
+                                       weights, sd))
+    return (np.array(U), sigmaP, indices_space, weights)
 
 
 def get_sampled_representation_random(model, layer, sd, stimulus, N):
-    U = get_complete_representation(model=model,layer=layer,stimulus=stimulus)
+    U = get_complete_representation(model=model, layer=layer,
+                                    stimulus=stimulus)
     indices_space, weights = get_random_indices_conv(U.shape,N)
-    sigmaP = get_sampled_sigmaP(U.shape,indices_space,weights,sd)
-    U = sample_representation(np.squeeze(U),indices_space,weights,sd)
-    return (U,sigmaP,indices_space,weights)
+    sigmaP = get_sampled_sigmaP(U.shape,indices_space, weights, sd)
+    U = sample_representation(np.squeeze(U), indices_space, weights, sd)
+    return (U, sigmaP, indices_space, weights)
 
 
 def get_sampled_representation(indices_space, weights, sd,
                                model=None, layer=0, stimulus=None):
-    U = get_complete_representation(model=model,layer=layer,stimulus=stimulus)
-    U = sample_representation(U,indices_space=indices_space,weights=weights,sd=sd)
+    U = get_complete_representation(model=model, layer=layer,
+                                    stimulus=stimulus)
+    U = sample_representation(U, indices_space=indices_space,
+                              weights=weights, sd=sd)
     return U
 
 
 def sample_representation(U, indices_space, weights, sd):
     sd = sd * U.shape[2]
     if len(U.shape)==3:
-        U = gaussian_filter(U,[0,sd[0],sd[1]])
-        U = U[:,indices_space[0],indices_space[1]]
-        U = np.einsum('in,in->n',U,weights)
+        U = gaussian_filter(U, [0, sd[0], sd[1]])
+        U = U[:,indices_space[0], indices_space[1]]
+        U = np.einsum('in,in->n', U, weights)
     elif len(U.shape)==4:
-        U = gaussian_filter(U,[0,0,sd[0],sd[1]])
-        U = U[:,:,indices_space[0],indices_space[1]]
-        U = np.einsum('kin,in->kn',U,weights)
+        U = gaussian_filter(U, [0, 0, sd[0], sd[1]])
+        U = U[:, :, indices_space[0], indices_space[1]]
+        U = np.einsum('kin,in->kn', U, weights)
     return U
 
 
