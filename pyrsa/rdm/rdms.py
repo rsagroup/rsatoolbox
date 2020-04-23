@@ -364,6 +364,19 @@ def load_rdm(filename, file_type=None):
     return rdms_from_dict(rdm_dict)
 
 
+def rank_transform(rdms):
+    """ applyes a rank_transform and generates a new RDMs object"""
+    dissimilarities = rdms.get_vectors()
+    dissimilarities = np.array([rankdata(dissimilarities[i])
+                                for i in range(rdms.n_rdm)])
+    rdms_new = RDMs(dissimilarities,
+                    dissimilarity_measure=rdms.dissimilarity_measure,
+                    descriptors=rdms.descriptors,
+                    rdm_descriptors=rdms.rdm_descriptors,
+                    pattern_descriptors=rdms.pattern_descriptors)
+    return rdms_new
+
+
 def concat(rdms):
     """ concatenates rdm objects
     requires that the rdms have the same shape
@@ -412,16 +425,3 @@ def get_categorical_rdm(category_vector, category_name='category'):
     rdm = RDMs(np.array(rdm_list, dtype=np.float),
                pattern_descriptors={category_name:np.array(category_vector)})
     return rdm
-
-
-def rank_transform(rdms):
-    """ applyes a rank_transform and generates a new RDMs object"""
-    dissimilarities = rdms.get_vectors()
-    dissimilarities = np.array([rankdata(dissimilarities[i])
-                                for i in range(rdms.n_rdm)])
-    rdms_new = RDMs(dissimilarities,
-                    dissimilarity_measure=rdms.dissimilarity_measure,
-                    descriptors=rdms.descriptors,
-                    rdm_descriptors=rdms.rdm_descriptors,
-                    pattern_descriptors=rdms.pattern_descriptors)
-    return rdms_new
