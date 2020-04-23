@@ -87,7 +87,7 @@ def generate_timecourse(design, U0, sigma_noise=1, hrf=None,
     return data
 
 
-def get_random_sample(U,sigmaP,sigmaNoise=None,N=10):
+def get_random_sample(U, sigmaP, sigmaNoise=None, N=10):
     if sigmaNoise == 0 or sigmaNoise is None:
         if len(U.shape)==1:
             rand1 = np.random.randn(N,U.shape[0])
@@ -122,17 +122,27 @@ def get_random_sample(U,sigmaP,sigmaNoise=None,N=10):
     return Usamp
 
 
-def get_true_RDM(model, layer, stimuli, method='euclidean'):
+def get_true_RDM(model, layer, stimuli, method='euclidean', smoothing=None,
+                 average=False):
     U = list([])
     for istimulus in stimuli:
-        Ustim = get_complete_representation(model=model,layer=layer,stimulus=istimulus)
+        Ustim = get_complete_representation(model=model, layer=layer,
+                                            stimulus=istimulus)
+        if average:
+            Ustim = np.mean(Ustim, axis=1, keepdims=True)
+        if smoothing:
+            if np.isfinite(smoothing):
+                sd  = np.array(Ustim.shape[2:4]) * smoothing
+                Ustim = gaussian_filter(Ustim,[0, 0, sd[0], sd[1]])
+            elif smoothing == np.inf:
+                Ustim = np.average(np.average(Ustim, axis=3), axis=2)
         U.append(Ustim.flatten())
     U = np.array(U)
     data = pyrsa.data.Dataset(U)
     return pyrsa.rdm.calc_rdm(data, method=method)
 
 
-def get_sampled_representations(model,layer,sd,stimList,N):
+def get_sampled_representations(model, layer, sd, stimList, N):
     U = get_complete_representation(model=model,layer=layer,stimulus=stimList[0])
     indices_space, weights = get_random_indices_conv(U.shape,N)
     sigmaP = get_sampled_sigmaP(U.shape,indices_space,weights,sd)
@@ -143,7 +153,7 @@ def get_sampled_representations(model,layer,sd,stimList,N):
     return (np.array(U),sigmaP,indices_space,weights)
 
 
-def get_sampled_representation_random(model,layer,sd,stimulus,N):
+def get_sampled_representation_random(model, layer, sd, stimulus, N):
     U = get_complete_representation(model=model,layer=layer,stimulus=stimulus)
     indices_space, weights = get_random_indices_conv(U.shape,N)
     sigmaP = get_sampled_sigmaP(U.shape,indices_space,weights,sd)
@@ -151,13 +161,15 @@ def get_sampled_representation_random(model,layer,sd,stimulus,N):
     return (U,sigmaP,indices_space,weights)
 
 
-def get_sampled_representation(indices_space,weights,sd,model=None,layer=0,stimulus=None):
+def get_sampled_representation(indices_space, weights, sd,
+                               model=None, layer=0, stimulus=None):
     U = get_complete_representation(model=model,layer=layer,stimulus=stimulus)
     U = sample_representation(U,indices_space=indices_space,weights=weights,sd=sd)
     return U
 
 
-def sample_representation(U,indices_space,weights,sd):
+def sample_representation(U, indices_space, weights, sd):
+    sd = sd * U.shape[2]
     if len(U.shape)==3:
         U = gaussian_filter(U,[0,sd[0],sd[1]])
         U = U[:,indices_space[0],indices_space[1]]
@@ -204,7 +216,7 @@ def get_complete_representation(model=None, layer=0, stimulus=None):
     return U.detach().numpy()
 
 
-def get_random_indices_conv(Ushape,N):
+def get_random_indices_conv(Ushape, N):
     # gets N randomly placed indices for a representation with shape U
     # for convolutional layers-> xpos, ypos & features weights
     # weights are uniform in [0,1]
