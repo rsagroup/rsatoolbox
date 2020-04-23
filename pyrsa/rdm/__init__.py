@@ -1,4 +1,5 @@
 from .rdms import RDMs
+from .rdms import rank_transform
 from .rdms import concat
 from .rdms import load_rdm
 from .rdms import rdms_from_dict

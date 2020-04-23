@@ -8,6 +8,7 @@ Definition of RSA RDMs class and subclasses
 import os
 import numpy as np
 import pickle
+from scipy.stats import rankdata
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -364,6 +365,19 @@ def load_rdm(filename, file_type=None):
     else:
         raise ValueError('filetype not understood')
     return rdms_from_dict(rdm_dict)
+
+
+def rank_transform(rdms):
+    """ applyes a rank_transform and generates a new RDMs object"""
+    dissimilarities = rdms.get_vectors()
+    dissimilarities = np.array([rankdata(dissimilarities[i])
+                                for i in range(rdms.n_rdm)])
+    rdms_new = RDMs(dissimilarities,
+                    dissimilarity_measure=rdms.dissimilarity_measure,
+                    descriptors=rdms.descriptors,
+                    rdm_descriptors=rdms.rdm_descriptors,
+                    pattern_descriptors=rdms.pattern_descriptors)
+    return rdms_new
 
 
 def concat(rdms):
