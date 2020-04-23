@@ -52,7 +52,6 @@ def fit_select(model, data, method='cosine', pattern_sample=None,
         if not (pattern_sample is None or pattern_descriptor is None):
             pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
         evaluations[i_rdm] = np.mean(compare(pred, data, method=method))
-    print(evaluations)
     theta = np.argmin(evaluations)
     return theta
 
