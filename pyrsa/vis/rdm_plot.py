@@ -12,7 +12,7 @@ from pyrsa.rdm import rank_transform
 
 
 def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
-             cmap=None):
+             cmap=None, rdm_descriptor=None):
     """shows an rdm object
 
     Parameters
@@ -23,6 +23,8 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
         whether we should do a rank transform before plotting
     pattern_descriptor : String
         name of a pattern descriptor which will be used as an axis label
+    pattern_descriptor : String
+        name of a rdm descriptor which will be used as a title per RDM
     cmap : color map
         colormap or identifier for a colormap to be used
         conventions as for matplotlib colormaps
@@ -38,12 +40,17 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
             plt.subplot(n, m, idx + 1)
             plt.imshow(rdm_mat[idx], cmap=cmap)
             _add_descriptor_labels(rdm, pattern_descriptor)
+            if rdm_descriptor:
+                plt.title(rdm.rdm_descriptors[rdm_descriptor][idx])
         plt.subplot(n, m, n * m)
         plt.imshow(np.mean(rdm_mat, axis=0), cmap=cmap)
         _add_descriptor_labels(rdm, pattern_descriptor)
+        plt.title('Average')
     elif rdm.n_rdm == 1:
         plt.imshow(rdm_mat[0], cmap=cmap)
         _add_descriptor_labels(rdm, pattern_descriptor)
+        if rdm_descriptor:
+            plt.title(rdm.rdm_descriptors[rdm_descriptor][0])
     plt.show()
 
 
