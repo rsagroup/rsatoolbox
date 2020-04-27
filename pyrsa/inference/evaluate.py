@@ -102,9 +102,9 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
                 noise_max.append(noise_max_sample)
         else:
             if isinstance(model, Model):   
-                evaluations[i, 0, :] = np.nan
+                evaluations[i] = np.nan
             elif isinstance(model, Iterable):
-                evaluations[i, :, :] = np.nan
+                evaluations[i, :] = np.nan
             noise_min.append(np.nan)
             noise_max.append(np.nan)
     if isinstance(model, Model):
@@ -167,9 +167,9 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
                 noise_max.append(noise_max_sample)
         else:
             if isinstance(model, Model):   
-                evaluations[i, 0, :] = np.nan
+                evaluations[i] = np.nan
             elif isinstance(model, Iterable):
-                evaluations[i, :, :] = np.nan
+                evaluations[i, :] = np.nan
             noise_min.append(np.nan)
             noise_max.append(np.nan)
     if isinstance(model, Model):
@@ -205,7 +205,7 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
-        sample = bootstrap_sample_rdm(data, rdm_descriptor)
+        sample, rdm_sample = bootstrap_sample_rdm(data, rdm_descriptor)
         if isinstance(model, Model):
             rdm_pred = model.predict_rdm(theta=theta)
             evaluations[i] = np.mean(compare(rdm_pred, sample, method))
