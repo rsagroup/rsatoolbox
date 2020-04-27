@@ -52,7 +52,7 @@ def fit_select(model, data, method='cosine', pattern_sample=None,
         if not (pattern_sample is None or pattern_descriptor is None):
             pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
         evaluations[i_rdm] = np.mean(compare(pred, data, method=method))
-    theta = np.argmin(evaluations)
+    theta = np.argmax(evaluations)
     return theta
 
 
@@ -123,6 +123,7 @@ def fit_interpolate(model, data, method='cosine', pattern_sample=None,
     theta[i_pair+1] = 1-result.x
     return theta
 
+
 def _loss(theta, model, data, method='cosine', cov=None,
           pattern_descriptor=None, pattern_sample=None):
     """Method for calculating a loss for a model and parameter combination
@@ -148,4 +149,4 @@ def _loss(theta, model, data, method='cosine', cov=None,
     pred = model.predict_rdm(theta)
     if not (pattern_sample is None or pattern_descriptor is None):
         pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
-    return np.mean(compare(pred, data, method=method))
+    return -np.mean(compare(pred, data, method=method))
