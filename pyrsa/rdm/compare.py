@@ -29,18 +29,18 @@ def compare(rdm1, rdm2, method='cosine'):
 
     """
     if method == 'cosine':
-        dist = compare_cosine(rdm1, rdm2)
+        sim = compare_cosine(rdm1, rdm2)
     elif method == 'spearman':
-        dist = compare_spearman(rdm1, rdm2)
+        sim = compare_spearman(rdm1, rdm2)
     elif method == 'corr':
-        dist = compare_correlation(rdm1, rdm2)
+        sim = compare_correlation(rdm1, rdm2)
     elif method == 'kendall' or method == 'tau-b':
-        dist = compare_kendall_tau(rdm1, rdm2)
+        sim = compare_kendall_tau(rdm1, rdm2)
     elif method == 'tau-a':
-        dist = compare_kendall_tau_a(rdm1, rdm2)
+        sim = compare_kendall_tau_a(rdm1, rdm2)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
-    return dist
+    return sim
 
 
 def compare_cosine(rdm1, rdm2):
@@ -58,7 +58,7 @@ def compare_cosine(rdm1, rdm2):
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     sim = _cosine(vector1, vector2)
-    return 1 - sim
+    return sim
 
 
 def compare_correlation(rdm1, rdm2):
@@ -78,7 +78,7 @@ def compare_correlation(rdm1, rdm2):
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     sim = _cosine(vector1, vector2)
-    return 1 - sim
+    return sim
 
 
 def compare_spearman(rdm1, rdm2):
@@ -101,7 +101,7 @@ def compare_spearman(rdm1, rdm2):
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     sim = _cosine(vector1, vector2)
-    return 1 - sim
+    return sim
 
 
 def compare_kendall_tau(rdm1, rdm2):
@@ -120,7 +120,7 @@ def compare_kendall_tau(rdm1, rdm2):
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     sim = _all_combinations(vector1, vector2, _kendall_tau)
-    return 1 - sim
+    return sim
 
 
 def compare_kendall_tau_a(rdm1, rdm2):
@@ -138,7 +138,7 @@ def compare_kendall_tau_a(rdm1, rdm2):
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     sim = _all_combinations(vector1, vector2, _tau_a)
-    return 1 - sim
+    return sim
 
 
 def _all_combinations(vectors1, vectors2, func):

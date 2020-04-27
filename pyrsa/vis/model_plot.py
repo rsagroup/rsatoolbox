@@ -33,7 +33,7 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
     method = result.method
     while len(evaluations.shape)>2:
         evaluations = np.mean(evaluations, axis=-1)
-    evaluations = 1 - evaluations
+    evaluations = evaluations
     mean = np.mean(evaluations, axis=0)
     if sort:
         idx = np.argsort(mean)
@@ -44,7 +44,7 @@ def plot_model_comparison(result, eb_alpha=0.05, plot_pair_tests=False,
                      - mean)
     errorbar_high = (np.quantile(evaluations, 1 - (eb_alpha / 2), axis=0)
                      - mean)
-    noise_ceiling = 1 - noise_ceiling
+    noise_ceiling = noise_ceiling
     # plotting start
     if plot_pair_tests:
         plt.figure(figsize=(12.5, 10))

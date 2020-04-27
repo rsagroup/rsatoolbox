@@ -296,9 +296,9 @@ class TestCompareRDM(unittest.TestCase):
     def test_compare_cosine(self):
         from pyrsa.rdm.compare import compare_cosine
         result = compare_cosine(self.test_rdm1, self.test_rdm1)
-        assert_array_almost_equal(result, 0)
+        assert_array_almost_equal(result, 1)
         result = compare_cosine(self.test_rdm1, self.test_rdm2)
-        assert np.all(result>0)
+        assert np.all(result < 1)
         
     def test_compare_cosine_loop(self):
         from pyrsa.rdm.compare import compare_cosine
@@ -313,14 +313,14 @@ class TestCompareRDM(unittest.TestCase):
                 result_loop[i,j] = (np.sum(d1[i] * d2[j]) 
                                     / np.sqrt(np.sum(d1[i] * d1[i]))
                                     / np.sqrt(np.sum(d2[j] * d2[j])))
-        assert_array_almost_equal(result, 1 - result_loop)
+        assert_array_almost_equal(result, result_loop)
         
     def test_compare_correlation(self):
         from pyrsa.rdm.compare import compare_correlation
         result = compare_correlation(self.test_rdm1, self.test_rdm1)
-        assert_array_almost_equal(result, 0)
+        assert_array_almost_equal(result, 1)
         result = compare_correlation(self.test_rdm1, self.test_rdm2)
-        assert np.all(result>0)
+        assert np.all(result < 1)
         
     def test_compare_corr_loop(self):
         from pyrsa.rdm.compare import compare_correlation
@@ -337,14 +337,14 @@ class TestCompareRDM(unittest.TestCase):
                 result_loop[i,j] = (np.sum(d1[i] * d2[j]) 
                                     / np.sqrt(np.sum(d1[i] * d1[i]))
                                     / np.sqrt(np.sum(d2[j] * d2[j])))
-        assert_array_almost_equal(result, 1 - result_loop)
+        assert_array_almost_equal(result, result_loop)
         
     def test_compare_spearman(self):
         from pyrsa.rdm.compare import compare_spearman
         result = compare_spearman(self.test_rdm1, self.test_rdm1)
-        assert_array_almost_equal(result, 0)
+        assert_array_almost_equal(result, 1)
         result = compare_spearman(self.test_rdm1, self.test_rdm2)
-        assert np.all(result>0)
+        assert np.all(result < 1)
         
     def test_spearman_equal_scipy(self):
         from pyrsa.rdm.compare import _parse_input_rdms
@@ -368,28 +368,28 @@ class TestCompareRDM(unittest.TestCase):
             return corr
         vector1, vector2 = _parse_input_rdms(self.test_rdm1, self.test_rdm2)
         sim = _all_combinations(vector1, vector2, _spearman_r)
-        result = 1-sim
+        result = sim
         result2 = compare_spearman(self.test_rdm1, self.test_rdm2)
         assert_array_almost_equal(result,result2)
         
     def test_compare_kendall_tau(self):
         from pyrsa.rdm.compare import compare_kendall_tau
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm1)
-        assert_array_almost_equal(result, 0)
+        assert_array_almost_equal(result, 1)
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm2)
-        assert np.all(result>0)
+        assert np.all(result < 1)
 
     def test_compare_kendall_tau_a(self):
         from pyrsa.rdm.compare import compare_kendall_tau_a
         result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm1)
-        assert_array_almost_equal(result, 0)
+        assert_array_almost_equal(result, 1)
         result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm2)
-        assert np.all(result>0)
+        assert np.all(result < 1)
 
     def test_compare(self):
         from pyrsa.rdm.compare import compare
         result = compare(self.test_rdm1, self.test_rdm1)
-        assert_array_almost_equal(result, 0)
+        assert_array_almost_equal(result, 1)
         result = compare(self.test_rdm1, self.test_rdm2, method='corr')
         result = compare(self.test_rdm1, self.test_rdm2, method='spearman')
         result = compare(self.test_rdm1, self.test_rdm2, method='cosine')
