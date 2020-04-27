@@ -71,6 +71,54 @@ def get_residuals_cross(designs, timecourses, betas, resolution=2, hrf=None):
     return residuals
 
 
+def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
+                          method='corr', bootstrap='pattern'):
+    """ runs simulations for comparison to zero
+    It compares whatever model you pass to pure noise data, generated
+    as independent normal noise for the voxels and subjects.
+    
+    Args:
+        model(pyrsa.model.Model): the model to be tested against
+        n_voxel(int): number of voxels to be simulated per subject
+        n_subj(int): number of subjects to be siulated
+        n_sim(int): number of simulations to be performed
+
+    """
+    n_cond = int(model.n_cond)
+    p = np.empty(n_sim)
+    for i_sim in range(n_sim):
+        raw_u = np.random.randn(n_subj, n_cond, n_voxel)
+        data = []
+        for i_subj in range(n_subj):
+            dat = pyrsa.data.Dataset(raw_u[i_subj])
+            data.append(dat)
+        rdms = pyrsa.rdm.calc_rdm(data)
+        if bootstrap == 'pattern':
+            results = pyrsa.inference.eval_bootstrap_pattern(model, rdms,
+                                                             method=method)
+        elif bootstrap == 'rdm':
+            results = pyrsa.inference.eval_bootstrap_rdm(model, rdms,
+                                                         method=method)
+        elif bootstrap == 'boot':
+            results = pyrsa.inference.eval_bootstrap(model, rdms,
+                                                     method=method)
+        elif bootstrap == 'crossval':
+            results = pyrsa.inference.bootstrap_crossval(model, rdms,
+                                                         method=method)
+        elif bootstrap == 'crossval_pattern':
+            results = pyrsa.inference.bootstrap_crossval(model, rdms,
+                                                         method=method,
+                                                         k_rdm=1)
+        elif bootstrap == 'crossval_rdms':
+            results = pyrsa.inference.bootstrap_crossval(model, rdms,
+                                                         method=method,
+                                                         k_pattern=1)
+        idx_valid = ~np.isnan(results.evaluations)
+        p[i_sim] = np.sum(results.evaluations[idx_valid] < 1) \
+            / np.sum(idx_valid)
+    return p
+
+
 def sampling_DNN(stimuli, n_subj=3, n_vox=100, n_repeat=5, shrinkage=0,
                  model=None, layer=3, sd=np.array([5, 5]),
                  sigma_noise=None, resolution=None, ar_coeff=None,
