@@ -11,7 +11,7 @@ import scipy.sparse.linalg as s_lin
 from scipy.stats._stats import _kendall_dis
 from pyrsa.util.matrix import pairwise_contrast_sparse
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
-
+from pyrsa.util.matrix import row_col_indicator_G
 
 def compare(rdm1, rdm2, method='cosine', sigma_k=None):
     """calculates the distances between two RDMs objects using a chosen method
@@ -62,7 +62,7 @@ def compare_cosine(rdm1, rdm2):
         rdm2 (pyrsa.rdm.RDMs):
             second set of RDMs
     Returns:
-        numpy.ndarray: dist:
+        numpy.ndarray: dist
             cosine distance between the two RDMs
 
     """
@@ -85,6 +85,7 @@ def compare_correlation(rdm1, rdm2):
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     sim = _cosine(vector1, vector2)
@@ -123,6 +124,7 @@ def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     sim = _cosine_cov_weighted(vector1, vector2, sigma_k)
@@ -240,7 +242,7 @@ def _all_combinations(vectors1, vectors2, func):
     return value
 
 
-def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
+def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None):
     """computes the cosine angles between two sets of vectors
 
     Args:
@@ -258,16 +260,81 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
     """
     n_cond = _get_n_from_reduced_vectors(vector1)
     v = _get_v(n_cond, sigma_k)
+    # compute V^-1 vector1/2 for all vectors by solving Vx = vector1/2
     vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
                           for i in range(vector1.shape[0])])
     vector2_m = np.array([scipy.sparse.linalg.cg(v, vector2[i], atol=0)[0]
                           for i in range(vector2.shape[0])])
+    # compute the inner products v1^T (V^-1 v2) for all combinations
     cos = np.einsum('ij,kj->ik', vector1, vector2_m)
+    # divide by sqrt(v1^T (V^-1 v1))
     cos /= np.sqrt(np.einsum('ij,ij->i', vector1,
                              vector1_m)).reshape((-1, 1))
+    # divide by sqrt(v2^T (V^-1 v2))
     cos /= np.sqrt(np.einsum('ij,ij->i', vector2,
                              vector2_m)).reshape((1, -1))
     return cos
+
+
+def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
+    """computes the cosine angles between two sets of vectors
+    weighted by the covariance - linearCKA
+
+    Args:
+        vector1 (numpy.ndarray):
+            first vectors (2D)
+        vector1 (numpy.ndarray):
+            second vectors (2D)
+
+    Returns:
+        cos (float):
+            cosine angle between vectors (linear CKA)
+
+    """
+    if sigma_k is not None:
+        cos = _cosine_cov_weighted_slow(vector1, vector2, sigma_k=sigma_k)
+    else:
+        # Compute the extended version of RDM vectors in whitened space 
+        vector1_m = _cov_weighting(vector1)
+        vector2_m = _cov_weighting(vector2)
+        # compute the inner products v1^T V^-1 v2 for all combinations
+        cos = np.einsum('ij,kj->ik', vector1_m, vector2_m)
+        # divide by sqrt(v1^T V^-1 v1)
+        cos /= np.sqrt(np.einsum('ij,ij->i', vector1_m,
+                                 vector1_m)).reshape((-1, 1))
+        # divide by sqrt(v2^T V^-1 v2)
+        cos /= np.sqrt(np.einsum('ij,ij->i', vector2_m,
+                                 vector2_m)).reshape((1, -1))
+    return cos
+
+
+def _cov_weighting(vector):
+    """Transforms a array of RDM vectors in to representation 
+    in which the elements are isotropic. This is a stretched-out 
+    second moment matrix, with the diagonal elements appended.
+    To account for the fact that the off-diagonal elements are
+    only there once, they are multipled by 2
+
+    Args:
+        vector (numpy.ndarray):
+            RDM vectors (2D) N x n_dist 
+    Returns:
+        vector_w:
+            weighted vectors (M x n_dist + n_cond) 
+    """
+    N, n_dist = vector.shape
+    n_cond = _get_n_from_reduced_vectors(vector)
+    vector_w = -0.5 * np.c_[vector,np.zeros((N, n_cond))]
+    rowI, colI = row_col_indicator_G(n_cond)
+    sumI  = rowI + colI
+    m = vector_w @ sumI / n_cond # Column and row means
+    mm = np.sum(vector_w * 2,axis=1) / (n_cond * n_cond) # Overall mean
+    mm = mm.reshape(-1,1)
+    # subtract the column and row means and add overall mean
+    vector_w = vector_w - m @ sumI.T + mm
+    # Weight the off-diagnoal terms double 
+    vector_w[:,:n_dist] = vector_w[:,:n_dist] * np.sqrt(2)
+    return vector_w
 
 
 def _cosine(vector1, vector2):
@@ -283,7 +350,9 @@ def _cosine(vector1, vector2):
             cosine angle between vectors
 
     """
+    # compute all inner products
     cos = np.einsum('ij,kj->ik', vector1, vector2)
+    # divide by sqrt of the inner products with themselves
     cos /= np.sqrt(np.einsum('ij,ij->i', vector1, vector1)).reshape((-1, 1))
     cos /= np.sqrt(np.einsum('ij,ij->i', vector2, vector2)).reshape((1, -1))
     return cos
@@ -365,6 +434,7 @@ def _get_v(n_cond, sigma_k):
     if sigma_k is None:
         xi = c_mat @ c_mat.transpose()
     else:
+        sigma_k = scipy.sparse.csr_matrix(sigma_k)
         xi = c_mat @ sigma_k @ c_mat.transpose()
     # calculate V
     v = xi.multiply(xi).tocsc()
