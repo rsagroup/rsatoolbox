@@ -177,8 +177,8 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
         subversion (String):
             switch the version of Crossnobis to run:
             'pool': prewhiten each estimate with their precision
-            'average': run each combination of \delta_i \Sigma_j^-1 \delta_j
-            'pool_sum': run each combination of \delta_i \Sigma_j^-1 \delta_j
+            'average': run each combination of delta_i Sigma_j^-1 delta_j
+            'pool_sum': run each combination of delta_i Sigma_j^-1 delta_j
 
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
