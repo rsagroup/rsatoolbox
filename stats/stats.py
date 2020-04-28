@@ -16,6 +16,7 @@ from hrf import spm_hrf
 from scipy.ndimage import gaussian_filter as gaussian_filter
 import pyrsa
 import nn_simulations as dnn
+import pathlib
 
 
 def get_stimuli_92():
@@ -114,9 +115,81 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
                                                          method=method,
                                                          k_pattern=1)
         idx_valid = ~np.isnan(results.evaluations)
-        p[i_sim] = np.sum(results.evaluations[idx_valid] < 1) \
+        p[i_sim] = np.sum(results.evaluations[idx_valid] > 0) \
             / np.sum(idx_valid)
     return p
+
+
+def save_compare_to_zero(idx, n_voxel=100, n_subj=10, n_cond=5,
+                         method='corr', bootstrap='pattern',
+                         folder='comp_zero'):
+    """ saves the results of a simulation to a file 
+    """
+    if not os.path.isdir(folder):
+        os.mkdir(folder)
+    fname = folder + os.path.sep + 'p_%s_%s_%d_%d_%d_%03d.npy' % (method,
+        bootstrap, n_cond, n_subj, n_voxel, idx)
+    model_u = np.random.randn(n_cond, n_voxel)
+    model_dat = pyrsa.data.Dataset(model_u)
+    model_rdm = pyrsa.rdm.calc_rdm(model_dat)
+    model = pyrsa.model.ModelFixed('test', model_rdm)
+    p = check_compare_to_zero(model, n_voxel=n_voxel, n_subj=n_subj,
+                              method=method, bootstrap=bootstrap)
+    np.save(fname, p)
+
+
+def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
+                         method='corr', bootstrap='pattern',
+                         folder='comp_zero', n_bin=100):
+    fname = 'p_'
+    if method:
+        fname = fname + ('%s_' % method)
+    else:
+        fname = fname + '*_'
+    if bootstrap:
+        fname = fname + ('%s_' % bootstrap)
+    else:
+        fname = fname + '*_'
+    if n_cond:
+        fname = fname + ('%d_' % n_cond)
+    else:
+        fname = fname + '*_'
+    if n_subj:
+        fname = fname + ('%d_' % n_subj)
+    else:
+        fname = fname + '*_'
+    if n_voxel:
+        fname = fname + ('%d_' % n_voxel)
+    else:
+        fname = fname + '*_'
+    fname = fname + '*.npy'
+    n_significant = []
+    n_binned = []
+    bins = np.linspace(1 / n_bin, 1, n_bin)
+    for p in pathlib.Path(folder).glob(fname):
+        ps = np.load(p)
+        n = np.empty(n_bin)
+        for i_bin in range(n_bin):
+            n[i_bin] = np.sum(ps <= bins[i_bin])
+        n_binned.append(n)
+        n_significant.append(np.sum(ps < 0.05))
+    n_binned = np.array(n_binned)
+    n_significant = np.array(n_significant)
+    n_binned = n_binned / n_binned[:, -1].reshape(-1, 1)
+    ax = plt.subplot(1,1,1)
+    plt.plot(bins, n_binned.T, )
+    plt.plot([0,1],[0,1], 'k--')
+    ax.set_aspect('equal', 'box')
+    plt.xlabel('alpha')
+    plt.ylabel('proportion p<alpha')
+    plt.xlim([0,1])
+    plt.ylim([0,1])
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.figure()
+    plt.plot(n_significant, 'k.')
+    plt.plot([0 - 0.5, len(n_significant) - 0.5], [50, 50], 'k--')
+    plt.ylim(bottom=0)
 
 
 def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
