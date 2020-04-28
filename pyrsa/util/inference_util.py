@@ -42,7 +42,7 @@ def input_check_model(model, theta=None, fitter=None, N=1):
     return evaluations, theta, fitter
 
 
-def pool_rdm(rdms, method='cosine'):
+def pool_rdm(rdms, method='cosine', sigma_k=None):
     """pools multiple RDMs into the one with maximal performance under a given
     evaluation metric
     rdm_descriptors of the generated rdms are empty
@@ -79,7 +79,7 @@ def pool_rdm(rdms, method='cosine'):
         rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
         rdm_vec = _nan_mean(rdm_vec)
         rdm_vec = rdm_vec - np.nanmin(rdm_vec)
-    elif method == 'spearman':
+    elif method == 'spearman' or method == 'rho-a':
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'kendall' or method == 'tau-b':

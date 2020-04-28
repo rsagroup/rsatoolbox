@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 
 
-class test_noise_ceiling(unittest.TestCase):
+class TestNoiseCeiling(unittest.TestCase):
     def test_cv_noise_ceiling(self):
         from pyrsa.inference import cv_noise_ceiling
         from pyrsa.inference import sets_k_fold_rdm
@@ -44,3 +44,7 @@ class test_noise_ceiling(unittest.TestCase):
                     dissimilarity_measure=mes,
                     descriptors=des)
         noise_min, noise_max = boot_noise_ceiling(rdms, method='cosine')
+        noise_min, noise_max = boot_noise_ceiling(rdms, method='rho-a')
+        noise_min, noise_max = boot_noise_ceiling(rdms, method='tau-a')
+        noise_min, noise_max = boot_noise_ceiling(rdms, method='spearman')
+        noise_min, noise_max = boot_noise_ceiling(rdms, method='corr')

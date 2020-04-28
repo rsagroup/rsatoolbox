@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 
 
-class test_bootstrap(unittest.TestCase):
+class TestBootstrap(unittest.TestCase):
     """ bootstrap tests
     """
     def test_bootstrap_sample(self):
@@ -83,7 +83,7 @@ class test_bootstrap(unittest.TestCase):
         rdm_sample = bootstrap_sample_pattern(rdms,'type')
 
 
-class test_evaluation(unittest.TestCase):
+class TestEvaluation(unittest.TestCase):
     """ evaluation tests
     """
     def test_eval_fixed(self):
@@ -145,7 +145,8 @@ class test_evaluation(unittest.TestCase):
         evaluations, n_rdms = bootstrap_testset_rdm(m, rdms,
             method='cosine', fitter=None, N=100, rdm_descriptor=None)
 
-class test_evaluation_lists(unittest.TestCase):
+
+class TestEvaluationLists(unittest.TestCase):
     """ evaluation tests
     """
     def test_eval_fixed(self):
@@ -217,3 +218,80 @@ class test_evaluation_lists(unittest.TestCase):
         m2 = ModelFixed('test2', rdms.get_vectors()[1])
         evaluations, n_rdms = bootstrap_testset_rdm([m, m2], rdms,
             method='cosine', fitter=None, N=100, rdm_descriptor=None)
+
+class TestSaveLoad(unittest.TestCase):
+    def test_model_dict(self):
+        from pyrsa.model import model_from_dict
+        from pyrsa.model import ModelFixed
+        m = ModelFixed('test1', np.random.rand(10))
+        model_dict = m.to_dict()
+        model_loaded = model_from_dict(model_dict)
+        assert m.name == model_loaded.name
+        assert np.all(m.rdm_obj.dissimilarities == model_loaded.rdm_obj.dissimilarities)
+
+        from pyrsa.model import ModelInterpolate
+        m = ModelInterpolate('test1', np.random.rand(10))
+        model_dict = m.to_dict()
+        model_loaded = model_from_dict(model_dict)
+        assert m.name == model_loaded.name
+        assert np.all(m.rdm_obj.dissimilarities == model_loaded.rdm_obj.dissimilarities)
+
+        from pyrsa.model import ModelSelect
+        m = ModelSelect('test1', np.random.rand(10))
+        model_dict = m.to_dict()
+        model_loaded = model_from_dict(model_dict)
+        assert m.name == model_loaded.name
+        assert np.all(m.rdm_obj.dissimilarities == model_loaded.rdm_obj.dissimilarities)
+
+        from pyrsa.model import ModelWeighted
+        m = ModelWeighted('test1', np.random.rand(10))
+        model_dict = m.to_dict()
+        model_loaded = model_from_dict(model_dict)
+        assert m.name == model_loaded.name
+        assert np.all(m.rdm_obj.dissimilarities == model_loaded.rdm_obj.dissimilarities)
+
+        from pyrsa.model import Model
+        m = Model('test1')
+        model_dict = m.to_dict()
+        model_loaded = model_from_dict(model_dict)
+        assert m.name == model_loaded.name
+
+    def test_result_dict(self):
+        from pyrsa.inference import Result
+        from pyrsa.inference import result_from_dict
+        from pyrsa.model import ModelFixed
+        m1 = ModelFixed('test1', np.random.rand(10))
+        m2 = ModelFixed('test2', np.random.rand(10))
+        models = [m1, m2]
+        evaluations = np.random.rand(100,2)
+        method = 'test_method'
+        cv_method = 'test_cv_method'
+        noise_ceiling = np.array([0.5, 0.2])
+        res = Result(models, evaluations, method, cv_method, noise_ceiling)
+        result_dict = res.to_dict()
+        res_loaded = result_from_dict(result_dict)
+        assert res_loaded.method == method
+        assert res_loaded.cv_method == cv_method
+        assert np.all(res_loaded.evaluations == evaluations)
+        assert np.all(res_loaded.models[0].rdm == m1.rdm)
+
+    def test_save_load_result(self):
+        from pyrsa.inference import Result
+        from pyrsa.inference import load_results
+        from pyrsa.model import ModelFixed
+        import io
+        m1 = ModelFixed('test1', np.random.rand(10))
+        m2 = ModelFixed('test2', np.random.rand(10))
+        models = [m1, m2]
+        evaluations = np.random.rand(100,2)
+        method = 'test_method'
+        cv_method = 'test_cv_method'
+        noise_ceiling = np.array([0.5, 0.2])
+        res = Result(models, evaluations, method, cv_method, noise_ceiling)
+        f = io.BytesIO() # Essentially a Mock file
+        res.save(f, file_type='hdf5')
+        res_loaded = load_results(f, file_type='hdf5')
+        assert res_loaded.method == method
+        assert res_loaded.cv_method == cv_method
+        assert np.all(res_loaded.evaluations == evaluations)
+        
