@@ -159,10 +159,12 @@ class RDMs:
         pattern_descriptors = extract_dict(
             self.pattern_descriptors, selection)
         rdm_descriptors = self.rdm_descriptors
+        dissimilarity_measure = self.dissimilarity_measure
         rdms = RDMs(dissimilarities=dissimilarities,
                     descriptors=descriptors,
                     rdm_descriptors=rdm_descriptors,
-                    pattern_descriptors=pattern_descriptors)
+                    pattern_descriptors=pattern_descriptors,
+                    dissimilarity_measure=dissimilarity_measure)
         return rdms
 
     def subsample_pattern(self, by, value):
@@ -203,10 +205,12 @@ class RDMs:
         pattern_descriptors = extract_dict(
             self.pattern_descriptors, selection)
         rdm_descriptors = self.rdm_descriptors
+        dissimilarity_measure = self.dissimilarity_measure
         rdms = RDMs(dissimilarities=dissimilarities,
                     descriptors=descriptors,
                     rdm_descriptors=rdm_descriptors,
-                    pattern_descriptors=pattern_descriptors)
+                    pattern_descriptors=pattern_descriptors,
+                    dissimilarity_measure=dissimilarity_measure)
         return rdms
 
     def subset(self, by, value):
@@ -229,10 +233,12 @@ class RDMs:
         descriptors = self.descriptors
         pattern_descriptors = self.pattern_descriptors
         rdm_descriptors = extract_dict(self.rdm_descriptors, selection)
+        dissimilarity_measure = self.dissimilarity_measure
         rdms = RDMs(dissimilarities=dissimilarities,
                     descriptors=descriptors,
                     rdm_descriptors=rdm_descriptors,
-                    pattern_descriptors=pattern_descriptors)
+                    pattern_descriptors=pattern_descriptors,
+                    dissimilarity_measure=dissimilarity_measure)
         return rdms
 
     def subsample(self, by, value):
@@ -263,10 +269,12 @@ class RDMs:
         descriptors = self.descriptors
         pattern_descriptors = self.pattern_descriptors
         rdm_descriptors = extract_dict(self.rdm_descriptors, selection)
+        dissimilarity_measure = self.dissimilarity_measure
         rdms = RDMs(dissimilarities=dissimilarities,
                     descriptors=descriptors,
                     rdm_descriptors=rdm_descriptors,
-                    pattern_descriptors=pattern_descriptors)
+                    pattern_descriptors=pattern_descriptors,
+                    dissimilarity_measure=dissimilarity_measure)
         return rdms
 
     def append(self, rdm):
