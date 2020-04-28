@@ -300,6 +300,17 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_cosine(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
         
+    def test_compare_cosine_cov(self):
+        from pyrsa.rdm.compare import compare_cosine_cov_weighted
+        result = compare_cosine_cov_weighted(self.test_rdm1,
+                                             self.test_rdm1,
+                                             sigma_k=np.eye(6))
+        assert_array_almost_equal(result, 1)
+        result = compare_cosine_cov_weighted(self.test_rdm1,
+                                             self.test_rdm2,
+                                             sigma_k=np.eye(6))
+        assert np.all(result < 1)
+
     def test_compare_cosine_loop(self):
         from pyrsa.rdm.compare import compare_cosine
         result = compare_cosine(self.test_rdm2, self.test_rdm3)
@@ -321,7 +332,27 @@ class TestCompareRDM(unittest.TestCase):
         assert_array_almost_equal(result, 1)
         result = compare_correlation(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
-        
+
+    def test_compare_correlation_cov(self):
+        from pyrsa.rdm.compare import compare_correlation_cov_weighted
+        result = compare_correlation_cov_weighted(self.test_rdm1,
+                                                  self.test_rdm1)
+        assert_array_almost_equal(result, 1)
+        result = compare_correlation_cov_weighted(self.test_rdm1,
+                                                  self.test_rdm2)
+        assert np.all(result < 1)
+
+    def test_compare_correlation_cov_sk(self):
+        from pyrsa.rdm.compare import compare_correlation_cov_weighted
+        result = compare_correlation_cov_weighted(self.test_rdm1,
+                                                  self.test_rdm1,
+                                                  sigma_k = np.eye(6))
+        assert_array_almost_equal(result, 1)
+        result = compare_correlation_cov_weighted(self.test_rdm1,
+                                                  self.test_rdm2,
+                                                  sigma_k = np.eye(6))
+        assert np.all(result < 1)
+
     def test_compare_corr_loop(self):
         from pyrsa.rdm.compare import compare_correlation
         result = compare_correlation(self.test_rdm2, self.test_rdm3)
@@ -391,9 +422,53 @@ class TestCompareRDM(unittest.TestCase):
         result = compare(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare(self.test_rdm1, self.test_rdm2, method='corr')
+        result = compare(self.test_rdm1, self.test_rdm2, method='corr_cov')
         result = compare(self.test_rdm1, self.test_rdm2, method='spearman')
         result = compare(self.test_rdm1, self.test_rdm2, method='cosine')
+        result = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov')
         result = compare(self.test_rdm1, self.test_rdm2, method='kendall')
+
+
+class TestSave(unittest.TestCase):
+    def test_dict_conversion(self):
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        pattern_des = {'type':np.array([0,1,2,2,4])}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        rdms = rsa.rdm.RDMs(dissimilarities=dis,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des,
+                        rdm_descriptors=rdm_des)
+        rdm_dict = rdms.to_dict()
+        rdms_loaded = rsa.rdm.rdms_from_dict(rdm_dict)
+        assert rdms_loaded.n_cond == rdms.n_cond
+        assert np.all(rdms_loaded.pattern_descriptors['type'] == pattern_des['type'])
+        assert np.all(rdms_loaded.rdm_descriptors['session'] == rdm_des['session'])
+        assert rdms_loaded.descriptors['subj'] == 0
+
+    def test_save_load(self):
+        import io
+        f = io.BytesIO() # Essentially a Mock file
+        dis = np.zeros((8,10))
+        mes = "Euclidean"
+        des = {'subj':0}
+        pattern_des = {'type':np.array([0,1,2,2,4])}
+        rdm_des = {'session':np.array([0,1,2,2,4,5,6,7])}
+        rdms = rsa.rdm.RDMs(dissimilarities=dis,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des,
+                        rdm_descriptors=rdm_des)
+        rdms.save(f, file_type='hdf5')
+        rdms_loaded = rsa.rdm.load_rdm(f, file_type='hdf5')
+        assert rdms_loaded.n_cond == rdms.n_cond
+        assert np.all(rdms_loaded.pattern_descriptors['type'] == pattern_des['type'])
+        assert np.all(rdms_loaded.rdm_descriptors['session'] == rdm_des['session'])
+        assert rdms_loaded.descriptors['subj'] == 0
+        
+
 
 if __name__ == '__main__':
     unittest.main()  
