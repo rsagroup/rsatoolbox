@@ -7,14 +7,14 @@ import unittest
 import pyrsa.model as model
 import numpy as np
 
-class test_Model(unittest.TestCase):
+class TestModel(unittest.TestCase):
     """ Tests for the Model superclass
     """
     def test_creation(self):
         m = model.Model('Test Model')
 
 
-class test_ModelFixed(unittest.TestCase):
+class TestModelFixed(unittest.TestCase):
     """ Tests for the fixed model class
     """
     def test_creation(self):
@@ -36,7 +36,7 @@ class test_ModelFixed(unittest.TestCase):
         assert isinstance(pred_obj, RDMs)
 
 
-class test_ModelSelect(unittest.TestCase):
+class TestModelSelect(unittest.TestCase):
     """ Tests for the fixed model class
     """
     def test_creation(self):
@@ -73,7 +73,7 @@ class test_ModelSelect(unittest.TestCase):
         assert theta == 1
 
 
-class test_ModelWeighted(unittest.TestCase):
+class TestModelWeighted(unittest.TestCase):
     """ Tests for the fixed model class
     """
     def test_creation(self):
@@ -109,7 +109,7 @@ class test_ModelWeighted(unittest.TestCase):
         theta = m.fit(train)
 
 
-class test_ModelInterpolate(unittest.TestCase):
+class TestModelInterpolate(unittest.TestCase):
     """ Tests for the fixed model class
     """
     def test_creation(self):
