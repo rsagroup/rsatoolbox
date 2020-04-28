@@ -33,7 +33,6 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
     noise_ceiling = result.noise_ceiling
     method = result.method
     while len(evaluations.shape)>2:
-        evaluations = evaluations[~np.isnan(evaluations[:, 0])]
         evaluations = np.nanmean(evaluations, axis=-1)
     evaluations = evaluations[~np.isnan(evaluations[:,0])]
     evaluations = 1 - evaluations
