@@ -72,6 +72,43 @@ def get_residuals_cross(designs, timecourses, betas, resolution=2, hrf=None):
     return residuals
 
 
+def run_inference(model, rdms, method, bootstrap):
+    """ runs a run of inference
+    
+    Args:
+        model(pyrsa.model.Model): the model(s) to be tested
+        rdms(pyrsa.rdm.Rdms): the data
+        method(String): rdm comparison method
+        bootstrap(String): Bootstrapping method:
+            pattern: pyrsa.inference.eval_bootstrap_pattern
+            rdm: pyrsa.inference.eval_bootstrap_rdm
+            boot: pyrsa.inference.eval_bootstrap
+            crossval: pyrsa.inference.bootstrap_crossval
+            crossval_pattern: pyrsa.inference.bootstrap_crossval(k_rdm=1)
+            rdmcrossval_rdms pyrsa.inference.bootstrap_crossval(k_pattern=1)
+    """
+    if bootstrap == 'pattern':
+        results = pyrsa.inference.eval_bootstrap_pattern(model, rdms,
+                                                         method=method)
+    elif bootstrap == 'rdm':
+        results = pyrsa.inference.eval_bootstrap_rdm(model, rdms,
+                                                     method=method)
+    elif bootstrap == 'boot':
+        results = pyrsa.inference.eval_bootstrap(model, rdms,
+                                                 method=method)
+    elif bootstrap == 'crossval':
+        results = pyrsa.inference.bootstrap_crossval(model, rdms,
+                                                     method=method)
+    elif bootstrap == 'crossval_pattern':
+        results = pyrsa.inference.bootstrap_crossval(model, rdms,
+                                                     method=method,
+                                                     k_rdm=1)
+    elif bootstrap == 'crossval_rdms':
+        results = pyrsa.inference.bootstrap_crossval(model, rdms,
+                                                     method=method,
+                                                     k_pattern=1)
+    return results
+
 def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
                           method='corr', bootstrap='pattern'):
     """ runs simulations for comparison to zero
@@ -94,26 +131,6 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
             dat = pyrsa.data.Dataset(raw_u[i_subj])
             data.append(dat)
         rdms = pyrsa.rdm.calc_rdm(data)
-        if bootstrap == 'pattern':
-            results = pyrsa.inference.eval_bootstrap_pattern(model, rdms,
-                                                             method=method)
-        elif bootstrap == 'rdm':
-            results = pyrsa.inference.eval_bootstrap_rdm(model, rdms,
-                                                         method=method)
-        elif bootstrap == 'boot':
-            results = pyrsa.inference.eval_bootstrap(model, rdms,
-                                                     method=method)
-        elif bootstrap == 'crossval':
-            results = pyrsa.inference.bootstrap_crossval(model, rdms,
-                                                         method=method)
-        elif bootstrap == 'crossval_pattern':
-            results = pyrsa.inference.bootstrap_crossval(model, rdms,
-                                                         method=method,
-                                                         k_rdm=1)
-        elif bootstrap == 'crossval_rdms':
-            results = pyrsa.inference.bootstrap_crossval(model, rdms,
-                                                         method=method,
-                                                         k_pattern=1)
         idx_valid = ~np.isnan(results.evaluations)
         p[i_sim] = np.sum(results.evaluations[idx_valid] > 0) \
             / np.sum(idx_valid)
