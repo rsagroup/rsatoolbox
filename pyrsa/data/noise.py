@@ -10,7 +10,7 @@ from collections.abc import Iterable
 import numpy as np
 
 
-def get_cov_from_residuals(residuals, dof=None):
+def cov_from_residuals(residuals, dof=None):
     """
     computes an optimal shrinkage estimate of the precision matrix from 
     the residuals as described by Ledoit and Wolfe (2004): "A well-conditioned
@@ -30,11 +30,11 @@ def get_cov_from_residuals(residuals, dof=None):
         s_shrink = []
         for i in range(len(residuals)):
             if dof is None:
-                s_shrink.append(get_cov_from_residuals(residuals[i]))
+                s_shrink.append(cov_from_residuals(residuals[i]))
             elif isinstance(dof, Iterable):
-                s_shrink.append(get_cov_from_residuals(residuals[i], dof[i]))
+                s_shrink.append(cov_from_residuals(residuals[i], dof[i]))
             else:
-                s_shrink.append(get_cov_from_residuals(residuals[i], dof))
+                s_shrink.append(cov_from_residuals(residuals[i], dof))
     else:  
         if dof is None:
             dof = residuals.shape[0] - 1 
@@ -51,7 +51,7 @@ def get_cov_from_residuals(residuals, dof=None):
     return s_shrink
 
 
-def get_prec_from_residuals(residuals, dof=None):
+def prec_from_residuals(residuals, dof=None):
     """
     computes an optimal shrinkage estimate of the precision matrix from 
     the residuals as described by Ledoit and Wolfe (2004): "A well-conditioned
@@ -67,7 +67,7 @@ def get_prec_from_residuals(residuals, dof=None):
         numpy.ndarray (or list): sigma_p: covariance matrix over channels
 
     """
-    cov = get_cov_from_residuals(residuals=residuals, dof=dof)
+    cov = cov_from_residuals(residuals=residuals, dof=dof)
     if not isinstance(cov, np.ndarray) or len(cov.shape) > 2:
         for i in range(len(cov)):
             cov[i] = np.linalg.inv(cov[i])
