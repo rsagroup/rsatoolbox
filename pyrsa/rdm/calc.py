@@ -146,6 +146,9 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     else:
         measurements, desc, descriptor = _parse_input(dataset, descriptor)
         noise = _check_noise(noise, dataset.n_channel)
+        # calculate difference @ precision @ difference for all pairs
+        # first calculate the difference vectors diff and precision @ diff
+        # then calculate the inner product
         diff = _calc_pairwise_differences(measurements)
         diff2 = (noise @ diff.T).T
         rdm = np.einsum('ij,ij->i', diff, diff2) / measurements.shape[1]
@@ -158,7 +161,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
 
 
 def calc_rdm_crossnobis(dataset, descriptor, noise=None,
-                        cv_descriptor=None, subversion='whiten'):
+                        cv_descriptor=None):
     """
     calculates an RDM from an input dataset using Cross-nobis distance
     This performs leave one out crossvalidation over the cv_descriptor
@@ -174,11 +177,6 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
             precision matrix used to calculate the RDM
         cv_descriptor (String):
             obs_descriptor which determines the cross-validation folds
-        subversion (String):
-            switch the version of Crossnobis to run:
-            'pool': prewhiten each estimate with their precision
-            'average': run each combination of delta_i Sigma_j^-1 delta_j
-            'pool_sum': run each combination of delta_i Sigma_j^-1 delta_j
 
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM

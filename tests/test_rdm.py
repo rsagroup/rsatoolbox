@@ -199,10 +199,18 @@ class TestCalcRDM(unittest.TestCase):
         obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5,0,0,1,1,2,2,2,3,4,5]),
                    'fold':np.array([0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1])
                    }
+        obs_balanced = {'conds':np.array([0,0,1,1,2,2,3,3,4,4,0,0,1,1,2,2,3,3,4,4]),
+                   'fold':np.array([0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1])
+                   }
         chn_des = {'rois':np.array(['V1','V1','IT','IT','V4'])}
         self.test_data = rsa.data.Dataset(measurements=measurements,
                            descriptors=des,
                            obs_descriptors=obs_des,
+                           channel_descriptors=chn_des
+                           )
+        self.test_data_balanced = rsa.data.Dataset(measurements=measurements,
+                           descriptors=des,
+                           obs_descriptors=obs_balanced,
                            channel_descriptors=chn_des
                            )
 
@@ -268,6 +276,32 @@ class TestCalcRDM(unittest.TestCase):
         
     def test_calc_crossnobis(self):
         rdm = rsr.calc_rdm_crossnobis(self.test_data, descriptor = 'conds', cv_descriptor = 'fold')
+        assert rdm.n_cond == 6
+        
+    def test_calc_crossnobis_no_descriptors(self):
+        rdm = rsr.calc_rdm_crossnobis(self.test_data_balanced, descriptor = 'conds')
+        assert rdm.n_cond == 5
+
+    def test_calc_crossnobis_noise(self):
+        noise = np.random.randn(10,5)
+        noise = np.matmul(noise.T, noise)
+        rdm = rsr.calc_rdm_crossnobis(self.test_data_balanced, descriptor = 'conds', noise=noise)
+        assert rdm.n_cond == 5
+
+    def test_calc_crossnobis_noise_list(self):
+        # generate two positive definite noise matricies
+        noise = np.random.randn(2,10,5)
+        noise = np.einsum('ijk,ijl->ikl', noise, noise)
+        rdm = rsr.calc_rdm_crossnobis(self.test_data_balanced, cv_descriptor = 'fold',
+                                      descriptor = 'conds', noise=noise)
+        assert rdm.n_cond == 5
+        # test with noise list
+        noise = [noise[i] for i in range(len(noise))]
+        rdm = rsr.calc_rdm_crossnobis(self.test_data_balanced, cv_descriptor = 'fold',
+                                      descriptor = 'conds', noise=noise)
+        assert rdm.n_cond == 5
+        rdm = rsr.calc_rdm_crossnobis(self.test_data, cv_descriptor = 'fold',
+                                      descriptor = 'conds', noise=noise)
         assert rdm.n_cond == 6
 
 
