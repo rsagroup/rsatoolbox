@@ -36,11 +36,9 @@ def make_design(n_cond, n_part):
 
 
 def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
-                 signal=1, noise=1, signal_cov_channel=None, noise_cov_channel=None,
-                 noise_cov_trial=None, part_vec=None, use_exact_signal=False,
-                 use_same_signal=False):
+                signal=1, noise=1, signal_cov_channel=None, noise_cov_channel=None,noise_cov_trial=None, use_exact_signal=False, use_same_signal=False):
     """
-    Simulates a fMRI-style data set with a set of partitions
+    Simulates a fMRI-style data set
 
     Args:
         model (pyrsa.Model):        the model from which to generate data
@@ -52,13 +50,11 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         n_channel (int):          Number of channels (default = 30)
         n_sim (int):              Number of simulation with the same signal
                                       (default = 1)
-        signal (float):           Signal variance (multiplied by predicted G)
+        signal (float):            Signal variance (multiplied by predicted G)
         signal_cov_channel(numpy.ndarray): Covariance matrix of signal across channels
-        noise (float)             Noise variance
-        noise_cov_channel(numpy.ndarray):Covariance matrix of noise (default = identity)
+        noise (float):             Noise variance
+        noise_cov_channel(numpy.ndarray): Covariance matrix of noise (default = identity)
         noise_cov_trial(numpy.ndarray): Covariance matrix of noise across trials
-        part_vec (numpy.ndarray): optional partition vector if within-partition
-                                  covariance is specified
         use_exact_signal (bool):  Makes the signal so that G is exactly as
                                   specified (default: False)
         use_same_signal (bool):   Uses the same signal for all simulation
@@ -161,20 +157,21 @@ def make_signal(G, n_channel,make_exact=False, chol_channel=None):
     # We use two-step procedure allow for different distributions later on
     true_U = np.random.uniform(0, 1, size=(n_cond, n_channel))
     true_U = ss.norm.ppf(true_U)
+    true_U = true_U - np.mean(true_U, axis=1, keepdims=True)
     # Make orthonormal row vectors
     if (make_exact):
         E = true_U @ true_U.transpose()
-        L = np.linalg.cholesky(E)
-        true_U = np.linalg.solve(L, true_U) * np.sqrt(n_channel)
+        E_chol = np.linalg.cholesky(E)
+        true_U = np.linalg.solve(E_chol, true_U) * np.sqrt(n_channel)
     # Impose spatial covariance matrix
     if (chol_channel is not None):
         true_U = true_U @ chol_channel
     # Now produce data with the known second-moment matrix
     # Use positive eigenvectors only
     # (cholesky does not work with rank-deficient matrices)
-    lam, V = np.linalg.eigh(G)
-    lam[lam < 1e-15] = 0
-    lam = np.sqrt(lam)
-    chol_G = V * lam.reshape((1, V.shape[1]))
+    L, D, perm = sl.ldl(G)
+    D[D < 1e-15] = 0
+    D = np.sqrt(D)
+    chol_G = L @ D
     true_U = (chol_G @ true_U)
     return true_U

@@ -17,11 +17,7 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual(cond_vec.size,32)
 
     def test_make_signal(self):
-        # Currently exact signal runs with this:
-        M = model.ModelFixed("test", np.array([2, 3, 4, 1, 1.1, 0.9]))
-        # But not with this: I suspect the problem that in this
-        # case 2 eigenvalues are the same. Not sure why it behaves like this
-        # In matlab the equivalent code works fine
+        # Test make signal
         M = model.ModelFixed("test", np.array([2, 2, 2, 1, 1, 1]))
         RDM = M.predict(None)
         D = squareform(RDM)
