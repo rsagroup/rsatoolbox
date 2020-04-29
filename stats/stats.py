@@ -72,7 +72,7 @@ def get_residuals_cross(designs, timecourses, betas, resolution=2, hrf=None):
     return residuals
 
 
-def run_inference(model, rdms, method, bootstrap):
+def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False):
     """ runs a run of inference
     
     Args:
@@ -89,24 +89,22 @@ def run_inference(model, rdms, method, bootstrap):
     """
     if bootstrap == 'pattern':
         results = pyrsa.inference.eval_bootstrap_pattern(model, rdms,
-                                                         method=method)
+            boot_noise_ceil=boot_noise_ceil, method=method)
     elif bootstrap == 'rdm':
         results = pyrsa.inference.eval_bootstrap_rdm(model, rdms,
-                                                     method=method)
+            boot_noise_ceil=boot_noise_ceil, method=method)
     elif bootstrap == 'boot':
         results = pyrsa.inference.eval_bootstrap(model, rdms,
-                                                 method=method)
+            boot_noise_ceil=boot_noise_ceil, method=method)
     elif bootstrap == 'crossval':
         results = pyrsa.inference.bootstrap_crossval(model, rdms,
-                                                     method=method)
+            boot_noise_ceil=boot_noise_ceil, method=method)
     elif bootstrap == 'crossval_pattern':
         results = pyrsa.inference.bootstrap_crossval(model, rdms,
-                                                     method=method,
-                                                     k_rdm=1)
+            boot_noise_ceil=boot_noise_ceil, method=method, k_rdm=1)
     elif bootstrap == 'crossval_rdms':
         results = pyrsa.inference.bootstrap_crossval(model, rdms,
-                                                     method=method,
-                                                     k_pattern=1)
+            boot_noise_ceil=boot_noise_ceil, method=method, k_pattern=1)
     return results
 
 
@@ -153,7 +151,8 @@ def save_compare_to_zero(idx, n_voxel=100, n_subj=10, n_cond=5,
     model_rdm = pyrsa.rdm.calc_rdm(model_dat)
     model = pyrsa.model.ModelFixed('test', model_rdm)
     p = check_compare_to_zero(model, n_voxel=n_voxel, n_subj=n_subj,
-                              method=method, bootstrap=bootstrap)
+                              method=method, bootstrap=bootstrap,
+                              n_sim=10)
     np.save(fname, p)
 
 
