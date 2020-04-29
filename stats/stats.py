@@ -109,6 +109,7 @@ def run_inference(model, rdms, method, bootstrap):
                                                      k_pattern=1)
     return results
 
+
 def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
                           method='corr', bootstrap='pattern'):
     """ runs simulations for comparison to zero
@@ -131,6 +132,7 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
             dat = pyrsa.data.Dataset(raw_u[i_subj])
             data.append(dat)
         rdms = pyrsa.rdm.calc_rdm(data)
+        results = run_inference(model, rdms, method, bootstrap)
         idx_valid = ~np.isnan(results.evaluations)
         p[i_sim] = np.sum(results.evaluations[idx_valid] > 0) \
             / np.sum(idx_valid)
