@@ -9,6 +9,7 @@ Functions to check the statistical integrity of the toolbox
 
 import os
 import numpy as np
+from scipy.spatial.distance import squareform
 import matplotlib.pyplot as plt
 import tqdm
 import scipy.signal as signal
@@ -117,7 +118,7 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
     Args:
         model(pyrsa.model.Model): the model to be tested against
         n_voxel(int): number of voxels to be simulated per subject
-        n_subj(int): number of subjects to be siulated
+        n_subj(int): number of subjects to be simulated
         n_sim(int): number of simulations to be performed
 
     """
@@ -153,6 +154,56 @@ def save_compare_to_zero(idx, n_voxel=100, n_subj=10, n_cond=5,
     p = check_compare_to_zero(model, n_voxel=n_voxel, n_subj=n_subj,
                               method=method, bootstrap=bootstrap)
     np.save(fname, p)
+
+
+def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
+                         method='corr', bootstrap='pattern', sigma_noise=1):
+    """ runs simulations for comparison to zero
+    It compares whatever model you pass to pure noise data, generated
+    as independent normal noise for the voxels and subjects.
+    
+    Args:
+        model(pyrsa.model.Model): the model to be tested against each other
+        n_voxel(int): number of voxels to be simulated per subject
+        n_subj(int): number of subjects to be simulated
+        n_sim(int): number of simulations to be performed
+
+    """
+    assert model1.n_cond == model2.n_cond
+    n_cond = int(model1.n_cond)
+    rdm1 = model1.predict()
+    rdm2 = model2.predict()
+    rdm1 = rdm1 - np.mean(rdm1)
+    rdm2 = rdm2 - np.mean(rdm2)
+    rdm1 = rdm1 / np.std(rdm1)
+    rdm2 = rdm2 / np.std(rdm2)
+    target_rdm = (rdm1 + rdm2) / 2
+    target_rdm = target_rdm - np.min(target_rdm)
+    t_rdm = pyrsa.rdm.RDMs(target_rdm)
+    D = squareform(target_rdm)
+    H = pyrsa.util.matrix.centering(D.shape[0])
+    G = -0.5 * (H @ D @ H)
+    U0 = pyrsa.simulation.make_signal(G, n_voxel, make_exact=True)
+    dat0 = pyrsa.data.Dataset(U0)
+    rdm0 = pyrsa.rdm.calc_rdm(dat0)
+    print(pyrsa.rdm.compare(rdm0, model1.predict_rdm(), method=method))
+    print(pyrsa.rdm.compare(rdm0, model2.predict_rdm(), method=method))
+    print(pyrsa.rdm.compare(t_rdm, model1.predict_rdm(), method=method))
+    print(pyrsa.rdm.compare(t_rdm, model2.predict_rdm(), method=method))
+    
+    p = np.empty(n_sim)
+    for i_sim in range(n_sim):
+        raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
+        data = []
+        for i_subj in range(n_subj):
+            dat = pyrsa.data.Dataset(raw_u[i_subj])
+            data.append(dat)
+        rdms = pyrsa.rdm.calc_rdm(data)
+        results = run_inference([model1, model2], rdms, method, bootstrap)
+        idx_valid = ~np.isnan(results.evaluations[:, 0])
+        p[i_sim] = np.sum(results.evaluations[idx_valid, 0] > 
+                          results.evaluations[idx_valid, 1]) / np.sum(idx_valid)
+    return p
 
 
 def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
