@@ -151,8 +151,7 @@ def save_compare_to_zero(idx, n_voxel=100, n_subj=10, n_cond=5,
     model_rdm = pyrsa.rdm.calc_rdm(model_dat)
     model = pyrsa.model.ModelFixed('test', model_rdm)
     p = check_compare_to_zero(model, n_voxel=n_voxel, n_subj=n_subj,
-                              method=method, bootstrap=bootstrap,
-                              n_sim=10)
+                              method=method, bootstrap=bootstrap)
     np.save(fname, p)
 
 
