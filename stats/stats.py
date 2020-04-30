@@ -179,6 +179,9 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
     rdm2 = rdm2 / np.std(rdm2)
     target_rdm = (rdm1 + rdm2) / 2
     target_rdm = target_rdm - np.min(target_rdm)
+    # the following guarantees the triangle inequality
+    # without this the generation fails
+    target_rdm = target_rdm + np.max(target_rdm)
     t_rdm = pyrsa.rdm.RDMs(target_rdm)
     D = squareform(target_rdm)
     H = pyrsa.util.matrix.centering(D.shape[0])
@@ -186,11 +189,6 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
     U0 = pyrsa.simulation.make_signal(G, n_voxel, make_exact=True)
     dat0 = pyrsa.data.Dataset(U0)
     rdm0 = pyrsa.rdm.calc_rdm(dat0)
-    print(pyrsa.rdm.compare(rdm0, model1.predict_rdm(), method=method))
-    print(pyrsa.rdm.compare(rdm0, model2.predict_rdm(), method=method))
-    print(pyrsa.rdm.compare(t_rdm, model1.predict_rdm(), method=method))
-    print(pyrsa.rdm.compare(t_rdm, model2.predict_rdm(), method=method))
-    
     p = np.empty(n_sim)
     for i_sim in range(n_sim):
         raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
@@ -204,6 +202,28 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
         p[i_sim] = np.sum(results.evaluations[idx_valid, 0] > 
                           results.evaluations[idx_valid, 1]) / np.sum(idx_valid)
     return p
+
+
+def save_compare_models(idx, n_voxel=100, n_subj=10, n_cond=5,
+                        method='corr', bootstrap='pattern',
+                        folder='comp_model'):
+    """ saves the results of a simulation to a file 
+    """
+    if not os.path.isdir(folder):
+        os.mkdir(folder)
+    fname = folder + os.path.sep + 'p_%s_%s_%d_%d_%d_%03d.npy' % (method,
+        bootstrap, n_cond, n_subj, n_voxel, idx)
+    model1_u = np.random.randn(n_cond, n_voxel)
+    model1_dat = pyrsa.data.Dataset(model1_u)
+    model1_rdm = pyrsa.rdm.calc_rdm(model1_dat)
+    model1 = pyrsa.model.ModelFixed('test1', model1_rdm)
+    model2_u = np.random.randn(n_cond, n_voxel)
+    model2_dat = pyrsa.data.Dataset(model2_u)
+    model2_rdm = pyrsa.rdm.calc_rdm(model2_dat)
+    model2 = pyrsa.model.ModelFixed('test2', model2_rdm)
+    p = check_compare_models(model1, model2, n_voxel=n_voxel, n_subj=n_subj,
+                              method=method, bootstrap=bootstrap)
+    np.save(fname, p)
 
 
 def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
