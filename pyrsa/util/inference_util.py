@@ -139,7 +139,9 @@ def _nan_rank_data(rdm_vector):
 
 def pair_tests(evaluations):
     """pairwise bootstrapping significance tests for a difference in model
-    performance
+    performance.
+    Tests add 1/len(evaluations) to each p-value and are computed as 
+    two sided tests, i.e. as 2 * the smaller proportion
 
     Args:
         evaluations (numpy.ndarray):
@@ -159,6 +161,8 @@ def pair_tests(evaluations):
                 / (evaluations.shape[0] - 
                    np.sum(evaluations[:, i_model] == evaluations[:, j_model]))
             proportions[j_model, i_model] = proportions[i_model, j_model]
-    proportions = np.minimum(proportions, 1 - proportions)
+    proportions = np.minimum(proportions, 1 - proportions) * 2
+    proportions = (len(evaluations) - 1) / len(evaluations) * proportions \
+         + 1 / len(evaluations)
     np.fill_diagonal(proportions,1)
     return proportions
