@@ -170,8 +170,8 @@ def make_signal(G, n_channel,make_exact=False, chol_channel=None):
     # Use positive eigenvectors only
     # (cholesky does not work with rank-deficient matrices)
     L, D, perm = sl.ldl(G)
-    D[D < 1e-15] = 0
-    D = np.sqrt(D)
-    chol_G = L @ D
+    D[D <= 0] = 0
+    D_root = np.sqrt(D)
+    chol_G = L @ D_root
     true_U = (chol_G @ true_U)
     return true_U
