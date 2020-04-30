@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Feb 13 14:04:52 2020
-
-@author: heiko
 """
 
 import numpy as np
@@ -16,27 +14,26 @@ from pyrsa.util.rdm_utils import batch_to_vectors
 def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
                           sort=True, error_bars='SEM', eb_alpha=0.05):
     """ plots the results of a model comparison
-    Input should be a results object with model evaluations 
+    Input should be a results object with model evaluations
     evaluations, which uses the bootstrap samples for confidence intervals
-    and significance tests and averages over all trailing dimensions 
+    and significance tests and averages over all trailing dimensions
     like cross-validation folds
-
     Args:
         result(pyrsa.inference.result.Result): model evaluation result
-
     Returns:
         ---
-
     """
+    # Preparations
     evaluations = result.evaluations
     models = result.models
     noise_ceiling = result.noise_ceiling
     method = result.method
-    while len(evaluations.shape)>2:
+    while len(evaluations.shape) > 2:
         evaluations = np.nanmean(evaluations, axis=-1)
-    evaluations = evaluations[~np.isnan(evaluations[:,0])]
+    evaluations = evaluations[~np.isnan(evaluations[:, 0])]
     evaluations = 1 - evaluations
     mean = np.mean(evaluations, axis=0)
+    n_models = evaluations.shape[1]
     if sort:
         idx = np.flip(np.argsort(mean))
         mean = mean[idx]
@@ -50,12 +47,16 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
     elif error_bars == 'SEM':
         errorbar_low = np.std(evaluations, axis=0)
         errorbar_high = np.std(evaluations, axis=0)
-    noise_ceiling = 1 - noise_ceiling
-    # plotting start
+    noise_ceiling = 1 - np.array(noise_ceiling)
+    # Plot bars
+    l, b, w, h = 0.05, 0.05, 0.9, 0.9
+    l, b, w, h = 0.15, 0.15, 0.8, 0.9
+    h_pairTests = 0.5
     if plot_pair_tests:
         plt.figure(figsize=(12.5, 10))
-        ax = plt.axes((0.05, 0.05, 0.9, 0.9 * 0.75))
-        axbar = plt.axes((0.05, 0.75, 0.9, 0.9 * 0.2))
+        ax = plt.axes((l, b, w, h*(1-h_pairTests)))
+        axbar = plt.axes((l, b + h * (1 - h_pairTests), w,
+                          h * h_pairTests * 0.7))
     else:
         plt.figure(figsize=(12.5, 7.5))
         ax = plt.axes((0.05, 0.05, 0.9, 0.9))
@@ -64,60 +65,95 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
         noise_max = np.nanmean(noise_ceiling[1])
         noiserect = patches.Rectangle((-0.5, noise_min), len(mean),
                                       noise_max - noise_min, linewidth=1,
-                                      edgecolor=[0.25, 0.25, 1, 0.4],
-                                      facecolor=[0.25, 0.25, 1, 0.4])
+                                      edgecolor=[0.25, 0.25, 0.25, 0.2],
+                                      facecolor=[0.25, 0.25, 0.25, 0.2])
         ax.add_patch(noiserect)
     ax.bar(np.arange(evaluations.shape[1]), mean)
     ax.errorbar(np.arange(evaluations.shape[1]), mean,
                 yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
                 capsize=0, linewidth=4)
-    _,ymax = ax.get_ylim()
-    ax.set_ylim(top = max(ymax, noise_max))
+    # Floating axes
+    ax.set_ylim(top=max(ax.get_ylim()[1], noise_max))
+    ytoptick = np.floor(ax.get_ylim()[1] * 10) / 10
+    ax.set_yticks(np.arange(0, ytoptick + 1e-6, step=0.1))
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    ax.set_xticks(np.arange(len(mean)))
+    ax.set_xticks(np.arange(n_models))
+    ax.spines['left'].set_bounds(0, ytoptick)
+    ax.spines['bottom'].set_bounds(0, n_models - 1)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
     plt.rc('ytick', labelsize=18)
+    # Axis labels
     if models is not None:
         ax.set_xticklabels([m.name for m in models], fontsize=18,
-                           rotation=75)
+                           rotation=45)
     if method == 'cosine':
-        ax.set_ylabel('cosine distance', fontsize=24)
+        ax.set_ylabel('RDM similarity\n[cosine]', fontsize=24)
     if method == 'cosine_cov':
-        ax.set_ylabel('Cov-weighted cosine distance', fontsize=24)
+        ax.set_ylabel('RDM similarity [whitened-RDM cosine]', fontsize=24)
     elif method == 'spearman':
-        ax.set_ylabel('Spearman rank correlation', fontsize=24)
+        ax.set_ylabel('RDM rank correlation [Spearman r]', fontsize=24)
     elif method == 'corr':
-        ax.set_ylabel('Pearson correlation', fontsize=24)
+        ax.set_ylabel('RDM correlation\n[Pearson r]', fontsize=24)
     elif method == 'corr_cov':
-        ax.set_ylabel('Cov-weighted correlation', fontsize=24)
+        ax.set_ylabel('RDM similarity [whitened-RDM Pearson r]', fontsize=24)
     elif method == 'kendall' or method == 'tau-b':
-        ax.set_ylabel('Kendall-Tau', fontsize=24)
+        ax.set_ylabel('RDM rank correlation [Kendall tau-b]', fontsize=24)
     elif method == 'tau-a':
-        ax.set_ylabel('Kendall-Tau A', fontsize=24)
+        ax.set_ylabel('RDM rank correlation [Kendall tau-a]', fontsize=24)
+    # Pairwise model comparisons
     if plot_pair_tests:
+        model_comp_descr = 'Model comparisons: two-tailed, '
         res = pair_tests(evaluations)
+        n_tests = int((n_models**2-n_models)/2)
         if plot_pair_tests == 'Bonferroni' or plot_pair_tests == 'FWER':
-            significant = res < (alpha / evaluations.shape[1])
+            significant = res < (alpha / n_tests)
+            print(significant)
+            print(significant.sum())
+            model_comp_descr = (model_comp_descr
+                                + 'p < {:3.3f}'.format(alpha)
+                                + ', Bonferroni-corrected for '
+                                + str(n_tests)
+                                + ' model-pair comparisons')
         elif plot_pair_tests == 'FDR':
             ps = batch_to_vectors(np.array([res]))[0][0]
             ps = np.sort(ps)
             criterion = alpha * (np.arange(ps.shape[0]) + 1) / ps.shape[0]
             k_ok = ps < criterion
             if np.any(k_ok):
-                k_max = np.max(np.where(ps<criterion)[0])
+                k_max = np.max(np.where(ps < criterion)[0])
                 crit = criterion[k_max]
             else:
                 crit = 0
             significant = res < crit
+            model_comp_descr = (model_comp_descr +
+                                'FDR q < {:3.3f}'.format(alpha) +
+                                ' (' + str(n_tests) +
+                                ' model-pair comparisons)')
         else:
             significant = res < alpha
-        k = 0
+            model_comp_descr = (model_comp_descr +
+                                'p < {:3.3f}'.format(alpha) +
+                                ', uncorrected (' + str(n_tests) +
+                                ' model-pair comparisons)')
+        k = 1
         for i in range(significant.shape[0]):
-            for j in range(i+1,significant.shape[0]):
-                if significant[i,j]:
-                    axbar.plot((i,j), (k,k), 'k-', linewidth=2)
-                    k = k+1
+            k += 1
+            for j in range(i + 1, significant.shape[0]):
+                if significant[i, j]:
+                    axbar.plot((i, j), (k, k), 'k-', linewidth=2)
+                    k += 1
         xlim = ax.get_xlim()
         axbar.set_xlim(xlim)
         axbar.set_axis_off()
-        axbar.set_ylim((-0.5,k))
+        axbar.set_ylim((0, k))
+        model_comp_descr = model_comp_descr + '\nError bars indicate the'
+        if error_bars == 'CI':
+            model_comp_descr = (model_comp_descr +
+                                ' {:3.0f}'.format(round(1-eb_alpha)*100) +
+                                '% confidence interval.')
+        elif error_bars == 'SEM':
+            model_comp_descr = (model_comp_descr +
+                                ' standard error of the mean.')
+        axbar.set_title(model_comp_descr)
