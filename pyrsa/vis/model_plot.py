@@ -72,7 +72,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
                 yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
                 capsize=0, linewidth=3)
     # Floating axes
-    ytoptick = np.ceil(min(1, ax.get_ylim()[1]) * 10) / 10
+    ytoptick = np.ceil(min(1,ax.get_ylim()[1]) * 10) / 10
     ax.set_yticks(np.arange(0, ytoptick + 1e-6, step=0.1))
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -88,27 +88,19 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
         ax.set_xticklabels([m.name for m in models], fontsize=18,
                            rotation=45)
     if method == 'cosine':
-        ax.set_ylabel('RDM prediction accuracy'
-                      + '\n[mean cosine similarity]', fontsize=fs)
+        ax.set_ylabel('RDM prediction accuracy\n[mean cosine similarity]', fontsize=fs)
     if method == 'cosine_cov' or method == 'whitened cosine':
-        ax.set_ylabel('RDM prediction accuracy'
-                      + '\n[mean whitened-RDM cosine]', fontsize=fs)
+        ax.set_ylabel('RDM prediction accuracy\n[mean whitened-RDM cosine]', fontsize=fs)
     elif method == 'Spearman' or method == 'spearman':
-        ax.set_ylabel('RDM prediction accuracy'
-                      + '\n[mean Spearman r rank correlation]', fontsize=fs)
+        ax.set_ylabel('RDM prediction accuracy\n[mean Spearman r rank correlation]', fontsize=fs)
     elif method == 'corr' or method == 'Pearson' or method == 'pearson':
-        ax.set_ylabel('RDM prediction accuracy'
-                      + '\n[mean Pearson r correlation]', fontsize=fs)
+        ax.set_ylabel('RDM prediction accuracy\n[mean Pearson r correlation]', fontsize=fs)
     elif method == 'corr_cov':
-        ax.set_ylabel('RDM prediction accuracy'
-                      + '\n[mean whitened-RDM Pearson r correlation]',
-                      fontsize=fs)
+        ax.set_ylabel('RDM prediction accuracy\n[mean whitened-RDM Pearson r correlation]', fontsize=fs)
     elif method == 'kendall' or method == 'tau-b':
-        ax.set_ylabel('RDM prediction accuracy'
-                      +'\n[mean Kendall tau-b rank correlation]', fontsize=fs)
+        ax.set_ylabel('RDM prediction accuracy\n[mean Kendall tau-b rank correlation]', fontsize=fs)
     elif method == 'tau-a':
-        ax.set_ylabel('RDM prediction accuracy'
-                      + '\n[mean Kendall tau-a rank correlation]', fontsize=fs)
+        ax.set_ylabel('RDM prediction accuracy\n[mean Kendall tau-a rank correlation]', fontsize=fs)
     # Pairwise model comparisons
     if plot_pair_tests:
         model_comp_descr = 'Model comparisons: two-tailed, '
@@ -154,15 +146,11 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
         axbar.set_axis_off()
         axbar.set_ylim((0, n_tests+n_models))
         if result.cv_method == 'bootstrap_rdm':
-            model_comp_descr = model_comp_descr \
-                + '\nInference by bootstrap resampling of subjects.'
+            model_comp_descr = model_comp_descr + '\nInference by bootstrap resampling of subjects.'
         elif result.cv_method == 'bootstrap_pattern':
-            model_comp_descr = model_comp_descr \
-                + '\nInference by bootstrap resampling of experimental conditions.'
+            model_comp_descr = model_comp_descr + '\nInference by bootstrap resampling of experimental conditions.'
         elif result.cv_method == 'bootstrap':
-            model_comp_descr = model_comp_descr \
-                + '\nInference by bootstrap resampling of subjects and' \
-                + ' experimental conditions.'
+            model_comp_descr = model_comp_descr + '\nInference by bootstrap resampling of subjects and experimental conditions.'
         model_comp_descr = model_comp_descr + '\nError bars indicate the'
         if error_bars == 'CI':
             model_comp_descr = (model_comp_descr +
