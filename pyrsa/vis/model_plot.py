@@ -49,8 +49,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
         errorbar_high = np.std(evaluations, axis=0)
     noise_ceiling = 1 - np.array(noise_ceiling)
     # Plot bars
-    l, b, w, h = 0.05, 0.05, 0.9, 0.9
-    l, b, w, h = 0.15, 0.15, 0.8, 0.9
+    l, b, w, h = 0.15, 0.15, 0.8, 0.8
     h_pairTests = 0.5
     if plot_pair_tests:
         plt.figure(figsize=(12.5, 10))
@@ -58,23 +57,22 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
         axbar = plt.axes((l, b + h * (1 - h_pairTests), w,
                           h * h_pairTests * 0.7))
     else:
-        plt.figure(figsize=(12.5, 7.5))
-        ax = plt.axes((0.05, 0.05, 0.9, 0.9))
+        plt.figure(figsize=(12.5, 10))
+        ax = plt.axes((l, b, w, h))
     if noise_ceiling is not None:
         noise_min = np.nanmean(noise_ceiling[0])
         noise_max = np.nanmean(noise_ceiling[1])
         noiserect = patches.Rectangle((-0.5, noise_min), len(mean),
                                       noise_max - noise_min, linewidth=1,
-                                      edgecolor=[0.25, 0.25, 0.25, 0.2],
-                                      facecolor=[0.25, 0.25, 0.25, 0.2])
+                                      edgecolor=[0.5, 0.5, 0.5, 0.3],
+                                      facecolor=[0.5, 0.5, 0.5, 0.3])
         ax.add_patch(noiserect)
-    ax.bar(np.arange(evaluations.shape[1]), mean)
+    ax.bar(np.arange(evaluations.shape[1]), mean, color=[0, 0.4, 0.9, 1])
     ax.errorbar(np.arange(evaluations.shape[1]), mean,
                 yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
-                capsize=0, linewidth=4)
+                capsize=0, linewidth=3)
     # Floating axes
-    ax.set_ylim(top=max(ax.get_ylim()[1], noise_max))
-    ytoptick = np.floor(ax.get_ylim()[1] * 10) / 10
+    ytoptick = np.ceil(min(1, ax.get_ylim()[1]) * 10) / 10
     ax.set_yticks(np.arange(0, ytoptick + 1e-6, step=0.1))
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -85,23 +83,32 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
     ax.xaxis.set_ticks_position('bottom')
     plt.rc('ytick', labelsize=18)
     # Axis labels
+    fs = 20
     if models is not None:
         ax.set_xticklabels([m.name for m in models], fontsize=18,
                            rotation=45)
     if method == 'cosine':
-        ax.set_ylabel('RDM similarity\n[cosine]', fontsize=24)
-    if method == 'cosine_cov':
-        ax.set_ylabel('RDM similarity [whitened-RDM cosine]', fontsize=24)
-    elif method == 'spearman':
-        ax.set_ylabel('RDM rank correlation [Spearman r]', fontsize=24)
-    elif method == 'corr':
-        ax.set_ylabel('RDM correlation\n[Pearson r]', fontsize=24)
+        ax.set_ylabel('RDM prediction accuracy'
+                      + '\n[mean cosine similarity]', fontsize=fs)
+    if method == 'cosine_cov' or method == 'whitened cosine':
+        ax.set_ylabel('RDM prediction accuracy'
+                      + '\n[mean whitened-RDM cosine]', fontsize=fs)
+    elif method == 'Spearman' or method == 'spearman':
+        ax.set_ylabel('RDM prediction accuracy'
+                      + '\n[mean Spearman r rank correlation]', fontsize=fs)
+    elif method == 'corr' or method == 'Pearson' or method == 'pearson':
+        ax.set_ylabel('RDM prediction accuracy'
+                      + '\n[mean Pearson r correlation]', fontsize=fs)
     elif method == 'corr_cov':
-        ax.set_ylabel('RDM similarity [whitened-RDM Pearson r]', fontsize=24)
+        ax.set_ylabel('RDM prediction accuracy'
+                      + '\n[mean whitened-RDM Pearson r correlation]',
+                      fontsize=fs)
     elif method == 'kendall' or method == 'tau-b':
-        ax.set_ylabel('RDM rank correlation [Kendall tau-b]', fontsize=24)
+        ax.set_ylabel('RDM prediction accuracy'
+                      +'\n[mean Kendall tau-b rank correlation]', fontsize=fs)
     elif method == 'tau-a':
-        ax.set_ylabel('RDM rank correlation [Kendall tau-a]', fontsize=24)
+        ax.set_ylabel('RDM prediction accuracy'
+                      + '\n[mean Kendall tau-a rank correlation]', fontsize=fs)
     # Pairwise model comparisons
     if plot_pair_tests:
         model_comp_descr = 'Model comparisons: two-tailed, '
@@ -109,8 +116,6 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
         n_tests = int((n_models**2-n_models)/2)
         if plot_pair_tests == 'Bonferroni' or plot_pair_tests == 'FWER':
             significant = res < (alpha / n_tests)
-            print(significant)
-            print(significant.sum())
             model_comp_descr = (model_comp_descr
                                 + 'p < {:3.3f}'.format(alpha)
                                 + ', Bonferroni-corrected for '
@@ -147,7 +152,17 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests=False,
         xlim = ax.get_xlim()
         axbar.set_xlim(xlim)
         axbar.set_axis_off()
-        axbar.set_ylim((0, k))
+        axbar.set_ylim((0, n_tests+n_models))
+        if result.cv_method == 'bootstrap_rdm':
+            model_comp_descr = model_comp_descr \
+                + '\nInference by bootstrap resampling of subjects.'
+        elif result.cv_method == 'bootstrap_pattern':
+            model_comp_descr = model_comp_descr \
+                + '\nInference by bootstrap resampling of experimental conditions.'
+        elif result.cv_method == 'bootstrap':
+            model_comp_descr = model_comp_descr \
+                + '\nInference by bootstrap resampling of subjects and' \
+                + ' experimental conditions.'
         model_comp_descr = model_comp_descr + '\nError bars indicate the'
         if error_bars == 'CI':
             model_comp_descr = (model_comp_descr +
