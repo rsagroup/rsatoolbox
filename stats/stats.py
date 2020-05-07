@@ -167,6 +167,10 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
         n_voxel(int): number of voxels to be simulated per subject
         n_subj(int): number of subjects to be simulated
         n_sim(int): number of simulations to be performed
+        bootstrap(String): type of bootstrapping to be performed
+            see run_inference for details
+        sigma_noise(float): standard deviation of the noise added to the
+            representation
 
     """
     assert model1.n_cond == model2.n_cond
@@ -182,13 +186,12 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
     # the following guarantees the triangle inequality
     # without this the generation fails
     target_rdm = target_rdm + np.max(target_rdm)
-    t_rdm = pyrsa.rdm.RDMs(target_rdm)
     D = squareform(target_rdm)
     H = pyrsa.util.matrix.centering(D.shape[0])
     G = -0.5 * (H @ D @ H)
     U0 = pyrsa.simulation.make_signal(G, n_voxel, make_exact=True)
-    dat0 = pyrsa.data.Dataset(U0)
-    rdm0 = pyrsa.rdm.calc_rdm(dat0)
+    #dat0 = pyrsa.data.Dataset(U0)
+    #rdm0 = pyrsa.rdm.calc_rdm(dat0)
     p = np.empty(n_sim)
     for i_sim in range(n_sim):
         raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
@@ -223,6 +226,81 @@ def save_compare_models(idx, n_voxel=100, n_subj=10, n_cond=5,
     model2 = pyrsa.model.ModelFixed('test2', model2_rdm)
     p = check_compare_models(model1, model2, n_voxel=n_voxel, n_subj=n_subj,
                               method=method, bootstrap=bootstrap)
+    np.save(fname, p)
+
+
+def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
+                         method='corr', bootstrap='pattern', sigma_noise=1,
+                         boot_noise_ceil=False):
+    """ runs simulations for comparing the model to data generated with the
+    model rdm as ground truth to check 
+    
+    Args:
+        model(pyrsa.model.Model): the model to be tested against each other
+        n_voxel(int): number of voxels to be simulated per subject
+        n_subj(int): number of subjects to be simulated
+        n_sim(int): number of simulations to be performed
+        bootstrap(String): type of bootstrapping to be performed
+            see run_inference for details
+        sigma_noise(float): standard deviation of the noise added to the
+            representation
+        boot_noise_ceil(bool): Whether the noise ceiling is the average
+            over bootstrap samples or the evaluation on the original data
+
+    """
+    n_cond = int(model.n_cond)
+    rdm = model.predict()
+    D = squareform(rdm)
+    H = pyrsa.util.matrix.centering(D.shape[0])
+    G = -0.5 * (H @ D @ H)
+    U0 = pyrsa.simulation.make_signal(G, n_voxel, make_exact=True)
+    #dat0 = pyrsa.data.Dataset(U0)
+    #rdm0 = pyrsa.rdm.calc_rdm(dat0)
+    p_upper = np.empty(n_sim)
+    p_lower = np.empty(n_sim)
+    for i_sim in range(n_sim):
+        raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
+        data = []
+        for i_subj in range(n_subj):
+            dat = pyrsa.data.Dataset(raw_u[i_subj])
+            data.append(dat)
+        rdms = pyrsa.rdm.calc_rdm(data)
+        results = run_inference(model, rdms, method, bootstrap,
+                                boot_noise_ceil=boot_noise_ceil)
+        idx_valid = ~np.isnan(results.evaluations[:, 0])
+        if boot_noise_ceil:
+            p_upper[i_sim] = (np.sum(results.evaluations[idx_valid, 0] > 
+                                     results.noise_ceiling[1][idx_valid])
+                              / np.sum(idx_valid))
+            p_lower[i_sim] = (np.sum(results.evaluations[idx_valid, 0] > 
+                                     results.noise_ceiling[0][idx_valid])
+                              / np.sum(idx_valid))
+        else:
+            p_upper[i_sim] = (np.sum(results.evaluations[idx_valid, 0] > 
+                                     results.noise_ceiling[1])
+                              / np.sum(idx_valid))
+            p_lower[i_sim] = (np.sum(results.evaluations[idx_valid, 0] > 
+                                     results.noise_ceiling[0])
+                              / np.sum(idx_valid))
+    return np.array([p_lower, p_upper])
+
+
+def save_noise_ceiling(idx, n_voxel=100, n_subj=10, n_cond=5,
+                        method='corr', bootstrap='pattern',
+                        folder='comp_noise', boot_noise_ceil=False):
+    """ saves the results of a simulation to a file 
+    """
+    if not os.path.isdir(folder):
+        os.mkdir(folder)
+    fname = folder + os.path.sep + 'p_%s_%s_%s_%d_%d_%d_%03d.npy' % (method,
+        bootstrap, boot_noise_ceil, n_cond, n_subj, n_voxel, idx)
+    model_u = np.random.randn(n_cond, n_voxel)
+    model_dat = pyrsa.data.Dataset(model_u)
+    model_rdm = pyrsa.rdm.calc_rdm(model_dat)
+    model = pyrsa.model.ModelFixed('test1', model_rdm)
+    p = check_noise_ceiling(model, n_voxel=n_voxel, n_subj=n_subj,
+                            method=method, bootstrap=bootstrap,
+                            boot_noise_ceil=boot_noise_ceil)
     np.save(fname, p)
 
 
