@@ -125,7 +125,7 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
     """
     n_cond = int(model.n_cond)
     p = np.empty(n_sim)
-    for i_sim in range(n_sim):
+    for i_sim in tqdm.trange(n_sim, position=0):
         raw_u = sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
         data = []
         for i_subj in range(n_subj):
@@ -195,7 +195,7 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
     dat0 = pyrsa.data.Dataset(U0)
     rdm0 = pyrsa.rdm.calc_rdm(dat0)
     p = np.empty(n_sim)
-    for i_sim in range(n_sim):
+    for i_sim in tqdm.trange(n_sim, position=0):
         raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
         data = []
         for i_subj in range(n_subj):
@@ -261,7 +261,7 @@ def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
     #rdm0 = pyrsa.rdm.calc_rdm(dat0)
     p_upper = np.empty(n_sim)
     p_lower = np.empty(n_sim)
-    for i_sim in range(n_sim):
+    for i_sim in tqdm.trange(n_sim, position=0):
         raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
         data = []
         for i_subj in range(n_subj):
@@ -807,6 +807,11 @@ def run_comp(idx):
     n_rep = 5
     (i_rep, i_sub, i_cond, i_boot, i_comp) = np.unravel_index(idx,
         [n_rep,len(n_subj),len(n_cond),len(boot_type),len(comp_type)])
+    print('starting simulation:')
+    print('%d subjects' % n_subj[i_sub])
+    print('%d conditions' % n_cond[i_cond])
+    print(boot_type[i_boot])
+    print(comp_type[i_comp])
     if i_comp == 0:
         save_noise_ceiling(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
                            bootstrap=boot_type[i_boot], boot_noise_ceil=False)
@@ -819,4 +824,17 @@ def run_comp(idx):
     elif i_comp == 3:
         save_compare_to_zero(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
                            bootstrap=boot_type[i_boot])
+
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--sim",
+                        help="simulation type",
+                        choices=['comp'], default='comp')
+    parser.add_argument("index", type=int,
+                        help="which simulation index to run")
+    args = parser.parse_args()
+    if args.sim == 'comp':
+        run_comp(args.index)
 
