@@ -110,7 +110,8 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False):
 
 
 def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
-                          method='corr', bootstrap='pattern'):
+                          method='corr', bootstrap='pattern',
+                          sigma_noise=1):
     """ runs simulations for comparison to zero
     It compares whatever model you pass to pure noise data, generated
     as independent normal noise for the voxels and subjects.
@@ -125,7 +126,7 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
     n_cond = int(model.n_cond)
     p = np.empty(n_sim)
     for i_sim in range(n_sim):
-        raw_u = np.random.randn(n_subj, n_cond, n_voxel)
+        raw_u = sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
         data = []
         for i_subj in range(n_subj):
             dat = pyrsa.data.Dataset(raw_u[i_subj])
@@ -140,19 +141,20 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
 
 def save_compare_to_zero(idx, n_voxel=100, n_subj=10, n_cond=5,
                          method='corr', bootstrap='pattern',
-                         folder='comp_zero'):
+                         folder='comp_zero', sigma_noise=1):
     """ saves the results of a simulation to a file 
     """
     if not os.path.isdir(folder):
         os.mkdir(folder)
-    fname = folder + os.path.sep + 'p_%s_%s_%d_%d_%d_%03d.npy' % (method,
-        bootstrap, n_cond, n_subj, n_voxel, idx)
+    fname = folder + os.path.sep + 'p_%s_%s_%d_%d_%d_%.2f_%03d.npy' % (method,
+        bootstrap, n_cond, n_subj, n_voxel, sigma_noise, idx)
     model_u = np.random.randn(n_cond, n_voxel)
     model_dat = pyrsa.data.Dataset(model_u)
     model_rdm = pyrsa.rdm.calc_rdm(model_dat)
     model = pyrsa.model.ModelFixed('test', model_rdm)
     p = check_compare_to_zero(model, n_voxel=n_voxel, n_subj=n_subj,
-                              method=method, bootstrap=bootstrap)
+                              method=method, bootstrap=bootstrap,
+                              sigma_noise=sigma_noise)
     np.save(fname, p)
 
 
@@ -190,8 +192,8 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
     H = pyrsa.util.matrix.centering(D.shape[0])
     G = -0.5 * (H @ D @ H)
     U0 = pyrsa.simulation.make_signal(G, n_voxel, make_exact=True)
-    #dat0 = pyrsa.data.Dataset(U0)
-    #rdm0 = pyrsa.rdm.calc_rdm(dat0)
+    dat0 = pyrsa.data.Dataset(U0)
+    rdm0 = pyrsa.rdm.calc_rdm(dat0)
     p = np.empty(n_sim)
     for i_sim in range(n_sim):
         raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
@@ -209,13 +211,13 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
 
 def save_compare_models(idx, n_voxel=100, n_subj=10, n_cond=5,
                         method='corr', bootstrap='pattern',
-                        folder='comp_model'):
+                        folder='comp_model', sigma_noise=1):
     """ saves the results of a simulation to a file 
     """
     if not os.path.isdir(folder):
         os.mkdir(folder)
-    fname = folder + os.path.sep + 'p_%s_%s_%d_%d_%d_%03d.npy' % (method,
-        bootstrap, n_cond, n_subj, n_voxel, idx)
+    fname = folder + os.path.sep + 'p_%s_%s_%d_%d_%d_%.2f_%03d.npy' % (method,
+        bootstrap, n_cond, n_subj, n_voxel, sigma_noise, idx)
     model1_u = np.random.randn(n_cond, n_voxel)
     model1_dat = pyrsa.data.Dataset(model1_u)
     model1_rdm = pyrsa.rdm.calc_rdm(model1_dat)
@@ -225,7 +227,8 @@ def save_compare_models(idx, n_voxel=100, n_subj=10, n_cond=5,
     model2_rdm = pyrsa.rdm.calc_rdm(model2_dat)
     model2 = pyrsa.model.ModelFixed('test2', model2_rdm)
     p = check_compare_models(model1, model2, n_voxel=n_voxel, n_subj=n_subj,
-                              method=method, bootstrap=bootstrap)
+                              method=method, bootstrap=bootstrap,
+                              sigma_noise=sigma_noise)
     np.save(fname, p)
 
 
@@ -286,14 +289,14 @@ def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
 
 
 def save_noise_ceiling(idx, n_voxel=100, n_subj=10, n_cond=5,
-                        method='corr', bootstrap='pattern',
+                        method='corr', bootstrap='pattern', sigma_noise=1,
                         folder='comp_noise', boot_noise_ceil=False):
     """ saves the results of a simulation to a file 
     """
     if not os.path.isdir(folder):
         os.mkdir(folder)
-    fname = folder + os.path.sep + 'p_%s_%s_%s_%d_%d_%d_%03d.npy' % (method,
-        bootstrap, boot_noise_ceil, n_cond, n_subj, n_voxel, idx)
+    fname = folder + os.path.sep + 'p_%s_%s_%s_%d_%d_%d_%.2f_%03d.npy' % (method,
+        bootstrap, boot_noise_ceil, n_cond, n_subj, n_voxel, sigma_noise, idx)
     model_u = np.random.randn(n_cond, n_voxel)
     model_dat = pyrsa.data.Dataset(model_u)
     model_rdm = pyrsa.rdm.calc_rdm(model_dat)
@@ -302,6 +305,62 @@ def save_noise_ceiling(idx, n_voxel=100, n_subj=10, n_cond=5,
                             method=method, bootstrap=bootstrap,
                             boot_noise_ceil=boot_noise_ceil)
     np.save(fname, p)
+
+
+def load_comp(folder):
+    """ this function loads all comparison results from a folder and puts 
+    them into a long style matrix, i.e. one p-value per row with the
+    metainfo added into the other rows. The final table has the format:
+        p_value | method | bootstrap-type | number of subjects | 
+        number of patterns | number of voxels | boot_noise_ceil| 
+        sigma_noise | idx
+    methods:
+        'corr' = 0
+        'cosine' = 1
+        'spearman' = 2
+        'rho_a' = 3
+        ''
+    bootstrap-type:
+        'both' = 0
+        'rdm' = 1
+        'pattern' = 2
+
+    """
+    table = []
+    for p in pathlib.Path(folder).glob('p_*'):
+        ps = np.load(p)
+        split = p.name.split('_')
+        if split[1] == 'corr':
+            method = 0
+        elif split[1] == 'cosine':
+            method = 1
+        elif split[1] == 'spearman':
+            method = 2
+        elif split[1] == 'rho_a':
+            method = 3
+        if split[2] == 'boot':
+            boot = 0
+        elif split[2] == 'rdm':
+            boot = 1
+        elif split[2] == 'pattern':
+            boot = 2
+        if folder == 'comp_noise':
+            boot_noise_ceil = bool(split[3])
+            ps = ps[0]
+        else:
+            boot_noise_ceil = False
+        n_cond = int(split[-5])
+        n_subj = int(split[-4])
+        n_voxel = int(split[-3])
+        sigma_noise = float(split[-2])
+        idx = int(split[-1][:-4])
+        desc = np.array([[method, boot, n_subj, n_cond, n_voxel,
+                               boot_noise_ceil, sigma_noise, idx]])
+        desc = np.repeat(desc, len(ps), axis=0)
+        new_ps = np.concatenate((np.array([ps]).T, desc), axis=1)
+        table.append(new_ps)
+    table = np.concatenate(table, axis=0)
+    return table
 
 
 def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
