@@ -792,3 +792,31 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
     elif rdm_comparison=='spearman':
         ax.set_ylabel('Spearman Rho', fontsize=18)
 
+
+def run_comp(idx):
+    """ master script for running the abstract simulations. Each call to 
+    this script will run one repetition of the comparisons, i.e. 1000
+    evaluations.
+    run this script with all indices from 1 to 960 to reproduce  all analyses 
+    of this type.
+    """
+    n_subj = [5,10,20,40]
+    n_cond = [5,20,80,160]
+    boot_type = ['boot', 'pattern', 'rdm']
+    comp_type = ['noise', 'noise_boot', 'model', 'zero']
+    n_rep = 5
+    (i_rep, i_sub, i_cond, i_boot, i_comp) = np.unravel_index(idx,
+        [n_rep,len(n_subj),len(n_cond),len(boot_type),len(comp_type)])
+    if i_comp == 0:
+        save_noise_ceiling(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
+                           bootstrap=boot_type[i_boot], boot_noise_ceil=False)
+    elif i_comp == 1:
+        save_noise_ceiling(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
+                           bootstrap=boot_type[i_boot], boot_noise_ceil=True)
+    elif i_comp == 2:
+        save_compare_models(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
+                           bootstrap=boot_type[i_boot])
+    elif i_comp == 3:
+        save_compare_to_zero(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
+                           bootstrap=boot_type[i_boot])
+
