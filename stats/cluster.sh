@@ -12,9 +12,12 @@
 index=$SLURM_ARRAY_TASK_ID
 job=$SLURM_JOB_ID
 ppn=$SLURM_JOB_CPUS_PER_NODE
+
 module purge
 module load anaconda3/5.3.1
 
 source activate RSA
 
-python stats.py -s comp $index
+which python
+
+~/.conda/envs/RSA/bin/python stats.py -s comp $index
