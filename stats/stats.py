@@ -15,9 +15,11 @@ import tqdm
 import scipy.signal as signal
 from hrf import spm_hrf
 from scipy.ndimage import gaussian_filter as gaussian_filter
+import pathlib
+from matplotlib.ticker import FormatStrFormatter
 import pyrsa
 import nn_simulations as dnn
-import pathlib
+
 
 
 def get_stimuli_92():
@@ -345,7 +347,10 @@ def load_comp(folder):
         elif split[2] == 'pattern':
             boot = 2
         if folder == 'comp_noise':
-            boot_noise_ceil = bool(split[3])
+            if split[3] == 'False':
+                boot_noise_ceil = False
+            else:
+                boot_noise_ceil = True
             ps = ps[0]
         else:
             boot_noise_ceil = False
@@ -793,6 +798,113 @@ def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
         ax.set_ylabel('Spearman Rho', fontsize=18)
 
 
+def plot_comp(data, alpha=0.05):
+    """ plots comp check data
+    
+    """
+    methods = np.unique(data[:, 1])
+    boots = np.unique(data[:, 2])
+    n_subj = np.unique(data[:, 3])
+    n_cond = np.unique(data[:, 4])
+    n_voxel = np.unique(data[:, 5])
+    boot_noise = np.unique(data[:, 6])
+    sigmas = np.unique(data[:, 7])
+    idx = np.unique(data[:, 8])
+    props = np.nan * np.empty((len(boots), len(n_subj), len(n_cond),
+                               len(n_voxel), len(idx)))
+    for i_boot in range(len(boots)):
+        for i_subj in range(len(n_subj)):
+            for i_cond in range(len(n_cond)):
+                for i_vox in range(len(n_voxel)):
+                    for i in range(len(idx)):
+                        dat = data[data[:,2]==boots[i_boot], :]
+                        dat = dat[dat[:,3]==n_subj[i_subj], :]
+                        dat = dat[dat[:,4]==n_cond[i_cond], :]
+                        dat = dat[dat[:,5]==n_voxel[i_vox], :]
+                        dat = dat[dat[:,8]==idx[i], :]
+                        proportion = np.sum(dat[:,0] > (1-alpha)) /len(dat)
+                        props[i_boot, i_subj, i_cond, i_vox, i] = proportion
+    # First plot: barplot + scatter for each type of bootstrap
+    plt.figure()
+    ax = plt.subplot(1,1,1)
+    for i in range(len(boots)):
+        plt.bar(i, np.mean(props[i]))
+        plt.plot(np.repeat(i,props[i].size) 
+                 + 0.1* np.random.randn(props[i].size),
+                 props[i].flatten(), 'k.')
+    plt.plot([-0.5,2.5],[alpha, alpha], 'k--')
+    plt.xticks([0,1,2], ['both', 'rdm', 'pattern'])
+    plt.ylabel('Proportion significant')
+    plt.xlabel('bootstrap method')
+    # Second plot: plot against n_subj
+    p_max = np.max(props)
+    plt.figure(figsize=(12,5))
+    for i in range(len(boots)):
+        ax = plt.subplot(1, 3, i+1)
+        h0 = plt.plot(np.arange(len(n_subj)), props[i, :, 0, 0, :], '.',
+                      color=[0.5, 0, 0])
+        h1 = plt.plot(np.arange(len(n_subj)), props[i, :, 1, 0, :], '.',
+                      color=[0.5, 0.2, 0.3])
+        h2 = plt.plot(np.arange(len(n_subj)), props[i, :, 2, 0, :], '.',
+                      color=[0.5, 0.4, 0.7])
+        if len(n_cond) > 3:
+            h3 = plt.plot(np.arange(len(n_subj)), props[i, :, 3, 0, :], '.',
+                          color=[0.5, 0.6, 1])
+        if i==0:
+            plt.title('both', fontsize=18)
+            plt.ylabel('Proportion significant', fontsize=18)
+        elif i==1:
+            plt.title('rdm', fontsize=18)
+        elif i==2:
+            plt.title('pattern', fontsize=18)
+            if len(n_cond) > 3:
+                plt.legend([h0[0], h1[0], h2[0], h3[0]], n_cond.astype('int'),
+                           frameon=False, title='# of patterns')
+            else:
+                plt.legend([h0[0], h1[0], h2[0]], n_cond.astype('int'),
+                           frameon=False, title='# of patterns')
+        plt.xticks(np.arange(len(n_subj)), n_subj.astype('int'))
+        plt.yticks([0, alpha, 2*alpha, 3*alpha])
+        plt.ylim([0, p_max + 0.01])
+        plt.xlim([-1, len(n_subj)])
+        plt.plot([-1, len(n_subj)],[alpha, alpha],'k--')
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        plt.xlabel('# of rdms', fontsize=18)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+    # Third plot: plot against n_pattern
+    p_max = np.max(props)
+    plt.figure(figsize=(12,5))
+    for i in range(len(boots)):
+        ax = plt.subplot(1, 3, i+1)
+        h0 = plt.plot(np.arange(len(n_cond)), props[i, 0, :, 0, :], '.',
+                      color=[0.5, 0, 0])
+        h1 = plt.plot(np.arange(len(n_cond)), props[i, 1, :, 0, :], '.',
+                      color=[0.5, 0.2, 0.3])
+        h2 = plt.plot(np.arange(len(n_cond)), props[i, 2, :, 0, :], '.',
+                      color=[0.5, 0.4, 0.7])
+        h3 = plt.plot(np.arange(len(n_cond)), props[i, 3, :, 0, :], '.',
+                      color=[0.5, 0.6, 1])
+        if i==0:
+            plt.title('both', fontsize=18)
+            plt.ylabel('Proportion significant', fontsize=18)
+        elif i==1:
+            plt.title('rdm', fontsize=18)
+        elif i==2:
+            plt.title('pattern', fontsize=18)
+            plt.legend([h0[0], h1[0], h2[0], h3[0]], n_subj.astype('int'),
+                       frameon=False, title='# of rdms')
+        plt.xticks(np.arange(len(n_cond)), n_cond.astype('int'))
+        plt.yticks([0, alpha, 2*alpha, 3*alpha])
+        plt.ylim([0, p_max + 0.01])
+        plt.xlim([-1, len(n_cond)])
+        plt.plot([-1, len(n_cond)],[alpha, alpha],'k--')
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        plt.xlabel('# of patterns', fontsize=18)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+
 def run_comp(idx):
     """ master script for running the abstract simulations. Each call to 
     this script will run one repetition of the comparisons, i.e. 1000
@@ -806,7 +918,7 @@ def run_comp(idx):
     comp_type = ['noise', 'noise_boot', 'model', 'zero']
     n_rep = 5
     (i_rep, i_sub, i_cond, i_boot, i_comp) = np.unravel_index(idx,
-        [n_rep,len(n_subj),len(n_cond),len(boot_type),len(comp_type)])
+        [n_rep, len(n_subj), len(n_cond), len(boot_type), len(comp_type)])
     print('starting simulation:')
     print('%d subjects' % n_subj[i_sub])
     print('%d conditions' % n_cond[i_cond])
