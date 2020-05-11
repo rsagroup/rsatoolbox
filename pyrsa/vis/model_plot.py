@@ -12,7 +12,7 @@ from pyrsa.util.rdm_utils import batch_to_vectors
 
 
 def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
-                          multiple_testing='FDR', sort='none', 
+                          multiple_testing='FDR', sort='none', colors='none',
                           error_bars='SEM', eb_alpha=0.05):
     """ plots the results of a model comparison
     Input should be a results object with model evaluations
@@ -21,8 +21,10 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
     like cross-validation folds
     
     Args (case insensitive):
-        result(pyrsa.inference.result.Result): model evaluation result
-        alpha: significance threshold (p threshold or FDR q threshold)
+        result:
+            model evaluation result (pyrsa.inference.result.Result)
+        alpha:
+            significance threshold (p threshold or FDR q threshold)
         plot_pair_tests: 
             False or 'none': do not plot pairwise model comparison results
             'arrows': plot results in arrows style
@@ -35,8 +37,19 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
             Bonferroni method
         sort:
             False or 'none': plot bars in the order passed
-            'descending': plot bars in descending order of model performance
-            'ascending': plot bars in ascending order of model performance
+            'descend[ing]': plot bars in descending order of model performance
+            'ascend[ing]': plot bars in ascending order of model performance
+        colors:
+            'none': default blue for all bars
+            single color: list or numpy array of 3 or 4 values (RGB, RGBA)
+                    specifying the color for all bars
+            multiple colors: numpy array (number of colors by 3 or 4 channels 
+                    -- RGB, RGBA). If the number of colors matches the number
+                    of models, each color is used for the bar corresponding
+                    to that model (in the order of the models as passed). 
+                    If the number of colors does not match the number of
+                    models, the list is exanded to match by linear 
+                    interpolation (e.g. 2 colors will become a gradation).
         error_bars:
             'SEM': plot the standard error of the mean
             'CI': plot confidence intervals covering (1-eb_alpha)*100%
@@ -56,22 +69,22 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         evaluations = np.nanmean(evaluations, axis=-1)
     evaluations = evaluations[~np.isnan(evaluations[:, 0])]
     evaluations = 1 - evaluations
-    mean = np.mean(evaluations, axis=0)
+    perf = np.mean(evaluations, axis=0)
     n_models = evaluations.shape[1]
     if sort==True:
         sort = 'descending'  # descending by default
-    if sort and not sort=='none': # 'descending' or 'ascending'
-        idx = np.argsort(mean)
-        if sort=='descending':
+    if sort and not sort.lower()=='none': # 'descending' or 'ascending'
+        idx = np.argsort(perf)
+        if 'descend' in sort.lower():
             idx = np.flip(idx)
-        mean = mean[idx]
+        perf = perf[idx]
         evaluations = evaluations[:, idx]
         models = [models[i] for i in idx]
     if error_bars == 'CI':
         errorbar_low = -(np.quantile(evaluations, eb_alpha / 2, axis=0)
-                         - mean)
+                         - perf)
         errorbar_high = (np.quantile(evaluations, 1 - (eb_alpha / 2), axis=0)
-                         - mean)
+                         - perf)
     elif error_bars == 'SEM':
         errorbar_low = np.std(evaluations, axis=0)
         errorbar_high = np.std(evaluations, axis=0)
@@ -82,7 +95,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         if plot_pair_tests.lower()=='arrows':        
             h_pairTests = 0.3
         else:
-            h_pairTests = 0.5
+            h_pairTests = 0.4
         plt.figure(figsize=(12.5, 10))
         ax = plt.axes((l, b, w, h*(1-h_pairTests)))
         axbar = plt.axes((l, b + h * (1 - h_pairTests), w,
@@ -90,18 +103,35 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
     else:
         plt.figure(figsize=(12.5, 10))
         ax = plt.axes((l, b, w, h))
+    # Plot bars and error bars
+    if colors is 'none':
+        colors=[0, 0.4, 0.9, 1]  # default blue
+    colors = np.array(colors)
+    if len(colors.shape)==1:
+        n_col = 1
+        n_chan = colors.shape[0]
+        colors.shape = (n_col, n_chan)
+    else:
+        n_col, n_chan = colors.shape
+        if n_col != n_models:
+            colors2 = np.empty((n_models,n_chan))
+            for c in range(n_chan):
+                colors2[:,c] = np.interp(np.array(range(n_models)),
+                               np.array(range(n_col))/n_col*n_models, colors[:,c])
+            colors = colors2
+    ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
+    ax.errorbar(np.arange(evaluations.shape[1]), perf,
+                yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
+                capsize=0, linewidth=3)
+    # Plot noise ceiling
     if noise_ceiling is not None:
         noise_min = np.nanmean(noise_ceiling[0])
         noise_max = np.nanmean(noise_ceiling[1])
-        noiserect = patches.Rectangle((-0.5, noise_min), len(mean),
+        noiserect = patches.Rectangle((-0.5, noise_min), len(perf),
                                       noise_max - noise_min, linewidth=1,
                                       edgecolor=[0.5, 0.5, 0.5, 0.3],
-                                      facecolor=[0.5, 0.5, 0.5, 0.3])
+                                      facecolor=[0.5, 0.5, 0.5, 0.3], zorder=10e6)
         ax.add_patch(noiserect)
-    ax.bar(np.arange(evaluations.shape[1]), mean, color=[0, 0.4, 0.9, 1])
-    ax.errorbar(np.arange(evaluations.shape[1]), mean,
-                yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
-                capsize=0, linewidth=3)
     # Floating axes
     ytoptick = np.ceil(min(1,ax.get_ylim()[1]) * 10) / 10
     ax.set_yticks(np.arange(0, ytoptick + 1e-6, step=0.1))
@@ -189,7 +219,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         if 'nili' in plot_pair_tests.lower(): 
             plot_nili_bars(axbar, significant)
         elif 'golan' in plot_pair_tests.lower():
-            plot_golan_bars(axbar, significant) 
+            plot_golan_wings(axbar, significant, perf, sort, colors) 
         elif 'arrows' in plot_pair_tests.lower():
             plot_arrows(axbar, significant)
         
@@ -214,50 +244,96 @@ def plot_nili_bars(axbar, significant):
     axbar.set_axis_off()
     axbar.set_ylim((0, k))
     
-def plot_golan_bars(axbar, significant, version=2):        
-    """ plots the results of the pairwise inferential model comparisons in the
+def plot_golan_wings(axbar, significant, perf, sort, colors='none', 
+                     always_black=false, version=3):        
+    """ Plots the results of the pairwise inferential model comparisons in the
     form of black horizontal bars with a tick mark at the reference model and
     a circular bulge at each significantly different model similar to the 
     visualization in Golan, Raju, Kriegeskorte (2020).
+    
     Args:
         axbar: Matplotlib axes handle to plot in
         significant: Boolean matrix of model comparisons
-        version: 0 (solid circle anchor and open circles),
-                 1 (tick anchor and circles), 
-                 2 (circle anchor and ticks)
+        version: 0 (single wing: solid circle anchor and open circles),
+                 1 (single wing: tick anchor and circles), 
+                 2 (single wing: circle anchor and up and down feathers)
+                 3 (double wings: circle anchor,
+                    downward dominance-indicating feathers,
+                    from bottom to top in model order)
+                 4 (double wings: circle anchor,
+                    downward dominance-indicating feathers,
+                    from bottom to top in performance order)
+    
     Returns:
         ---
+    
     """   
+    # Define wing order
+    n_models = significant.shape[0]
+    wing_order = np.array(range(n_models)) # to the right by default 
+    if 'ascend' in sort:
+        wing_order = np.flip(wing_order) # to the left if bars are ascending
+    if version == 4:
+        wing_order = np.argsort(-perf)
+    # Define vertical spacing
     bbox = axbar.get_window_extent().transformed(
                                      plt.gcf().dpi_scale_trans.inverted())
     h_inch = bbox.height     
-    k = 1
-    for i in range(significant.shape[0]):
-        if significant[i, i+1:].any(): k += 1
-    h = k
+    h = 1
+    for wo_i in range(len(wing_order)):
+        i = wing_order[wo_i]
+        if version in [3,4]:
+            js = np.concatenate((wing_order[0:wo_i], wing_order[wo_i+1:])).astype('int')
+            js = js[np.logical_and(significant[i,js], perf[i]>perf[js])]
+        else:
+            js = wing_order[wo_i+1:][significant[i, wing_order[wo_i+1:]]]
+        js = js[significant[i,js]]
+        if len(js) > 0:
+            h += 1
     axbar.set_axis_off()
     axbar.set_ylim((0, h))
-    tick_length_inch = 0.1
+    # Draw the wings
+    if always_black or colors is 'none' or colors is 'k' or colors.shape[0]==1:
+        colors = np.tile([0,0,0,1],(n_models,1))
+    tick_length_inch = 0.08
     k = 1
-    for i in range(significant.shape[0]):
-        if significant[i, i+1:].any():
-            axbar.plot((i,significant[i,:].nonzero()[0].max()), (k, k), 'k-', 
-                       linewidth=2)
-            if version in [0,2]:
-                axbar.plot(i, k, 'k', markersize=8, marker='o')            
+    for wo_i in range(len(wing_order)):
+        i = wing_order[wo_i]
+        if version in [3,4]:
+            js = np.concatenate((wing_order[0:wo_i], wing_order[wo_i+1:])).astype('int')
+            js = js[np.logical_and(significant[i,js], perf[i]>perf[js])]
+        else:
+            js = wing_order[wo_i+1:][significant[i, wing_order[wo_i+1:]]]
+        js = js[significant[i,js]]
+        if len(js) > 0:
+            if version != 1:
+                # circle anchor
+                axbar.plot(i, k, markersize=8, marker='o',
+                                 markeredgecolor=colors[i,:], 
+                                 markerfacecolor=colors[i,:])            
             elif version == 1:
+                # tick anchor
                 axbar.plot((i, i), (k - tick_length_inch/h_inch*h, k), 'k-', 
                            linewidth=2) # tick
-            for j in range(i + 1, significant.shape[0]):
-                if significant[i, j]:
-                    if version == 0:
-                        axbar.plot(j, k, 'k', markersize=8, marker='o',
-                                   markeredgecolor='k', markerfacecolor='w')                        
-                    elif version == 1:
-                        axbar.plot(j, k, 'k', markersize=8, marker='o')
-                    elif version == 2:
-                        axbar.plot((j, j), (k - tick_length_inch/h_inch*h, 
-                                            k), 'k-', linewidth=2) # tick
+            for j in js:
+                if version == 0:
+                    axbar.plot(j, k, markersize=8, marker='o',
+                                     markeredgecolor=colors[i,:], 
+                                     markerfacecolor='w')                        
+                elif version == 1:
+                    axbar.plot(j, k, markersize=8, marker='o',
+                                     markeredgecolor=colors[i,:], 
+                                     markerfacecolor=colors[i,:])
+                elif version in [2,3,4]:
+                    if perf[i] > perf[j]:
+                        tick_ver_end = k - tick_length_inch/h_inch*h
+                    elif perf[i] < perf[j]:
+                        tick_ver_end = k + tick_length_inch/h_inch*h
+                    axbar.plot((j, j),(k, tick_ver_end),'-', linewidth=2,
+                                                           color=colors[i,:])
+            # Plot wing line
+            axbar.plot((min(i,js.min()),max(i,js.max())), (k, k), 'k-', 
+                                           linewidth=2, color=colors[i,:])
         k += 1
 
 
