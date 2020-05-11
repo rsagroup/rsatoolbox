@@ -12,7 +12,7 @@ from pyrsa.util.rdm_utils import batch_to_vectors
 
 
 def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
-                          multiple_testing='FDR', sort='none', colors='none',
+                          multiple_testing='FDR', sort=None, colors=None,
                           error_bars='SEM', eb_alpha=0.05):
     """ plots the results of a model comparison
     Input should be a results object with model evaluations
@@ -26,7 +26,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         alpha:
             significance threshold (p threshold or FDR q threshold)
         plot_pair_tests: 
-            False or 'none': do not plot pairwise model comparison results
+            False or None: do not plot pairwise model comparison results
             'arrows': plot results in arrows style
             'nili': plot results as Nili bars (Nili et al. 2014)
             'golan': plot results as Golan wings (Golan et al. 2020)
@@ -242,7 +242,8 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
             plot_golan_wings(axbar, significant, perf, sort, colors) 
         elif 'arrows' in plot_pair_tests.lower():
             plot_arrows(axbar, significant)
-        
+
+
 def plot_nili_bars(axbar, significant):        
     """ plots the results of the pairwise inferential model comparisons in the
     form of a set of black horizontal bars connecting significantly different
@@ -262,7 +263,8 @@ def plot_nili_bars(axbar, significant):
                 k += 1
     axbar.set_axis_off()
     axbar.set_ylim((0, k))
-    
+
+
 def plot_golan_wings(axbar, significant, perf, sort, colors='none', 
                      always_black=False, version=3):        
     """ Plots the results of the pairwise inferential model comparisons in the
