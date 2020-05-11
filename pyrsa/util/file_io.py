@@ -32,7 +32,7 @@ def _write_to_group(group, dictionary):
         if isinstance(value, str):
             group.attrs[key] = value
         elif isinstance(value, np.ndarray):
-            if value.dtype == '<U2':
+            if value.dtype in ['<U2', '<U5']:
                 group[key] = value.astype('S')
             else:
                 group[key] = value
