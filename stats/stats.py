@@ -822,7 +822,7 @@ def plot_comp(data, alpha=0.05):
                         dat = dat[dat[:,4]==n_cond[i_cond], :]
                         dat = dat[dat[:,5]==n_voxel[i_vox], :]
                         dat = dat[dat[:,8]==idx[i], :]
-                        proportion = np.sum(dat[:,0] > (1-alpha)) /len(dat)
+                        proportion = np.sum(dat[:, 0] > (1 - alpha)) / len(dat)
                         props[i_boot, i_subj, i_cond, i_vox, i] = proportion
     # First plot: barplot + scatter for each type of bootstrap
     plt.figure()
