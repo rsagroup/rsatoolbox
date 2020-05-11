@@ -29,12 +29,12 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
             False or 'none': do not plot pairwise model comparison results
             'arrows': plot results in arrows style
             'nili': plot results as Nili bars (Nili et al. 2014)
-            'golan': plot results as Golan bars (Golan et al. 2020)
+            'golan': plot results as Golan wings (Golan et al. 2020)
         multiple_testing:
-            False or 'none': do not adjust for mulitple testing
-            'FDR' or 'fdr': control the false-discorvery rate at q=alpha
-            'FWER' or 'Bonferroni': control the familywise error rate using the
-            Bonferroni method
+            False or 'none': do not adjust for multiple testing
+            'FDR' or 'fdr': control the false-discorvery rate at q = alpha
+            'FWER',' fwer', or 'Bonferroni': control the familywise error rate 
+            using the Bonferroni method
         sort:
             False or 'none': plot bars in the order passed
             'descend[ing]': plot bars in descending order of model performance
@@ -53,7 +53,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         error_bars:
             'SEM': plot the standard error of the mean
             'CI': plot confidence intervals covering (1-eb_alpha)*100%
-        eb_alpha: error bar alpha, i.e. proportion of bootstrap samples outside
+        eb_alpha: error-bar alpha, i.e. proportion of bootstrap samples outside
             the confidence interval
     
     Returns:
@@ -103,22 +103,31 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
     else:
         plt.figure(figsize=(12.5, 10))
         ax = plt.axes((l, b, w, h))
-    # Plot bars and error bars
-    if colors is 'none':
-        colors=[0, 0.4, 0.9, 1]  # default blue
-    colors = np.array(colors)
-    if len(colors.shape)==1:
-        n_col = 1
-        n_chan = colors.shape[0]
+    # Define the colors for the bars
+    if colors is 'none': # no color passed...
+        colors=[0, 0.4, 0.9, 1]  # use default blue
+    colors = np.array([np.array(col) for col in colors])
+    if len(colors.shape)==1: # one color passed...
+        n_col, n_chan = 1, colors.shape[0]
         colors.shape = (n_col, n_chan)
-    else:
+    else: # multiple colors passed...
         n_col, n_chan = colors.shape
-        if n_col != n_models:
-            colors2 = np.empty((n_models,n_chan))
+        if n_col == n_models: # one color passed for each model...
+            cols2 = colors
+        else: # number of colors passed does not match number of models...
+            # interpolate colors to define a color for each model
+            cols2 = np.empty((n_models,n_chan))
             for c in range(n_chan):
-                colors2[:,c] = np.interp(np.array(range(n_models)),
-                               np.array(range(n_col))/n_col*n_models, colors[:,c])
-            colors = colors2
+                cols2[:,c] = np.interp(np.array(range(n_models)),
+                               np.array(range(n_col))/n_col*n_models,
+                               colors[:,c])
+        if sort and not sort.lower()=='none':
+            colors = cols2[idx,:]
+        else:
+            colors = cols2
+    if colors.shape[1]==3:
+        colors=np.concatenate((colors,np.ones((colors.shape[0],1))),axis=1)
+    # Plot bars and error bars
     ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
     ax.errorbar(np.arange(evaluations.shape[1]), perf,
                 yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
@@ -130,9 +139,11 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         noiserect = patches.Rectangle((-0.5, noise_min), len(perf),
                                       noise_max - noise_min, linewidth=1,
                                       edgecolor=[0.5, 0.5, 0.5, 0.3],
-                                      facecolor=[0.5, 0.5, 0.5, 0.3], zorder=10e6)
+                                      facecolor=[0.5, 0.5, 0.5, 0.3], 
+                                      zorder=10e6)
         ax.add_patch(noiserect)
     # Floating axes
+    fs, fs2 = 18, 14 # axis label font sizes
     ytoptick = np.ceil(min(1,ax.get_ylim()[1]) * 10) / 10
     ax.set_yticks(np.arange(0, ytoptick + 1e-6, step=0.1))
     ax.spines['right'].set_visible(False)
@@ -142,26 +153,35 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
     ax.spines['bottom'].set_bounds(0, n_models - 1)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plt.rc('ytick', labelsize=18)
+    plt.rc('ytick', labelsize=fs2)
     # Axis labels
-    fs = 20
-    if models is not None:
-        ax.set_xticklabels([m.name for m in models], fontsize=18,
-                           rotation=45)
+    ax.text(-1.8, ytoptick/2, 'RDM prediction accuracy', 
+            horizontalalignment='center', verticalalignment='center', 
+            rotation='vertical', fontsize=fs, fontweight='bold') 
     if method == 'cosine':
-        ax.set_ylabel('RDM prediction accuracy\n[mean cosine similarity]', fontsize=fs)
+        ax.set_ylabel('[across-subject mean of cosine similarity]', 
+                      fontsize=fs2)
     if method == 'cosine_cov' or method == 'whitened cosine':
-        ax.set_ylabel('RDM prediction accuracy\n[mean whitened-RDM cosine]', fontsize=fs)
+        ax.set_ylabel('[across-subject mean of whitened-RDM cosine]',
+                      fontsize=fs2)
     elif method == 'Spearman' or method == 'spearman':
-        ax.set_ylabel('RDM prediction accuracy\n[mean Spearman r rank correlation]', fontsize=fs)
+        ax.set_ylabel('[across-subject mean of Spearman r rank correlation]', 
+                      fontsize=fs2)
     elif method == 'corr' or method == 'Pearson' or method == 'pearson':
-        ax.set_ylabel('RDM prediction accuracy\n[mean Pearson r correlation]', fontsize=fs)
+        ax.set_ylabel('[across-subject mean of Pearson r correlation]', 
+                      fontsize=fs2)
     elif method == 'corr_cov':
-        ax.set_ylabel('RDM prediction accuracy\n[mean whitened-RDM Pearson r correlation]', fontsize=fs)
+        ax.set_ylabel('[across-subject mean of whitened-RDM Pearson r correlation]', 
+                      fontsize=fs2)
     elif method == 'kendall' or method == 'tau-b':
-        ax.set_ylabel('RDM prediction accuracy\n[mean Kendall tau-b rank correlation]', fontsize=fs)
+        ax.set_ylabel('[across-subject mean of Kendall tau-b rank correlation]', 
+                      fontsize=f2s)
     elif method == 'tau-a':
-        ax.set_ylabel('RDM prediction accuracy\n[mean Kendall tau-a rank correlation]', fontsize=fs)
+        ax.set_ylabel('[across-subject mean of Kendall tau-a rank correlation]', 
+                      fontsize=fs2)
+    if models is not None:
+        ax.set_xticklabels([m.name for m in models], fontsize=fs2,
+                           rotation=45)
     # Pairwise model comparisons
     if plot_pair_tests and not plot_pair_tests=='none':
         model_comp_descr = 'Model comparisons: two-tailed, '
@@ -214,7 +234,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         elif error_bars == 'SEM':
             model_comp_descr = (model_comp_descr +
                                 ' standard error of the mean.')
-        axbar.set_title(model_comp_descr)
+        axbar.set_title(model_comp_descr, fontsize=fs2)
         axbar.set_xlim(ax.get_xlim())        
         if 'nili' in plot_pair_tests.lower(): 
             plot_nili_bars(axbar, significant)
@@ -240,12 +260,11 @@ def plot_nili_bars(axbar, significant):
             if significant[i, j]:
                 axbar.plot((i, j), (k, k), 'k-', linewidth=2)
                 k += 1
-
     axbar.set_axis_off()
     axbar.set_ylim((0, k))
     
 def plot_golan_wings(axbar, significant, perf, sort, colors='none', 
-                     always_black=false, version=3):        
+                     always_black=False, version=3):        
     """ Plots the results of the pairwise inferential model comparisons in the
     form of black horizontal bars with a tick mark at the reference model and
     a circular bulge at each significantly different model similar to the 
@@ -291,7 +310,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
         if len(js) > 0:
             h += 1
     axbar.set_axis_off()
-    axbar.set_ylim((0, h))
+    axbar.set_ylim((0, h))    
     # Draw the wings
     if always_black or colors is 'none' or colors is 'k' or colors.shape[0]==1:
         colors = np.tile([0,0,0,1],(n_models,1))
@@ -334,7 +353,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
             # Plot wing line
             axbar.plot((min(i,js.min()),max(i,js.max())), (k, k), 'k-', 
                                            linewidth=2, color=colors[i,:])
-        k += 1
+            k += 1
 
 
 def plot_arrows(axbar, significant):
@@ -366,13 +385,13 @@ def plot_arrows(axbar, significant):
     for dist2diag in range(1, n):
         for i in range(n-1,dist2diag-1,-1):
             if significant[i, 0:i-dist2diag+1].all() and \
-            remaining[i ,0:i-dist2diag+1].any():
+            remaining[i, 0:i-dist2diag+1].any():
                 arrows.append((i, i-dist2diag)) # add left arrow
                 remaining[i, 0:i-dist2diag+1] = 0               
-            if significant[i:n-1, i-dist2diag].all() and \
-            remaining[i:n-1, i-dist2diag].any():
+            if significant[i:n, i-dist2diag].all() and \
+            remaining[i:n, i-dist2diag].any():
                 arrows.append((i-dist2diag, i)) # add right arrow
-                remaining[i:n-1, i-dist2diag] = 0
+                remaining[i:n, i-dist2diag] = 0
    
     # capture the remaining comparisons with lines
     lines = list()
@@ -459,9 +478,11 @@ def plot_arrows(axbar, significant):
             k = 1
             while occupied[k-1, i*3+2:j*3].any(): k +=1
             axbar.plot((i, j), (k, k), 'k-', linewidth=2)
-            occupied[k-1, i*3+2:j*3] = 1
-    
-    h = occupied.sum(axis=1).nonzero()[0].max()+1
+            occupied[k-1, i*3+2:j*3] = 1   
+    if occupied.shape[0] > 0:
+        h = occupied.sum(axis=1).nonzero()[0].max()+1
+    else:
+        h = 0
     axbar.set_ylim((0, max(expected_n_lines, h)))
     axbar.set_axis_off()
     
