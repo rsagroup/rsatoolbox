@@ -34,7 +34,9 @@ def _write_to_group(group, dictionary):
     for key in dictionary.keys():
         value = dictionary[key]
         if isinstance(value, str):
-            group.attrs[key] = value
+            # needs another conversion to string to catch weird subtypes
+            # like numpy.str_
+            group.attrs[key] = str(value)
         elif isinstance(value, np.ndarray):
             if str(value.dtype)[:2] == '<U':
                 group[key] = value.astype('S')
