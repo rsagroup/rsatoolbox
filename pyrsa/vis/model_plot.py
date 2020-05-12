@@ -23,7 +23,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
 
     Args (case insensitive):
         result (pyrsa.inference.result.Result):
-            model evaluation result 
+            model evaluation result
         alpha (float):
             significance threshold (p threshold or FDR q threshold)
         plot_pair_tests (string):
@@ -58,7 +58,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         error_bars (string):
             'SEM': plot the standard error of the mean
             'CI': plot confidence intervals covering (1-eb_alpha)*100%
-        eb_alpha (float): 
+        eb_alpha (float):
             error-bar alpha, i.e. proportion of bootstrap samples outside
             the confidence interval
 
@@ -110,38 +110,42 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
     else:
         plt.figure(figsize=(12.5, 10))
         ax = plt.axes((l, b, w, h))
+
     # Define the colors for the bars
-    if colors is None: # no color passed...
-        colors=[0, 0.4, 0.9, 1]  # use default blue
-    elif isinstance(colors,cm.colors.LinearSegmentedColormap):
-        colors = cm.get_cmap(colors)(np.linspace(0,1,100))\
-            [np.newaxis, :, :3].squeeze()
+    if colors is None:  # no color passed...
+        colors = [0, 0.4, 0.9, 1]  # use default blue
+    elif isinstance(colors, cm.colors.LinearSegmentedColormap):
+        cmap = cm.get_cmap(colors)
+        colors = cmap(np.linspace(0, 1, 100))[np.newaxis, :, :3].squeeze()
     colors = np.array([np.array(col) for col in colors])
-    if len(colors.shape)==1: # one color passed...
+    if len(colors.shape) == 1:  # one color passed...
         n_col, n_chan = 1, colors.shape[0]
         colors.shape = (n_col, n_chan)
-    else: # multiple colors passed...
+    else:  # multiple colors passed...
         n_col, n_chan = colors.shape
-        if n_col == n_models: # one color passed for each model...
+        if n_col == n_models:  # one color passed for each model...
             cols2 = colors
-        else: # number of colors passed does not match number of models...
+        else:  # number of colors passed does not match number of models...
             # interpolate colors to define a color for each model
-            cols2 = np.empty((n_models,n_chan))
+            cols2 = np.empty((n_models, n_chan))
             for c in range(n_chan):
-                cols2[:,c] = np.interp(np.array(range(n_models)),
-                               np.array(range(n_col))/n_col*n_models,
-                               colors[:,c])
+                cols2[:, c] = np.interp(np.array(range(n_models)),
+                                        np.array(range(n_col))/n_col*n_models,
+                                        colors[:, c])
         if sort:
-            colors = cols2[idx,:]
+            colors = cols2[idx, :]
         else:
             colors = cols2
-    if colors.shape[1]==3:
-        colors=np.concatenate((colors,np.ones((colors.shape[0],1))),axis=1)
+    if colors.shape[1] == 3:
+        colors = np.concatenate((colors, np.ones((colors.shape[0], 1))),
+                                axis=1)
+
     # Plot bars and error bars
     ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
     ax.errorbar(np.arange(evaluations.shape[1]), perf,
                 yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
                 capsize=0, linewidth=3)
+
     # Plot noise ceiling
     if noise_ceiling is not None:
         noise_min = np.nanmean(noise_ceiling[0])
@@ -149,12 +153,13 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         noiserect = patches.Rectangle((-0.5, noise_min), len(perf),
                                       noise_max - noise_min, linewidth=1,
                                       edgecolor=[0.5, 0.5, 0.5, 0.3],
-                                      facecolor=[0.5, 0.5, 0.5, 0.3], 
+                                      facecolor=[0.5, 0.5, 0.5, 0.3],
                                       zorder=10e6)
         ax.add_patch(noiserect)
+
     # Floating axes
-    fs, fs2 = 18, 14 # axis label font sizes
-    ytoptick = np.ceil(min(1,ax.get_ylim()[1]) * 10) / 10
+    fs, fs2 = 18, 14  # axis label font sizes
+    ytoptick = np.ceil(min(1, ax.get_ylim()[1]) * 10) / 10
     ax.set_yticks(np.arange(0, ytoptick + 1e-6, step=0.1))
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -164,38 +169,40 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plt.rc('ytick', labelsize=fs2)
+
     # Axis labels
-    ax.text(-1.8, ytoptick/2, 'RDM prediction accuracy', 
-            horizontalalignment='center', verticalalignment='center', 
-            rotation='vertical', fontsize=fs, fontweight='bold') 
+    ax.text(-1.8, ytoptick/2, 'RDM prediction accuracy',
+            horizontalalignment='center', verticalalignment='center',
+            rotation='vertical', fontsize=fs, fontweight='bold')
     if method == 'cosine':
-        ax.set_ylabel('[across-subject mean of cosine similarity]', 
+        ax.set_ylabel('[across-subject mean of cosine similarity]',
                       fontsize=fs2)
     if method == 'cosine_cov' or method == 'whitened cosine':
         ax.set_ylabel('[across-subject mean of whitened-RDM cosine]',
                       fontsize=fs2)
     elif method == 'Spearman' or method == 'spearman':
-        ax.set_ylabel('[across-subject mean of Spearman r rank correlation]', 
+        ax.set_ylabel('[across-subject mean of Spearman r rank correlation]',
                       fontsize=fs2)
     elif method == 'corr' or method == 'Pearson' or method == 'pearson':
-        ax.set_ylabel('[across-subject mean of Pearson r correlation]', 
+        ax.set_ylabel('[across-subject mean of Pearson r correlation]',
                       fontsize=fs2)
     elif method == 'corr_cov':
         ax.set_ylabel('[across-subject mean of whitened-RDM Pearson r '
-                      + 'correlation]', 
+                      + 'correlation]',
                       fontsize=fs2)
     elif method == 'kendall' or method == 'tau-b':
         ax.set_ylabel('[across-subject mean of Kendall tau-b rank '
-                      + 'correlation]', 
-                      fontsize=f2s)
-    elif method == 'tau-a':
-        ax.set_ylabel('[across-subject mean of Kendall tau-a rank correlation]', 
+                      + 'correlation]',
                       fontsize=fs2)
+    elif method == 'tau-a':
+        ax.set_ylabel('[across-subject mean of '
+                      + 'Kendall tau-a rank correlation]', fontsize=fs2)
     if models is not None:
         ax.set_xticklabels([m.name for m in models], fontsize=fs2,
                            rotation=45)
+
     # Pairwise model comparisons
-    if plot_pair_tests and not plot_pair_tests=='none':
+    if plot_pair_tests:
         model_comp_descr = 'Model comparisons: two-tailed, '
         res = pair_tests(evaluations)
         n_tests = int((n_models**2-n_models)/2)
@@ -230,14 +237,15 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
                                 ' model-pair comparisons)')
         if result.cv_method == 'bootstrap_rdm':
             model_comp_descr = model_comp_descr + \
-            '\nInference by bootstrap resampling of subjects.'
+                '\nInference by bootstrap resampling of subjects.'
         elif result.cv_method == 'bootstrap_pattern':
             model_comp_descr = model_comp_descr + \
-            '\nInference by bootstrap resampling of experimental conditions.'
+                '\nInference by bootstrap resampling of ' \
+                + 'experimental conditions.'
         elif result.cv_method in ['bootstrap', 'bootstrap_crossval']:
             model_comp_descr = model_comp_descr + \
-            '\nInference by bootstrap resampling of subjects and  ' \
-            + 'experimental conditions.'
+                '\nInference by bootstrap resampling of ' \
+                + 'subjects and experimental conditions.'
         model_comp_descr = model_comp_descr + '\nError bars indicate the'
         if error_bars == 'CI':
             model_comp_descr = (model_comp_descr +
@@ -247,16 +255,16 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
             model_comp_descr = (model_comp_descr +
                                 ' standard error of the mean.')
         axbar.set_title(model_comp_descr, fontsize=fs2)
-        axbar.set_xlim(ax.get_xlim())        
-        if 'nili' in plot_pair_tests.lower(): 
+        axbar.set_xlim(ax.get_xlim())
+        if 'nili' in plot_pair_tests.lower():
             plot_nili_bars(axbar, significant)
         elif 'golan' in plot_pair_tests.lower():
-            plot_golan_wings(axbar, significant, perf, sort, colors) 
+            plot_golan_wings(axbar, significant, perf, sort, colors)
         elif 'arrows' in plot_pair_tests.lower():
             plot_arrows(axbar, significant)
 
 
-def plot_nili_bars(axbar, significant):   
+def plot_nili_bars(axbar, significant):
     """ plots the results of the pairwise inferential model comparisons in the
     form of a set of black horizontal bars connecting significantly different
     models as in the 2014 RSA Toolbox (Nili et al. 2014).
@@ -268,7 +276,8 @@ def plot_nili_bars(axbar, significant):
     Returns:
         ---
 
-    """  
+    """
+
     k = 1
     for i in range(significant.shape[0]):
         k += 1
@@ -284,14 +293,14 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
                      always_black=False, version=3):
     """ Plots the results of the pairwise inferential model comparisons in the
     form of black horizontal bars with a tick mark at the reference model and
-    a circular bulge at each significantly different model similar to the 
+    a circular bulge at each significantly different model similar to the
     visualization in Golan, Raju, Kriegeskorte (2020).
-    
+
     Args:
         axbar: Matplotlib axes handle to plot in
         significant: Boolean matrix of model comparisons
         version: 0 (single wing: solid circle anchor and open circles),
-                 1 (single wing: tick anchor and circles), 
+                 1 (single wing: tick anchor and circles),
                  2 (single wing: circle anchor and up and down feathers)
                  3 (double wings: circle anchor,
                     downward dominance-indicating feathers,
@@ -299,107 +308,110 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
                  4 (double wings: circle anchor,
                     downward dominance-indicating feathers,
                     from bottom to top in performance order)
-    
+
     Returns:
         ---
-    
-    """   
+
+    """
 
     # Define wing order
     n_models = significant.shape[0]
-    wing_order = np.array(range(n_models)) # to the right by default 
+    wing_order = np.array(range(n_models))  # to the right by default
     if 'ascend' in sort:
-        wing_order = np.flip(wing_order) # to the left if bars are ascending
+        wing_order = np.flip(wing_order)  # to the left if bars are ascending
     if version == 4:
         wing_order = np.argsort(-perf)
 
     # Define vertical spacing
     bbox = axbar.get_window_extent().transformed(
                                      plt.gcf().dpi_scale_trans.inverted())
-    h_inch = bbox.height     
+    h_inch = bbox.height
     h = 1
     for wo_i in range(len(wing_order)):
         i = wing_order[wo_i]
-        if version in [3,4]:
-            js = np.concatenate((wing_order[0:wo_i], wing_order[wo_i+1:])).astype('int')
-            js = js[np.logical_and(significant[i,js], perf[i]>perf[js])]
+        if version in [3, 4]:
+            js = np.concatenate((wing_order[0:wo_i],
+                                 wing_order[wo_i+1:])).astype('int')
+            js = js[np.logical_and(significant[i, js], perf[i] > perf[js])]
         else:
             js = wing_order[wo_i+1:][significant[i, wing_order[wo_i+1:]]]
-        js = js[significant[i,js]]
+        js = js[significant[i, js]]
         if len(js) > 0:
             h += 1
     axbar.set_axis_off()
-    axbar.set_ylim((0, h))    
+    axbar.set_ylim((0, h))
 
     # Draw the wings
-    if always_black or colors is 'none' or colors is 'k' or colors.shape[0]==1:
-        colors = np.tile([0,0,0,1],(n_models,1))
+    if always_black or colors in [None, 'k'] or colors.shape[0] == 1:
+        colors = np.tile([0, 0, 0, 1], (n_models, 1))
     tick_length_inch = 0.08
     k = 1
     for wo_i in range(len(wing_order)):
         i = wing_order[wo_i]
-        if version in [3,4]:
-            js = np.concatenate((wing_order[0:wo_i], wing_order[wo_i+1:])).astype('int')
-            js = js[np.logical_and(significant[i,js], perf[i]>perf[js])]
+        if version in [3, 4]:
+            js = np.concatenate((wing_order[0:wo_i],
+                                 wing_order[wo_i+1:])).astype('int')
+            js = js[np.logical_and(significant[i, js], perf[i] > perf[js])]
         else:
             js = wing_order[wo_i+1:][significant[i, wing_order[wo_i+1:]]]
-        js = js[significant[i,js]]
+        js = js[significant[i, js]]
         if len(js) > 0:
             if version != 1:
                 # circle anchor
                 axbar.plot(i, k, markersize=8, marker='o',
-                                 markeredgecolor=colors[i,:], 
-                                 markerfacecolor=colors[i,:])            
+                           markeredgecolor=colors[i, :],
+                           markerfacecolor=colors[i, :])
             elif version == 1:
                 # tick anchor
-                axbar.plot((i, i), (k - tick_length_inch/h_inch*h, k), 'k-', 
-                           linewidth=2) # tick
+                axbar.plot((i, i), (k - tick_length_inch/h_inch*h, k), 'k-',
+                           linewidth=2)  # tick
             for j in js:
                 if version == 0:
                     axbar.plot(j, k, markersize=8, marker='o',
-                                     markeredgecolor=colors[i,:], 
-                                     markerfacecolor='w')                        
+                               markeredgecolor=colors[i, :],
+                               markerfacecolor='w')
                 elif version == 1:
                     axbar.plot(j, k, markersize=8, marker='o',
-                                     markeredgecolor=colors[i,:], 
-                                     markerfacecolor=colors[i,:])
-                elif version in [2,3,4]:
+                               markeredgecolor=colors[i, :],
+                               markerfacecolor=colors[i, :])
+                elif version in [2, 3, 4]:
                     if perf[i] > perf[j]:
                         tick_ver_end = k - tick_length_inch/h_inch*h
                     elif perf[i] < perf[j]:
                         tick_ver_end = k + tick_length_inch/h_inch*h
-                    axbar.plot((j, j),(k, tick_ver_end),'-', linewidth=2,
-                                                           color=colors[i,:])
-            # Plot wing line
-            axbar.plot((min(i,js.min()),max(i,js.max())), (k, k), 'k-', 
-                                           linewidth=2, color=colors[i,:])
+                    axbar.plot((j, j), (k, tick_ver_end), '-', linewidth=2,
+                                        color=colors[i, :])
+            # plot wing line
+            axbar.plot((min(i, js.min()), max(i, js.max())), (k, k), 'k-',
+                       linewidth=2, color=colors[i, :])
             k += 1
 
 
 def plot_arrows(axbar, significant):
-    """ Summarizes the significances with arrows. The argument significant is 
-    a binary matrix of pairwise model comparisons. A nonzero value (or True) 
-    indicates that the model specified by the row index beats the model 
-    specified by the column index. Only the lower triangular part of compMat is used, so the upper
-    triangular part need not be filled in symmetrically. The summary will be
-    most concise if models are ordered from worst to best (top to bottom and 
-    left to right).
+    """ Summarizes the significances with arrows. The argument significant is
+    a binary matrix of pairwise model comparisons. A nonzero value (or True)
+    indicates that the model specified by the row index beats the model
+    specified by the column index. Only the lower triangular part of compMat is
+    used, so the upper triangular part need not be filled in symmetrically. The
+    summary will be most concise if models are ordered by performance (using
+    the sort argument of model_plot.py).
     """
+
     # Preparations
-    [n,n] = significant.shape
+    n, n = significant.shape
     remaining = significant.copy()
 
     # Capture as many comparisons as possible with double arrows
     double_arrows = list()
-    for ambiguity_span in range(0, n-1): 
-    # consider short double arrows first (these cover many comparisons)
+    for ambiguity_span in range(0, n-1):
+        # consider short double arrows first (these cover many comparisons)
         for i in range(n-1, ambiguity_span, -1):
             if significant[i:n, 0:i-ambiguity_span].all() and \
-            remaining[i:n,0:i-ambiguity_span].any():
+                remaining[i:n, 0:i-ambiguity_span].any():
                 # add double arrow
                 double_arrows.append((i-ambiguity_span-1, i))
                 remaining[i:n, 0:i-ambiguity_span] = 0
-      
+
     # Capture as many of the remaining comparisons as possible with arrows
     arrows = list()
     for dist2diag in range(1, n):
@@ -527,6 +539,3 @@ def draw_hor_arrow(ax, x1, x2, y, style, ar):
         ax.arrow(c, y, -(l/2-s), 0, head_width=hw, head_length=hl, 
                  length_includes_head = True, fc='k', ec='k')
         
-
-
-    
