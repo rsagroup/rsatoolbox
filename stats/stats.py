@@ -274,17 +274,17 @@ def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
                                 boot_noise_ceil=boot_noise_ceil)
         idx_valid = ~np.isnan(results.evaluations[:, 0])
         if boot_noise_ceil:
-            p_upper[i_sim] = (np.sum(results.evaluations[idx_valid, 0] > 
+            p_upper[i_sim] = (np.sum(results.evaluations[idx_valid, 0] <
                                      results.noise_ceiling[1][idx_valid])
                               / np.sum(idx_valid))
-            p_lower[i_sim] = (np.sum(results.evaluations[idx_valid, 0] > 
+            p_lower[i_sim] = (np.sum(results.evaluations[idx_valid, 0] < 
                                      results.noise_ceiling[0][idx_valid])
                               / np.sum(idx_valid))
         else:
-            p_upper[i_sim] = (np.sum(results.evaluations[idx_valid, 0] > 
+            p_upper[i_sim] = (np.sum(results.evaluations[idx_valid, 0] < 
                                      results.noise_ceiling[1])
                               / np.sum(idx_valid))
-            p_lower[i_sim] = (np.sum(results.evaluations[idx_valid, 0] > 
+            p_lower[i_sim] = (np.sum(results.evaluations[idx_valid, 0] < 
                                      results.noise_ceiling[0])
                               / np.sum(idx_valid))
     return np.array([p_lower, p_upper])
@@ -822,8 +822,12 @@ def plot_comp(data, alpha=0.05):
                         dat = dat[dat[:,4]==n_cond[i_cond], :]
                         dat = dat[dat[:,5]==n_voxel[i_vox], :]
                         dat = dat[dat[:,8]==idx[i], :]
-                        proportion = np.sum(dat[:, 0] > (1 - alpha)) / len(dat)
-                        props[i_boot, i_subj, i_cond, i_vox, i] = proportion
+                        if len(dat) > 0:
+                            prop = (np.sum(dat[:, 0] > (1 - alpha)) 
+                                    / len(dat))
+                            props[i_boot, i_subj, i_cond, i_vox, i] = prop
+                        else:
+                            props[i_boot, i_subj, i_cond, i_vox, i] = np.nan
     # First plot: barplot + scatter for each type of bootstrap
     plt.figure()
     ax = plt.subplot(1,1,1)
@@ -837,7 +841,7 @@ def plot_comp(data, alpha=0.05):
     plt.ylabel('Proportion significant')
     plt.xlabel('bootstrap method')
     # Second plot: plot against n_subj
-    p_max = np.max(props)
+    p_max = np.nanmax(props)
     plt.figure(figsize=(12,5))
     for i in range(len(boots)):
         ax = plt.subplot(1, 3, i+1)
@@ -873,7 +877,6 @@ def plot_comp(data, alpha=0.05):
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
     # Third plot: plot against n_pattern
-    p_max = np.max(props)
     plt.figure(figsize=(12,5))
     for i in range(len(boots)):
         ax = plt.subplot(1, 3, i+1)
