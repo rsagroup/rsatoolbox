@@ -7,9 +7,9 @@ Created on Thu Feb 13 14:04:52 2020
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from matplotlib import cm
 from pyrsa.util.inference_util import pair_tests
 from pyrsa.util.rdm_utils import batch_to_vectors
-from matplotlib import cm
 
 
 def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
@@ -100,13 +100,13 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
     l, b, w, h = 0.15, 0.15, 0.8, 0.8
     if plot_pair_tests:
         if plot_pair_tests.lower() == 'arrows':
-            h_pairTests = 0.3
+            h_pair_tests = 0.3
         else:
-            h_pairTests = 0.4
+            h_pair_tests = 0.4
         plt.figure(figsize=(12.5, 10))
-        ax = plt.axes((l, b, w, h*(1-h_pairTests)))
-        axbar = plt.axes((l, b + h * (1 - h_pairTests), w,
-                          h * h_pairTests * 0.7))
+        ax = plt.axes((l, b, w, h*(1-h_pair_tests)))
+        axbar = plt.axes((l, b + h * (1 - h_pair_tests), w,
+                          h * h_pair_tests * 0.7))
     else:
         plt.figure(figsize=(12.5, 10))
         ax = plt.axes((l, b, w, h))
@@ -174,27 +174,27 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
     ax.text(-1.8, ytoptick/2, 'RDM prediction accuracy',
             horizontalalignment='center', verticalalignment='center',
             rotation='vertical', fontsize=fs, fontweight='bold')
-    if method == 'cosine':
+    if method.lower() == 'cosine':
         ax.set_ylabel('[across-subject mean of cosine similarity]',
                       fontsize=fs2)
-    if method == 'cosine_cov' or method == 'whitened cosine':
+    if method.lower() in ['cosine_cov', 'whitened cosine']:
         ax.set_ylabel('[across-subject mean of whitened-RDM cosine]',
                       fontsize=fs2)
-    elif method == 'Spearman' or method == 'spearman':
+    elif method.lower() == 'spearman':
         ax.set_ylabel('[across-subject mean of Spearman r rank correlation]',
                       fontsize=fs2)
-    elif method == 'corr' or method == 'Pearson' or method == 'pearson':
+    elif method.lower() in ['corr', 'pearson']:
         ax.set_ylabel('[across-subject mean of Pearson r correlation]',
                       fontsize=fs2)
-    elif method == 'corr_cov':
+    elif method.lower() in ['whitened pearson', 'corr_cov']:
         ax.set_ylabel('[across-subject mean of whitened-RDM Pearson r '
                       + 'correlation]',
                       fontsize=fs2)
-    elif method == 'kendall' or method == 'tau-b':
+    elif method.lower() in ['kendall', 'tau-b']:
         ax.set_ylabel('[across-subject mean of Kendall tau-b rank '
                       + 'correlation]',
                       fontsize=fs2)
-    elif method == 'tau-a':
+    elif method.lower() == 'tau-a':
         ax.set_ylabel('[across-subject mean of '
                       + 'Kendall tau-a rank correlation]', fontsize=fs2)
     if models is not None:
@@ -324,7 +324,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
 
     # Define vertical spacing
     bbox = axbar.get_window_extent().transformed(
-                                     plt.gcf().dpi_scale_trans.inverted())
+        plt.gcf().dpi_scale_trans.inverted())
     h_inch = bbox.height
     h = 1
     for wo_i in range(len(wing_order)):
@@ -380,7 +380,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
                     elif perf[i] < perf[j]:
                         tick_ver_end = k + tick_length_inch/h_inch*h
                     axbar.plot((j, j), (k, tick_ver_end), '-', linewidth=2,
-                                        color=colors[i, :])
+                               color=colors[i, :])
             # plot wing line
             axbar.plot((min(i, js.min()), max(i, js.max())), (k, k), 'k-',
                        linewidth=2, color=colors[i, :])
@@ -398,7 +398,7 @@ def plot_arrows(axbar, significant):
     """
 
     # Preparations
-    n, n = significant.shape
+    n = significant.shape[0]
     remaining = significant.copy()
 
     # Capture as many comparisons as possible with double arrows
@@ -407,7 +407,7 @@ def plot_arrows(axbar, significant):
         # consider short double arrows first (these cover many comparisons)
         for i in range(n-1, ambiguity_span, -1):
             if significant[i:n, 0:i-ambiguity_span].all() and \
-                remaining[i:n, 0:i-ambiguity_span].any():
+                    remaining[i:n, 0:i-ambiguity_span].any():
                 # add double arrow
                 double_arrows.append((i-ambiguity_span-1, i))
                 remaining[i:n, 0:i-ambiguity_span] = 0
@@ -415,127 +415,134 @@ def plot_arrows(axbar, significant):
     # Capture as many of the remaining comparisons as possible with arrows
     arrows = list()
     for dist2diag in range(1, n):
-        for i in range(n-1,dist2diag-1,-1):
+        for i in range(n-1, dist2diag-1, -1):
             if significant[i, 0:i-dist2diag+1].all() and \
-            remaining[i, 0:i-dist2diag+1].any():
-                arrows.append((i, i-dist2diag)) # add left arrow
-                remaining[i, 0:i-dist2diag+1] = 0               
+                    remaining[i, 0:i-dist2diag+1].any():
+                arrows.append((i, i-dist2diag))  # add left arrow
+                remaining[i, 0:i-dist2diag+1] = 0
             if significant[i:n, i-dist2diag].all() and \
-            remaining[i:n, i-dist2diag].any():
-                arrows.append((i-dist2diag, i)) # add right arrow
+                    remaining[i:n, i-dist2diag].any():
+                arrows.append((i-dist2diag, i))  # add right arrow
                 remaining[i:n, i-dist2diag] = 0
-   
+
     # Capture the remaining comparisons with lines
     lines = list()
     for i in range(1, n):
         for j in range(0, i-1):
             if remaining[i, j]:
-                lines.append((i, j)) # add line
-    
+                lines.append((i, j))  # add line
+
     # Plot
     expected_n_lines = 6
     axbar.set_ylim((0, expected_n_lines))
+    axbar.set_axis_off()
+    n_elements = len(double_arrows)+len(arrows)+len(lines)
+    if n_elements == 0:
+        return
     bbox = axbar.get_window_extent().transformed(
-                                     plt.gcf().dpi_scale_trans.inverted())
+        plt.gcf().dpi_scale_trans.inverted())
     h_inch, w_inch = bbox.height, bbox.width
     dx = abs(np.diff(axbar.get_xlim()))
     dy = abs(np.diff(axbar.get_ylim()))
     ar = (dy/h_inch) / (dx/w_inch)
-    occupied = np.zeros((len(double_arrows)+len(arrows)+len(lines), 3*n))  
+    occupied = np.zeros((n_elements, 3*n))
     for m in range(0, int(np.ceil(n/2))):
-        double_arrows_left = [(i,j) for (i,j) in double_arrows if i==m]
-        if len(double_arrows_left):
+        double_arrows_left = [(i, j) for (i, j) in double_arrows if i == m]
+        if len(double_arrows_left) > 0:
             i, j = double_arrows_left[0]
-            double_arrows.remove((i,j))
-            if j < i: i, j = j, i
+            double_arrows.remove((i, j))
+            if j < i:
+                i, j = j, i
             k = 1
-            while occupied[k-1, i*3+2:j*3].any(): k +=1
-            if i==0:
+            while occupied[k-1, i*3+2:j*3].any():
+                k += 1
+            if i == 0:
                 draw_hor_arrow(axbar, i, j, k, '->', ar)
-            elif j==n-1:
+            elif j == n-1:
                 draw_hor_arrow(axbar, i, j, k, '<-', ar)
             else:
                 draw_hor_arrow(axbar, i, j, k, '<->', ar)
             occupied[k-1, i*3+2:j*3+1] = 1
 
-        double_arrows_right = [(i,j) for (i,j) in double_arrows if j==n-1-m]
-        if len(double_arrows_right):
+        double_arrows_right = \
+            [(i, j) for (i, j) in double_arrows if j == n-1-m]
+        if len(double_arrows_right) > 0:
             i, j = double_arrows_right[0]
-            double_arrows.remove((i,j))
+            double_arrows.remove((i, j))
             k = 1
-            while occupied[k-1, i*3+2:j*3].any(): k +=1
-            if i==0:
+            while occupied[k-1, i*3+2:j*3].any():
+                k += 1
+            if i == 0:
                 draw_hor_arrow(axbar, i, j, k, '->', ar)
-            elif j==n-1:
+            elif j == n-1:
                 draw_hor_arrow(axbar, i, j, k, '<-', ar)
             else:
                 draw_hor_arrow(axbar, i, j, k, '<->', ar)
             occupied[k-1, i*3+2:j*3+1] = 1
 
-    for m in range(0,int(np.ceil(n/2))):
-        arrows_left = [(i,j) for (i,j) in arrows if (i<j and i==m) or 
-                       (j<i and j==m)]
-        if len(arrows_left):
+    for m in range(0, int(np.ceil(n/2))):
+        arrows_left = [(i, j) for (i, j) in arrows if (i < j and i == m) or
+                       (j < i and j == m)]
+        if len(arrows_left) > 0:
             i, j = arrows_left[0]
-            arrows.remove((i,j))
+            arrows.remove((i, j))
             k = 1
-            while occupied[k-1, i*3+2:j*3].any(): k +=1
+            while occupied[k-1, i*3+2:j*3].any():
+                k += 1
             draw_hor_arrow(axbar, i, j, k, '->', ar)
             occupied[k-1, i*3+2:j*3+1] = 1
 
-        arrows_right = [(i,j) for (i,j) in arrows if (i<j and j==n-1-m) or 
-                        (j<i and i==n-1-m)]
-        if len(arrows_right):
+        arrows_right = [(i, j) for (i, j) in arrows if (i < j and j == n-1-m)
+                        or (j < i and i == n-1-m)]
+        if len(arrows_right) > 0:
             i, j = arrows_right[0]
-            arrows.remove((i,j))
+            arrows.remove((i, j))
             k = 1
-            while occupied[k-1, i*3+2:j*3].any(): k +=1
+            while occupied[k-1, i*3+2:j*3].any():
+                k += 1
             draw_hor_arrow(axbar, i, j, k, '->', ar)
             occupied[k-1, i*3+2:j*3+1] = 1
-            
-    for m in range(0,int(np.ceil(n/2))):
-        lines_left = [(i,j) for (i,j) in lines if i==m]
-        while len(lines_left):
+
+    for m in range(0, int(np.ceil(n/2))):
+        lines_left = [(i, j) for (i, j) in lines if i == m]
+        while len(lines_left) > 0:
             i, j = lines_left.pop()
-            lines.remove((i,j))
+            lines.remove((i, j))
             k = 1
-            while occupied[k-1, i*3+2:j*3].any(): k +=1
+            while occupied[k-1, i*3+2:j*3].any():
+                k += 1
             axbar.plot((i, j), (k, k), 'k-', linewidth=2)
             occupied[k-1, i*3+2:j*3] = 1
 
-        lines_right = [(i,j) for (i,j) in lines if j==n-1-m]
-        while len(lines_right):
+        lines_right = [(i, j) for (i, j) in lines if j == n-1-m]
+        while len(lines_right) > 0:
             i, j = lines_right.pop()
-            lines.remove((i,j))
+            lines.remove((i, j))
             k = 1
-            while occupied[k-1, i*3+2:j*3].any(): k +=1
+            while occupied[k-1, i*3+2:j*3].any():
+                k += 1
             axbar.plot((i, j), (k, k), 'k-', linewidth=2)
-            occupied[k-1, i*3+2:j*3] = 1   
-    if occupied.shape[0] > 0:
-        h = occupied.sum(axis=1).nonzero()[0].max()+1
-    else:
-        h = 0
+            occupied[k-1, i*3+2:j*3] = 1
+    h = occupied.sum(axis=1).nonzero()[0].max()+1
     axbar.set_ylim((0, max(expected_n_lines, h)))
-    axbar.set_axis_off()
-    
+
 
 def draw_hor_arrow(ax, x1, x2, y, style, ar):
     hw, hl = 0.15*ar, 0.15
-    s = 0.25 # shortening
+    s = 0.25  # shortening
     d = x2-x1
     if style == '->':
-        ax.arrow(x1, y, np.sign(d)*(abs(d)-s), 0, head_width=hw, 
-                 head_length=hl, length_includes_head = True, fc='k', ec='k')
-        ax.plot(x1, y, 'k', markersize=8, marker='o')   
+        ax.arrow(x1, y, np.sign(d)*(abs(d)-s), 0, head_width=hw,
+                 head_length=hl, length_includes_head=True, fc='k', ec='k')
+        ax.plot(x1, y, 'k', markersize=8, marker='o')
     elif style == '<-':
-        ax.arrow(x2, y, np.sign(-d)*(abs(d)-s), 0, head_width=hw, 
-                 head_length=hl, length_includes_head = True, fc='k', ec='k')
-        ax.plot(x2, y, 'k', markersize=8, marker='o')   
+        ax.arrow(x2, y, np.sign(-d)*(abs(d)-s), 0, head_width=hw,
+                 head_length=hl, length_includes_head=True, fc='k', ec='k')
+        ax.plot(x2, y, 'k', markersize=8, marker='o')
     elif style == '<->':
         c = (x1+x2)/2
-        l = abs(x2-x1)
-        ax.arrow(c, y, +(l/2-s), 0, head_width=hw, head_length=hl, 
-                 length_includes_head = True, fc='k', ec='k')
-        ax.arrow(c, y, -(l/2-s), 0, head_width=hw, head_length=hl, 
-                 length_includes_head = True, fc='k', ec='k')
-        
+        ln = abs(x2-x1)
+        ax.arrow(c, y, +(ln/2-s), 0, head_width=hw, head_length=hl,
+                 length_includes_head=True, fc='k', ec='k')
+        ax.arrow(c, y, -(ln/2-s), 0, head_width=hw, head_length=hl,
+                 length_includes_head=True, fc='k', ec='k')
