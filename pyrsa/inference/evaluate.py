@@ -41,7 +41,7 @@ def eval_fixed(model, data, theta=None, method='cosine'):
     elif isinstance(model, Iterable):
         for k in range(len(model)):
             rdm_pred = model[k].predict_rdm(theta=theta[k])
-            evaluations[k] = np.mean(compare(rdm_pred, data, method)[0])
+            evaluations[k] = np.mean(compare(rdm_pred, data, method))
         evaluations = evaluations.reshape((1,len(model)))
     else:
         raise ValueError('model should be a pyrsa.model.Model or a list of'
