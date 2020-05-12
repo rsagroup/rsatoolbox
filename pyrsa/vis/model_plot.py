@@ -9,56 +9,62 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from pyrsa.util.inference_util import pair_tests
 from pyrsa.util.rdm_utils import batch_to_vectors
+from matplotlib import cm
 
 
 def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
-                          multiple_testing='FDR', sort=None, colors=None,
+                          multiple_testing='FDR', sort=False, colors=None,
                           error_bars='SEM', eb_alpha=0.05):
     """ plots the results of a model comparison
     Input should be a results object with model evaluations
     evaluations, which uses the bootstrap samples for confidence intervals
     and significance tests and averages over all trailing dimensions
     like cross-validation folds
-    
+
     Args (case insensitive):
-        result:
-            model evaluation result (pyrsa.inference.result.Result)
-        alpha:
+        result (pyrsa.inference.result.Result):
+            model evaluation result 
+        alpha (float):
             significance threshold (p threshold or FDR q threshold)
-        plot_pair_tests: 
+        plot_pair_tests (string):
             False or None: do not plot pairwise model comparison results
             'arrows': plot results in arrows style
             'nili': plot results as Nili bars (Nili et al. 2014)
             'golan': plot results as Golan wings (Golan et al. 2020)
-        multiple_testing:
+        multiple_testing (string):
             False or 'none': do not adjust for multiple testing
             'FDR' or 'fdr': control the false-discorvery rate at q = alpha
-            'FWER',' fwer', or 'Bonferroni': control the familywise error rate 
+            'FWER',' fwer', or 'Bonferroni': control the familywise error rate
             using the Bonferroni method
-        sort:
-            False or 'none': plot bars in the order passed
+        sort (string or bool):
+            False: plot bars in the order passed
             'descend[ing]': plot bars in descending order of model performance
             'ascend[ing]': plot bars in ascending order of model performance
-        colors:
-            'none': default blue for all bars
+        colors (list of lists, numpy array, matplotlib colormap):
+            None: default blue for all bars
             single color: list or numpy array of 3 or 4 values (RGB, RGBA)
                     specifying the color for all bars
-            multiple colors: numpy array (number of colors by 3 or 4 channels 
-                    -- RGB, RGBA). If the number of colors matches the number
-                    of models, each color is used for the bar corresponding
-                    to that model (in the order of the models as passed). 
-                    If the number of colors does not match the number of
-                    models, the list is exanded to match by linear 
-                    interpolation (e.g. 2 colors will become a gradation).
-        error_bars:
+            multiple colors: list of lists or numpy array (number of colors by
+                    3 or 4 channels -- RGB, RGBA). If the number of colors
+                    matches the number of models, each color is used for the
+                    bar corresponding to one model (in the order of the models
+                    as passed). If the number of colors does not match the
+                    number of models, the list is linear interpolated to
+                    assign a color to each model (in the order of the models as
+                    passed). For example, two colors will become a gradation,
+                    unless there are exactly two model. Instead of a list of
+                    lists or numpy array, a matplotlib colormap object may also
+                    be passed (e.g. colors = cm.coolwarm).
+        error_bars (string):
             'SEM': plot the standard error of the mean
             'CI': plot confidence intervals covering (1-eb_alpha)*100%
-        eb_alpha: error-bar alpha, i.e. proportion of bootstrap samples outside
+        eb_alpha (float): 
+            error-bar alpha, i.e. proportion of bootstrap samples outside
             the confidence interval
-    
+
     Returns:
         ---
-    
+
     """
     # Preparations
     evaluations = result.evaluations
@@ -71,9 +77,9 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
     evaluations = 1 - evaluations
     perf = np.mean(evaluations, axis=0)
     n_models = evaluations.shape[1]
-    if sort==True:
+    if sort:
         sort = 'descending'  # descending by default
-    if sort and not sort.lower()=='none': # 'descending' or 'ascending'
+    if sort:  # 'descending' or 'ascending'
         idx = np.argsort(perf)
         if 'descend' in sort.lower():
             idx = np.flip(idx)
@@ -89,10 +95,11 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         errorbar_low = np.std(evaluations, axis=0)
         errorbar_high = np.std(evaluations, axis=0)
     noise_ceiling = 1 - np.array(noise_ceiling)
+
     # Plot bars
     l, b, w, h = 0.15, 0.15, 0.8, 0.8
     if plot_pair_tests:
-        if plot_pair_tests.lower()=='arrows':        
+        if plot_pair_tests.lower() == 'arrows':
             h_pairTests = 0.3
         else:
             h_pairTests = 0.4
@@ -104,8 +111,11 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         plt.figure(figsize=(12.5, 10))
         ax = plt.axes((l, b, w, h))
     # Define the colors for the bars
-    if colors is 'none': # no color passed...
+    if colors is None: # no color passed...
         colors=[0, 0.4, 0.9, 1]  # use default blue
+    elif isinstance(colors,cm.colors.LinearSegmentedColormap):
+        colors = cm.get_cmap(colors)(np.linspace(0,1,100))\
+            [np.newaxis, :, :3].squeeze()
     colors = np.array([np.array(col) for col in colors])
     if len(colors.shape)==1: # one color passed...
         n_col, n_chan = 1, colors.shape[0]
@@ -121,7 +131,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
                 cols2[:,c] = np.interp(np.array(range(n_models)),
                                np.array(range(n_col))/n_col*n_models,
                                colors[:,c])
-        if sort and not sort.lower()=='none':
+        if sort:
             colors = cols2[idx,:]
         else:
             colors = cols2
@@ -171,10 +181,12 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         ax.set_ylabel('[across-subject mean of Pearson r correlation]', 
                       fontsize=fs2)
     elif method == 'corr_cov':
-        ax.set_ylabel('[across-subject mean of whitened-RDM Pearson r correlation]', 
+        ax.set_ylabel('[across-subject mean of whitened-RDM Pearson r '
+                      + 'correlation]', 
                       fontsize=fs2)
     elif method == 'kendall' or method == 'tau-b':
-        ax.set_ylabel('[across-subject mean of Kendall tau-b rank correlation]', 
+        ax.set_ylabel('[across-subject mean of Kendall tau-b rank '
+                      + 'correlation]', 
                       fontsize=f2s)
     elif method == 'tau-a':
         ax.set_ylabel('[across-subject mean of Kendall tau-a rank correlation]', 
@@ -222,10 +234,10 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         elif result.cv_method == 'bootstrap_pattern':
             model_comp_descr = model_comp_descr + \
             '\nInference by bootstrap resampling of experimental conditions.'
-        elif result.cv_method == 'bootstrap' or result.cv_method == \
-        'bootstrap_crossval':
+        elif result.cv_method in ['bootstrap', 'bootstrap_crossval']:
             model_comp_descr = model_comp_descr + \
-            '\nInference by bootstrap resampling of subjects and experimental conditions.'
+            '\nInference by bootstrap resampling of subjects and  ' \
+            + 'experimental conditions.'
         model_comp_descr = model_comp_descr + '\nError bars indicate the'
         if error_bars == 'CI':
             model_comp_descr = (model_comp_descr +
@@ -244,16 +256,19 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
             plot_arrows(axbar, significant)
 
 
-def plot_nili_bars(axbar, significant):        
+def plot_nili_bars(axbar, significant):   
     """ plots the results of the pairwise inferential model comparisons in the
     form of a set of black horizontal bars connecting significantly different
     models as in the 2014 RSA Toolbox (Nili et al. 2014).
+
     Args:
         axbar: Matplotlib axes handle to plot in
         significant: Boolean matrix of model comparisons
+
     Returns:
         ---
-    """        
+
+    """  
     k = 1
     for i in range(significant.shape[0]):
         k += 1
@@ -265,8 +280,8 @@ def plot_nili_bars(axbar, significant):
     axbar.set_ylim((0, k))
 
 
-def plot_golan_wings(axbar, significant, perf, sort, colors='none', 
-                     always_black=False, version=3):        
+def plot_golan_wings(axbar, significant, perf, sort, colors='none',
+                     always_black=False, version=3):
     """ Plots the results of the pairwise inferential model comparisons in the
     form of black horizontal bars with a tick mark at the reference model and
     a circular bulge at each significantly different model similar to the 
@@ -289,6 +304,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
         ---
     
     """   
+
     # Define wing order
     n_models = significant.shape[0]
     wing_order = np.array(range(n_models)) # to the right by default 
@@ -296,6 +312,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
         wing_order = np.flip(wing_order) # to the left if bars are ascending
     if version == 4:
         wing_order = np.argsort(-perf)
+
     # Define vertical spacing
     bbox = axbar.get_window_extent().transformed(
                                      plt.gcf().dpi_scale_trans.inverted())
@@ -313,6 +330,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
             h += 1
     axbar.set_axis_off()
     axbar.set_ylim((0, h))    
+
     # Draw the wings
     if always_black or colors is 'none' or colors is 'k' or colors.shape[0]==1:
         colors = np.tile([0,0,0,1],(n_models,1))
@@ -367,11 +385,11 @@ def plot_arrows(axbar, significant):
     most concise if models are ordered from worst to best (top to bottom and 
     left to right).
     """
-    # preparations
+    # Preparations
     [n,n] = significant.shape
     remaining = significant.copy()
 
-    # capture as many comparisons as possible with double arrows
+    # Capture as many comparisons as possible with double arrows
     double_arrows = list()
     for ambiguity_span in range(0, n-1): 
     # consider short double arrows first (these cover many comparisons)
@@ -382,7 +400,7 @@ def plot_arrows(axbar, significant):
                 double_arrows.append((i-ambiguity_span-1, i))
                 remaining[i:n, 0:i-ambiguity_span] = 0
       
-    # capture as many of the remaining comparisons as possible with arrows
+    # Capture as many of the remaining comparisons as possible with arrows
     arrows = list()
     for dist2diag in range(1, n):
         for i in range(n-1,dist2diag-1,-1):
@@ -395,14 +413,14 @@ def plot_arrows(axbar, significant):
                 arrows.append((i-dist2diag, i)) # add right arrow
                 remaining[i:n, i-dist2diag] = 0
    
-    # capture the remaining comparisons with lines
+    # Capture the remaining comparisons with lines
     lines = list()
     for i in range(1, n):
         for j in range(0, i-1):
             if remaining[i, j]:
                 lines.append((i, j)) # add line
     
-    # plot
+    # Plot
     expected_n_lines = 6
     axbar.set_ylim((0, expected_n_lines))
     bbox = axbar.get_window_extent().transformed(
