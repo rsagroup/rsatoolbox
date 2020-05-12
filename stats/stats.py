@@ -422,6 +422,91 @@ def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
     plt.ylim(bottom=0)
 
 
+def save_sim_ecoset(model=dnn.get_default_model(), layer=2, sd=0.05,
+                    n_voxel=100, n_subj=10, n_repeat=2,
+                    simulation_folder='sim_eco', n_sim=1000,
+                    duration=1, pause=1, endzeros=25,
+                    use_cor_noise=True, resolution=2,
+                    sigma_noise = 2, ar_coeff = .5,
+                    ecoset_path='~/ecoset/val/'):
+    """ simulates representations based on randomly chosen ecoset images
+        (or any other folder of folders with images inside)
+        
+    """
+    fname_base = get_fname_base(simulation_folder=simulation_folder,
+                                layer=layer, n_voxel=n_voxel, n_subj=n_subj,
+                                n_repeat=n_repeat, sd=sd, duration=duration,
+                                pause=pause, endzeros=endzeros,
+                                use_cor_noise=use_cor_noise,
+                                resolution=resolution,
+                                sigma_noise=sigma_noise,
+                                ar_coeff=ar_coeff)
+    if not os.path.isdir(fname_base):
+        os.makedirs(fname_base)
+    for i in tqdm.trange(n_sim):
+        Utrue = []
+        sigmaP = []
+        indices_space = []
+        weights = []
+        U = []
+        des = []
+        tim = []
+        residuals = []
+        for i_subj in range(n_subj):
+            (Utrue_subj,sigmaP_subj, indices_space_subj, weights_subj) = \
+                dnn.get_sampled_representations(model, layer, [sd, sd],
+                                                stimList, n_voxel)
+            Utrue_subj = Utrue_subj / np.sqrt(np.sum(Utrue_subj ** 2)) \
+                * np.sqrt(Utrue_subj.size)
+            designs = []
+            timecourses = []
+            Usamps = []
+            res_subj = []
+            for iSamp in range(n_repeat):
+                design = dnn.generate_design_random(len(stimList),
+                    repeats=1, duration=duration, pause=pause,
+                    endzeros=endzeros)
+                if use_cor_noise:
+                    timecourse = dnn.generate_timecourse(design, Utrue_subj,
+                        sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
+                        sigmaP=sigmaP_subj)
+                else:
+                    timecourse = dnn.generate_timecourse(design, Utrue_subj,
+                        sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
+                        sigmaP=None)
+                Usamp = estimate_betas(design, timecourse)
+                designs.append(design)
+                timecourses.append(timecourse)
+                Usamps.append(Usamp)
+                res_subj.append(get_residuals(design, timecourse, Usamp,
+                                              resolution=resolution))
+            res_subj = np.concatenate(res_subj, axis=0)
+            residuals.append(res_subj)
+            U.append(np.array(Usamps))
+            des.append(np.array(designs))
+            tim.append(np.array(timecourses))
+            Utrue.append(Utrue_subj)
+            sigmaP.append(sigmaP_subj)
+            indices_space.append(indices_space_subj)
+            weights.append(weights_subj)
+        Utrue = np.array(Utrue)
+        sigmaP = np.array(sigmaP)
+        residuals = np.array(residuals)
+        indices_space = np.array(indices_space)
+        weights = np.array(weights)
+        U = np.array(U)
+        des = np.array(des)
+        tim = np.array(tim)
+        np.save(fname_base + 'Utrue%04d' % i, Utrue)
+        np.save(fname_base + 'sigmaP%04d' % i, sigmaP)
+        np.save(fname_base + 'residuals%04d' % i, residuals)
+        np.save(fname_base + 'indices_space%04d' % i, indices_space)
+        np.save(fname_base + 'weights%04d' % i, weights)
+        np.save(fname_base + 'U%04d' % i, U)
+
+
+
+
 def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
                             stimList=get_stimuli_96(), n_voxel=100, n_subj=10,
                             simulation_folder='sim', n_sim=1000, n_repeat=2,
