@@ -9,6 +9,7 @@ Created on Wed Mar 25 17:59:29 2020
 import h5py
 import pickle
 import numpy as np
+import os
 
 
 def write_dict_hdf5(file, dictionary):
@@ -20,6 +21,9 @@ def write_dict_hdf5(file, dictionary):
         dictionary(dict): the dict to be saved
 
     """
+    if isinstance(file, str):
+        if os.path.exists(file):
+            raise ValueError('File already exists!')
     file = h5py.File(file, 'a')
     file.attrs['pyrsa_version'] = '3.0'
     _write_to_group(file, dictionary)
@@ -30,7 +34,9 @@ def _write_to_group(group, dictionary):
     for key in dictionary.keys():
         value = dictionary[key]
         if isinstance(value, str):
-            group.attrs[key] = value
+            # needs another conversion to string to catch weird subtypes
+            # like numpy.str_
+            group.attrs[key] = str(value)
         elif isinstance(value, np.ndarray):
             if str(value.dtype)[:2] == '<U':
                 group[key] = value.astype('S')
