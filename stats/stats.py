@@ -8,18 +8,17 @@ Functions to check the statistical integrity of the toolbox
 """
 
 import os
+import pathlib
 import numpy as np
 from scipy.spatial.distance import squareform
 import matplotlib.pyplot as plt
 import tqdm
 import scipy.signal as signal
-from hrf import spm_hrf
-from scipy.ndimage import gaussian_filter as gaussian_filter
-import pathlib
+import PIL
 from matplotlib.ticker import FormatStrFormatter
 import pyrsa
 import nn_simulations as dnn
-import PIL
+from hrf import spm_hrf
 
 
 def get_stimuli_92():
@@ -75,7 +74,7 @@ def get_residuals_cross(designs, timecourses, betas, resolution=2, hrf=None):
 
 def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False):
     """ runs a run of inference
-    
+
     Args:
         model(pyrsa.model.Model): the model(s) to be tested
         rdms(pyrsa.rdm.Rdms): the data
@@ -89,23 +88,26 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False):
             rdmcrossval_rdms pyrsa.inference.bootstrap_crossval(k_pattern=1)
     """
     if bootstrap == 'pattern':
-        results = pyrsa.inference.eval_bootstrap_pattern(model, rdms,
+        results = pyrsa.inference.eval_bootstrap_pattern(
+            model, rdms,
             boot_noise_ceil=boot_noise_ceil, method=method)
     elif bootstrap == 'rdm':
-        results = pyrsa.inference.eval_bootstrap_rdm(model, rdms,
+        results = pyrsa.inference.eval_bootstrap_rdm(
+            model, rdms,
             boot_noise_ceil=boot_noise_ceil, method=method)
     elif bootstrap == 'boot':
-        results = pyrsa.inference.eval_bootstrap(model, rdms,
+        results = pyrsa.inference.eval_bootstrap(
+            model, rdms,
             boot_noise_ceil=boot_noise_ceil, method=method)
     elif bootstrap == 'crossval':
-        results = pyrsa.inference.bootstrap_crossval(model, rdms,
-            boot_noise_ceil=boot_noise_ceil, method=method)
+        results = pyrsa.inference.bootstrap_crossval(
+            model, rdms, method=method)
     elif bootstrap == 'crossval_pattern':
-        results = pyrsa.inference.bootstrap_crossval(model, rdms,
-            boot_noise_ceil=boot_noise_ceil, method=method, k_rdm=1)
+        results = pyrsa.inference.bootstrap_crossval(
+            model, rdms, method=method, k_rdm=1)
     elif bootstrap == 'crossval_rdms':
-        results = pyrsa.inference.bootstrap_crossval(model, rdms,
-            boot_noise_ceil=boot_noise_ceil, method=method, k_pattern=1)
+        results = pyrsa.inference.bootstrap_crossval(
+            model, rdms, method=method, k_pattern=1)
     return results
 
 
@@ -115,7 +117,7 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
     """ runs simulations for comparison to zero
     It compares whatever model you pass to pure noise data, generated
     as independent normal noise for the voxels and subjects.
-    
+
     Args:
         model(pyrsa.model.Model): the model to be tested against
         n_voxel(int): number of voxels to be simulated per subject
@@ -142,12 +144,12 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
 def save_compare_to_zero(idx, n_voxel=100, n_subj=10, n_cond=5,
                          method='corr', bootstrap='pattern',
                          folder='comp_zero', sigma_noise=1):
-    """ saves the results of a simulation to a file 
+    """ saves the results of a simulation to a file
     """
     if not os.path.isdir(folder):
         os.mkdir(folder)
-    fname = folder + os.path.sep + 'p_%s_%s_%d_%d_%d_%.2f_%03d.npy' % (method,
-        bootstrap, n_cond, n_subj, n_voxel, sigma_noise, idx)
+    fname = folder + os.path.sep + 'p_%s_%s_%d_%d_%d_%.2f_%03d.npy' % (
+        method, bootstrap, n_cond, n_subj, n_voxel, sigma_noise, idx)
     model_u = np.random.randn(n_cond, n_voxel)
     model_dat = pyrsa.data.Dataset(model_u)
     model_rdm = pyrsa.rdm.calc_rdm(model_dat)
@@ -163,7 +165,7 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
     """ runs simulations for comparison to zero
     It compares whatever model you pass to pure noise data, generated
     as independent normal noise for the voxels and subjects.
-    
+
     Args:
         model(pyrsa.model.Model): the model to be tested against each other
         n_voxel(int): number of voxels to be simulated per subject
@@ -192,8 +194,8 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
     H = pyrsa.util.matrix.centering(D.shape[0])
     G = -0.5 * (H @ D @ H)
     U0 = pyrsa.simulation.make_signal(G, n_voxel, make_exact=True)
-    dat0 = pyrsa.data.Dataset(U0)
-    rdm0 = pyrsa.rdm.calc_rdm(dat0)
+    # dat0 = pyrsa.data.Dataset(U0)
+    # rdm0 = pyrsa.rdm.calc_rdm(dat0)
     p = np.empty(n_sim)
     for i_sim in tqdm.trange(n_sim, position=0):
         raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
@@ -204,20 +206,21 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
         rdms = pyrsa.rdm.calc_rdm(data)
         results = run_inference([model1, model2], rdms, method, bootstrap)
         idx_valid = ~np.isnan(results.evaluations[:, 0])
-        p[i_sim] = np.sum(results.evaluations[idx_valid, 0] > 
-                          results.evaluations[idx_valid, 1]) / np.sum(idx_valid)
+        p[i_sim] = (np.sum(results.evaluations[idx_valid, 0] >
+                           results.evaluations[idx_valid, 1])
+                    / np.sum(idx_valid))
     return p
 
 
 def save_compare_models(idx, n_voxel=100, n_subj=10, n_cond=5,
                         method='corr', bootstrap='pattern',
                         folder='comp_model', sigma_noise=1):
-    """ saves the results of a simulation to a file 
+    """ saves the results of a simulation to a file
     """
     if not os.path.isdir(folder):
         os.mkdir(folder)
-    fname = folder + os.path.sep + 'p_%s_%s_%d_%d_%d_%.2f_%03d.npy' % (method,
-        bootstrap, n_cond, n_subj, n_voxel, sigma_noise, idx)
+    fname = folder + os.path.sep + 'p_%s_%s_%d_%d_%d_%.2f_%03d.npy' % (
+        method, bootstrap, n_cond, n_subj, n_voxel, sigma_noise, idx)
     model1_u = np.random.randn(n_cond, n_voxel)
     model1_dat = pyrsa.data.Dataset(model1_u)
     model1_rdm = pyrsa.rdm.calc_rdm(model1_dat)
@@ -227,17 +230,17 @@ def save_compare_models(idx, n_voxel=100, n_subj=10, n_cond=5,
     model2_rdm = pyrsa.rdm.calc_rdm(model2_dat)
     model2 = pyrsa.model.ModelFixed('test2', model2_rdm)
     p = check_compare_models(model1, model2, n_voxel=n_voxel, n_subj=n_subj,
-                              method=method, bootstrap=bootstrap,
-                              sigma_noise=sigma_noise)
+                             method=method, bootstrap=bootstrap,
+                             sigma_noise=sigma_noise)
     np.save(fname, p)
 
 
 def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
-                         method='corr', bootstrap='pattern', sigma_noise=1,
-                         boot_noise_ceil=False):
+                        method='corr', bootstrap='pattern', sigma_noise=1,
+                        boot_noise_ceil=False):
     """ runs simulations for comparing the model to data generated with the
-    model rdm as ground truth to check 
-    
+    model rdm as ground truth to check
+
     Args:
         model(pyrsa.model.Model): the model to be tested against each other
         n_voxel(int): number of voxels to be simulated per subject
@@ -257,8 +260,8 @@ def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
     H = pyrsa.util.matrix.centering(D.shape[0])
     G = -0.5 * (H @ D @ H)
     U0 = pyrsa.simulation.make_signal(G, n_voxel, make_exact=True)
-    #dat0 = pyrsa.data.Dataset(U0)
-    #rdm0 = pyrsa.rdm.calc_rdm(dat0)
+    # dat0 = pyrsa.data.Dataset(U0)
+    # rdm0 = pyrsa.rdm.calc_rdm(dat0)
     p_upper = np.empty(n_sim)
     p_lower = np.empty(n_sim)
     for i_sim in tqdm.trange(n_sim, position=0):
@@ -275,28 +278,29 @@ def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
             p_upper[i_sim] = (np.sum(results.evaluations[idx_valid, 0] <
                                      results.noise_ceiling[1][idx_valid])
                               / np.sum(idx_valid))
-            p_lower[i_sim] = (np.sum(results.evaluations[idx_valid, 0] < 
+            p_lower[i_sim] = (np.sum(results.evaluations[idx_valid, 0] <
                                      results.noise_ceiling[0][idx_valid])
                               / np.sum(idx_valid))
         else:
-            p_upper[i_sim] = (np.sum(results.evaluations[idx_valid, 0] < 
+            p_upper[i_sim] = (np.sum(results.evaluations[idx_valid, 0] <
                                      results.noise_ceiling[1])
                               / np.sum(idx_valid))
-            p_lower[i_sim] = (np.sum(results.evaluations[idx_valid, 0] < 
+            p_lower[i_sim] = (np.sum(results.evaluations[idx_valid, 0] <
                                      results.noise_ceiling[0])
                               / np.sum(idx_valid))
     return np.array([p_lower, p_upper])
 
 
 def save_noise_ceiling(idx, n_voxel=100, n_subj=10, n_cond=5,
-                        method='corr', bootstrap='pattern', sigma_noise=1,
-                        folder='comp_noise', boot_noise_ceil=False):
-    """ saves the results of a simulation to a file 
+                       method='corr', bootstrap='pattern', sigma_noise=1,
+                       folder='comp_noise', boot_noise_ceil=False):
+    """ saves the results of a simulation to a file
     """
     if not os.path.isdir(folder):
         os.mkdir(folder)
-    fname = folder + os.path.sep + 'p_%s_%s_%s_%d_%d_%d_%.2f_%03d.npy' % (method,
-        bootstrap, boot_noise_ceil, n_cond, n_subj, n_voxel, sigma_noise, idx)
+    fname = (folder + os.path.sep + 'p_%s_%s_%s_%d_%d_%d_%.2f_%03d.npy'
+             % (method, bootstrap, boot_noise_ceil, n_cond, n_subj, n_voxel,
+                sigma_noise, idx))
     model_u = np.random.randn(n_cond, n_voxel)
     model_dat = pyrsa.data.Dataset(model_u)
     model_rdm = pyrsa.rdm.calc_rdm(model_dat)
@@ -308,11 +312,11 @@ def save_noise_ceiling(idx, n_voxel=100, n_subj=10, n_cond=5,
 
 
 def load_comp(folder):
-    """ this function loads all comparison results from a folder and puts 
+    """ this function loads all comparison results from a folder and puts
     them into a long style matrix, i.e. one p-value per row with the
     metainfo added into the other rows. The final table has the format:
-        p_value | method | bootstrap-type | number of subjects | 
-        number of patterns | number of voxels | boot_noise_ceil| 
+        p_value | method | bootstrap-type | number of subjects |
+        number of patterns | number of voxels | boot_noise_ceil|
         sigma_noise | idx
     methods:
         'corr' = 0
@@ -472,8 +476,8 @@ def save_sim_ecoset(model=dnn.get_default_model(), layer=2, sd=0.05,
             for i_subj in range(n_subj):
                 indices_space_subj, weights_subj = dnn.get_random_indices_conv(
                     U_shape, n_voxel)
-                sigmaP_subj = dnn.get_sampled_sigmaP(U_shape,
-                    indices_space_subj, weights_subj, [sd, sd])
+                sigmaP_subj = dnn.get_sampled_sigmaP(
+                    U_shape, indices_space_subj, weights_subj, [sd, sd])
                 sigmaP.append(sigmaP_subj)
                 indices_space.append(indices_space_subj)
                 weights.append(weights_subj)
@@ -505,15 +509,17 @@ def save_sim_ecoset(model=dnn.get_default_model(), layer=2, sd=0.05,
             Usamps = []
             res_subj = []
             for iSamp in range(n_repeat):
-                design = dnn.generate_design_random(len(stim_list),
-                    repeats=1, duration=duration, pause=pause,
+                design = dnn.generate_design_random(
+                    len(stim_list), repeats=1, duration=duration, pause=pause,
                     endzeros=endzeros)
                 if use_cor_noise:
-                    timecourse = dnn.generate_timecourse(design, Utrue[i_subj],
+                    timecourse = dnn.generate_timecourse(
+                        design, Utrue[i_subj],
                         sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
                         sigmaP=sigmaP[i_subj])
                 else:
-                    timecourse = dnn.generate_timecourse(design, Utrue_subj,
+                    timecourse = dnn.generate_timecourse(
+                        design, Utrue_subj,
                         sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
                         sigmaP=None)
                 Usamp = estimate_betas(design, timecourse)
@@ -564,7 +570,7 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
         tim = []
         residuals = []
         for i_subj in range(n_subj):
-            (Utrue_subj,sigmaP_subj, indices_space_subj, weights_subj) = \
+            (Utrue_subj, sigmaP_subj, indices_space_subj, weights_subj) = \
                 dnn.get_sampled_representations(model, layer, [sd, sd],
                                                 stim_list, n_voxel)
             Utrue_subj = Utrue_subj / np.sqrt(np.sum(Utrue_subj ** 2)) \
@@ -574,15 +580,18 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
             Usamps = []
             res_subj = []
             for iSamp in range(n_repeat):
-                design = dnn.generate_design_random(len(stim_list),
+                design = dnn.generate_design_random(
+                    len(stim_list),
                     repeats=1, duration=duration, pause=pause,
                     endzeros=endzeros)
                 if use_cor_noise:
-                    timecourse = dnn.generate_timecourse(design, Utrue_subj,
+                    timecourse = dnn.generate_timecourse(
+                        design, Utrue_subj,
                         sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
                         sigmaP=sigmaP_subj)
                 else:
-                    timecourse = dnn.generate_timecourse(design, Utrue_subj,
+                    timecourse = dnn.generate_timecourse(
+                        design, Utrue_subj,
                         sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
                         sigmaP=None)
                 Usamp = estimate_betas(design, timecourse)
@@ -621,7 +630,7 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
                       duration=1, pause=1, endzeros=25, use_cor_noise=True,
                       resolution=2, sigma_noise=2, ar_coeff=0.5,
                       model_type='fixed_averagetrue',
-                      rdm_comparison='cosine', n_Layer=12, k_pattern=3,
+                      rdm_comparison='cosine', n_layer=12, k_pattern=3,
                       k_rdm=3, rdm_type='crossnobis', n_stimuli=92,
                       noise_type='eye'):
     fname_base = get_fname_base(simulation_folder=simulation_folder,
@@ -643,20 +652,19 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
     pat_desc = {'stim': np.arange(n_stimuli)}
     print('\n generating models\n')
     stimuli = dnn.get_stimuli_96()[:n_stimuli]
-    for i_layer in tqdm.trange(n_Layer):
+    for i_layer in tqdm.trange(n_layer):
         if model_type == 'fixed_averagetrue':
-            fname_base_l = get_fname_base(simulation_folder=simulation_folder,
-                                layer=i_layer, n_voxel=n_voxel, n_subj=n_subj,
-                                n_repeat=n_repeat, sd=sd, duration=duration,
-                                pause=pause, endzeros=endzeros,
-                                use_cor_noise=use_cor_noise,
-                                resolution=resolution,
-                                sigma_noise=sigma_noise,
-                                ar_coeff=ar_coeff)
+            fname_base_l = get_fname_base(
+                simulation_folder=simulation_folder,
+                layer=i_layer, n_voxel=n_voxel, n_subj=n_subj,
+                n_repeat=n_repeat, sd=sd, duration=duration,
+                pause=pause, endzeros=endzeros, sigma_noise=sigma_noise,
+                use_cor_noise=use_cor_noise, resolution=resolution,
+                ar_coeff=ar_coeff)
             rdm_true_average = 0
             for i in range(n_sim):
                 Utrue = np.load(fname_base_l + 'Utrue%04d.npy' % i)
-                dat_true = [pyrsa.data.Dataset(Utrue[i, :n_stimuli,:])
+                dat_true = [pyrsa.data.Dataset(Utrue[i, :n_stimuli, :])
                             for i in range(Utrue.shape[0])]
                 rdm_true = pyrsa.rdm.calc_rdm(dat_true, method='euclidean')
                 rdm_mat = rdm_true.get_vectors()
@@ -675,12 +683,12 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
         elif model_type == 'select_full':
             smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
-            for i_smooth in  range(len(smoothings)):
+            for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
                     stimuli=stimuli,
-                    smoothing=smoothings[i_smooth],
+                    smoothing=smooth,
                     average=False)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
@@ -689,12 +697,12 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
         elif model_type == 'select_avg':
             smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
-            for i_smooth in  range(len(smoothings)):
+            for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
                     stimuli=stimuli,
-                    smoothing=smoothings[i_smooth],
+                    smoothing=smooth,
                     average=True)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
@@ -703,12 +711,12 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
         elif model_type == 'select_both':
             smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
-            for i_smooth in  range(len(smoothings)):
+            for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
                     stimuli=stimuli,
-                    smoothing=smoothings[i_smooth],
+                    smoothing=smooth,
                     average=False)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
@@ -716,7 +724,7 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
                     model=dnn.get_default_model(),
                     layer=i_layer,
                     stimuli=stimuli,
-                    smoothing=smoothings[i_smooth],
+                    smoothing=smooth,
                     average=True)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
@@ -725,12 +733,12 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
         elif model_type == 'interpolate_full':
             smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
-            for i_smooth in range(len(smoothings)):
+            for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
                     stimuli=stimuli,
-                    smoothing=smoothings[i_smooth],
+                    smoothing=smooth,
                     average=False)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
@@ -739,12 +747,12 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
         elif model_type == 'interpolate_avg':
             smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
-            for i_smooth in range(len(smoothings)):
+            for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
                     stimuli=stimuli,
-                    smoothing=smoothings[i_smooth],
+                    smoothing=smooth,
                     average=True)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
@@ -753,16 +761,16 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
         elif model_type == 'interpolate_both':
             smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
-            for i_smooth in range(len(smoothings)):
+            for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
                     stimuli=stimuli,
-                    smoothing=smoothings[i_smooth],
+                    smoothing=smooth,
                     average=True)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
-            for i_smooth in range(len(smoothings)-1,-1,-1):
+            for i_smooth in range(len(smoothings) - 1, -1, -1):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
@@ -821,7 +829,8 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
             noise = pyrsa.data.get_prec_from_residuals(residuals)
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor='repeat', noise=noise)
-        results = pyrsa.inference.bootstrap_crossval(models, rdms,
+        results = pyrsa.inference.bootstrap_crossval(
+            models, rdms,
             pattern_descriptor='stim', rdm_descriptor='index',
             k_pattern=k_pattern, k_rdm=k_rdm, method=rdm_comparison)
         results.save(res_path + '/res%04d.hdf5' % (i))
@@ -832,7 +841,7 @@ def plot_saved_dnn(layer=2, sd=0.05, n_voxel=100, idx=0,
                    duration=1, pause=1, endzeros=25, use_cor_noise=True,
                    resolution=2, sigma_noise=2, ar_coeff=0.5,
                    model_type='fixed_averagetrue',
-                   rdm_comparison='cosine', n_Layer=12, k_pattern=3, k_rdm=3,
+                   rdm_comparison='cosine', n_layer=12, k_pattern=3, k_rdm=3,
                    rdm_type='crossnobis', n_stimuli=92, fname_base=None,
                    noise_type='eye'):
     if fname_base is None:
@@ -874,18 +883,19 @@ def get_fname_base(simulation_folder, layer, n_voxel, n_subj, n_repeat, sd,
     return fname_base
 
 
-def plot_saved_dnn_average(layer=2, sd=3, stim_list=get_stimuli_96(),
+def plot_saved_dnn_average(layer=2, sd=3,
                            n_voxel=100, n_subj=10, simulation_folder='test',
                            n_sim=100, n_repeat=2, duration=5, pause=1,
-                           endzeros=25, use_cor_noise=True, resolution = 2,
+                           endzeros=25, use_cor_noise=True, resolution=2,
                            sigma_noise=2, ar_coeff=.5, modelType='fixed',
                            model_rdm='averagetrue', n_stimuli=92,
-                           rdm_comparison='cosine', n_Layer=12, n_fold=5,
+                           rdm_comparison='cosine', n_layer=12, n_fold=5,
                            rdm_type='crossnobis', fname_base=None):
     if fname_base is None:
         fname_base = get_fname_base(simulation_folder=simulation_folder,
-                                    layer=layer, n_voxel=n_voxel, n_subj=n_subj,
-                                    n_repeat=n_repeat, sd=sd, duration=duration,
+                                    layer=layer, n_voxel=n_voxel,
+                                    n_subj=n_subj, duration=duration,
+                                    n_repeat=n_repeat, sd=sd,
                                     pause=pause, endzeros=endzeros,
                                     use_cor_noise=use_cor_noise,
                                     resolution=resolution,
@@ -898,77 +908,74 @@ def plot_saved_dnn_average(layer=2, sd=3, stim_list=get_stimuli_96(),
         rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, n_fold))
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.tick_params(labelsize=12)
-    for iSim in range(n_sim):
-        ax.fill_between(np.array([0.5, n_Layer + 0.5]), noise_ceilings[iSim, 0],
-                        noise_ceilings[iSim, 1], facecolor='blue',
-                        alpha=1 / n_sim)
-    #ax.plot(np.array([0.5,NLayer+0.5]),np.repeat(noise_ceilings[:,0],2).reshape([Nsim,2]).T,'k',alpha=.1)
-    #ax.plot(np.array([0.5,NLayer+0.5]),np.repeat(noise_ceilings[:,1],2).reshape([Nsim,2]).T,'k',alpha=.1)
-    ax.plot(np.arange(n_Layer) + 1 - n_fold / 20, np.mean(scores[:, :n_Layer, :],
-                                                        axis=2).T,
-            'k.')
+    for i_sim in range(n_sim):
+        ax.fill_between(np.array([0.5, n_layer + 0.5]),
+                        noise_ceilings[i_sim, 0],
+                        noise_ceilings[i_sim, 1], alpha=1 / n_sim,
+                        facecolor='blue')
+    ax.plot(np.arange(n_layer) + 1 - n_fold / 20,
+            np.mean(scores[:, :n_layer, :], axis=2).T, 'k.')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.set_xlabel('Layer', fontsize=18)
     ax.set_title('Layer %d' % layer, fontsize=28)
-    if rdm_comparison=='cosine':
-        plt.ylim([0,1])
+    if rdm_comparison == 'cosine':
+        plt.ylim([0, 1])
         ax.set_ylabel('Cosine Distance', fontsize=18)
-    elif rdm_comparison=='eudlid':
+    elif rdm_comparison == 'eudlid':
         ax.set_ylabel('Euclidean Distance', fontsize=18)
-    elif rdm_comparison=='kendall-tau':
+    elif rdm_comparison == 'kendall-tau':
         ax.set_ylabel('Kendall Tau', fontsize=18)
-    elif rdm_comparison=='pearson':
+    elif rdm_comparison == 'pearson':
         ax.set_ylabel('Pearson Correlation', fontsize=18)
-    elif rdm_comparison=='spearman':
+    elif rdm_comparison == 'spearman':
         ax.set_ylabel('Spearman Rho', fontsize=18)
 
 
 def plot_comp(data, alpha=0.05):
     """ plots comp check data
-    
     """
-    methods = np.unique(data[:, 1])
+    # methods = np.unique(data[:, 1])
     boots = np.unique(data[:, 2])
     n_subj = np.unique(data[:, 3])
     n_cond = np.unique(data[:, 4])
     n_voxel = np.unique(data[:, 5])
-    boot_noise = np.unique(data[:, 6])
-    sigmas = np.unique(data[:, 7])
+    # boot_noise = np.unique(data[:, 6])
+    # sigmas = np.unique(data[:, 7])
     idx = np.unique(data[:, 8])
     props = np.nan * np.empty((len(boots), len(n_subj), len(n_cond),
                                len(n_voxel), len(idx)))
-    for i_boot in range(len(boots)):
-        for i_subj in range(len(n_subj)):
-            for i_cond in range(len(n_cond)):
-                for i_vox in range(len(n_voxel)):
-                    for i in range(len(idx)):
-                        dat = data[data[:,2]==boots[i_boot], :]
-                        dat = dat[dat[:,3]==n_subj[i_subj], :]
-                        dat = dat[dat[:,4]==n_cond[i_cond], :]
-                        dat = dat[dat[:,5]==n_voxel[i_vox], :]
-                        dat = dat[dat[:,8]==idx[i], :]
+    for i_boot, boot in enumerate(boots):
+        for i_subj, n_sub in enumerate(n_subj):
+            for i_cond, cond in enumerate(n_cond):
+                for i_vox, vox in enumerate(n_voxel):
+                    for i, _ in enumerate(idx):
+                        dat = data[data[:, 2] == boot, :]
+                        dat = dat[dat[:, 3] == n_sub, :]
+                        dat = dat[dat[:, 4] == cond, :]
+                        dat = dat[dat[:, 5] == vox, :]
+                        dat = dat[dat[:, 8] == idx[i], :]
                         if len(dat) > 0:
-                            prop = (np.sum(dat[:, 0] > (1 - alpha)) 
+                            prop = (np.sum(dat[:, 0] > (1 - alpha))
                                     / len(dat))
                             props[i_boot, i_subj, i_cond, i_vox, i] = prop
                         else:
                             props[i_boot, i_subj, i_cond, i_vox, i] = np.nan
     # First plot: barplot + scatter for each type of bootstrap
     plt.figure()
-    ax = plt.subplot(1,1,1)
+    ax = plt.subplot(1, 1, 1)
     for i in range(len(boots)):
         plt.bar(i, np.mean(props[i]))
-        plt.plot(np.repeat(i,props[i].size) 
-                 + 0.1* np.random.randn(props[i].size),
+        plt.plot(np.repeat(i, props[i].size)
+                 + 0.1 * np.random.randn(props[i].size),
                  props[i].flatten(), 'k.')
-    plt.plot([-0.5,2.5],[alpha, alpha], 'k--')
-    plt.xticks([0,1,2], ['both', 'rdm', 'pattern'])
+    plt.plot([-0.5, 2.5], [alpha, alpha], 'k--')
+    plt.xticks([0, 1, 2], ['both', 'rdm', 'pattern'])
     plt.ylabel('Proportion significant')
     plt.xlabel('bootstrap method')
     # Second plot: plot against n_subj
     p_max = np.nanmax(props)
-    plt.figure(figsize=(12,5))
+    plt.figure(figsize=(12, 5))
     for i in range(len(boots)):
         ax = plt.subplot(1, 3, i+1)
         h0 = plt.plot(np.arange(len(n_subj)), props[i, :, 0, 0, :], '.',
@@ -980,12 +987,12 @@ def plot_comp(data, alpha=0.05):
         if len(n_cond) > 3:
             h3 = plt.plot(np.arange(len(n_subj)), props[i, :, 3, 0, :], '.',
                           color=[0.5, 0.6, 1])
-        if i==0:
+        if i == 0:
             plt.title('both', fontsize=18)
             plt.ylabel('Proportion significant', fontsize=18)
-        elif i==1:
+        elif i == 1:
             plt.title('rdm', fontsize=18)
-        elif i==2:
+        elif i == 2:
             plt.title('pattern', fontsize=18)
             if len(n_cond) > 3:
                 plt.legend([h0[0], h1[0], h2[0], h3[0]], n_cond.astype('int'),
@@ -997,13 +1004,13 @@ def plot_comp(data, alpha=0.05):
         plt.yticks([0, alpha, 2*alpha, 3*alpha])
         plt.ylim([0, p_max + 0.01])
         plt.xlim([-1, len(n_subj)])
-        plt.plot([-1, len(n_subj)],[alpha, alpha],'k--')
+        plt.plot([-1, len(n_subj)], [alpha, alpha], 'k--')
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         plt.xlabel('# of rdms', fontsize=18)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
     # Third plot: plot against n_pattern
-    plt.figure(figsize=(12,5))
+    plt.figure(figsize=(12, 5))
     for i in range(len(boots)):
         ax = plt.subplot(1, 3, i+1)
         h0 = plt.plot(np.arange(len(n_cond)), props[i, 0, :, 0, :], '.',
@@ -1014,12 +1021,12 @@ def plot_comp(data, alpha=0.05):
                       color=[0.5, 0.4, 0.7])
         h3 = plt.plot(np.arange(len(n_cond)), props[i, 3, :, 0, :], '.',
                       color=[0.5, 0.6, 1])
-        if i==0:
+        if i == 0:
             plt.title('both', fontsize=18)
             plt.ylabel('Proportion significant', fontsize=18)
-        elif i==1:
+        elif i == 1:
             plt.title('rdm', fontsize=18)
-        elif i==2:
+        elif i == 2:
             plt.title('pattern', fontsize=18)
             plt.legend([h0[0], h1[0], h2[0], h3[0]], n_subj.astype('int'),
                        frameon=False, title='# of rdms')
@@ -1027,7 +1034,7 @@ def plot_comp(data, alpha=0.05):
         plt.yticks([0, alpha, 2*alpha, 3*alpha])
         plt.ylim([0, p_max + 0.01])
         plt.xlim([-1, len(n_cond)])
-        plt.plot([-1, len(n_cond)],[alpha, alpha],'k--')
+        plt.plot([-1, len(n_cond)], [alpha, alpha], 'k--')
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         plt.xlabel('# of patterns', fontsize=18)
         ax.spines['top'].set_visible(False)
@@ -1035,18 +1042,19 @@ def plot_comp(data, alpha=0.05):
 
 
 def run_comp(idx):
-    """ master script for running the abstract simulations. Each call to 
+    """ master script for running the abstract simulations. Each call to
     this script will run one repetition of the comparisons, i.e. 1000
     evaluations.
-    run this script with all indices from 1 to 960 to reproduce  all analyses 
+    run this script with all indices from 1 to 960 to reproduce  all analyses
     of this type.
     """
-    n_subj = [5,10,20,40]
-    n_cond = [5,20,80,160]
+    n_subj = [5, 10, 20, 40]
+    n_cond = [5, 20, 80, 160]
     boot_type = ['boot', 'pattern', 'rdm']
     comp_type = ['noise', 'noise_boot', 'model', 'zero']
     n_rep = 5
-    (i_rep, i_sub, i_cond, i_boot, i_comp) = np.unravel_index(idx,
+    (i_rep, i_sub, i_cond, i_boot, i_comp) = np.unravel_index(
+        idx,
         [n_rep, len(n_subj), len(n_cond), len(boot_type), len(comp_type)])
     print('starting simulation:')
     print('%d subjects' % n_subj[i_sub])
@@ -1061,10 +1069,11 @@ def run_comp(idx):
                            bootstrap=boot_type[i_boot], boot_noise_ceil=True)
     elif i_comp == 2:
         save_compare_models(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
-                           bootstrap=boot_type[i_boot])
+                            bootstrap=boot_type[i_boot])
     elif i_comp == 3:
-        save_compare_to_zero(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
-                           bootstrap=boot_type[i_boot])
+        save_compare_to_zero(i_rep, n_subj=n_subj[i_sub],
+                             n_cond=n_cond[i_cond],
+                             bootstrap=boot_type[i_boot])
 
 
 if __name__ == '__main__':
@@ -1078,4 +1087,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.sim == 'comp':
         run_comp(args.index)
-
