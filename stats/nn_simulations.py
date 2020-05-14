@@ -205,11 +205,11 @@ def get_complete_representation(model=None, layer=0, stimulus=None):
     if model is None:
         model = get_default_model()
     if stimulus is None:
-        stimulus = torch.rand([1,3,224,224])
-    elif isinstance(stimulus,PIL.Image.Image):
-        stimulus = stimulus.resize((224,224))
+        stimulus = torch.rand([1, 3, 224, 224])
+    elif isinstance(stimulus, PIL.Image.Image):
+        stimulus = stimulus.resize((224, 224))
         stimulus = np.array(stimulus).transpose(2,0,1)
-        if stimulus.shape[0]==4:
+        if stimulus.shape[0] == 4:
             stimulus = stimulus[:3]
         stimulus = torch.tensor(stimulus,dtype=torch.float)/255
         stimulus = normalize(stimulus)
@@ -227,11 +227,11 @@ def get_random_indices_conv(Ushape, N):
     # for convolutional layers-> xpos, ypos & features weights
     # weights are uniform in [0,1]
     # position is uniform in space
-    if len(Ushape)==4:
+    if len(Ushape) == 4:
         Ushape = Ushape[1:]
-    weights = np.random.rand(Ushape[0],N)
-    indx = np.random.randint(0,Ushape[1],N)
-    indy = np.random.randint(0,Ushape[2],N)
+    weights = np.random.rand(Ushape[0], N)
+    indx = np.random.randint(0, Ushape[1], N)
+    indy = np.random.randint(0, Ushape[2], N)
     indices_space = np.array([indx,indy])
     return indices_space, weights
 

@@ -19,11 +19,10 @@ import pathlib
 from matplotlib.ticker import FormatStrFormatter
 import pyrsa
 import nn_simulations as dnn
-
+import PIL
 
 
 def get_stimuli_92():
-    import PIL
     stimuli = []
     for i_stim in range(92):
         im = PIL.Image.open('96Stimuli/stimulus%d.tif' % (i_stim+1))
@@ -32,7 +31,6 @@ def get_stimuli_92():
 
 
 def get_stimuli_96():
-    import PIL
     stimuli = []
     for i_stim in range(96):
         im = PIL.Image.open('96Stimuli/stimulus%d.tif' % (i_stim+1))
@@ -360,7 +358,7 @@ def load_comp(folder):
         sigma_noise = float(split[-2])
         idx = int(split[-1][:-4])
         desc = np.array([[method, boot, n_subj, n_cond, n_voxel,
-                               boot_noise_ceil, sigma_noise, idx]])
+                          boot_noise_ceil, sigma_noise, idx]])
         desc = np.repeat(desc, len(ps), axis=0)
         new_ps = np.concatenate((np.array([ps]).T, desc), axis=1)
         table.append(new_ps)
@@ -406,14 +404,14 @@ def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
     n_binned = np.array(n_binned)
     n_significant = np.array(n_significant)
     n_binned = n_binned / n_binned[:, -1].reshape(-1, 1)
-    ax = plt.subplot(1,1,1)
-    plt.plot(bins, n_binned.T, )
-    plt.plot([0,1],[0,1], 'k--')
+    ax = plt.subplot(1, 1, 1)
+    plt.plot(bins, n_binned.T)
+    plt.plot([0, 1], [0, 1], 'k--')
     ax.set_aspect('equal', 'box')
     plt.xlabel('alpha')
     plt.ylabel('proportion p<alpha')
-    plt.xlim([0,1])
-    plt.ylim([0,1])
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.figure()
@@ -423,16 +421,16 @@ def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
 
 
 def save_sim_ecoset(model=dnn.get_default_model(), layer=2, sd=0.05,
-                    n_voxel=100, n_subj=10, n_repeat=2,
+                    n_voxel=100, n_subj=10, n_stim=92, n_repeat=2,
                     simulation_folder='sim_eco', n_sim=1000,
                     duration=1, pause=1, endzeros=25,
                     use_cor_noise=True, resolution=2,
-                    sigma_noise = 2, ar_coeff = .5,
-                    ecoset_path='~/ecoset/val/'):
+                    sigma_noise=2, ar_coeff=0.5,
+                    ecoset_path='~/ecoset/val/', variation=None):
     """ simulates representations based on randomly chosen ecoset images
         (or any other folder of folders with images inside)
-        
     """
+    ecoset_path = pathlib.Path(ecoset_path).expanduser()
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_voxel, n_subj=n_subj,
                                 n_repeat=n_repeat, sd=sd, duration=duration,
@@ -440,42 +438,85 @@ def save_sim_ecoset(model=dnn.get_default_model(), layer=2, sd=0.05,
                                 use_cor_noise=use_cor_noise,
                                 resolution=resolution,
                                 sigma_noise=sigma_noise,
-                                ar_coeff=ar_coeff)
+                                ar_coeff=ar_coeff, variation=variation)
     if not os.path.isdir(fname_base):
         os.makedirs(fname_base)
     for i in tqdm.trange(n_sim):
-        Utrue = []
-        sigmaP = []
-        indices_space = []
-        weights = []
+        # get new stimulus list
+        if i == 0 or variation in ['stim', 'both']:
+            stim_list = []
+            stim_paths = []
+            U_complete = []
+            folders = os.listdir(ecoset_path)
+            for i_stim in range(n_stim):
+                i_folder = np.random.randint(len(folders))
+                images = os.listdir(os.path.join(ecoset_path,
+                                                 folders[i_folder]))
+                i_image = np.random.randint(len(images))
+                im = PIL.Image.open(os.path.join(ecoset_path,
+                                                 folders[i_folder],
+                                                 images[i_image]))
+                stim_list.append(im)
+                stim_paths.append(os.path.join(folders[i_folder],
+                                               images[i_image]))
+                U_complete.append(
+                    dnn.get_complete_representation(model=model, layer=layer,
+                                                    stimulus=im))
+        U_shape = np.array(U_complete[0].shape)
+
+        # get new sampling locations
+        if i == 0 or variation in ['subj', 'both']:
+            sigmaP = []
+            indices_space = []
+            weights = []
+            for i_subj in range(n_subj):
+                indices_space_subj, weights_subj = dnn.get_random_indices_conv(
+                    U_shape, n_voxel)
+                sigmaP_subj = dnn.get_sampled_sigmaP(U_shape,
+                    indices_space_subj, weights_subj, [sd, sd])
+                sigmaP.append(sigmaP_subj)
+                indices_space.append(indices_space_subj)
+                weights.append(weights_subj)
+            sigmaP = np.array(sigmaP)
+            indices_space = np.array(indices_space)
+            weights = np.array(weights)
+
+        # extract new dnn activations
+        if i == 0 or variation in ['subj', 'stim', 'both']:
+            Utrue = []
+            for i_subj in range(n_subj):
+                Utrue_subj = [dnn.sample_representation(np.squeeze(U_c),
+                                                        indices_space_subj,
+                                                        weights_subj,
+                                                        [sd, sd])
+                              for U_c in U_complete]
+                Utrue_subj = np.array(Utrue_subj)
+                Utrue_subj = Utrue_subj / np.sqrt(np.sum(Utrue_subj ** 2)) \
+                    * np.sqrt(Utrue_subj.size)
+                Utrue.append(Utrue_subj)
+            Utrue = np.array(Utrue)
+
+        # run the fmri simulation
         U = []
         des = []
-        tim = []
         residuals = []
         for i_subj in range(n_subj):
-            (Utrue_subj,sigmaP_subj, indices_space_subj, weights_subj) = \
-                dnn.get_sampled_representations(model, layer, [sd, sd],
-                                                stimList, n_voxel)
-            Utrue_subj = Utrue_subj / np.sqrt(np.sum(Utrue_subj ** 2)) \
-                * np.sqrt(Utrue_subj.size)
-            designs = []
             timecourses = []
             Usamps = []
             res_subj = []
             for iSamp in range(n_repeat):
-                design = dnn.generate_design_random(len(stimList),
+                design = dnn.generate_design_random(len(stim_list),
                     repeats=1, duration=duration, pause=pause,
                     endzeros=endzeros)
                 if use_cor_noise:
-                    timecourse = dnn.generate_timecourse(design, Utrue_subj,
+                    timecourse = dnn.generate_timecourse(design, Utrue[i_subj],
                         sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
-                        sigmaP=sigmaP_subj)
+                        sigmaP=sigmaP[i_subj])
                 else:
                     timecourse = dnn.generate_timecourse(design, Utrue_subj,
                         sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
                         sigmaP=None)
                 Usamp = estimate_betas(design, timecourse)
-                designs.append(design)
                 timecourses.append(timecourse)
                 Usamps.append(Usamp)
                 res_subj.append(get_residuals(design, timecourse, Usamp,
@@ -483,36 +524,26 @@ def save_sim_ecoset(model=dnn.get_default_model(), layer=2, sd=0.05,
             res_subj = np.concatenate(res_subj, axis=0)
             residuals.append(res_subj)
             U.append(np.array(Usamps))
-            des.append(np.array(designs))
-            tim.append(np.array(timecourses))
-            Utrue.append(Utrue_subj)
-            sigmaP.append(sigmaP_subj)
-            indices_space.append(indices_space_subj)
-            weights.append(weights_subj)
-        Utrue = np.array(Utrue)
-        sigmaP = np.array(sigmaP)
         residuals = np.array(residuals)
-        indices_space = np.array(indices_space)
-        weights = np.array(weights)
         U = np.array(U)
         des = np.array(des)
-        tim = np.array(tim)
         np.save(fname_base + 'Utrue%04d' % i, Utrue)
         np.save(fname_base + 'sigmaP%04d' % i, sigmaP)
         np.save(fname_base + 'residuals%04d' % i, residuals)
         np.save(fname_base + 'indices_space%04d' % i, indices_space)
         np.save(fname_base + 'weights%04d' % i, weights)
         np.save(fname_base + 'U%04d' % i, U)
-
-
+        with open(fname_base + 'stim%04d.txt' % i, 'w') as f:
+            for item in stim_paths:
+                f.write("%s\n" % item)
 
 
 def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
-                            stimList=get_stimuli_96(), n_voxel=100, n_subj=10,
+                            stim_list=get_stimuli_96(), n_voxel=100, n_subj=10,
                             simulation_folder='sim', n_sim=1000, n_repeat=2,
                             duration=1, pause=1, endzeros=25,
                             use_cor_noise=True, resolution=2,
-                            sigma_noise = 2, ar_coeff = .5):
+                            sigma_noise=2, ar_coeff=0.5):
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_voxel, n_subj=n_subj,
                                 n_repeat=n_repeat, sd=sd, duration=duration,
@@ -535,7 +566,7 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
         for i_subj in range(n_subj):
             (Utrue_subj,sigmaP_subj, indices_space_subj, weights_subj) = \
                 dnn.get_sampled_representations(model, layer, [sd, sd],
-                                                stimList, n_voxel)
+                                                stim_list, n_voxel)
             Utrue_subj = Utrue_subj / np.sqrt(np.sum(Utrue_subj ** 2)) \
                 * np.sqrt(Utrue_subj.size)
             designs = []
@@ -543,7 +574,7 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
             Usamps = []
             res_subj = []
             for iSamp in range(n_repeat):
-                design = dnn.generate_design_random(len(stimList),
+                design = dnn.generate_design_random(len(stim_list),
                     repeats=1, duration=duration, pause=pause,
                     endzeros=endzeros)
                 if use_cor_noise:
@@ -585,14 +616,14 @@ def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
         np.save(fname_base + 'U%04d' % i, U)
 
 
-def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100,
-                      n_subj=10, simulation_folder='sim', n_sim=100, n_repeat=2,
+def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
+                      n_subj=10, simulation_folder='sim', n_sim=100,
                       duration=1, pause=1, endzeros=25, use_cor_noise=True,
                       resolution=2, sigma_noise=2, ar_coeff=0.5,
                       model_type='fixed_averagetrue',
                       rdm_comparison='cosine', n_Layer=12, k_pattern=3,
                       k_rdm=3, rdm_type='crossnobis', n_stimuli=92,
-                      noise_type = 'eye'):
+                      noise_type='eye'):
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_voxel, n_subj=n_subj,
                                 n_repeat=n_repeat, sd=sd, duration=duration,
@@ -609,7 +640,7 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100,
     if not os.path.isdir(res_path):
         os.mkdir(res_path)
     models = []
-    pat_desc = {'stim':np.arange(n_stimuli)}
+    pat_desc = {'stim': np.arange(n_stimuli)}
     print('\n generating models\n')
     stimuli = dnn.get_stimuli_96()[:n_stimuli]
     for i_layer in tqdm.trange(n_Layer):
@@ -694,7 +725,7 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100,
         elif model_type == 'interpolate_full':
             smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
-            for i_smooth in  range(len(smoothings)):
+            for i_smooth in range(len(smoothings)):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
@@ -708,7 +739,7 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100,
         elif model_type == 'interpolate_avg':
             smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
-            for i_smooth in  range(len(smoothings)):
+            for i_smooth in range(len(smoothings)):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
@@ -722,7 +753,7 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100,
         elif model_type == 'interpolate_both':
             smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
-            for i_smooth in  range(len(smoothings)):
+            for i_smooth in range(len(smoothings)):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
@@ -731,7 +762,7 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100,
                     average=True)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
-            for i_smooth in  range(len(smoothings)-1,-1,-1):
+            for i_smooth in range(len(smoothings)-1,-1,-1):
                 rdm = dnn.get_true_RDM(
                     model=dnn.get_default_model(),
                     layer=i_layer,
@@ -806,8 +837,9 @@ def plot_saved_dnn(layer=2, sd=0.05, n_voxel=100, idx=0,
                    noise_type='eye'):
     if fname_base is None:
         fname_base = get_fname_base(simulation_folder=simulation_folder,
-                                    layer=layer, n_voxel=n_voxel, n_subj=n_subj,
-                                    n_repeat=n_repeat, sd=sd, duration=duration,
+                                    layer=layer, n_voxel=n_voxel,
+                                    n_subj=n_subj, sd=sd,
+                                    n_repeat=n_repeat, duration=duration,
                                     pause=pause, endzeros=endzeros,
                                     use_cor_noise=use_cor_noise,
                                     resolution=resolution,
@@ -823,23 +855,32 @@ def plot_saved_dnn(layer=2, sd=0.05, n_voxel=100, idx=0,
 
 def get_fname_base(simulation_folder, layer, n_voxel, n_subj, n_repeat, sd,
                    duration, pause, endzeros, use_cor_noise, resolution,
-                   sigma_noise, ar_coeff):
+                   sigma_noise, ar_coeff, variation=None):
     """ generates the filename base from parameters """
-    fname_base = simulation_folder + ('/layer%02d' % layer) \
-        + ('/pars_%03d_%02d_%02d_%.3f/' % (n_voxel, n_subj, n_repeat, sd)) \
-        + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (
-            duration, pause, endzeros, use_cor_noise, resolution,
-            sigma_noise, ar_coeff))
+    if variation:
+        fname_base = simulation_folder + ('/layer%02d' % layer) \
+            + ('/pars_%03d_%02d_%02d_%.3f_%s/' % (
+                n_voxel, n_subj, n_repeat, sd, variation)) \
+            + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (
+                duration, pause, endzeros, use_cor_noise, resolution,
+                sigma_noise, ar_coeff))
+    else:
+        fname_base = simulation_folder + ('/layer%02d' % layer) \
+            + ('/pars_%03d_%02d_%02d_%.3f/' % (
+                n_voxel, n_subj, n_repeat, sd)) \
+            + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (
+                duration, pause, endzeros, use_cor_noise, resolution,
+                sigma_noise, ar_coeff))
     return fname_base
 
 
-def plot_saved_dnn_average(layer=2, sd=3, stimList=get_stimuli_96(),
+def plot_saved_dnn_average(layer=2, sd=3, stim_list=get_stimuli_96(),
                            n_voxel=100, n_subj=10, simulation_folder='test',
                            n_sim=100, n_repeat=2, duration=5, pause=1,
                            endzeros=25, use_cor_noise=True, resolution = 2,
-                           sigma_noise=2, ar_coeff=.5, modelType = 'fixed',
-                           model_rdm = 'averagetrue', n_stimuli=92,
-                           rdm_comparison = 'cosine', n_Layer = 12, n_fold=5,
+                           sigma_noise=2, ar_coeff=.5, modelType='fixed',
+                           model_rdm='averagetrue', n_stimuli=92,
+                           rdm_comparison='cosine', n_Layer=12, n_fold=5,
                            rdm_type='crossnobis', fname_base=None):
     if fname_base is None:
         fname_base = get_fname_base(simulation_folder=simulation_folder,
