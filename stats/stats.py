@@ -19,22 +19,10 @@ from matplotlib.ticker import FormatStrFormatter
 import pyrsa
 import nn_simulations as dnn
 from hrf import spm_hrf
-
-
-def get_stimuli_92():
-    stimuli = []
-    for i_stim in range(92):
-        im = PIL.Image.open('96Stimuli/stimulus%d.tif' % (i_stim+1))
-        stimuli.append(im)
-    return stimuli
-
-
-def get_stimuli_96():
-    stimuli = []
-    for i_stim in range(96):
-        im = PIL.Image.open('96Stimuli/stimulus%d.tif' % (i_stim+1))
-        stimuli.append(im)
-    return stimuli
+from helpers import get_fname_base
+from helpers import get_stimuli_92
+from helpers import get_stimuli_96
+from models import get_models
 
 
 def estimate_betas(design, timecourse, hrf=None, resolution=2):
@@ -648,171 +636,17 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
         k_pattern, k_rdm)
     if not os.path.isdir(res_path):
         os.mkdir(res_path)
-    models = []
-    pat_desc = {'stim': np.arange(n_stimuli)}
-    print('\n generating models\n')
+    print('\n generating models')
     stimuli = dnn.get_stimuli_96()[:n_stimuli]
-    for i_layer in tqdm.trange(n_layer):
-        if model_type == 'fixed_averagetrue':
-            fname_base_l = get_fname_base(
-                simulation_folder=simulation_folder,
-                layer=i_layer, n_voxel=n_voxel, n_subj=n_subj,
-                n_repeat=n_repeat, sd=sd, duration=duration,
-                pause=pause, endzeros=endzeros, sigma_noise=sigma_noise,
-                use_cor_noise=use_cor_noise, resolution=resolution,
-                ar_coeff=ar_coeff)
-            rdm_true_average = 0
-            for i in range(n_sim):
-                Utrue = np.load(fname_base_l + 'Utrue%04d.npy' % i)
-                dat_true = [pyrsa.data.Dataset(Utrue[i, :n_stimuli, :])
-                            for i in range(Utrue.shape[0])]
-                rdm_true = pyrsa.rdm.calc_rdm(dat_true, method='euclidean')
-                rdm_mat = rdm_true.get_vectors()
-                rdm_mat = rdm_mat / np.sqrt(np.mean(rdm_mat ** 2))
-                rdm_true_average = rdm_true_average + np.mean(rdm_mat, 0)
-            rdm = rdm_true_average / n_sim
-            rdm = pyrsa.rdm.RDMs(rdm, pattern_descriptors=pat_desc)
-            model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
-        elif model_type == 'fixed_full':
-            rdm = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
-                layer=i_layer,
-                stimuli=stimuli)
-            rdm.pattern_descriptors = pat_desc
-            model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
-        elif model_type == 'select_full':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
-            rdms = []
-            for i_smooth, smooth in enumerate(smoothings):
-                rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
-                    layer=i_layer,
-                    stimuli=stimuli,
-                    smoothing=smooth,
-                    average=False)
-                rdm.pattern_descriptors = pat_desc
-                rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
-        elif model_type == 'select_avg':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
-            rdms = []
-            for i_smooth, smooth in enumerate(smoothings):
-                rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
-                    layer=i_layer,
-                    stimuli=stimuli,
-                    smoothing=smooth,
-                    average=True)
-                rdm.pattern_descriptors = pat_desc
-                rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
-        elif model_type == 'select_both':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
-            rdms = []
-            for i_smooth, smooth in enumerate(smoothings):
-                rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
-                    layer=i_layer,
-                    stimuli=stimuli,
-                    smoothing=smooth,
-                    average=False)
-                rdm.pattern_descriptors = pat_desc
-                rdms.append(rdm)
-                rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
-                    layer=i_layer,
-                    stimuli=stimuli,
-                    smoothing=smooth,
-                    average=True)
-                rdm.pattern_descriptors = pat_desc
-                rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
-        elif model_type == 'interpolate_full':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
-            rdms = []
-            for i_smooth, smooth in enumerate(smoothings):
-                rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
-                    layer=i_layer,
-                    stimuli=stimuli,
-                    smoothing=smooth,
-                    average=False)
-                rdm.pattern_descriptors = pat_desc
-                rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
-        elif model_type == 'interpolate_avg':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
-            rdms = []
-            for i_smooth, smooth in enumerate(smoothings):
-                rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
-                    layer=i_layer,
-                    stimuli=stimuli,
-                    smoothing=smooth,
-                    average=True)
-                rdm.pattern_descriptors = pat_desc
-                rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
-        elif model_type == 'interpolate_both':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
-            rdms = []
-            for i_smooth, smooth in enumerate(smoothings):
-                rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
-                    layer=i_layer,
-                    stimuli=stimuli,
-                    smoothing=smooth,
-                    average=True)
-                rdm.pattern_descriptors = pat_desc
-                rdms.append(rdm)
-            for i_smooth in range(len(smoothings) - 1, -1, -1):
-                rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
-                    layer=i_layer,
-                    stimuli=stimuli,
-                    smoothing=smoothings[i_smooth],
-                    average=False)
-                rdm.pattern_descriptors = pat_desc
-                rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
-        elif model_type == 'weighted_avgfull':
-            rdms = []
-            rdm = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
-                layer=i_layer,
-                stimuli=stimuli,
-                smoothing=None,
-                average=True)
-            rdms.append(rdm)
-            rdm = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
-                layer=i_layer,
-                stimuli=stimuli,
-                smoothing=False,
-                average=False)
-            rdms.append(rdm)
-            rdm = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
-                layer=i_layer,
-                stimuli=stimuli,
-                smoothing=np.inf,
-                average=False)
-            rdms.append(rdm)
-            rdm = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
-                layer=i_layer,
-                stimuli=stimuli,
-                smoothing=np.inf,
-                average=False)
-            rdms.append(rdm)
-            model = pyrsa.model.ModelWeighted('Layer%02d' % i_layer, rdms)
-        models.append(model)
+    fname_base_l = get_fname_base(
+        simulation_folder=simulation_folder,
+        layer=None, n_voxel=n_voxel, n_subj=n_subj,
+        n_repeat=n_repeat, sd=sd, duration=duration,
+        pause=pause, endzeros=endzeros, sigma_noise=sigma_noise,
+        use_cor_noise=use_cor_noise, resolution=resolution,
+        ar_coeff=ar_coeff)
+    models = get_models(model_type, fname_base_l, stimuli,
+                        n_stimuli, n_layer=n_layer, n_sim=n_sim)
     for i in tqdm.trange(n_sim, position=1):
         U = np.load(fname_base + 'U%04d.npy' % i)
         data = []
@@ -860,27 +694,6 @@ def plot_saved_dnn(layer=2, sd=0.05, n_voxel=100, idx=0,
         k_pattern, k_rdm)
     results = pyrsa.inference.load_results(res_path + '/res%04d.hdf5' % idx)
     pyrsa.vis.plot_model_comparison(results)
-
-
-def get_fname_base(simulation_folder, layer, n_voxel, n_subj, n_repeat, sd,
-                   duration, pause, endzeros, use_cor_noise, resolution,
-                   sigma_noise, ar_coeff, variation=None):
-    """ generates the filename base from parameters """
-    if variation:
-        fname_base = simulation_folder + ('/layer%02d' % layer) \
-            + ('/pars_%03d_%02d_%02d_%.3f_%s/' % (
-                n_voxel, n_subj, n_repeat, sd, variation)) \
-            + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (
-                duration, pause, endzeros, use_cor_noise, resolution,
-                sigma_noise, ar_coeff))
-    else:
-        fname_base = simulation_folder + ('/layer%02d' % layer) \
-            + ('/pars_%03d_%02d_%02d_%.3f/' % (
-                n_voxel, n_subj, n_repeat, sd)) \
-            + ('fmri_%02d_%02d_%03d_%s_%d_%.2f_%.2f/' % (
-                duration, pause, endzeros, use_cor_noise, resolution,
-                sigma_noise, ar_coeff))
-    return fname_base
 
 
 def plot_saved_dnn_average(layer=2, sd=3,
