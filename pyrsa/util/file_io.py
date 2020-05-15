@@ -12,19 +12,19 @@ import numpy as np
 
 
 def write_dict_hdf5(file, dictionary):
-    """ writes a nested dictionary containing strings & arrays as data into 
+    """ writes a nested dictionary containing strings & arrays as data into
     a hdf5 file
 
     Args:
         file: a filename or opened writable file
-        dictionary(dict): the dict to be saved 
+        dictionary(dict): the dict to be saved
 
     """
     file = h5py.File(file, 'a')
     file.attrs['pyrsa_version'] = '3.0'
     _write_to_group(file, dictionary)
-    
-    
+
+
 def _write_to_group(group, dictionary):
     """ writes a dictionary to a hdf5 group, which can recurse"""
     for key in dictionary.keys():
@@ -46,7 +46,7 @@ def _write_to_group(group, dictionary):
 
 
 def read_dict_hdf5(file):
-    """ reads a nested dictionary containing strings & arrays as data from 
+    """ reads a nested dictionary containing strings & arrays as data from
     a hdf5 file
 
     Args:
@@ -72,7 +72,7 @@ def _read_group(group):
             dictionary[key] = np.array(group[key])
             if dictionary[key].dtype.type is np.string_:
                 dictionary[key] = np.array(group[key]).astype('unicode')
-            # if (len(dictionary[key].shape) == 1 
+            # if (len(dictionary[key].shape) == 1
             #     and dictionary[key].shape[0] == 1):
             #     dictionary[key] = dictionary[key][0]
     for key in group.attrs.keys():
@@ -81,12 +81,12 @@ def _read_group(group):
 
 
 def write_dict_pkl(file, dictionary):
-    """ writes a nested dictionary containing strings & arrays as data into 
+    """ writes a nested dictionary containing strings & arrays as data into
     a pickle file
 
     Args:
         file: a filename or opened writable file
-        dictionary(dict): the dict to be saved 
+        dictionary(dict): the dict to be saved
 
     """
     if isinstance(file, str):
@@ -96,7 +96,7 @@ def write_dict_pkl(file, dictionary):
 
 
 def read_dict_pkl(file):
-    """ writes a nested dictionary containing strings & arrays as data into 
+    """ writes a nested dictionary containing strings & arrays as data into
     a pickle file
 
     Args:
