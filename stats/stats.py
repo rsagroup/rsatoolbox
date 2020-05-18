@@ -22,6 +22,7 @@ from hrf import spm_hrf
 from helpers import get_fname_base
 from helpers import get_stimuli_92
 from helpers import get_stimuli_96
+from helpers import get_stimuli_ecoset
 from models import get_models
 
 
@@ -412,16 +413,17 @@ def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
     plt.ylim(bottom=0)
 
 
-def save_sim_ecoset(model=dnn.get_default_model(), layer=2, sd=0.05,
-                    n_voxel=100, n_subj=10, n_stim=92, n_repeat=2,
+def save_sim_ecoset(layer=2, sd=0.05,
+                    n_voxel=100, n_subj=10, n_stim=200, n_repeat=2,
                     simulation_folder='sim_eco', n_sim=1000,
                     duration=1, pause=1, endzeros=25,
                     use_cor_noise=True, resolution=2,
-                    sigma_noise=2, ar_coeff=0.5,
+                    sigma_noise=1, ar_coeff=0.5,
                     ecoset_path='~/ecoset/val/', variation=None):
     """ simulates representations based on randomly chosen ecoset images
         (or any other folder of folders with images inside)
     """
+    model = dnn.get_default_model()
     ecoset_path = pathlib.Path(ecoset_path).expanduser()
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_voxel, n_subj=n_subj,
@@ -532,6 +534,71 @@ def save_sim_ecoset(model=dnn.get_default_model(), layer=2, sd=0.05,
                 f.write("%s\n" % item)
 
 
+def analyse_ecoset(layer=2, sd=0.05, use_cor_noise=True,
+                   n_voxel=100, n_subj=10, n_stim=92, n_repeat=2,
+                   simulation_folder='sim_eco', n_sim=1000,
+                   duration=1, pause=1, endzeros=25, resolution=2,
+                   sigma_noise=1, ar_coeff=0.5,
+                   ecoset_path='~/ecoset/val/', variation=None,
+                   model_type='fixed_full',
+                   rdm_comparison='cosine', n_layer=12, k_pattern=3,
+                   k_rdm=3, rdm_type='crossnobis',
+                   noise_type='eye'):
+    """ analyzing the data generated from ecoset using pyrsa """
+    ecoset_path = pathlib.Path(ecoset_path).expanduser()
+    fname_base = get_fname_base(simulation_folder=simulation_folder,
+                                layer=layer, n_voxel=n_voxel, n_subj=n_subj,
+                                n_repeat=n_repeat, sd=sd, duration=duration,
+                                pause=pause, endzeros=endzeros,
+                                use_cor_noise=use_cor_noise,
+                                resolution=resolution,
+                                sigma_noise=sigma_noise,
+                                ar_coeff=ar_coeff)
+    print(fname_base)
+    assert os.path.isdir(fname_base), 'simulated data not found!'
+    res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d_%d' % (
+        rdm_type, model_type, rdm_comparison, noise_type, n_stim,
+        k_pattern, k_rdm)
+    if not os.path.isdir(res_path):
+        os.mkdir(res_path)
+    for i in tqdm.trange(n_sim, position=1):
+        f = open(os.path.join(fname_base, 'stim%04d.txt' % i))
+        stim_paths = f.read()
+        f.close()
+        stim_paths = stim_paths.split('\n')
+        stim_paths = stim_paths[:n_stim]
+        stimuli = get_stimuli_ecoset(ecoset_path, stim_paths)
+        fname_base_l = get_fname_base(
+            simulation_folder=simulation_folder,
+            layer=None, n_voxel=n_voxel, n_subj=n_subj,
+            n_repeat=n_repeat, sd=sd, duration=duration,
+            pause=pause, endzeros=endzeros, sigma_noise=sigma_noise,
+            use_cor_noise=use_cor_noise, resolution=resolution,
+            ar_coeff=ar_coeff)
+        models = get_models(model_type, fname_base_l, stimuli,
+                            n_layer=n_layer, n_sim=n_sim, smoothing=sd)
+        U = np.load(fname_base + 'U%04d.npy' % i)
+        data = []
+        desc = {'stim': np.tile(np.arange(n_stim), n_repeat),
+                'repeat': np.repeat(np.arange(n_repeat), n_stim)}
+        for i_subj in range(U.shape[0]):
+            u_subj = U[i_subj, :, :n_stim, :].reshape(n_repeat * n_stim,
+                                                      n_voxel)
+            data.append(pyrsa.data.Dataset(u_subj, obs_descriptors=desc))
+        if noise_type == 'eye':
+            noise = None
+        elif noise_type == 'residuals':
+            residuals = np.load(fname_base + 'residuals%04d.npy' % i)
+            noise = pyrsa.data.get_prec_from_residuals(residuals)
+        rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
+                                  cv_descriptor='repeat', noise=noise)
+        results = pyrsa.inference.bootstrap_crossval(
+            models, rdms,
+            pattern_descriptor='stim', rdm_descriptor='index',
+            k_pattern=k_pattern, k_rdm=k_rdm, method=rdm_comparison)
+        results.save(res_path + '/res%04d.hdf5' % (i))
+
+
 def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
                             stim_list=get_stimuli_96(), n_voxel=100, n_subj=10,
                             simulation_folder='sim', n_sim=1000, n_repeat=2,
@@ -637,7 +704,7 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
     if not os.path.isdir(res_path):
         os.mkdir(res_path)
     print('\n generating models')
-    stimuli = dnn.get_stimuli_96()[:n_stimuli]
+    stimuli = get_stimuli_96()[:n_stimuli]
     fname_base_l = get_fname_base(
         simulation_folder=simulation_folder,
         layer=None, n_voxel=n_voxel, n_subj=n_subj,
@@ -645,8 +712,8 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
         pause=pause, endzeros=endzeros, sigma_noise=sigma_noise,
         use_cor_noise=use_cor_noise, resolution=resolution,
         ar_coeff=ar_coeff)
-    models = get_models(model_type, fname_base_l, stimuli,
-                        n_stimuli, n_layer=n_layer, n_sim=n_sim)
+    models = get_models(model_type, fname_base_l, stimuli, n_layer=n_layer,
+                        n_sim=n_sim)
     for i in tqdm.trange(n_sim, position=1):
         U = np.load(fname_base + 'U%04d.npy' % i)
         data = []

@@ -13,9 +13,11 @@ import pyrsa
 
 
 def get_models(model_type, fname_base_l, stimuli,
-               n_stimuli, n_layer=12, n_sim=1000):
+               n_layer=12, n_sim=1000, smoothing=None):
+    n_stimuli = len(stimuli)
     pat_desc = {'stim': np.arange(n_stimuli)}
     models = []
+    smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
     for i_layer in tqdm.trange(n_layer):
         if model_type == 'fixed_averagetrue':
             rdm_true_average = 0
@@ -35,11 +37,11 @@ def get_models(model_type, fname_base_l, stimuli,
             rdm = dnn.get_true_RDM(
                 model=dnn.get_default_model(),
                 layer=i_layer,
-                stimuli=stimuli)
+                stimuli=stimuli,
+                smoothing=smoothing)
             rdm.pattern_descriptors = pat_desc
             model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
         elif model_type == 'select_full':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
@@ -53,7 +55,6 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = pyrsa.rdm.concat(rdms)
             model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
         elif model_type == 'select_avg':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
@@ -67,7 +68,6 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = pyrsa.rdm.concat(rdms)
             model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
         elif model_type == 'select_both':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
@@ -89,7 +89,6 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = pyrsa.rdm.concat(rdms)
             model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
         elif model_type == 'interpolate_full':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
@@ -103,7 +102,6 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = pyrsa.rdm.concat(rdms)
             model = pyrsa.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
         elif model_type == 'interpolate_avg':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
@@ -117,7 +115,6 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = pyrsa.rdm.concat(rdms)
             model = pyrsa.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
         elif model_type == 'interpolate_both':
-            smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
@@ -152,7 +149,7 @@ def get_models(model_type, fname_base_l, stimuli,
                 model=dnn.get_default_model(),
                 layer=i_layer,
                 stimuli=stimuli,
-                smoothing=False,
+                smoothing=None,
                 average=False)
             rdms.append(rdm)
             rdm = dnn.get_true_RDM(
@@ -160,7 +157,7 @@ def get_models(model_type, fname_base_l, stimuli,
                 layer=i_layer,
                 stimuli=stimuli,
                 smoothing=np.inf,
-                average=False)
+                average=True)
             rdms.append(rdm)
             rdm = dnn.get_true_RDM(
                 model=dnn.get_default_model(),

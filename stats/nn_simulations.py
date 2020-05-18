@@ -14,35 +14,20 @@ whose weights will be downloaded if you don't have them already.
 
 import torch
 import torchvision
-import PIL 
+import PIL
 import numpy as np
 from scipy.ndimage import gaussian_filter as gaussian_filter
 import scipy.signal as signal
 import tqdm
 import os
 from hrf import spm_hrf
+from helpers import get_stimuli_92
+from helpers import get_stimuli_96
 import pyrsa
 
 # initial transormation expected by all torchvision models
 normalize = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225])
-
-def get_stimuli_92():
-    import PIL
-    stimuli = []
-    for iStim in range(92):
-        im = PIL.Image.open('96Stimuli/stimulus%d.tif' % (iStim+1))
-        stimuli.append(im)
-    return stimuli
-
-
-def get_stimuli_96():
-    import PIL
-    stimuli = []
-    for iStim in range(96):
-        im = PIL.Image.open('96Stimuli/stimulus%d.tif' % (iStim+1))
-        stimuli.append(im)
-    return stimuli
 
 
 def generate_design_random(nStimuli, repeats=3, duration=5, pause=0, endzeros=20):
