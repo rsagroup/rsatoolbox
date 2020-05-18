@@ -199,6 +199,7 @@ def get_complete_representation(model=None, layer=0, stimulus=None):
         stimulus = torch.rand([1, 3, 224, 224])
     elif isinstance(stimulus, PIL.Image.Image):
         stimulus = stimulus.resize((224, 224))
+        stimulus = stimulus.convert('RGB')
         stimulus = np.array(stimulus).transpose(2, 0, 1)
         if stimulus.shape[0] == 4:
             stimulus = stimulus[:3]
