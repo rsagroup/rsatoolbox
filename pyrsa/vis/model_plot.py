@@ -6,42 +6,41 @@ Created on Thu Feb 13 14:04:52 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+import matplotlib.patches as mpatches
+import matplotlib.path as mpath
 from matplotlib import cm
 from pyrsa.util.inference_util import pair_tests
 from pyrsa.util.rdm_utils import batch_to_vectors
+import networkx as nx
+from networkx.algorithms.clique import find_cliques as maximal_cliques
 
 
-def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
-                          multiple_testing='FDR', sort=False, colors=None,
-                          error_bars='SEM', eb_alpha=0.05):
-    """ plots the results of a model comparison
-    Input should be a results object with model evaluations
-    evaluations, which uses the bootstrap samples for confidence intervals
-    and significance tests and averages over all trailing dimensions
-    like cross-validation folds
+def plot_model_comparison(result, sort=False, colors=None,
+                          alpha=0.01, test_pair_comparisons=True,
+                          multiple_pair_testing='fdr',
+                          test_above_0=True,
+                          test_below_noise_ceil=True,
+                          error_bars='sem'):
+    """ Plots the results of RSA inference on a set of models as a bar graph
+    with one bar for each model indicating its predicitve performance. The
+    function also shows the noise ceiling whose upper edge is an upper bound
+    on the performance the true model could achieve (given noise and inter-
+    subject variability) and whose lower edge is an estimate of a lower bound
+    on the performance of the true model. In addition, all pairwise inferential
+    model comparisons are shown in the upper part of the figure.
+    The only mandatory input is a "result" object containing  model evaluations
+    for bootstrap samples and crossvalidation folds. These are used here to
+    construct confidence intervals and perform the significance tests.
 
-    Args (case insensitive):
+    Args (All strings case insensitive):
         result (pyrsa.inference.result.Result):
             model evaluation result
-        alpha (float):
-            significance threshold (p threshold or FDR q threshold)
-        plot_pair_tests (string):
-            False or None: do not plot pairwise model comparison results
-            'arrows': plot results in arrows style
-            'nili': plot results as Nili bars (Nili et al. 2014)
-            'golan': plot results as Golan wings (Golan et al. 2020)
-        multiple_testing (string):
-            False or 'none': do not adjust for multiple testing
-            'FDR' or 'fdr': control the false-discorvery rate at q = alpha
-            'FWER',' fwer', or 'Bonferroni': control the familywise error rate
-            using the Bonferroni method
-        sort (string or bool):
-            False: plot bars in the order passed
+        sort (Boolean or string):
+            False (default): plot bars in the order passed
             'descend[ing]': plot bars in descending order of model performance
             'ascend[ing]': plot bars in ascending order of model performance
         colors (list of lists, numpy array, matplotlib colormap):
-            None: default blue for all bars
+            None (default): default blue for all bars
             single color: list or numpy array of 3 or 4 values (RGB, RGBA)
                     specifying the color for all bars
             multiple colors: list of lists or numpy array (number of colors by
@@ -49,57 +48,108 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
                     matches the number of models, each color is used for the
                     bar corresponding to one model (in the order of the models
                     as passed). If the number of colors does not match the
-                    number of models, the list is linear interpolated to
+                    number of models, the list is linearly interpolated to
                     assign a color to each model (in the order of the models as
                     passed). For example, two colors will become a gradation,
                     unless there are exactly two model. Instead of a list of
                     lists or numpy array, a matplotlib colormap object may also
                     be passed (e.g. colors = cm.coolwarm).
-        error_bars (string):
-            'SEM': plot the standard error of the mean
-            'CI': plot confidence intervals covering (1-eb_alpha)*100%
-        eb_alpha (float):
-            error-bar alpha, i.e. proportion of bootstrap samples outside
-            the confidence interval
+        alpha (float):
+            significance threshold (p threshold or FDR q threshold)
+        test_pair_comparisons (Boolean or string):
+            False or None: do not plot pairwise model comparison results
+            True (default): plot pairwise model comparison results using
+                default settings
+            'arrows': plot results in arrows style, indicating pairs of sets
+                between which all differences are significant
+            'nili': plot results as Nili bars (Nili et al. 2014), indicating
+                each significant difference by a horizontal line (or each
+                nonsignificant difference if the string contains a '2', e.g.
+                'nili2')
+            'golan': plot results as Golan wings (Golan et al. 2020), with one
+                wing (graphical element) indicating all dominance relationships
+                for one model.
+            'cliques': plot results as cliques of insignificant differences
+        multiple_pair_testing (Boolean or string):
+            False or 'none': do not adjust for multiple testing for the
+                pairwise model comparisons
+            'FDR' or 'fdr' (default): control the false-discorvery rate at
+                q = alpha
+            'FWER',' fwer', or 'Bonferroni': control the familywise error rate
+            using the Bonferroni method
+        test_above_0 (Boolean or string):
+            False or None: do not plot results of statistical comparison of
+                each model performance against 0
+            True (default): plot results of statistical comparison of each
+                model performance against 0 using default settings ('dewdrops')
+            'dewdrops': place circular "dewdrops" at the baseline to indicate
+                models whose performance is significantly greater than 0
+            'icicles': place triangular "icicles" at the baseline to indicate
+                models whose performance is significantly greater than 0
+            Tests are one-sided, use the global alpha threshold and are
+            automatically Bonferroni-corrected for the number of models tested.
+        test_below_noise_ceil (Boolean or string):
+            False or None: do not plot results of statistical comparison of
+                each model performance against the lower-bound estimate of the
+                noise ceiling
+            True (default): plot results of statistical comparison of each
+                model performance against the lower-bound estimate of the noise
+                ceiling using default settings ('dewdrops')
+            'dewdrops': use circular "dewdrops" at the lower bound of the
+                noise ceiling to indicate models whose performance is
+                significantly below the lower-bound estimate of the noise
+                ceiling
+            'icicles': use triangular "icicles" at the lower bound of the noise
+                ceiling to indicate models whose performance is significantly
+                below the lower-bound estimate of the noise ceiling
+            Tests are one-sided, use the global alpha threshold and are
+            automatically Bonferroni-corrected for the number of models tested.
+        error_bars (Boolean or string):
+            False or None: do not plot error bars
+            True (default) or 'SEM': plot the standard error of the mean
+            'CI': plot 95%-confidence intervals (exluding 2.5% on each side)
+            'CI[x]': plot x%-confidence intervals (exluding 2.5% on each side)
+            Confidence intervals are based on the bootstrap procedure,
+            reflecting variability of the estimate across subjects and/or
+            experimental conditions.
 
     Returns:
         ---
 
     """
-    # Preparations
+
+    # Prepare and sort data
     evaluations = result.evaluations
     models = result.models
     noise_ceiling = result.noise_ceiling
     method = result.method
+
     while len(evaluations.shape) > 2:
         evaluations = np.nanmean(evaluations, axis=-1)
     evaluations = evaluations[~np.isnan(evaluations[:, 0])]
-    evaluations = 1 - evaluations
+    evaluations = 1 - evaluations  # >>>evaluations always as distances?
+    noise_ceiling = 1 - np.array(noise_ceiling)
     perf = np.mean(evaluations, axis=0)
-    n_models = evaluations.shape[1]
-    if sort:
-        sort = 'descending'  # descending by default
-    if sort:  # 'descending' or 'ascending'
+    n_bootstraps, n_models = evaluations.shape
+    if sort is True:
+        sort = 'descending'  # descending by default if sort is True
+    elif sort is False:
+        sort = 'unsorted'
+    if sort != 'unsorted':  # 'descending' or 'ascending'
         idx = np.argsort(perf)
         if 'descend' in sort.lower():
             idx = np.flip(idx)
         perf = perf[idx]
         evaluations = evaluations[:, idx]
         models = [models[i] for i in idx]
-    if error_bars == 'CI':
-        errorbar_low = -(np.quantile(evaluations, eb_alpha / 2, axis=0)
-                         - perf)
-        errorbar_high = (np.quantile(evaluations, 1 - (eb_alpha / 2), axis=0)
-                         - perf)
-    elif error_bars == 'SEM':
-        errorbar_low = np.std(evaluations, axis=0)
-        errorbar_high = np.std(evaluations, axis=0)
-    noise_ceiling = 1 - np.array(noise_ceiling)
 
-    # Plot bars
+    # Prepare axes for bars and pairwise comparisons
+    fs, fs2 = 18, 14  # axis label font sizes
     l, b, w, h = 0.15, 0.15, 0.8, 0.8
-    if plot_pair_tests:
-        if plot_pair_tests.lower() == 'arrows':
+    if test_pair_comparisons is True:
+        test_pair_comparisons = 'arrows'
+    if test_pair_comparisons:
+        if test_pair_comparisons.lower() in ['arrows', 'cliques']:
             h_pair_tests = 0.3
         else:
             h_pair_tests = 0.4
@@ -111,7 +161,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         plt.figure(figsize=(12.5, 10))
         ax = plt.axes((l, b, w, h))
 
-    # Define the colors for the bars
+    # Define the model colors
     if colors is None:  # no color passed...
         colors = [0, 0.4, 0.9, 1]  # use default blue
     elif isinstance(colors, cm.colors.LinearSegmentedColormap):
@@ -132,7 +182,7 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
                 cols2[:, c] = np.interp(np.array(range(n_models)),
                                         np.array(range(n_col))/n_col*n_models,
                                         colors[:, c])
-        if sort:
+        if sort != 'unsorted':
             colors = cols2[idx, :]
         else:
             colors = cols2
@@ -142,24 +192,177 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
 
     # Plot bars and error bars
     ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
-    ax.errorbar(np.arange(evaluations.shape[1]), perf,
-                yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
-                capsize=0, linewidth=3)
+    if error_bars is True:
+        error_bars = 'sem'
+    if error_bars.lower() == 'sem':
+        errorbar_low = np.std(evaluations, axis=0)
+        errorbar_high = np.std(evaluations, axis=0)
+    elif error_bars[0:2].lower() == 'ci':
+        if len(error_bars) == 2:
+            CI_percent = 95
+        else:
+            CI_percent = int(error_bars[2:])
+        prop_cut = (1-CI_percent/100) / 2
+        errorbar_low = -(np.quantile(evaluations, prop_cut, axis=0)
+                         - perf)
+        errorbar_high = (np.quantile(evaluations, 1 - prop_cut, axis=0)
+                         - perf)
+    if error_bars:
+        ax.errorbar(np.arange(evaluations.shape[1]), perf,
+                    yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
+                    capsize=0, linewidth=3)
+
+    # Test whether model performance exceeds 0 (one sided)
+    if test_above_0 is True:
+        test_above_0 = 'dewdrops'
+    if test_above_0:
+        p = ((evaluations < 0).sum(axis=0) + 1) / n_bootstraps
+        model_significant = p < alpha / n_models
+        half_sym_size = 9
+        if test_above_0.lower() == 'dewdrops':
+            halfmoonup = mpath.Path.wedge(0, 180)
+            ax.plot(model_significant.nonzero()[0],
+                    np.tile(0, model_significant.sum()), 'w',
+                    marker=halfmoonup, markersize=half_sym_size,
+                    linewidth=0)
+        elif test_above_0.lower() == 'icicles':
+            ax.plot(model_significant.nonzero()[0],
+                    np.tile(0, model_significant.sum()), 'w',
+                    marker=10, markersize=half_sym_size,
+                    linewidth=0)
 
     # Plot noise ceiling
+    noise_ceil_col = [0.5, 0.5, 0.5, 0.2]
     if noise_ceiling is not None:
-        noise_min = np.nanmean(noise_ceiling[0])
-        noise_max = np.nanmean(noise_ceiling[1])
-        noiserect = patches.Rectangle((-0.5, noise_min), len(perf),
-                                      noise_max - noise_min, linewidth=1,
-                                      edgecolor=[0.5, 0.5, 0.5, 0.3],
-                                      facecolor=[0.5, 0.5, 0.5, 0.3],
-                                      zorder=10e6)
+        noise_lower = np.nanmean(noise_ceiling[0])
+        noise_upper = np.nanmean(noise_ceiling[1])
+        noiserect = mpatches.Rectangle((-0.5, noise_lower), len(perf),
+                                       noise_upper-noise_lower, linewidth=0,
+                                       facecolor=noise_ceil_col, zorder=1e6)
         ax.add_patch(noiserect)
 
+    # Test whether model performance is below the noise ceiling's lower bound
+    # (one sided)
+    if test_below_noise_ceil is True:
+        test_below_noise_ceil = 'dewdrops'
+    if test_below_noise_ceil:
+        noise_lower_bs = noise_ceiling[0]
+        noise_lower_bs.shape = (noise_lower_bs.shape[0], 1)
+        diffs = noise_lower_bs-evaluations  # positive if below lower bound
+        p = ((diffs < 0).sum(axis=0) + 1) / n_bootstraps
+        model_below_lower_bound = p < alpha / n_models
+
+        if test_below_noise_ceil.lower() == 'dewdrops':
+            halfmoondown = mpath.Path.wedge(180, 360)
+            ax.plot(model_below_lower_bound.nonzero()[0],
+                    np.tile(noise_lower+0.0000, model_below_lower_bound.sum()),
+                    color='none',
+                    marker=halfmoondown, markersize=half_sym_size,
+                    markerfacecolor=noise_ceil_col,
+                    markeredgecolor='none', linewidth=0)
+        elif test_below_noise_ceil.lower() == 'icicles':
+            ax.plot(model_below_lower_bound.nonzero()[0],
+                    np.tile(noise_lower+0.0007, model_below_lower_bound.sum()),
+                    color='none',
+                    marker=11, markersize=half_sym_size,
+                    markerfacecolor=noise_ceil_col,
+                    markeredgecolor='none', linewidth=0)
+
+    # Pairwise model comparisons
+    if test_pair_comparisons:
+        model_comp_descr = 'Model comparisons: two-tailed, '
+        p_values = pair_tests(evaluations)
+        n_tests = int((n_models**2-n_models)/2)
+        if multiple_pair_testing is None:
+            multiple_pair_testing = 'uncorrected'
+        if multiple_pair_testing.lower() == 'bonferroni' or \
+           multiple_pair_testing.lower() == 'fwer':
+            significant = p_values < (alpha / n_tests)
+            model_comp_descr = (model_comp_descr
+                                + 'p < {:<.5g}'.format(alpha)
+                                + ', Bonferroni-corrected for '
+                                + str(n_tests)
+                                + ' model-pair comparisons')
+        elif multiple_pair_testing.lower() == 'fdr':
+            ps = batch_to_vectors(np.array([p_values]))[0][0]
+            ps = np.sort(ps)
+            criterion = alpha * (np.arange(ps.shape[0]) + 1) / ps.shape[0]
+            k_ok = ps < criterion
+            if np.any(k_ok):
+                k_max = np.max(np.where(ps < criterion)[0])
+                crit = criterion[k_max]
+            else:
+                crit = 0
+            significant = p_values < crit
+            model_comp_descr = (model_comp_descr +
+                                'FDR q < {:<.5g}'.format(alpha) +
+                                ' (' + str(n_tests) +
+                                ' model-pair comparisons)')
+        else:
+            significant = p_values < alpha
+            model_comp_descr = (model_comp_descr +
+                                'p < {:<.5g}'.format(alpha) +
+                                ', uncorrected (' + str(n_tests) +
+                                ' model-pair comparisons)')
+        if result.cv_method in ['bootstrap_rdm', 'bootstrap_pattern',
+                                'bootstrap_crossval']:
+            model_comp_descr = model_comp_descr + \
+                '\nInference by bootstrap resampling ' + \
+                '({:<,.0f}'.format(n_bootstraps) + ' bootstrap samples) of '
+        if result.cv_method == 'bootstrap_rdm':
+            model_comp_descr = model_comp_descr + 'subjects. '
+        elif result.cv_method == 'bootstrap_pattern':
+            model_comp_descr = model_comp_descr + 'experimental conditions. '
+        elif result.cv_method in ['bootstrap', 'bootstrap_crossval']:
+            model_comp_descr = model_comp_descr + \
+                'subjects and experimental conditions. '
+        model_comp_descr = model_comp_descr + 'Error bars indicate the'
+        if error_bars[0:2].lower() == 'ci':
+            model_comp_descr = (model_comp_descr + ' ' +
+                                str(CI_percent) + '% confidence interval.')
+        elif error_bars.lower() == 'sem':
+            model_comp_descr = (model_comp_descr +
+                                ' standard error of the mean.')
+        if test_above_0 or test_below_noise_ceil:
+            model_comp_descr = (model_comp_descr +
+                '\nOne-sided comparisons of each model performance ')
+        if test_above_0:
+            model_comp_descr = model_comp_descr + 'against 0 '
+        if test_above_0 and test_below_noise_ceil:
+            model_comp_descr = model_comp_descr + 'and '
+        if test_below_noise_ceil:
+            model_comp_descr = (model_comp_descr +
+                'against the lower-bound estimate of the noise ceiling ')
+        if test_above_0 or test_below_noise_ceil:
+            model_comp_descr = (model_comp_descr +
+                                'are Bonferroni-corrected for ' +
+                                str(n_models) + ' models.')
+
+        axbar.set_title(model_comp_descr, fontsize=fs2/2)
+        axbar.set_xlim(ax.get_xlim())
+        digits = [d for d in list(test_pair_comparisons) if d.isdigit()]
+        if len(digits) > 0:
+            v = int(digits[0])
+        else:
+            v = None 
+        if 'nili' in test_pair_comparisons.lower():
+            if v:
+                plot_nili_bars(axbar, significant, version=v)
+            else:
+                plot_nili_bars(axbar, significant)
+        elif 'golan' in test_pair_comparisons.lower():
+            if v:
+                plot_golan_wings(axbar, significant, perf, sort, colors,
+                                 version=v)
+            else:
+                plot_golan_wings(axbar, significant, perf, sort, colors) 
+        elif 'arrows' in test_pair_comparisons.lower():
+            plot_arrows(axbar, significant)
+        elif 'cliques' in test_pair_comparisons.lower():
+            plot_cliques(axbar, significant)
+
     # Floating axes
-    fs, fs2 = 18, 14  # axis label font sizes
-    ytoptick = np.ceil(min(1, ax.get_ylim()[1]) * 10) / 10
+    ytoptick = np.floor(min(1, noise_upper) * 10) / 10
     ax.set_yticks(np.arange(0, ytoptick + 1e-6, step=0.1))
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -201,70 +404,8 @@ def plot_model_comparison(result, alpha=0.05, plot_pair_tests='arrows',
         ax.set_xticklabels([m.name for m in models], fontsize=fs2,
                            rotation=45)
 
-    # Pairwise model comparisons
-    if plot_pair_tests:
-        model_comp_descr = 'Model comparisons: two-tailed, '
-        res = pair_tests(evaluations)
-        n_tests = int((n_models**2-n_models)/2)
-        if multiple_testing.lower() == 'bonferroni' or \
-           multiple_testing.lower() == 'fwer':
-            significant = res < (alpha / n_tests)
-            model_comp_descr = (model_comp_descr
-                                + 'p < {:3.3f}'.format(alpha)
-                                + ', Bonferroni-corrected for '
-                                + str(n_tests)
-                                + ' model-pair comparisons')
-        elif multiple_testing.lower() == 'fdr':
-            ps = batch_to_vectors(np.array([res]))[0][0]
-            ps = np.sort(ps)
-            criterion = alpha * (np.arange(ps.shape[0]) + 1) / ps.shape[0]
-            k_ok = ps < criterion
-            if np.any(k_ok):
-                k_max = np.max(np.where(ps < criterion)[0])
-                crit = criterion[k_max]
-            else:
-                crit = 0
-            significant = res < crit
-            model_comp_descr = (model_comp_descr +
-                                'FDR q < {:3.3f}'.format(alpha) +
-                                ' (' + str(n_tests) +
-                                ' model-pair comparisons)')
-        else:
-            significant = res < alpha
-            model_comp_descr = (model_comp_descr +
-                                'p < {:3.3f}'.format(alpha) +
-                                ', uncorrected (' + str(n_tests) +
-                                ' model-pair comparisons)')
-        if result.cv_method == 'bootstrap_rdm':
-            model_comp_descr = model_comp_descr + \
-                '\nInference by bootstrap resampling of subjects.'
-        elif result.cv_method == 'bootstrap_pattern':
-            model_comp_descr = model_comp_descr + \
-                '\nInference by bootstrap resampling of ' \
-                + 'experimental conditions.'
-        elif result.cv_method in ['bootstrap', 'bootstrap_crossval']:
-            model_comp_descr = model_comp_descr + \
-                '\nInference by bootstrap resampling of ' \
-                + 'subjects and experimental conditions.'
-        model_comp_descr = model_comp_descr + '\nError bars indicate the'
-        if error_bars == 'CI':
-            model_comp_descr = (model_comp_descr +
-                                ' {:3.0f}'.format(round(1-eb_alpha)*100) +
-                                '% confidence interval.')
-        elif error_bars == 'SEM':
-            model_comp_descr = (model_comp_descr +
-                                ' standard error of the mean.')
-        axbar.set_title(model_comp_descr, fontsize=fs2)
-        axbar.set_xlim(ax.get_xlim())
-        if 'nili' in plot_pair_tests.lower():
-            plot_nili_bars(axbar, significant)
-        elif 'golan' in plot_pair_tests.lower():
-            plot_golan_wings(axbar, significant, perf, sort, colors)
-        elif 'arrows' in plot_pair_tests.lower():
-            plot_arrows(axbar, significant)
 
-
-def plot_nili_bars(axbar, significant):
+def plot_nili_bars(axbar, significant, version=1):
     """ plots the results of the pairwise inferential model comparisons in the
     form of a set of black horizontal bars connecting significantly different
     models as in the 2014 RSA Toolbox (Nili et al. 2014).
@@ -272,6 +413,9 @@ def plot_nili_bars(axbar, significant):
     Args:
         axbar: Matplotlib axes handle to plot in
         significant: Boolean matrix of model comparisons
+        version: 1 (Normal Nili bars, indicating significant differences)
+                 2 (Negative Nili bars in gray, indicating nonsignificant
+                    comparison results)
 
     Returns:
         ---
@@ -279,17 +423,35 @@ def plot_nili_bars(axbar, significant):
     """
 
     k = 1
+    ns_col = [0.5, 0.5, 0.5]
+    w = 0.2
     for i in range(significant.shape[0]):
-        k += 1
+        drawn1 = False
         for j in range(i + 1, significant.shape[0]):
-            if significant[i, j]:
-                axbar.plot((i, j), (k, k), 'k-', linewidth=2)
-                k += 1
+            if version == 1:
+                if significant[i, j]:
+                    axbar.plot((i, j), (k, k), 'k-', linewidth=2)
+                    k += 1
+                    drawn1 = True
+            elif version == 2:
+                if not significant[i, j]:
+                    axbar.plot((i, j), (k, k), '-', linewidth=2,
+                               color=ns_col)
+                    axbar.plot(((i+j)/2-w/2, (i+j)/2+w/2), (k, k), '-',
+                               linewidth=3, color='w')
+                    axbar.text((i+j)/2, k, 'n.s.',
+                               horizontalalignment='center',
+                               verticalalignment='center',
+                               fontsize=8, fontweight='normal', color=ns_col)
+                    k += 1
+                    drawn1 = True
+        if drawn1:
+            k += 1
     axbar.set_axis_off()
     axbar.set_ylim((0, k))
 
 
-def plot_golan_wings(axbar, significant, perf, sort, colors='none',
+def plot_golan_wings(axbar, significant, perf, sort, colors=None,
                      always_black=False, version=3):
     """ Plots the results of the pairwise inferential model comparisons in the
     form of black horizontal bars with a tick mark at the reference model and
@@ -317,7 +479,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
     # Define wing order
     n_models = significant.shape[0]
     wing_order = np.array(range(n_models))  # to the right by default
-    if 'ascend' in sort:
+    if 'ascend' in sort.lower():
         wing_order = np.flip(wing_order)  # to the left if bars are ascending
     if version == 4:
         wing_order = np.argsort(-perf)
@@ -342,7 +504,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
     axbar.set_ylim((0, h))
 
     # Draw the wings
-    if always_black or colors in [None, 'k'] or colors.shape[0] == 1:
+    if always_black or colors is None or colors.shape[0] == 1:
         colors = np.tile([0, 0, 0, 1], (n_models, 1))
     tick_length_inch = 0.08
     k = 1
@@ -363,8 +525,8 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
                            markerfacecolor=colors[i, :])
             elif version == 1:
                 # tick anchor
-                axbar.plot((i, i), (k - tick_length_inch/h_inch*h, k), 'k-',
-                           linewidth=2)  # tick
+                axbar.plot((i, i), (k - tick_length_inch/h_inch*h, k), '-',
+                           linewidth=2, color=colors[i, :])  # tick
             for j in js:
                 if version == 0:
                     axbar.plot(j, k, markersize=8, marker='o',
@@ -381,9 +543,9 @@ def plot_golan_wings(axbar, significant, perf, sort, colors='none',
                         tick_ver_end = k + tick_length_inch/h_inch*h
                     axbar.plot((j, j), (k, tick_ver_end), '-', linewidth=2,
                                color=colors[i, :])
-            # plot wing line
+            # wing line
             axbar.plot((min(i, js.min()), max(i, js.max())), (k, k), 'k-',
-                       linewidth=2, color=colors[i, :])
+                       linewidth=2, color=colors[i, :], zorder=-1)
             k += 1
 
 
@@ -454,7 +616,7 @@ def plot_arrows(axbar, significant):
             if j < i:
                 i, j = j, i
             k = 1
-            while occupied[k-1, i*3+2:j*3].any():
+            while occupied[k-1, i*3+2:j*3+1].any():
                 k += 1
             if i == 0:
                 draw_hor_arrow(axbar, i, j, k, '->', ar)
@@ -470,7 +632,7 @@ def plot_arrows(axbar, significant):
             i, j = double_arrows_right[0]
             double_arrows.remove((i, j))
             k = 1
-            while occupied[k-1, i*3+2:j*3].any():
+            while occupied[k-1, i*3+2:j*3+1].any():
                 k += 1
             if i == 0:
                 draw_hor_arrow(axbar, i, j, k, '->', ar)
@@ -483,46 +645,54 @@ def plot_arrows(axbar, significant):
     for m in range(0, int(np.ceil(n/2))):
         arrows_left = [(i, j) for (i, j) in arrows if (i < j and i == m) or
                        (j < i and j == m)]
-        if len(arrows_left) > 0:
-            i, j = arrows_left[0]
+        while len(arrows_left) > 0:
+            i, j = arrows_left.pop()
             arrows.remove((i, j))
             k = 1
-            while occupied[k-1, i*3+2:j*3].any():
+            while occupied[k-1, i*3+2:j*3+1].any() or \
+                    occupied[k-1, j*3+2:i*3+1].any():
                 k += 1
             draw_hor_arrow(axbar, i, j, k, '->', ar)
             occupied[k-1, i*3+2:j*3+1] = 1
+            occupied[k-1, j*3+2:i*3+1] = 1
 
         arrows_right = [(i, j) for (i, j) in arrows if (i < j and j == n-1-m)
                         or (j < i and i == n-1-m)]
-        if len(arrows_right) > 0:
-            i, j = arrows_right[0]
+        while len(arrows_right) > 0:
+            i, j = arrows_right.pop()
             arrows.remove((i, j))
             k = 1
-            while occupied[k-1, i*3+2:j*3].any():
+            while occupied[k-1, i*3+2:j*3+1].any() or \
+                    occupied[k-1, j*3+2:i*3+1].any():
                 k += 1
             draw_hor_arrow(axbar, i, j, k, '->', ar)
             occupied[k-1, i*3+2:j*3+1] = 1
+            occupied[k-1, j*3+2:i*3+1] = 1
 
     for m in range(0, int(np.ceil(n/2))):
         lines_left = [(i, j) for (i, j) in lines if i == m]
         while len(lines_left) > 0:
             i, j = lines_left.pop()
             lines.remove((i, j))
+            if j < i:
+                i, j = j, i
             k = 1
-            while occupied[k-1, i*3+2:j*3].any():
+            while occupied[k-1, i*3+2:j*3+1].any():
                 k += 1
             axbar.plot((i, j), (k, k), 'k-', linewidth=2)
-            occupied[k-1, i*3+2:j*3] = 1
+            occupied[k-1, i*3+2:j*3+1] = 1
 
         lines_right = [(i, j) for (i, j) in lines if j == n-1-m]
         while len(lines_right) > 0:
             i, j = lines_right.pop()
             lines.remove((i, j))
+            if j < i:
+                i, j = j, i
             k = 1
-            while occupied[k-1, i*3+2:j*3].any():
+            while occupied[k-1, i*3+2:j*3+1].any():
                 k += 1
             axbar.plot((i, j), (k, k), 'k-', linewidth=2)
-            occupied[k-1, i*3+2:j*3] = 1
+            occupied[k-1, i*3+2:j*3+1] = 1
     h = occupied.sum(axis=1).nonzero()[0].max()+1
     axbar.set_ylim((0, max(expected_n_lines, h)))
 
@@ -546,3 +716,43 @@ def draw_hor_arrow(ax, x1, x2, y, style, ar):
                  length_includes_head=True, fc='k', ec='k')
         ax.arrow(c, y, -(ln/2-s), 0, head_width=hw, head_length=hl,
                  length_includes_head=True, fc='k', ec='k')
+
+
+def plot_cliques(axbar, significant):
+    """ plots the results of the pairwise inferential model comparisons in the
+    form of a set of maximal cliques of models that are not significantly
+    different in performance. One bar is drawn for each clique with open
+    circles indicating the clique members. Within a clique of models, no
+    pair comparison is significant. All pair comparisons not indicated as
+    insignificant are significant.
+
+    Args:
+        axbar: Matplotlib axes handle to plot in
+        significant: Boolean matrix of model comparisons
+
+    Returns:
+        ---
+
+    """
+
+    G = nx.Graph(np.logical_not(significant))
+    cliques = list(maximal_cliques(G))
+    n = significant.shape[0]
+    ns_col = [0.6, 0.6, 0.6]
+    expected_n_lines = 6
+    axbar.set_ylim((0, expected_n_lines))
+    axbar.set_axis_off()
+    occupied = np.zeros((len(cliques), 3*n))
+    for c in cliques:
+        if len(c) > 1:
+            i, j = min(c), max(c)
+            k = 1
+            while occupied[k-1, i*3+1:j*3+2].any():
+                k += 1
+            occupied[k-1, i*3+1:j*3+2] = 1
+            axbar.plot((i, j), (k, k), '-', linewidth=2, color=ns_col)
+            for i in c:
+                axbar.plot(i, k, markersize=8, marker='o',
+                           markeredgecolor=ns_col, markerfacecolor='w')
+    h = occupied.sum(axis=1).nonzero()[0].max()+1
+    axbar.set_ylim((0, max(expected_n_lines, h)))
