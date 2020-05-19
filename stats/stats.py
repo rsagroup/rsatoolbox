@@ -13,6 +13,7 @@ import numpy as np
 from scipy.spatial.distance import squareform
 import matplotlib.pyplot as plt
 import tqdm
+import time
 import scipy.signal as signal
 import PIL
 from matplotlib.ticker import FormatStrFormatter
@@ -20,6 +21,7 @@ import pyrsa
 import nn_simulations as dnn
 from hrf import spm_hrf
 from helpers import get_fname_base
+from helpers import get_resname
 from helpers import get_stimuli_92
 from helpers import get_stimuli_96
 from helpers import get_stimuli_ecoset
@@ -61,7 +63,8 @@ def get_residuals_cross(designs, timecourses, betas, resolution=2, hrf=None):
     return residuals
 
 
-def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False):
+def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
+                  k_rdm=None, k_pattern=None):
     """ runs a run of inference
 
     Args:
@@ -71,10 +74,10 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False):
         bootstrap(String): Bootstrapping method:
             pattern: pyrsa.inference.eval_bootstrap_pattern
             rdm: pyrsa.inference.eval_bootstrap_rdm
-            boot: pyrsa.inference.eval_bootstrap
+            both: pyrsa.inference.eval_bootstrap
             crossval: pyrsa.inference.bootstrap_crossval
             crossval_pattern: pyrsa.inference.bootstrap_crossval(k_rdm=1)
-            rdmcrossval_rdms pyrsa.inference.bootstrap_crossval(k_pattern=1)
+            crossval_rdms pyrsa.inference.bootstrap_crossval(k_pattern=1)
     """
     if bootstrap == 'pattern':
         results = pyrsa.inference.eval_bootstrap_pattern(
@@ -84,19 +87,37 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False):
         results = pyrsa.inference.eval_bootstrap_rdm(
             model, rdms,
             boot_noise_ceil=boot_noise_ceil, method=method)
-    elif bootstrap == 'boot':
+    elif bootstrap == 'both':
         results = pyrsa.inference.eval_bootstrap(
             model, rdms,
             boot_noise_ceil=boot_noise_ceil, method=method)
     elif bootstrap == 'crossval':
-        results = pyrsa.inference.bootstrap_crossval(
-            model, rdms, method=method)
+        if k_pattern is None and k_rdm is None:
+            results = pyrsa.inference.bootstrap_crossval(
+                model, rdms, method=method)
+        elif k_pattern is None:
+            results = pyrsa.inference.bootstrap_crossval(
+                model, rdms, method=method, k_rdm=k_rdm)
+        elif k_rdm is None:
+            results = pyrsa.inference.bootstrap_crossval(
+                model, rdms, method=method, k_pattern=k_pattern)
+        else:
+            results = pyrsa.inference.bootstrap_crossval(
+                model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
     elif bootstrap == 'crossval_pattern':
-        results = pyrsa.inference.bootstrap_crossval(
-            model, rdms, method=method, k_rdm=1)
+        if k_pattern is None:
+            results = pyrsa.inference.bootstrap_crossval(
+                model, rdms, method=method, k_rdm=1)
+        else:
+            results = pyrsa.inference.bootstrap_crossval(
+                model, rdms, method=method, k_rdm=1, k_pattern=k_pattern)
     elif bootstrap == 'crossval_rdms':
-        results = pyrsa.inference.bootstrap_crossval(
-            model, rdms, method=method, k_pattern=1)
+        if k_rdm is None:
+            results = pyrsa.inference.bootstrap_crossval(
+                model, rdms, method=method, k_pattern=1)
+        else:
+            results = pyrsa.inference.bootstrap_crossval(
+                model, rdms, method=method, k_pattern=1, k_rdm=k_rdm)
     return results
 
 
@@ -414,7 +435,7 @@ def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
 
 
 def save_sim_ecoset(layer=2, sd=0.05,
-                    n_voxel=100, n_subj=10, n_stim=200, n_repeat=2,
+                    n_voxel=100, n_subj=10, n_stim=320, n_repeat=2,
                     simulation_folder='sim_eco', n_sim=1000,
                     duration=1, pause=1, endzeros=25,
                     use_cor_noise=True, resolution=2,
@@ -541,9 +562,9 @@ def analyse_ecoset(layer=2, sd=0.05, use_cor_noise=True,
                    sigma_noise=1, ar_coeff=0.5,
                    ecoset_path='~/ecoset/val/', variation=None,
                    model_type='fixed_full',
-                   rdm_comparison='cosine', n_layer=12, k_pattern=3,
-                   k_rdm=3, rdm_type='crossnobis',
-                   noise_type='eye'):
+                   rdm_comparison='cosine', n_layer=12, k_pattern=None,
+                   k_rdm=None, rdm_type='crossnobis',
+                   noise_type='residuals', boot_type='both'):
     """ analyzing the data generated from ecoset using pyrsa """
     ecoset_path = pathlib.Path(ecoset_path).expanduser()
     fname_base = get_fname_base(simulation_folder=simulation_folder,
@@ -553,12 +574,12 @@ def analyse_ecoset(layer=2, sd=0.05, use_cor_noise=True,
                                 use_cor_noise=use_cor_noise,
                                 resolution=resolution,
                                 sigma_noise=sigma_noise,
-                                ar_coeff=ar_coeff)
+                                ar_coeff=ar_coeff, variation=variation)
     print(fname_base)
     assert os.path.isdir(fname_base), 'simulated data not found!'
-    res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d_%d' % (
-        rdm_type, model_type, rdm_comparison, noise_type, n_stim,
-        k_pattern, k_rdm)
+    res_name = get_resname(boot_type, rdm_type, model_type, rdm_comparison,
+                           noise_type, n_stim, k_pattern, k_rdm)
+    res_path = fname_base + res_name
     if not os.path.isdir(res_path):
         os.mkdir(res_path)
     for i in tqdm.trange(n_sim, position=1):
@@ -592,10 +613,8 @@ def analyse_ecoset(layer=2, sd=0.05, use_cor_noise=True,
             noise = pyrsa.data.get_prec_from_residuals(residuals)
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor='repeat', noise=noise)
-        results = pyrsa.inference.bootstrap_crossval(
-            models, rdms,
-            pattern_descriptor='stim', rdm_descriptor='index',
-            k_pattern=k_pattern, k_rdm=k_rdm, method=rdm_comparison)
+        results = run_inference(models, rdms, method=rdm_comparison,
+                                bootstrap=boot_type)
         results.save(res_path + '/res%04d.hdf5' % (i))
 
 
@@ -956,14 +975,94 @@ def run_comp(idx):
                              bootstrap=boot_type[i_boot])
 
 
+def run_eco_sim(idx, ecoset_path=None):
+    """ master script for running the ecoset simulations. Each call to
+    this script will run one repetition of the comparisons, i.e. 1000
+    evaluations.
+    run this script with all indices from 1 to 2880 to reproduce  all analyses
+    of this type.
+    """
+    if ecoset_path is None:
+        ecoset_path = '~/ecoset/val/'
+    variation = [None, 'both', 'pattern', 'rdm']
+    n_subj = [5, 10, 20, 40, 80]
+    n_repeat = [2, 4, 8, 16]
+    layer = np.arange(12)
+    sd = [0.05, 0.25, np.inf]
+
+    (i_sd, i_layer, i_repeat, i_sub, i_var) = np.unravel_index(
+        idx, [len(sd), len(layer), len(n_repeat),
+              len(n_subj), len(variation)])
+    print('starting simulation:')
+    print('variation: %s' % variation[i_var])
+    print('layer: %d' % layer[i_layer])
+    print('%d repeats' % n_repeat[i_repeat])
+    print('%d subjects' % n_subj[i_sub])
+    print('%.3f sd' % sd[i_sd])
+    print('\n\n\n\n')
+    time.sleep(1)
+    save_sim_ecoset(variation=variation[i_var],
+                    layer=layer[i_layer],
+                    n_repeat=n_repeat[i_repeat],
+                    n_subj=n_subj[i_sub],
+                    sd=sd[i_sd])
+
+
+def run_eco_ana(idx, ecoset_path=None):
+    """ master script for running the ecoset simulations. Each call to
+    this script will run one repetition of the comparisons, i.e. 1000
+    evaluations.
+    run this script with all indices from 1 to 4320 to reproduce  all analyses
+    of this type.
+    """
+    if ecoset_path is None:
+        ecoset_path = '~/ecoset/val/'
+    variation = ['None_both', 'None_pattern', 'None_rdm',
+                 'both', 'pattern', 'rdm']
+    n_subj = [5, 10, 20, 40, 80]
+    n_repeat = [2, 4, 8, 16]
+    layer = np.arange(12)
+    sd = [0.05, 0.25, np.inf]
+
+    (i_sd, i_layer, i_repeat, i_sub, i_var) = np.unravel_index(
+        idx, [len(sd), len(layer), len(n_repeat),
+              len(n_subj), len(variation)])
+    print('analysing simulation:')
+    print('variation: %s' % variation[i_var])
+    print('layer: %d' % layer[i_layer])
+    print('%d repeats' % n_repeat[i_repeat])
+    print('%d subjects' % n_subj[i_sub])
+    print('%.3f sd' % sd[i_sd])
+    print('\n\n\n\n')
+    time.sleep(1)
+    if variation[i_var][:4] == 'None':
+        analyse_ecoset(variation=None,
+                       layer=layer[i_layer],
+                       n_repeat=n_repeat[i_repeat],
+                       n_subj=n_subj[i_sub],
+                       sd=sd[i_sd], boot_type=variation[i_var][5:])
+    else:
+        analyse_ecoset(variation=variation[i_var],
+                       layer=layer[i_layer],
+                       n_repeat=n_repeat[i_repeat],
+                       n_subj=n_subj[i_sub],
+                       sd=sd[i_sd], boot_type=variation[i_var])
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--sim",
-                        help="simulation type",
-                        choices=['comp'], default='comp')
+    parser.add_argument("-p", "--path", type=str,
+                        help="where is ecoset?", default=None)
+    parser.add_argument("sim", help="simulation type",
+                        choices=['comp', 'eco_sim', 'eco_ana'],
+                        default='comp')
     parser.add_argument("index", type=int,
                         help="which simulation index to run")
     args = parser.parse_args()
     if args.sim == 'comp':
         run_comp(args.index)
+    elif args.sim == 'eco_sim':
+        run_eco_sim(args.index, ecoset_path=args.path)
+    elif args.sim == 'eco_ana':
+        run_eco_ana(args.index, ecoset_path=args.path)

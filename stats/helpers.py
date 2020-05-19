@@ -35,6 +35,27 @@ def get_fname_base(simulation_folder, n_voxel, n_subj, n_repeat, sd,
     return fname_base
 
 
+def get_resname(boot_type, rdm_type, model_type, rdm_comparison, noise_type,
+                n_stim, k_pattern, k_rdm):
+    if k_pattern is None and k_rdm is None:
+        res_name = 'results_%s_%s_%s_%s_%s_%d' % (
+            boot_type, rdm_type, model_type, rdm_comparison, noise_type,
+            n_stim)
+    elif k_pattern is None:
+        res_name = 'results_%s_%s_%s_%s_%s_%d_None_%d' % (
+            boot_type, rdm_type, model_type, rdm_comparison, noise_type,
+            n_stim, k_rdm)
+    elif k_rdm is None:
+        res_name = 'results_%s_%s_%s_%s_%s_%d_%d_None' % (
+            boot_type, rdm_type, model_type, rdm_comparison, noise_type,
+            n_stim, k_pattern)
+    else:
+        res_name = 'results_%s_%s_%s_%s_%s_%d_%d_%d' % (
+            boot_type, rdm_type, model_type, rdm_comparison, noise_type,
+            n_stim, k_pattern, k_rdm)
+    return res_name
+
+
 def get_stimuli_92():
     stimuli = []
     for i_stim in range(92):
