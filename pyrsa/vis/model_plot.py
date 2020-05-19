@@ -6,13 +6,14 @@ Created on Thu Feb 13 14:04:52 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import matplotlib.path as mpath
+import matplotlib.patches as patches
+from matplotlib.path import Path
+import matplotlib.transforms as transforms
 from matplotlib import cm
-from pyrsa.util.inference_util import pair_tests
-from pyrsa.util.rdm_utils import batch_to_vectors
 import networkx as nx
 from networkx.algorithms.clique import find_cliques as maximal_cliques
+from pyrsa.util.inference_util import pair_tests
+from pyrsa.util.rdm_utils import batch_to_vectors
 
 
 def plot_model_comparison(result, sort=False, colors=None,
@@ -22,7 +23,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                           test_below_noise_ceil=True,
                           error_bars='sem'):
     """ Plots the results of RSA inference on a set of models as a bar graph
-    with one bar for each model indicating its predicitve performance. The
+    with one bar for each model indicating its predictive performance. The
     function also shows the noise ceiling whose upper edge is an upper bound
     on the performance the true model could achieve (given noise and inter-
     subject variability) and whose lower edge is an estimate of a lower bound
@@ -142,23 +143,33 @@ def plot_model_comparison(result, sort=False, colors=None,
         perf = perf[idx]
         evaluations = evaluations[:, idx]
         models = [models[i] for i in idx]
+        if not ('descend' in sort.lower() or
+                'ascend' in sort.lower()):
+            raise Exception('plot_model_comparison: Argument ' +
+                            'sort is incorrectly defined as '
+                            + sort + '.')
 
     # Prepare axes for bars and pairwise comparisons
     fs, fs2 = 18, 14  # axis label font sizes
     l, b, w, h = 0.15, 0.15, 0.8, 0.8
+    fig = plt.figure(figsize=(12.5, 10))
     if test_pair_comparisons is True:
         test_pair_comparisons = 'arrows'
     if test_pair_comparisons:
         if test_pair_comparisons.lower() in ['arrows', 'cliques']:
+            h_pair_tests = 0.25
+        elif 'golan' in test_pair_comparisons.lower():
             h_pair_tests = 0.3
-        else:
+        elif 'nili' in test_pair_comparisons.lower():
             h_pair_tests = 0.4
-        plt.figure(figsize=(12.5, 10))
+        else:
+            raise Exception('plot_model_comparison: Argument ' +
+                            'test_pair_comparisons is incorrectly defined as '
+                            + test_pair_comparisons + '.')
         ax = plt.axes((l, b, w, h*(1-h_pair_tests)))
         axbar = plt.axes((l, b + h * (1 - h_pair_tests), w,
                           h * h_pair_tests * 0.7))
     else:
-        plt.figure(figsize=(12.5, 10))
         ax = plt.axes((l, b, w, h))
 
     # Define the model colors
@@ -203,10 +214,22 @@ def plot_model_comparison(result, sort=False, colors=None,
         else:
             CI_percent = int(error_bars[2:])
         prop_cut = (1-CI_percent/100) / 2
-        errorbar_low = -(np.quantile(evaluations, prop_cut, axis=0)
+        framed_evals = np.concatenate(
+            (np.tile(np.array((-np.inf, np.inf)).reshape(2, 1), (1, n_models)),
+             evaluations), axis=0)
+        errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
                          - perf)
-        errorbar_high = (np.quantile(evaluations, 1 - prop_cut, axis=0)
+        errorbar_high = (np.quantile(framed_evals, 1 - prop_cut, axis=0)
                          - perf)
+        limits = np.concatenate((errorbar_low, errorbar_high))
+        if np.isnan(limits).any() or (abs(limits) == np.inf).any():
+            raise Exception(
+                'plot_model_comparison: Too few bootstrap samples for the ' +
+                'requested confidence interval: ' + error_bars + '.')
+    elif error_bars:
+        raise Exception('plot_model_comparison: Argument ' +
+                        'error_bars is incorrectly defined as '
+                        + error_bars + '.')
     if error_bars:
         ax.errorbar(np.arange(evaluations.shape[1]), perf,
                     yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
@@ -220,7 +243,7 @@ def plot_model_comparison(result, sort=False, colors=None,
         model_significant = p < alpha / n_models
         half_sym_size = 9
         if test_above_0.lower() == 'dewdrops':
-            halfmoonup = mpath.Path.wedge(0, 180)
+            halfmoonup = Path.wedge(0, 180)
             ax.plot(model_significant.nonzero()[0],
                     np.tile(0, model_significant.sum()), 'w',
                     marker=halfmoonup, markersize=half_sym_size,
@@ -230,15 +253,19 @@ def plot_model_comparison(result, sort=False, colors=None,
                     np.tile(0, model_significant.sum()), 'w',
                     marker=10, markersize=half_sym_size,
                     linewidth=0)
+        else:
+            raise Exception(
+                'plot_model_comparison: Argument test_above_0' +
+                ' is incorrectly defined as ' + test_above_0 + '.')
 
     # Plot noise ceiling
     noise_ceil_col = [0.5, 0.5, 0.5, 0.2]
     if noise_ceiling is not None:
         noise_lower = np.nanmean(noise_ceiling[0])
         noise_upper = np.nanmean(noise_ceiling[1])
-        noiserect = mpatches.Rectangle((-0.5, noise_lower), len(perf),
-                                       noise_upper-noise_lower, linewidth=0,
-                                       facecolor=noise_ceil_col, zorder=1e6)
+        noiserect = patches.Rectangle((-0.5, noise_lower), len(perf),
+                                      noise_upper-noise_lower, linewidth=0,
+                                      facecolor=noise_ceil_col, zorder=1e6)
         ax.add_patch(noiserect)
 
     # Test whether model performance is below the noise ceiling's lower bound
@@ -253,7 +280,7 @@ def plot_model_comparison(result, sort=False, colors=None,
         model_below_lower_bound = p < alpha / n_models
 
         if test_below_noise_ceil.lower() == 'dewdrops':
-            halfmoondown = mpath.Path.wedge(180, 360)
+            halfmoondown = Path.wedge(180, 360)
             ax.plot(model_below_lower_bound.nonzero()[0],
                     np.tile(noise_lower+0.0000, model_below_lower_bound.sum()),
                     color='none',
@@ -267,6 +294,11 @@ def plot_model_comparison(result, sort=False, colors=None,
                     marker=11, markersize=half_sym_size,
                     markerfacecolor=noise_ceil_col,
                     markeredgecolor='none', linewidth=0)
+        else:
+            raise Exception(
+                'plot_model_comparison: Argument ' +
+                'test_below_noise_ceil is incorrectly defined as ' +
+                test_below_noise_ceil + '.')
 
     # Pairwise model comparisons
     if test_pair_comparisons:
@@ -299,6 +331,11 @@ def plot_model_comparison(result, sort=False, colors=None,
                                 ' (' + str(n_tests) +
                                 ' model-pair comparisons)')
         else:
+            if 'uncorrected' not in multiple_pair_testing.lower():
+                raise Exception(
+                    'plot_model_comparison: Argument ' +
+                    'multiple_pair_testing is incorrectly defined as ' +
+                    multiple_pair_testing + '.')
             significant = p_values < alpha
             model_comp_descr = (model_comp_descr +
                                 'p < {:<.5g}'.format(alpha) +
@@ -324,27 +361,29 @@ def plot_model_comparison(result, sort=False, colors=None,
             model_comp_descr = (model_comp_descr +
                                 ' standard error of the mean.')
         if test_above_0 or test_below_noise_ceil:
-            model_comp_descr = (model_comp_descr +
+            model_comp_descr = (
+                model_comp_descr +
                 '\nOne-sided comparisons of each model performance ')
         if test_above_0:
             model_comp_descr = model_comp_descr + 'against 0 '
         if test_above_0 and test_below_noise_ceil:
             model_comp_descr = model_comp_descr + 'and '
         if test_below_noise_ceil:
-            model_comp_descr = (model_comp_descr +
+            model_comp_descr = (
+                model_comp_descr +
                 'against the lower-bound estimate of the noise ceiling ')
         if test_above_0 or test_below_noise_ceil:
             model_comp_descr = (model_comp_descr +
                                 'are Bonferroni-corrected for ' +
                                 str(n_models) + ' models.')
 
-        axbar.set_title(model_comp_descr, fontsize=fs2/2)
+        fig.suptitle(model_comp_descr, fontsize=fs2/2)
         axbar.set_xlim(ax.get_xlim())
         digits = [d for d in list(test_pair_comparisons) if d.isdigit()]
         if len(digits) > 0:
             v = int(digits[0])
         else:
-            v = None 
+            v = None
         if 'nili' in test_pair_comparisons.lower():
             if v:
                 plot_nili_bars(axbar, significant, version=v)
@@ -355,7 +394,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                 plot_golan_wings(axbar, significant, perf, sort, colors,
                                  version=v)
             else:
-                plot_golan_wings(axbar, significant, perf, sort, colors) 
+                plot_golan_wings(axbar, significant, perf, sort, colors)
         elif 'arrows' in test_pair_comparisons.lower():
             plot_arrows(axbar, significant)
         elif 'cliques' in test_pair_comparisons.lower():
@@ -374,9 +413,13 @@ def plot_model_comparison(result, sort=False, colors=None,
     plt.rc('ytick', labelsize=fs2)
 
     # Axis labels
-    ax.text(-1.8, ytoptick/2, 'RDM prediction accuracy',
+    ylabel_fig_x, ysublabel_fig_x = 0.07, 0.095
+    trans = transforms.blended_transform_factory(fig.transFigure,
+                                                 ax.get_yaxis_transform())
+    ax.text(ylabel_fig_x, ytoptick/2, 'RDM prediction accuracy',
             horizontalalignment='center', verticalalignment='center',
-            rotation='vertical', fontsize=fs, fontweight='bold')
+            rotation='vertical', fontsize=fs, fontweight='bold',
+            transform=trans)
     if method.lower() == 'cosine':
         ax.set_ylabel('[across-subject mean of cosine similarity]',
                       fontsize=fs2)
@@ -387,8 +430,13 @@ def plot_model_comparison(result, sort=False, colors=None,
         ax.set_ylabel('[across-subject mean of Spearman r rank correlation]',
                       fontsize=fs2)
     elif method.lower() in ['corr', 'pearson']:
-        ax.set_ylabel('[across-subject mean of Pearson r correlation]',
-                      fontsize=fs2)
+        ax.text(ysublabel_fig_x, ytoptick/2,
+                '[across-subject mean of Pearson r correlation]',
+                horizontalalignment='center', verticalalignment='center',
+                rotation='vertical', fontsize=fs2, fontweight='normal',
+                transform=trans)
+        # ax.set_ylabel('[across-subject mean of Pearson r correlation]',
+        #               fontsize=fs2)
     elif method.lower() in ['whitened pearson', 'corr_cov']:
         ax.set_ylabel('[across-subject mean of whitened-RDM Pearson r '
                       + 'correlation]',
@@ -563,6 +611,14 @@ def plot_arrows(axbar, significant):
     n = significant.shape[0]
     remaining = significant.copy()
 
+    # make arrowheads
+    verts_R = [(0, 0), (0, 1), (2, 0), (0, -1), (0, 0)]
+    verts_L = [(-x, y) for (x, y) in verts_R]
+    codes = [Path.MOVETO, Path.LINETO, Path.LINETO, Path.LINETO,
+             Path.CLOSEPOLY]
+    ah_R = Path(verts_R, codes)
+    ah_L = Path(verts_L, codes)
+
     # Capture as many comparisons as possible with double arrows
     double_arrows = list()
     for ambiguity_span in range(0, n-1):
@@ -601,12 +657,6 @@ def plot_arrows(axbar, significant):
     n_elements = len(double_arrows)+len(arrows)+len(lines)
     if n_elements == 0:
         return
-    bbox = axbar.get_window_extent().transformed(
-        plt.gcf().dpi_scale_trans.inverted())
-    h_inch, w_inch = bbox.height, bbox.width
-    dx = abs(np.diff(axbar.get_xlim()))
-    dy = abs(np.diff(axbar.get_ylim()))
-    ar = (dy/h_inch) / (dx/w_inch)
     occupied = np.zeros((n_elements, 3*n))
     for m in range(0, int(np.ceil(n/2))):
         double_arrows_left = [(i, j) for (i, j) in double_arrows if i == m]
@@ -619,11 +669,11 @@ def plot_arrows(axbar, significant):
             while occupied[k-1, i*3+2:j*3+1].any():
                 k += 1
             if i == 0:
-                draw_hor_arrow(axbar, i, j, k, '->', ar)
+                draw_hor_arrow(axbar, i, j, k, '->', ah_L, ah_R)
             elif j == n-1:
-                draw_hor_arrow(axbar, i, j, k, '<-', ar)
+                draw_hor_arrow(axbar, i, j, k, '<-', ah_L, ah_R)
             else:
-                draw_hor_arrow(axbar, i, j, k, '<->', ar)
+                draw_hor_arrow(axbar, i, j, k, '<->', ah_L, ah_R)
             occupied[k-1, i*3+2:j*3+1] = 1
 
         double_arrows_right = \
@@ -635,11 +685,11 @@ def plot_arrows(axbar, significant):
             while occupied[k-1, i*3+2:j*3+1].any():
                 k += 1
             if i == 0:
-                draw_hor_arrow(axbar, i, j, k, '->', ar)
+                draw_hor_arrow(axbar, i, j, k, '->', ah_L, ah_R)
             elif j == n-1:
-                draw_hor_arrow(axbar, i, j, k, '<-', ar)
+                draw_hor_arrow(axbar, i, j, k, '<-', ah_L, ah_R)
             else:
-                draw_hor_arrow(axbar, i, j, k, '<->', ar)
+                draw_hor_arrow(axbar, i, j, k, '<->', ah_L, ah_R)
             occupied[k-1, i*3+2:j*3+1] = 1
 
     for m in range(0, int(np.ceil(n/2))):
@@ -652,7 +702,7 @@ def plot_arrows(axbar, significant):
             while occupied[k-1, i*3+2:j*3+1].any() or \
                     occupied[k-1, j*3+2:i*3+1].any():
                 k += 1
-            draw_hor_arrow(axbar, i, j, k, '->', ar)
+            draw_hor_arrow(axbar, i, j, k, '->', ah_L, ah_R)
             occupied[k-1, i*3+2:j*3+1] = 1
             occupied[k-1, j*3+2:i*3+1] = 1
 
@@ -665,7 +715,7 @@ def plot_arrows(axbar, significant):
             while occupied[k-1, i*3+2:j*3+1].any() or \
                     occupied[k-1, j*3+2:i*3+1].any():
                 k += 1
-            draw_hor_arrow(axbar, i, j, k, '->', ar)
+            draw_hor_arrow(axbar, i, j, k, '->', ah_L, ah_R)
             occupied[k-1, i*3+2:j*3+1] = 1
             occupied[k-1, j*3+2:i*3+1] = 1
 
@@ -697,25 +747,27 @@ def plot_arrows(axbar, significant):
     axbar.set_ylim((0, max(expected_n_lines, h)))
 
 
-def draw_hor_arrow(ax, x1, x2, y, style, ar):
-    hw, hl = 0.15*ar, 0.15
-    s = 0.25  # shortening
-    d = x2-x1
-    if style == '->':
-        ax.arrow(x1, y, np.sign(d)*(abs(d)-s), 0, head_width=hw,
-                 head_length=hl, length_includes_head=True, fc='k', ec='k')
-        ax.plot(x1, y, 'k', markersize=8, marker='o')
-    elif style == '<-':
-        ax.arrow(x2, y, np.sign(-d)*(abs(d)-s), 0, head_width=hw,
-                 head_length=hl, length_includes_head=True, fc='k', ec='k')
-        ax.plot(x2, y, 'k', markersize=8, marker='o')
-    elif style == '<->':
-        c = (x1+x2)/2
-        ln = abs(x2-x1)
-        ax.arrow(c, y, +(ln/2-s), 0, head_width=hw, head_length=hl,
-                 length_includes_head=True, fc='k', ec='k')
-        ax.arrow(c, y, -(ln/2-s), 0, head_width=hw, head_length=hl,
-                 length_includes_head=True, fc='k', ec='k')
+def draw_hor_arrow(ax, x1, x2, y, style, ah_L, ah_R):
+    # Draws a horizontal arrow from (x1, y) to (x2, y) if style is '->' and
+    # in the reverse direction if style is '<-'. If style is '<->', this
+    # function draws a double arrow.
+    lw, s = 1.6, 0.45
+    ms, ms_a = 8, 18
+    if (x1 < x2 and style == '->') or (x2 < x1 and style == '<-'):
+        mr = ah_R  # arrow points right
+    else:
+        mr = ah_L  # arrow points left
+    if style == '<-':
+        x1, x2 = x2, x1  # arrow from x1 to x2 now
+    d = (x2-x1)/abs(x2-x1)
+    if style == '<->':
+        ax.plot(x1+d*s, y, 'k', markersize=ms_a, marker=ah_L)
+        ax.plot((x1+d*s, x2-d*s), (y, y), 'k-', linewidth=lw)
+        ax.plot(x2-d*s, y, 'k', markersize=ms_a, marker=ah_R)
+    else:
+        ax.plot(x1, y, 'k', markersize=ms, marker='o')
+        ax.plot((x1, x2-d*s), (y, y), 'k-', linewidth=lw)
+        ax.plot(x2-d*s, y, 'k', markersize=ms_a, marker=mr)
 
 
 def plot_cliques(axbar, significant):
