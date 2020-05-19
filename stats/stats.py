@@ -1005,7 +1005,8 @@ def run_eco_sim(idx, ecoset_path=None):
                     layer=layer[i_layer],
                     n_repeat=n_repeat[i_repeat],
                     n_subj=n_subj[i_sub],
-                    sd=sd[i_sd])
+                    sd=sd[i_sd],
+                    ecoset_path=ecoset_path)
 
 
 def run_eco_ana(idx, ecoset_path=None):
@@ -1040,13 +1041,15 @@ def run_eco_ana(idx, ecoset_path=None):
                        layer=layer[i_layer],
                        n_repeat=n_repeat[i_repeat],
                        n_subj=n_subj[i_sub],
-                       sd=sd[i_sd], boot_type=variation[i_var][5:])
+                       sd=sd[i_sd], boot_type=variation[i_var][5:],
+                       ecoset_path=ecoset_path)
     else:
         analyse_ecoset(variation=variation[i_var],
                        layer=layer[i_layer],
                        n_repeat=n_repeat[i_repeat],
                        n_subj=n_subj[i_sub],
-                       sd=sd[i_sd], boot_type=variation[i_var])
+                       sd=sd[i_sd], boot_type=variation[i_var],
+                       ecoset_path=ecoset_path)
 
 
 if __name__ == '__main__':
