@@ -1264,6 +1264,7 @@ def run_eco_ana(idx, ecoset_path=None):
                        n_subj=n_subj[i_sub],
                        sd=sd[i_sd], boot_type=variation[i_var][5:],
                        ecoset_path=ecoset_path,
+                       rdm_comparison='corr',
                        n_sim=100)
     else:
         analyse_ecoset(variation=variation[i_var],
@@ -1272,6 +1273,7 @@ def run_eco_ana(idx, ecoset_path=None):
                        n_subj=n_subj[i_sub],
                        sd=sd[i_sd], boot_type=variation[i_var],
                        ecoset_path=ecoset_path,
+                       rdm_comparison='corr',
                        n_sim=100)
 
 
