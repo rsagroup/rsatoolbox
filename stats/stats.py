@@ -1185,6 +1185,51 @@ def run_eco_sim(idx, ecoset_path=None):
                     n_sim=100)
 
 
+def run_eco(idx, ecoset_path=None):
+    """ master script for running the ecoset simulations. Each call to
+    this script will run one repetition of the comparisons, i.e. 1000
+    evaluations.
+    run this script with all indices from 1 to 4320 to reproduce  all analyses
+    of this type.
+    """
+    if ecoset_path is None:
+        ecoset_path = '~/ecoset/val/'
+    variation = ['None_both', 'None_pattern', 'None_rdm',
+                 'both', 'pattern', 'rdm']
+    n_subj = [5, 10, 20, 40, 80]
+    n_repeat = [2, 4, 8, 16]
+    layer = np.arange(12)
+    sd = [0.05, 0.25, np.inf]
+
+    (i_sd, i_layer, i_repeat, i_sub, i_var) = np.unravel_index(
+        idx, [len(sd), len(layer), len(n_repeat),
+              len(n_subj), len(variation)])
+    print('analysing simulation:')
+    print('variation: %s' % variation[i_var])
+    print('layer: %d' % layer[i_layer])
+    print('%d repeats' % n_repeat[i_repeat])
+    print('%d subjects' % n_subj[i_sub])
+    print('%.3f sd' % sd[i_sd])
+    print('\n\n\n\n')
+    time.sleep(1)
+    if variation[i_var][:4] == 'None':
+        sim_ecoset(variation=None,
+                   layer=layer[i_layer],
+                   n_repeat=n_repeat[i_repeat],
+                   n_subj=n_subj[i_sub],
+                   sd=sd[i_sd], boot_type=variation[i_var][5:],
+                   ecoset_path=ecoset_path,
+                   n_sim=100)
+    else:
+        sim_ecoset(variation=variation[i_var],
+                   layer=layer[i_layer],
+                   n_repeat=n_repeat[i_repeat],
+                   n_subj=n_subj[i_sub],
+                   sd=sd[i_sd], boot_type=variation[i_var],
+                   ecoset_path=ecoset_path,
+                   n_sim=100)
+
+
 def run_eco_ana(idx, ecoset_path=None):
     """ master script for running the ecoset simulations. Each call to
     this script will run one repetition of the comparisons, i.e. 1000
@@ -1196,7 +1241,7 @@ def run_eco_ana(idx, ecoset_path=None):
         ecoset_path = '~/ecoset/val/'
     variation = ['None_both', 'None_pattern', 'None_rdm',
                  'both', 'pattern', 'rdm']
-    n_subj = [5, 10, 20, 40]
+    n_subj = [5, 10, 20, 40, 80]
     n_repeat = [2, 4, 8, 16]
     layer = np.arange(12)
     sd = [0.05, 0.25, np.inf]
@@ -1236,7 +1281,7 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--path", type=str,
                         help="where is ecoset?", default=None)
     parser.add_argument("sim", help="simulation type",
-                        choices=['comp', 'eco_sim', 'eco_ana'],
+                        choices=['comp', 'eco_sim', 'eco_ana', 'eco'],
                         default='comp')
     parser.add_argument("index", type=int,
                         help="which simulation index to run")
@@ -1247,3 +1292,5 @@ if __name__ == '__main__':
         run_eco_sim(args.index, ecoset_path=args.path)
     elif args.sim == 'eco_ana':
         run_eco_ana(args.index, ecoset_path=args.path)
+    elif args.sim == 'eco':
+        run_eco(args.index, ecoset_path=args.path)
