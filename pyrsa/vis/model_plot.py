@@ -273,9 +273,12 @@ def plot_model_comparison(result, sort=False, colors=None,
     if test_below_noise_ceil is True:
         test_below_noise_ceil = 'dewdrops'
     if test_below_noise_ceil:
-        noise_lower_bs = noise_ceiling[0]
-        noise_lower_bs.shape = (noise_lower_bs.shape[0], 1)
-        diffs = noise_lower_bs-evaluations  # positive if below lower bound
+        if len(noise_ceiling.shape) > 1:
+            noise_lower_bs = noise_ceiling[0]
+            noise_lower_bs.shape = (noise_lower_bs.shape[0], 1)
+        else:
+            noise_lower_bs = noise_ceiling[0].reshape(1, 1)
+        diffs = noise_lower_bs - evaluations  # positive if below lower bound
         p = ((diffs < 0).sum(axis=0) + 1) / n_bootstraps
         model_below_lower_bound = p < alpha / n_models
 
