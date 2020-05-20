@@ -12,7 +12,7 @@ import numpy as np
 
 def get_cov_from_residuals(residuals, df=None):
     """
-    computes an optimal shrinkage estimate of the precision matrix from 
+    computes an optimal shrinkage estimate of the precision matrix from
     the residuals as described by Ledoit and Wolfe (2004): "A well-conditioned
     estimator for large-dimensional covariance matrices"
 
@@ -20,7 +20,7 @@ def get_cov_from_residuals(residuals, df=None):
         residuals(numpy.ndarray or list of these): n_obs x n_channels matrix
             of residuals
         df(int or list of int): degrees of freedom for covariance estimation
-            defaults to n_obs-1, should be corrected for 
+            defaults to n_obs-1, should be corrected for
 
     Returns:
         numpy.ndarray (or list): sigma_p: covariance matrix over channels
@@ -35,9 +35,9 @@ def get_cov_from_residuals(residuals, df=None):
                 s_shrink.append(get_cov_from_residuals(residuals[i], df[i]))
             else:
                 s_shrink.append(get_cov_from_residuals(residuals[i], df))
-    else:  
+    else:
         if df is None:
-            df = residuals.shape[0] - 1 
+            df = residuals.shape[0] - 1
         residuals = residuals - np.mean(residuals, axis=0, keepdims=True)
         xt_x = np.einsum('ij, ik-> ijk', residuals, residuals)
         s = np.sum(xt_x, axis=0) / xt_x.shape[0]
@@ -53,7 +53,7 @@ def get_cov_from_residuals(residuals, df=None):
 
 def get_prec_from_residuals(residuals, df=None):
     """
-    computes an optimal shrinkage estimate of the precision matrix from 
+    computes an optimal shrinkage estimate of the precision matrix from
     the residuals as described by Ledoit and Wolfe (2004): "A well-conditioned
     estimator for large-dimensional covariance matrices"
 
@@ -61,7 +61,7 @@ def get_prec_from_residuals(residuals, df=None):
         residuals(numpy.ndarray or list of these): n_obs x n_channels matrix
             of residuals
         df(int or list of int): degrees of freedom for covariance estimation
-            defaults to n_obs-1, should be corrected for 
+            defaults to n_obs-1, should be corrected for
 
     Returns:
         numpy.ndarray (or list): sigma_p: covariance matrix over channels
