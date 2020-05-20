@@ -650,6 +650,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
     res_name = get_resname(boot_type, rdm_type, model_type, rdm_comparison,
                            noise_type, n_stim, k_pattern, k_rdm)
     res_path = fname_base + res_name
+    print(res_path)
     if not os.path.isdir(res_path):
         os.mkdir(res_path)
     for i in tqdm.trange(n_sim):
@@ -1198,16 +1199,18 @@ def run_eco(idx, ecoset_path=None):
                  'both', 'pattern', 'rdm']
     n_subj = [5, 10, 20, 40, 80]
     n_repeat = [2, 4, 8, 16]
+    n_stim = [5, 20, 80, 320]
     layer = np.arange(12)
     sd = [0.05, 0.25, np.inf]
 
-    (i_sd, i_layer, i_repeat, i_sub, i_var) = np.unravel_index(
+    (i_sd, i_layer, i_repeat, i_sub, i_var, i_stim) = np.unravel_index(
         idx, [len(sd), len(layer), len(n_repeat),
-              len(n_subj), len(variation)])
+              len(n_subj), len(variation), len(n_stim)])
     print('analysing simulation:')
     print('variation: %s' % variation[i_var])
     print('layer: %d' % layer[i_layer])
     print('%d repeats' % n_repeat[i_repeat])
+    print('%d stimuli' % n_stim[i_stim])
     print('%d subjects' % n_subj[i_sub])
     print('%.3f sd' % sd[i_sd])
     print('\n\n\n\n')
@@ -1219,6 +1222,8 @@ def run_eco(idx, ecoset_path=None):
                    n_subj=n_subj[i_sub],
                    sd=sd[i_sd], boot_type=variation[i_var][5:],
                    ecoset_path=ecoset_path,
+                   rdm_comparison='corr',
+                   n_stim=n_stim[i_stim],
                    n_sim=100)
     else:
         sim_ecoset(variation=variation[i_var],
@@ -1227,6 +1232,8 @@ def run_eco(idx, ecoset_path=None):
                    n_subj=n_subj[i_sub],
                    sd=sd[i_sd], boot_type=variation[i_var],
                    ecoset_path=ecoset_path,
+                   rdm_comparison='corr',
+                   n_stim=n_stim[i_stim],
                    n_sim=100)
 
 
@@ -1243,12 +1250,13 @@ def run_eco_ana(idx, ecoset_path=None):
                  'both', 'pattern', 'rdm']
     n_subj = [5, 10, 20, 40, 80]
     n_repeat = [2, 4, 8, 16]
+    n_stim = [5, 20, 80, 320]
     layer = np.arange(12)
     sd = [0.05, 0.25, np.inf]
 
-    (i_sd, i_layer, i_repeat, i_sub, i_var) = np.unravel_index(
+    (i_sd, i_layer, i_repeat, i_sub, i_var, i_stim) = np.unravel_index(
         idx, [len(sd), len(layer), len(n_repeat),
-              len(n_subj), len(variation)])
+              len(n_subj), len(variation), len(n_stim)])
     print('analysing simulation:')
     print('variation: %s' % variation[i_var])
     print('layer: %d' % layer[i_layer])
@@ -1265,6 +1273,7 @@ def run_eco_ana(idx, ecoset_path=None):
                        sd=sd[i_sd], boot_type=variation[i_var][5:],
                        ecoset_path=ecoset_path,
                        rdm_comparison='corr',
+                       n_stim=n_stim[i_stim],
                        n_sim=100)
     else:
         analyse_ecoset(variation=variation[i_var],
@@ -1274,6 +1283,7 @@ def run_eco_ana(idx, ecoset_path=None):
                        sd=sd[i_sd], boot_type=variation[i_var],
                        ecoset_path=ecoset_path,
                        rdm_comparison='corr',
+                       n_stim=n_stim[i_stim],
                        n_sim=100)
 
 
