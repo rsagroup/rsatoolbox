@@ -618,6 +618,181 @@ def analyse_ecoset(layer=2, sd=0.05, use_cor_noise=True,
         results.save(res_path + '/res%04d.hdf5' % (i))
 
 
+def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
+               n_voxel=100, n_subj=10, n_stim=40, n_repeat=2,
+               simulation_folder='sim_eco', n_sim=100,
+               duration=1, pause=1, endzeros=25,
+               use_cor_noise=True, resolution=2,
+               sigma_noise=1, ar_coeff=0.5,
+               ecoset_path='~/ecoset/val/', variation=None,
+               model_type='fixed_full',
+               rdm_comparison='cosine', n_layer=12, k_pattern=None,
+               k_rdm=None, rdm_type='crossnobis',
+               noise_type='residuals', boot_type='both'):
+    """ simulates representations based on randomly chosen ecoset images
+        (or any other folder of folders with images inside)
+        and directly runs the analysis on it saving only the subject
+        wise information and the results of the analysis.
+        -> Minimal disc usage variant
+    """
+    model = dnn.get_default_model()
+    ecoset_path = pathlib.Path(ecoset_path).expanduser()
+    fname_base = get_fname_base(simulation_folder=simulation_folder,
+                                layer=layer, n_voxel=n_voxel, n_subj=n_subj,
+                                n_repeat=n_repeat, sd=sd, duration=duration,
+                                pause=pause, endzeros=endzeros,
+                                use_cor_noise=use_cor_noise,
+                                resolution=resolution,
+                                sigma_noise=sigma_noise,
+                                ar_coeff=ar_coeff, variation=variation)
+    if not os.path.isdir(fname_base):
+        os.makedirs(fname_base)
+    res_name = get_resname(boot_type, rdm_type, model_type, rdm_comparison,
+                           noise_type, n_stim, k_pattern, k_rdm)
+    res_path = fname_base + res_name
+    if not os.path.isdir(res_path):
+        os.mkdir(res_path)
+    for i in tqdm.trange(n_sim):
+        # get stimulus list or save one if there is none yet
+        if os.path.isfile(fname_base + 'stim%04d.txt' % i):
+            stim_list = []
+            f = open(os.path.join(fname_base, 'stim%04d.txt' % i))
+            stim_paths = f.read()
+            f.close()
+            stim_paths = stim_paths.split('\n')
+        elif i == 0 or variation in ['stim', 'both']:
+            stim_paths = []
+            folders = os.listdir(ecoset_path)
+            for i_stim in range(n_stim_all):
+                i_folder = np.random.randint(len(folders))
+                images = os.listdir(os.path.join(ecoset_path,
+                                                 folders[i_folder]))
+                i_image = np.random.randint(len(images))
+                stim_paths.append(os.path.join(folders[i_folder],
+                                               images[i_image]))
+        if not os.path.isfile(fname_base + 'stim%04d.txt' % i):
+            with open(fname_base + 'stim%04d.txt' % i, 'w') as f:
+                for item in stim_paths:
+                    f.write("%s\n" % item)
+        stim_list = get_stimuli_ecoset(ecoset_path, stim_paths[:n_stim])
+        # Recalculate U_complete if necessary
+        if i == 0 or variation in ['stim', 'both']:
+            U_complete = []
+            for i_stim in range(n_stim):
+                U_complete.append(
+                    dnn.get_complete_representation(
+                        model=model, layer=layer,
+                        stimulus=stim_list[i_stim]))
+            U_shape = np.array(U_complete[0].shape)
+
+        # get new sampling locations if necessary
+        if os.path.isfile(fname_base + 'weights%04d.npy' % i):
+            indices_space = np.load(fname_base + 'indices_space%04d.npy' % i)
+            weights = np.load(fname_base + 'weights%04d.npy' % i)
+            sigmaP = []
+            for i_subj in range(n_subj):
+                sigmaP_subj = dnn.get_sampled_sigmaP(
+                    U_shape, indices_space[i_subj], weights[i_subj], [sd, sd])
+                sigmaP.append(sigmaP_subj)
+            sigmaP = np.array(sigmaP)
+        if i == 0 or variation in ['subj', 'both']:
+            sigmaP = []
+            indices_space = []
+            weights = []
+            for i_subj in range(n_subj):
+                indices_space_subj, weights_subj = dnn.get_random_indices_conv(
+                    U_shape, n_voxel)
+                sigmaP_subj = dnn.get_sampled_sigmaP(
+                    U_shape, indices_space_subj, weights_subj, [sd, sd])
+                sigmaP.append(sigmaP_subj)
+                indices_space.append(indices_space_subj)
+                weights.append(weights_subj)
+            sigmaP = np.array(sigmaP)
+            indices_space = np.array(indices_space)
+            weights = np.array(weights)
+        if not os.path.isfile(fname_base + 'weights%04d.npy' % i):
+            np.save(fname_base + 'weights%04d.npy' % i, weights)
+        if not os.path.isfile(fname_base + 'indices_space%04d.npy' % i):
+            np.save(fname_base + 'indices_space%04d.npy' % i, indices_space)
+
+        # extract new dnn activations
+        if i == 0 or variation in ['subj', 'stim', 'both']:
+            Utrue = []
+            for i_subj in range(n_subj):
+                Utrue_subj = [dnn.sample_representation(np.squeeze(U_c),
+                                                        indices_space_subj,
+                                                        weights_subj,
+                                                        [sd, sd])
+                              for U_c in U_complete]
+                Utrue_subj = np.array(Utrue_subj)
+                Utrue_subj = Utrue_subj / np.sqrt(np.sum(Utrue_subj ** 2)) \
+                    * np.sqrt(Utrue_subj.size)
+                Utrue.append(Utrue_subj)
+            Utrue = np.array(Utrue)
+
+        # run the fmri simulation
+        U = []
+        residuals = []
+        for i_subj in range(n_subj):
+            timecourses = []
+            Usamps = []
+            res_subj = []
+            for iSamp in range(n_repeat):
+                design = dnn.generate_design_random(
+                    len(stim_list), repeats=1, duration=duration, pause=pause,
+                    endzeros=endzeros)
+                if use_cor_noise:
+                    timecourse = dnn.generate_timecourse(
+                        design, Utrue[i_subj],
+                        sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
+                        sigmaP=sigmaP[i_subj])
+                else:
+                    timecourse = dnn.generate_timecourse(
+                        design, Utrue_subj,
+                        sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
+                        sigmaP=None)
+                Usamp = estimate_betas(design, timecourse)
+                timecourses.append(timecourse)
+                Usamps.append(Usamp)
+                res_subj.append(get_residuals(design, timecourse, Usamp,
+                                              resolution=resolution))
+            res_subj = np.concatenate(res_subj, axis=0)
+            residuals.append(res_subj)
+            U.append(np.array(Usamps))
+        residuals = np.array(residuals)
+        U = np.array(U)
+
+        # run analysis
+        # get models
+        fname_base_l = get_fname_base(
+            simulation_folder=simulation_folder,
+            layer=None, n_voxel=n_voxel, n_subj=n_subj,
+            n_repeat=n_repeat, sd=sd, duration=duration,
+            pause=pause, endzeros=endzeros, sigma_noise=sigma_noise,
+            use_cor_noise=use_cor_noise, resolution=resolution,
+            ar_coeff=ar_coeff)
+        models = get_models(model_type, fname_base_l, stim_list,
+                            n_layer=n_layer, n_sim=n_sim, smoothing=sd)
+        # calculate RDMs
+        data = []
+        desc = {'stim': np.tile(np.arange(n_stim), n_repeat),
+                'repeat': np.repeat(np.arange(n_repeat), n_stim)}
+        for i_subj in range(U.shape[0]):
+            u_subj = U[i_subj, :, :n_stim, :].reshape(n_repeat * n_stim,
+                                                      n_voxel)
+            data.append(pyrsa.data.Dataset(u_subj, obs_descriptors=desc))
+        if noise_type == 'eye':
+            noise = None
+        elif noise_type == 'residuals':
+            noise = pyrsa.data.get_prec_from_residuals(residuals)
+        rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
+                                  cv_descriptor='repeat', noise=noise)
+        # run inference & save it
+        results = run_inference(models, rdms, method=rdm_comparison,
+                                bootstrap=boot_type)
+        results.save(res_path + '/res%04d.hdf5' % (i))
+
+
 def save_simulated_data_dnn(model=dnn.get_default_model(), layer=2, sd=0.05,
                             stim_list=get_stimuli_96(), n_voxel=100, n_subj=10,
                             simulation_folder='sim', n_sim=1000, n_repeat=2,
@@ -1021,7 +1196,7 @@ def run_eco_ana(idx, ecoset_path=None):
         ecoset_path = '~/ecoset/val/'
     variation = ['None_both', 'None_pattern', 'None_rdm',
                  'both', 'pattern', 'rdm']
-    n_subj = [5, 10, 20, 40, 80]
+    n_subj = [5, 10, 20, 40]
     n_repeat = [2, 4, 8, 16]
     layer = np.arange(12)
     sd = [0.05, 0.25, np.inf]
