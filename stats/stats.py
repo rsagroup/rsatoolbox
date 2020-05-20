@@ -436,7 +436,7 @@ def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
 
 def save_sim_ecoset(layer=2, sd=0.05,
                     n_voxel=100, n_subj=10, n_stim=320, n_repeat=2,
-                    simulation_folder='sim_eco', n_sim=1000,
+                    simulation_folder='sim_eco', n_sim=100,
                     duration=1, pause=1, endzeros=25,
                     use_cor_noise=True, resolution=2,
                     sigma_noise=1, ar_coeff=0.5,
@@ -542,11 +542,12 @@ def save_sim_ecoset(layer=2, sd=0.05,
             residuals.append(res_subj)
             U.append(np.array(Usamps))
         residuals = np.array(residuals)
+        noise = pyrsa.data.get_prec_from_residuals(residuals)
         U = np.array(U)
         des = np.array(des)
         np.save(fname_base + 'Utrue%04d' % i, Utrue)
         np.save(fname_base + 'sigmaP%04d' % i, sigmaP)
-        np.save(fname_base + 'residuals%04d' % i, residuals)
+        np.save(fname_base + 'residuals%04d' % i, noise)
         np.save(fname_base + 'indices_space%04d' % i, indices_space)
         np.save(fname_base + 'weights%04d' % i, weights)
         np.save(fname_base + 'U%04d' % i, U)
@@ -557,7 +558,7 @@ def save_sim_ecoset(layer=2, sd=0.05,
 
 def analyse_ecoset(layer=2, sd=0.05, use_cor_noise=True,
                    n_voxel=100, n_subj=10, n_stim=92, n_repeat=2,
-                   simulation_folder='sim_eco', n_sim=1000,
+                   simulation_folder='sim_eco', n_sim=100,
                    duration=1, pause=1, endzeros=25, resolution=2,
                    sigma_noise=1, ar_coeff=0.5,
                    ecoset_path='~/ecoset/val/', variation=None,
@@ -609,8 +610,7 @@ def analyse_ecoset(layer=2, sd=0.05, use_cor_noise=True,
         if noise_type == 'eye':
             noise = None
         elif noise_type == 'residuals':
-            residuals = np.load(fname_base + 'residuals%04d.npy' % i)
-            noise = pyrsa.data.get_prec_from_residuals(residuals)
+            noise = np.load(fname_base + 'residuals%04d.npy' % i)
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor='repeat', noise=noise)
         results = run_inference(models, rdms, method=rdm_comparison,
@@ -1006,7 +1006,8 @@ def run_eco_sim(idx, ecoset_path=None):
                     n_repeat=n_repeat[i_repeat],
                     n_subj=n_subj[i_sub],
                     sd=sd[i_sd],
-                    ecoset_path=ecoset_path)
+                    ecoset_path=ecoset_path,
+                    n_sim=100)
 
 
 def run_eco_ana(idx, ecoset_path=None):
@@ -1042,14 +1043,16 @@ def run_eco_ana(idx, ecoset_path=None):
                        n_repeat=n_repeat[i_repeat],
                        n_subj=n_subj[i_sub],
                        sd=sd[i_sd], boot_type=variation[i_var][5:],
-                       ecoset_path=ecoset_path)
+                       ecoset_path=ecoset_path,
+                       n_sim=100)
     else:
         analyse_ecoset(variation=variation[i_var],
                        layer=layer[i_layer],
                        n_repeat=n_repeat[i_repeat],
                        n_subj=n_subj[i_sub],
                        sd=sd[i_sd], boot_type=variation[i_var],
-                       ecoset_path=ecoset_path)
+                       ecoset_path=ecoset_path,
+                       n_sim=100)
 
 
 if __name__ == '__main__':
