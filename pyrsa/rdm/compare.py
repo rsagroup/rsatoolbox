@@ -105,7 +105,7 @@ def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     sim = _cosine_cov_weighted(vector1, vector2, sigma_k)
-    return 1 - sim
+    return sim
 
 
 def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):

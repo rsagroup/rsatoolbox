@@ -323,11 +323,11 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_cosine_cov_weighted(self.test_rdm1,
                                              self.test_rdm1,
                                              sigma_k=np.eye(6))
-        assert_array_almost_equal(result, 0)
+        assert_array_almost_equal(result, 1)
         result = compare_cosine_cov_weighted(self.test_rdm1,
                                              self.test_rdm2,
                                              sigma_k=np.eye(6))
-        assert np.all(result>0)
+        assert np.all(result < 1)
 
     def test_compare_cosine_loop(self):
         from pyrsa.rdm.compare import compare_cosine
@@ -364,13 +364,12 @@ class TestCompareRDM(unittest.TestCase):
         from pyrsa.rdm.compare import compare_correlation_cov_weighted
         result = compare_correlation_cov_weighted(self.test_rdm1,
                                                   self.test_rdm1,
-                                                  sigma_k = np.eye(6))
+                                                  sigma_k=np.eye(6))
         assert_array_almost_equal(result, 1)
         result = compare_correlation_cov_weighted(self.test_rdm1,
                                                   self.test_rdm2,
-                                                  sigma_k = np.eye(6))
+                                                  sigma_k=np.eye(6))
         assert np.all(result < 1)
-        
 
     def test_compare_corr_loop(self):
         from pyrsa.rdm.compare import compare_correlation
@@ -384,7 +383,7 @@ class TestCompareRDM(unittest.TestCase):
         d2 = d2 - np.mean(d2, 1, keepdims=True)
         for i in range(result_loop.shape[0]):
             for j in range(result_loop.shape[1]):
-                result_loop[i,j] = (np.sum(d1[i] * d2[j]) 
+                result_loop[i,j] = (np.sum(d1[i] * d2[j])
                                     / np.sqrt(np.sum(d1[i] * d1[i]))
                                     / np.sqrt(np.sum(d2[j] * d2[j])))
         assert_array_almost_equal(result, result_loop)
