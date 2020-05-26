@@ -52,7 +52,7 @@ def fit_select(model, data, method='cosine', pattern_sample=None,
         if not (pattern_sample is None or pattern_descriptor is None):
             pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
         evaluations[i_rdm] = np.mean(compare(pred, data, method=method))
-    theta = np.argmin(evaluations)
+    theta = np.argmax(evaluations)
     return theta
 
 
@@ -85,7 +85,7 @@ def fit_optimize(model, data, method='cosine', pattern_sample=None,
 
 
 def fit_interpolate(model, data, method='cosine', pattern_sample=None,
-                 pattern_descriptor=None):
+                    pattern_descriptor=None):
     """
     fitting theta using bisection optimization
     allowed for ModelInterpolate only
@@ -110,11 +110,11 @@ def fit_interpolate(model, data, method='cosine', pattern_sample=None,
             theta[i_pair] = w
             theta[i_pair+1] = 1-w
             return _loss(theta, model, data, method=method,
-                     pattern_sample=pattern_sample,
-                     pattern_descriptor=pattern_descriptor)
+                         pattern_sample=pattern_sample,
+                         pattern_descriptor=pattern_descriptor)
         results.append(
             opt.minimize_scalar(loss_opt, np.array([.5]),
-                                method='bounded', bounds = (0,1)))
+                                method='bounded', bounds=(0, 1)))
     losses = [r.fun for r in results]
     i_pair = np.argmin(losses)
     result = results[i_pair]
@@ -122,6 +122,7 @@ def fit_interpolate(model, data, method='cosine', pattern_sample=None,
     theta[i_pair] = result.x
     theta[i_pair+1] = 1-result.x
     return theta
+
 
 def _loss(theta, model, data, method='cosine', cov=None,
           pattern_descriptor=None, pattern_sample=None):
@@ -137,15 +138,15 @@ def _loss(theta, model, data, method='cosine', cov=None,
         pattern_descriptor (String, optional)
             descriptor used for fitting. The default is None.
         cov(numpy.ndarray, optional):
-            Covariance matrix for likelihood based evaluation. 
+            Covariance matrix for likelihood based evaluation.
             It is ignored otherwise. The default is None.
 
     Returns:
-        
+
         numpy.ndarray: loss
 
     """
     pred = model.predict_rdm(theta)
     if not (pattern_sample is None or pattern_descriptor is None):
         pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
-    return np.mean(compare(pred, data, method=method))
+    return -np.mean(compare(pred, data, method=method))

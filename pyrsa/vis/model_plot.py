@@ -128,8 +128,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     while len(evaluations.shape) > 2:
         evaluations = np.nanmean(evaluations, axis=-1)
     evaluations = evaluations[~np.isnan(evaluations[:, 0])]
-    evaluations = 1 - evaluations  # >>>evaluations always as distances?
-    noise_ceiling = 1 - np.array(noise_ceiling)
+    noise_ceiling = np.array(noise_ceiling)
     perf = np.mean(evaluations, axis=0)
     n_bootstraps, n_models = evaluations.shape
     if sort is True:
