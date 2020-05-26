@@ -380,7 +380,7 @@ class TestCompareRDM(unittest.TestCase):
     def test_compare_rho_a(self):
         from pyrsa.rdm.compare import compare_rho_a
         result = compare_rho_a(self.test_rdm1, self.test_rdm1)
-        assert_array_almost_equal(result, 0)
+        assert_array_almost_equal(result, 1)
         result = compare_rho_a(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
