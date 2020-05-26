@@ -276,11 +276,14 @@ class TestSaveLoad(unittest.TestCase):
         assert np.all(res_loaded.models[0].rdm == m1.rdm)
 
     def test_save_load_result(self):
+        from pyrsa.rdm import RDMs
         from pyrsa.inference import Result
         from pyrsa.inference import load_results
         from pyrsa.model import ModelFixed
         import io
-        m1 = ModelFixed('test1', np.random.rand(10))
+        rdm = RDMs(np.random.rand(10),
+            pattern_descriptors={'test':['test1','test1','test1','test3','test']})
+        m1 = ModelFixed('test1', rdm)
         m2 = ModelFixed('test2', np.random.rand(10))
         models = [m1, m2]
         evaluations = np.random.rand(100,2)
