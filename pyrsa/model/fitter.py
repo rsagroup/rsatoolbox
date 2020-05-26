@@ -53,7 +53,7 @@ def fit_select(model, data, method='cosine', pattern_sample=None,
             pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
         evaluations[i_rdm] = np.mean(compare(pred, data, method=method))
     print(evaluations)
-    theta = np.argmin(evaluations)
+    theta = np.argmax(evaluations)
     return theta
 
 
@@ -149,4 +149,4 @@ def _loss(theta, model, data, method='cosine', cov=None,
     pred = model.predict_rdm(theta)
     if not (pattern_sample is None or pattern_descriptor is None):
         pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
-    return np.mean(compare(pred, data, method=method))
+    return -np.mean(compare(pred, data, method=method))
