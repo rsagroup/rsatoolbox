@@ -321,10 +321,11 @@ class ModelInterpolate(Model):
         theta = np.maximum(theta, 0)
         theta = np.array(theta)
         dissimilarities = np.matmul(self.rdm.T, theta.reshape(-1))
-        rdms = RDMs(dissimilarities.reshape(1,-1),
-                 dissimilarity_measure=self.rdm_obj.dissimilarity_measure,
-                 descriptors=self.rdm_obj.descriptors,
-                 pattern_descriptors=self.rdm_obj.pattern_descriptors)
+        rdms = RDMs(
+            dissimilarities.reshape(1, -1),
+            dissimilarity_measure=self.rdm_obj.dissimilarity_measure,
+            descriptors=self.rdm_obj.descriptors,
+            pattern_descriptors=self.rdm_obj.pattern_descriptors)
         return rdms
 
 
@@ -346,7 +347,7 @@ def model_from_dict(model_dict):
         model = ModelFixed(model_dict['name'], rdm_obj)
     elif model_dict['type'] == 'ModelSelect':
         model = ModelSelect(model_dict['name'], rdm_obj)
-    elif model_dict['type'] == 'ModelWeighted':\
+    elif model_dict['type'] == 'ModelWeighted':
         model = ModelWeighted(model_dict['name'], rdm_obj)
     elif model_dict['type'] == 'ModelInterpolate':
         model = ModelInterpolate(model_dict['name'], rdm_obj)
