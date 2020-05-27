@@ -1337,8 +1337,8 @@ def summarize_eco(simulation_folder='sim_eco'):
                          'rdm_type': rdm_type, 'model_type': model_type,
                          'n_stim': n_stim},
                         ignore_index=True)
-                    mean = np.zeros((100, 12))
-                    std = np.zeros((100, 12))
+                    mean = np.nan * np.zeros((100, 12))
+                    std = np.nan * np.zeros((100, 12))
                     for i_res in results.glob('res*.hdf5'):
                         idx = int(str(i_res)[-9:-5])
                         res = pyrsa.inference.load_results(i_res,
