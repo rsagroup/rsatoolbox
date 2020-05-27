@@ -1315,6 +1315,7 @@ def summarize_eco(simulation_folder='sim_eco'):
             n_voxel, n_subj, n_rep, sd, variation = parse_pars(pars)
             for fmri in os.listdir(
                     os.path.join(simulation_folder, layer, pars)):
+                print(fmri)
                 duration, pause, endzeros, use_cor_noise, resolution, \
                     sigma_noise, ar_coeff = parse_fmri(fmri)
                 for results in pathlib.Path(

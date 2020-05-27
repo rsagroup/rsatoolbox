@@ -20,4 +20,4 @@ source activate RSA
 
 which python
 
-~/.conda/envs/RSA/bin/python stats.py -s summarize_eco $index
+~/.conda/envs/RSA/bin/python stats.py summarize_eco $index
