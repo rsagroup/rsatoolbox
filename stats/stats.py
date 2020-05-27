@@ -1313,16 +1313,16 @@ def summarize_eco(simulation_folder='sim_eco'):
         i_layer = int(layer[-2:])
         for pars in os.listdir(os.path.join(simulation_folder, layer)):
             n_voxel, n_subj, n_rep, sd, variation = parse_pars(pars)
-            print(pars)
+            sys.stdout.write(pars)
             for fmri in os.listdir(
                     os.path.join(simulation_folder, layer, pars)):
-                print(fmri)
+                sys.stdout.write(fmri)
                 duration, pause, endzeros, use_cor_noise, resolution, \
                     sigma_noise, ar_coeff = parse_fmri(fmri)
                 for results in pathlib.Path(
                         os.path.join(simulation_folder, layer, pars, fmri)
                         ).glob('results_*'):
-                    print(results)
+                    sys.stdout.write(results)
                     res_string = os.path.split(results)[-1]
                     boot_type, rdm_type, model_type, rdm_comparison, \
                         noise_type, n_stim = parse_results(res_string)
@@ -1350,11 +1350,11 @@ def summarize_eco(simulation_folder='sim_eco'):
                         std[idx] = np.nanstd(res.evaluations, axis=0)
                     means.append(mean)
                     stds.append(std)
-    means = np.array(means)
-    stds = np.array(stds)
-    np.save(os.path.join(simulation_folder, 'means.npy'), means)
-    np.save(os.path.join(simulation_folder, 'stds.npy'), stds)
-    data_labels.to_csv(os.path.join(simulation_folder, 'labels.csv'))
+            means_array = np.array(means)
+            stds_array = np.array(stds)
+            np.save(os.path.join(simulation_folder, 'means.npy'), means_array)
+            np.save(os.path.join(simulation_folder, 'stds.npy'), stds_array)
+            data_labels.to_csv(os.path.join(simulation_folder, 'labels.csv'))
     return data_labels, means, stds
 
 
