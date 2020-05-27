@@ -17,6 +17,7 @@ import time
 import scipy.signal as signal
 import PIL
 from matplotlib.ticker import FormatStrFormatter
+import pandas as pd
 import pyrsa
 import nn_simulations as dnn
 from hrf import spm_hrf
@@ -1285,6 +1286,116 @@ def run_eco_ana(idx, ecoset_path=None):
                        rdm_comparison='corr',
                        n_stim=n_stim[i_stim],
                        n_sim=100)
+
+
+def summarize_eco(simulation_folder='sim_eco'):
+    """ collects the existing ecoset simulations and creates a list of
+    simulation labels and the means and standard deviations of the bootstrap
+    model evaluations.
+    Results are saved at the toplevel of the folder next to the layer folders
+
+    Args:
+        simulation_folder : folder
+            Which folder to go through. The default is 'sim_eco'.
+
+    """
+    data_labels = pd.DataFrame({
+        'layer': [], 'n_voxel': [], 'n_subj': [], 'n_rep': [],
+        'sd': [], 'variation': [], 'duration': [], 'pause': [],
+        'endzeros': [], 'use_cor_noise': [], 'resolution': [],
+        'sigma_noise': [], 'ar_coeff': [], 'boot_type': [],
+        'rdm_type': [], 'model_type': [], 'rdm_comparison': [],
+        'noise_type': [], 'n_stim': []})
+    means = []
+    stds = []
+    for layer in [i for i in os.listdir(simulation_folder)
+                  if i[:5] == 'layer']:
+        i_layer = int(layer[-2:])
+        for pars in os.listdir(os.path.join(simulation_folder, layer)):
+            n_voxel, n_subj, n_rep, sd, variation = parse_pars(pars)
+            for fmri in os.listdir(
+                    os.path.join(simulation_folder, layer, pars)):
+                duration, pause, endzeros, use_cor_noise, resolution, \
+                    sigma_noise, ar_coeff = parse_fmri(fmri)
+                for results in pathlib.Path(
+                        os.path.join(simulation_folder, layer, pars, fmri)
+                        ).glob('results_*'):
+                    res_string = os.path.split(results)[-1]
+                    boot_type, rdm_type, model_type, rdm_comparison, \
+                        noise_type, n_stim = parse_results(res_string)
+                    data_labels = data_labels.append(
+                        {'layer': i_layer,
+                         'n_voxel': n_voxel, 'n_subj': n_subj,
+                         'n_rep': n_rep, 'sd': sd,
+                         'variation': variation, 'endzeros': endzeros,
+                         'duration': duration, 'pause': pause,
+                         'use_cor_noise': use_cor_noise,
+                         'resolution': resolution,
+                         'sigma_noise': sigma_noise, 'ar_coeff': ar_coeff,
+                         'boot_type': boot_type, 'noise_type': noise_type,
+                         'rdm_comparison': rdm_comparison,
+                         'rdm_type': rdm_type, 'model_type': model_type,
+                         'n_stim': n_stim},
+                        ignore_index=True)
+                    mean = np.zeros((100, 12))
+                    std = np.zeros((100, 12))
+                    for i_res in results.glob('res*.hdf5'):
+                        idx = int(str(i_res)[-9:-5])
+                        res = pyrsa.inference.load_results(i_res,
+                                                           file_type='hdf5')
+                        mean[idx] = np.nanmean(res.evaluations, axis=0)
+                        std[idx] = np.nanstd(res.evaluations, axis=0)
+                    means.append(mean)
+                    stds.append(std)
+    means = np.array(means)
+    stds = np.array(stds)
+    np.save(os.path.join(simulation_folder, 'means.npy'), means)
+    np.save(os.path.join(simulation_folder, 'stds.npy'), stds)
+    data_labels.to_csv(os.path.join(simulation_folder, 'labels.csv'))
+    return data_labels, means, stds
+
+
+def parse_pars(pars_string):
+    split = pars_string.split('_')
+    n_voxel = int(split[1])
+    n_subj = int(split[2])
+    n_rep = int(split[3])
+    sd = float(split[4])
+    if len(split) > 5:
+        variation = split[5]
+    else:
+        variation = None
+    return n_voxel, n_subj, n_rep, sd, variation
+
+
+def parse_fmri(fmri_string):
+    split = fmri_string.split('_')
+    duration = int(split[1])
+    pause = int(split[2])
+    endzeros = int(split[3])
+    if split[4] == 'True':
+        use_cor_noise = True
+    else:
+        use_cor_noise = False
+    resolution = float(split[5])
+    sigma_noise = float(split[6])
+    ar_coeff = float(split[7])
+    return duration, pause, endzeros, use_cor_noise, resolution, \
+        sigma_noise, ar_coeff
+
+
+def parse_results(res_string):
+    split = res_string.split('_')
+    boot_type = split[1]
+    rdm_type = split[2]
+    if len(split) == 8:
+        model_type = split[3] + '_' + split[4]
+    else:
+        model_type = split[3]
+    rdm_comparison = split[-3]
+    noise_type = split[-2]
+    n_stim = int(split[-1])
+    return boot_type, rdm_type, model_type, rdm_comparison, noise_type, n_stim
 
 
 if __name__ == '__main__':
