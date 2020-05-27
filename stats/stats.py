@@ -18,6 +18,7 @@ import scipy.signal as signal
 import PIL
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
+import sys
 import pyrsa
 import nn_simulations as dnn
 from hrf import spm_hrf
