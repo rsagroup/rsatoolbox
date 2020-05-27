@@ -1313,6 +1313,7 @@ def summarize_eco(simulation_folder='sim_eco'):
         i_layer = int(layer[-2:])
         for pars in os.listdir(os.path.join(simulation_folder, layer)):
             n_voxel, n_subj, n_rep, sd, variation = parse_pars(pars)
+            print(pars)
             for fmri in os.listdir(
                     os.path.join(simulation_folder, layer, pars)):
                 print(fmri)
@@ -1321,6 +1322,7 @@ def summarize_eco(simulation_folder='sim_eco'):
                 for results in pathlib.Path(
                         os.path.join(simulation_folder, layer, pars, fmri)
                         ).glob('results_*'):
+                    print(results)
                     res_string = os.path.split(results)[-1]
                     boot_type, rdm_type, model_type, rdm_comparison, \
                         noise_type, n_stim = parse_results(res_string)
