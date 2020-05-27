@@ -1417,3 +1417,5 @@ if __name__ == '__main__':
         run_eco_ana(args.index, ecoset_path=args.path)
     elif args.sim == 'eco':
         run_eco(args.index, ecoset_path=args.path)
+    elif args.sim == 'summarize_eco':
+        summarize_eco()
