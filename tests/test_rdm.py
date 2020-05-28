@@ -209,6 +209,13 @@ class TestRDM(unittest.TestCase):
         rdms = concat((rdms1,rdms2))
         assert rdms.n_rdm == 16
 
+    def test_categorical_rdm(self):
+        from pyrsa.rdm import get_categorical_rdm
+        category_vector = [1,2,2,3]
+        rdm = get_categorical_rdm(category_vector)
+        np.testing.assert_array_almost_equal(rdm.dissimilarities,
+            np.array([[1., 1., 1., 0., 1., 1.]]))
+
 class TestCalcRDM(unittest.TestCase): 
     
     def setUp(self):
@@ -394,6 +401,13 @@ class TestCompareRDM(unittest.TestCase):
         assert_array_almost_equal(result, 1)
         result = compare_spearman(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
+        
+    def test_compare_rho_a(self):
+        from pyrsa.rdm.compare import compare_rho_a
+        result = compare_rho_a(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_rho_a(self.test_rdm1, self.test_rdm2)
+        assert np.all(result>0)
         
     def test_spearman_equal_scipy(self):
         from pyrsa.rdm.compare import _parse_input_rdms

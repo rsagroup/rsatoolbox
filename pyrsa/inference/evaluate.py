@@ -42,21 +42,21 @@ def eval_fixed(model, data, theta=None, method='cosine'):
         for k in range(len(model)):
             rdm_pred = model[k].predict_rdm(theta=theta[k])
             evaluations[k] = np.mean(compare(rdm_pred, data, method))
-        evaluations = evaluations.reshape((1,len(model)))
+        evaluations = evaluations.reshape((1, len(model)))
     else:
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
-    noise_ceil = boot_noise_ceiling(data,
-            method=method, rdm_descriptor='index')
+    noise_ceil = boot_noise_ceiling(
+        data,
+        method=method, rdm_descriptor='index')
     result = Result(model, evaluations, method=method,
                     cv_method='fixed', noise_ceiling=noise_ceil)
     return result
-        
 
 
 def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
                    pattern_descriptor=None, rdm_descriptor=None,
-                   boot_noise_ceil=False):
+                   boot_noise_ceil=True):
     """evaluates a model on data
     performs bootstrapping to get a sampling distribution
 
@@ -96,24 +96,24 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
                                                         method))
                     j += 1
             if boot_noise_ceil:
-                noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
-                    method=method, rdm_descriptor=rdm_descriptor)
+                noise_min_sample, noise_max_sample = boot_noise_ceiling(
+                    sample, method=method, rdm_descriptor=rdm_descriptor)
                 noise_min.append(noise_min_sample)
                 noise_max.append(noise_max_sample)
         else:
-            if isinstance(model, Model):   
+            if isinstance(model, Model):
                 evaluations[i] = np.nan
             elif isinstance(model, Iterable):
                 evaluations[i, :] = np.nan
             noise_min.append(np.nan)
             noise_max.append(np.nan)
     if isinstance(model, Model):
-        evaluations = evaluations.reshape((N,1))
+        evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
     else:
-        noise_ceil = np.array(boot_noise_ceiling(data,
-            method=method, rdm_descriptor=rdm_descriptor))
+        noise_ceil = np.array(boot_noise_ceiling(
+            data, method=method, rdm_descriptor=rdm_descriptor))
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap', noise_ceiling=noise_ceil)
     return result
@@ -185,7 +185,7 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
 
 
 def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
-                       rdm_descriptor=None, boot_noise_ceil=False):
+                       rdm_descriptor=None, boot_noise_ceil=True):
     """evaluates a model on data
     performs bootstrapping to get a sampling distribution
 
@@ -217,17 +217,18 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
                                                     method))
                 j += 1
         if boot_noise_ceil:
-            noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
+            noise_min_sample, noise_max_sample = boot_noise_ceiling(
+                sample,
                 method=method, rdm_descriptor=rdm_descriptor)
             noise_min.append(noise_min_sample)
             noise_max.append(noise_max_sample)
     if isinstance(model, Model):
-        evaluations = evaluations.reshape((N,1))
+        evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
     else:
-        noise_ceil = np.array(boot_noise_ceiling(data,
-            method=method, rdm_descriptor=rdm_descriptor))
+        noise_ceil = np.array(boot_noise_ceiling(
+            data, method=method, rdm_descriptor=rdm_descriptor))
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap_rdm', noise_ceiling=noise_ceil)
     return result
@@ -343,18 +344,20 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         evaluations = np.zeros((N, len(model), k_pattern * k_rdm))
     noise_ceil = np.zeros((2, N))
     for i_sample in tqdm.trange(N):
-        sample, rdm_sample, pattern_sample = bootstrap_sample(data,
+        sample, rdm_sample, pattern_sample = bootstrap_sample(
+            data,
             rdm_descriptor=rdm_descriptor,
             pattern_descriptor=pattern_descriptor)
         if len(np.unique(rdm_sample)) >= k_rdm \
            and len(np.unique(pattern_sample)) >= 3 * k_pattern:
-            train_set, test_set, ceil_set = sets_k_fold(sample,
+            train_set, test_set, ceil_set = sets_k_fold(
+                sample,
                 pattern_descriptor=pattern_descriptor,
                 rdm_descriptor=rdm_descriptor,
                 k_pattern=k_pattern, k_rdm=k_rdm, random=random)
             cv_nc = cv_noise_ceiling(sample, ceil_set, test_set, method=method,
                                      pattern_descriptor=pattern_descriptor)
-            noise_ceil[:,i_sample] = cv_nc
+            noise_ceil[:, i_sample] = cv_nc
             for idx in range(len(test_set)):
                 test_set[idx][1] = _concat_sampling(pattern_sample,
                                                     test_set[idx][1])
@@ -362,28 +365,28 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
                                                      train_set[idx][1])
             cv_result = crossval(model, sample, train_set, test_set,
                                  method=method,
-                                 fitter=fitter, 
+                                 fitter=fitter,
                                  pattern_descriptor=pattern_descriptor,
                                  calc_noise_ceil=False)
-            if isinstance(model, Model):   
+            if isinstance(model, Model):
                 evaluations[i_sample, 0, :] = cv_result.evaluations[0, 0]
             elif isinstance(model, Iterable):
                 evaluations[i_sample, :, :] = cv_result.evaluations[0]
-        else: # sample does not allow desired crossvalidation
-            if isinstance(model, Model):   
+        else:  # sample does not allow desired crossvalidation
+            if isinstance(model, Model):
                 evaluations[i_sample, 0, :] = np.nan
             elif isinstance(model, Iterable):
                 evaluations[i_sample, :, :] = np.nan
-            noise_ceil[:,i_sample] = np.nan
+            noise_ceil[:, i_sample] = np.nan
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap_crossval', noise_ceiling=noise_ceil)
     return result
 
 
 def _concat_sampling(sample1, sample2):
-    """ computes an index vector for the sequential sampling with sample1 
+    """ computes an index vector for the sequential sampling with sample1
     and sample2
     """
-    sample_out = [[i_samp1 for i_samp1 in sample1 if i_samp1==i_samp2]
+    sample_out = [[i_samp1 for i_samp1 in sample1 if i_samp1 == i_samp2]
                   for i_samp2 in sample2]
-    return sum(sample_out,[])
+    return sum(sample_out, [])

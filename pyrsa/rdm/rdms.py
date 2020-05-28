@@ -7,8 +7,8 @@ Definition of RSA RDMs class and subclasses
 
 import os
 import numpy as np
-import pickle
 from scipy.stats import rankdata
+import pickle
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -17,6 +17,7 @@ from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import append_descriptor
 from pyrsa.util.data_utils import extract_dict
+from collections.abc import Iterable
 from pyrsa.util.file_io import write_dict_hdf5
 from pyrsa.util.file_io import write_dict_pkl
 from pyrsa.util.file_io import read_dict_hdf5
@@ -44,6 +45,7 @@ class RDMs:
         n_cond(int): number of patterns
 
     """
+
     def __init__(self, dissimilarities,
                  dissimilarity_measure=None,
                  descriptors=None,
@@ -109,8 +111,8 @@ class RDMs:
         allows indexing with []
         """
         idx = np.array(idx)
-        dissimilarities = self.dissimilarities[idx].reshape(-1,
-                                self.dissimilarities.shape[1])
+        dissimilarities = self.dissimilarities[idx].reshape(
+            -1, self.dissimilarities.shape[1])
         rdm_descriptors = subset_descriptor(self.rdm_descriptors, idx)
         rdms = RDMs(dissimilarities,
                     dissimilarity_measure=self.dissimilarity_measure,
@@ -159,16 +161,18 @@ class RDMs:
         pattern_descriptors = extract_dict(
             self.pattern_descriptors, selection)
         rdm_descriptors = self.rdm_descriptors
+        dissimilarity_measure = self.dissimilarity_measure
         rdms = RDMs(dissimilarities=dissimilarities,
                     descriptors=descriptors,
                     rdm_descriptors=rdm_descriptors,
-                    pattern_descriptors=pattern_descriptors)
+                    pattern_descriptors=pattern_descriptors,
+                    dissimilarity_measure=dissimilarity_measure)
         return rdms
 
     def subsample_pattern(self, by, value):
         """ Returns a subsampled RDMs with repetitions if values are repeated
 
-        This function now generates Nans where the off-diagonal 0s would 
+        This function now generates Nans where the off-diagonal 0s would
         appear. These values are trivial to predict for models and thus
         need to be marked and excluded from the evaluation.
 
@@ -194,19 +198,21 @@ class RDMs:
             selection = np.concatenate(selection)
         else:
             selection = np.where(self.rdm_descriptors[by] == value)
-        selection = np.sort(selection)
         dissimilarities = self.get_matrices()
         for i_rdm in range(self.n_rdm):
             np.fill_diagonal(dissimilarities[i_rdm], np.nan)
+        selection = np.sort(selection)
         dissimilarities = dissimilarities[:, selection][:, :, selection]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
             self.pattern_descriptors, selection)
         rdm_descriptors = self.rdm_descriptors
+        dissimilarity_measure = self.dissimilarity_measure
         rdms = RDMs(dissimilarities=dissimilarities,
                     descriptors=descriptors,
                     rdm_descriptors=rdm_descriptors,
-                    pattern_descriptors=pattern_descriptors)
+                    pattern_descriptors=pattern_descriptors,
+                    dissimilarity_measure=dissimilarity_measure)
         return rdms
 
     def subset(self, by, value):
@@ -229,10 +235,12 @@ class RDMs:
         descriptors = self.descriptors
         pattern_descriptors = self.pattern_descriptors
         rdm_descriptors = extract_dict(self.rdm_descriptors, selection)
+        dissimilarity_measure = self.dissimilarity_measure
         rdms = RDMs(dissimilarities=dissimilarities,
                     descriptors=descriptors,
                     rdm_descriptors=rdm_descriptors,
-                    pattern_descriptors=pattern_descriptors)
+                    pattern_descriptors=pattern_descriptors,
+                    dissimilarity_measure=dissimilarity_measure)
         return rdms
 
     def subsample(self, by, value):
@@ -263,10 +271,12 @@ class RDMs:
         descriptors = self.descriptors
         pattern_descriptors = self.pattern_descriptors
         rdm_descriptors = extract_dict(self.rdm_descriptors, selection)
+        dissimilarity_measure = self.dissimilarity_measure
         rdms = RDMs(dissimilarities=dissimilarities,
                     descriptors=descriptors,
                     rdm_descriptors=rdm_descriptors,
-                    pattern_descriptors=pattern_descriptors)
+                    pattern_descriptors=pattern_descriptors,
+                    dissimilarity_measure=dissimilarity_measure)
         return rdms
 
     def append(self, rdm):
@@ -309,11 +319,10 @@ class RDMs:
             write_dict_hdf5(filename, rdm_dict)
         elif file_type == 'pkl':
             write_dict_pkl(filename, rdm_dict)
-        
-    
+
     def to_dict(self):
         """ converts the object into a dictionary, which can be saved to disk
-        
+
         Returns:
             rdm_dict(dict): dictionary containing all information required to
                 recreate the RDMs object
@@ -347,7 +356,7 @@ def rdms_from_dict(rdm_dict):
 
 def load_rdm(filename, file_type=None):
     """ loads a RDMs object from disk
-    
+
     Args:
         filename(String): path to file to load
 
@@ -398,4 +407,34 @@ def concat(rdms):
     assert isinstance(rdm, RDMs), 'rdms should be a list of RDMs objects'
     for rdm_new in rdms[1:]:
         rdm.append(rdm_new)
+    return rdm
+
+
+def get_categorical_rdm(category_vector, category_name='category'):
+    """ generates an RDM object containing a categorical RDM, i.e. RDM = 0
+    if the category is the same and 1 if they are different
+
+    Args:
+        category_vector(iterable): a category index per condition
+        category_name(String): name for the descriptor in the object, defaults
+            to 'category'
+
+    Returns:
+        pyrsa.rdm.RDMs: constructed RDM
+
+    """
+    n = len(category_vector)
+    rdm_list = []
+    for i_cat in range(n):
+        for j_cat in range(i_cat+1, n):
+            if isinstance(category_vector[i_cat], Iterable):
+                comparisons = [np.array(category_vector[i_cat][idx])
+                               != np.array(category_vector[j_cat][idx])
+                               for idx in range(len(category_vector[i_cat]))]
+                rdm_list.append(np.any(comparisons))
+            else:
+                rdm_list.append(category_vector[i_cat]
+                                != category_vector[j_cat])
+    rdm = RDMs(np.array(rdm_list, dtype=np.float),
+               pattern_descriptors={category_name: np.array(category_vector)})
     return rdm

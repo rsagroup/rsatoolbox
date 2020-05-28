@@ -18,10 +18,10 @@ def input_check_model(model, theta=None, fitter=None, N=1):
         evaluations = np.zeros(N)
     elif isinstance(model, Iterable):
         if N > 1:
-            evaluations = np.zeros((N,len(model)))
+            evaluations = np.zeros((N, len(model)))
         else:
             evaluations = np.zeros(len(model))
-        if not theta is None:
+        if theta is not None:
             assert isinstance(theta, Iterable), 'If a list of models is' \
                 + ' passed theta must be a list of parameters'
             assert len(model) == len(theta), 'there should equally many' \
@@ -70,16 +70,19 @@ def pool_rdm(rdms, method='cosine'):
         rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
         rdm_vec = _nan_mean(rdm_vec)
         rdm_vec = rdm_vec - np.nanmin(rdm_vec)
+    elif method == 'cosine_cov':
+        rdm_vec = rdm_vec / np.sqrt(np.nanmean(rdm_vec ** 2, axis=1,
+                                               keepdims=True))
+        rdm_vec = _nan_mean(rdm_vec)
     elif method == 'corr_cov':
         rdm_vec = rdm_vec - np.nanmean(rdm_vec, axis=1, keepdims=True)
         rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
         rdm_vec = _nan_mean(rdm_vec)
         rdm_vec = rdm_vec - np.nanmin(rdm_vec)
-    elif method == 'cosine_cov':
-        rdm_vec = rdm_vec / np.sqrt(np.nanmean(rdm_vec ** 2, axis=1,
-                                               keepdims=True))
-        rdm_vec = _nan_mean(rdm_vec)
     elif method == 'spearman':
+        rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
+        rdm_vec = _nan_mean(rdm_vec)
+    elif method == 'rho-a':
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'kendall' or method == 'tau-b':
@@ -102,26 +105,28 @@ def pool_rdm(rdms, method='cosine'):
 def _nan_mean(rdm_vector):
     """ takes the average over a rdm_vector with nans for masked entries
     without a warning
-    
+
     Args:
         rdm_vector(numpy.ndarray): set of rdm_vectors to be averaged
-    
+
     Returns:
         rdm_mean(numpy.ndarray): the mean rdm
 
     """
     nan_idx = ~np.isnan(rdm_vector[0])
     mean_values = np.mean(rdm_vector[:, nan_idx], axis=0)
-    rdm_mean = np.empty((1,rdm_vector.shape[1])) * np.nan
+    rdm_mean = np.empty((1, rdm_vector.shape[1]))
+    rdm_mean[:] = np.nan
     rdm_mean[:, nan_idx] = mean_values
     return rdm_mean
 
+
 def _nan_rank_data(rdm_vector):
     """ rank_data for vectors with nan entries
-    
+
     Args:
         rdm_vector(numpy.ndarray): the vector to be rank_transformed
-    
+
     Returns:
         ranks(numpy.ndarray): the ranks with nans where the original vector
             had nans
@@ -134,8 +139,10 @@ def _nan_rank_data(rdm_vector):
 
 
 def pair_tests(evaluations):
-    """pairwise bootstrapping significant tests for a difference in model
-    performance
+    """pairwise bootstrapping significance tests for a difference in model
+    performance.
+    Tests add 1/len(evaluations) to each p-value and are computed as
+    two sided tests, i.e. as 2 * the smaller proportion
 
     Args:
         evaluations (numpy.ndarray):
@@ -150,11 +157,13 @@ def pair_tests(evaluations):
         evaluations = np.mean(evaluations, axis=-1)
     for i_model in range(evaluations.shape[1]-1):
         for j_model in range(i_model + 1, evaluations.shape[1]):
-            proportions[i_model, j_model] = np.sum( \
+            proportions[i_model, j_model] = np.sum(
                 evaluations[:, i_model] < evaluations[:, j_model]) \
-                / (evaluations.shape[0] - 
+                / (evaluations.shape[0] -
                    np.sum(evaluations[:, i_model] == evaluations[:, j_model]))
             proportions[j_model, i_model] = proportions[i_model, j_model]
-    proportions = np.minimum(proportions, 1 - proportions)
-    np.fill_diagonal(proportions,1)
+    proportions = np.minimum(proportions, 1 - proportions) * 2
+    proportions = (len(evaluations) - 1) / len(evaluations) * proportions \
+        + 1 / len(evaluations)
+    np.fill_diagonal(proportions, 1)
     return proportions

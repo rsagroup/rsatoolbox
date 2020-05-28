@@ -7,6 +7,7 @@ Created on Wed Feb 19 14:42:47 2020
 """
 
 import os
+import numpy as np
 import pyrsa.model
 from pyrsa.util.file_io import write_dict_hdf5
 from pyrsa.util.file_io import write_dict_pkl
@@ -46,10 +47,10 @@ class Result:
             + 'not match number of models'
         self.models = models
         self.n_model = len(models)
-        self.evaluations = evaluations
+        self.evaluations = np.array(evaluations)
         self.method = method
         self.cv_method = cv_method
-        self.noise_ceiling = noise_ceiling
+        self.noise_ceiling = np.array(noise_ceiling)
 
     def save(self, filename, file_type='hdf5'):
         """ saves the results into a file.
