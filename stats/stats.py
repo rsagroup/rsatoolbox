@@ -18,6 +18,7 @@ import scipy.signal as signal
 import PIL
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
+import seaborn as sns
 import sys
 import pyrsa
 import nn_simulations as dnn
@@ -698,7 +699,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
                     U_shape, indices_space[i_subj], weights[i_subj], [sd, sd])
                 sigmaP.append(sigmaP_subj)
             sigmaP = np.array(sigmaP)
-        if i == 0 or variation in ['subj', 'both']:
+        elif i == 0 or variation in ['subj', 'both']:
             sigmaP = []
             indices_space = []
             weights = []
@@ -1188,57 +1189,6 @@ def run_eco_sim(idx, ecoset_path=None):
                     n_sim=100)
 
 
-def run_eco(idx, ecoset_path=None):
-    """ master script for running the ecoset simulations. Each call to
-    this script will run one repetition of the comparisons, i.e. 1000
-    evaluations.
-    run this script with all indices from 1 to 4320 to reproduce  all analyses
-    of this type.
-    """
-    if ecoset_path is None:
-        ecoset_path = '~/ecoset/val/'
-    variation = ['None_both', 'None_pattern', 'None_rdm',
-                 'both', 'pattern', 'rdm']
-    n_subj = [5, 10, 20, 40, 80]
-    n_repeat = [2, 4, 8, 16]
-    n_stim = [5, 20, 80, 320]
-    layer = np.arange(12)
-    sd = [0.05, 0.25, np.inf]
-
-    (i_sd, i_layer, i_repeat, i_sub, i_var, i_stim) = np.unravel_index(
-        idx, [len(sd), len(layer), len(n_repeat),
-              len(n_subj), len(variation), len(n_stim)])
-    print('analysing simulation:')
-    print('variation: %s' % variation[i_var])
-    print('layer: %d' % layer[i_layer])
-    print('%d repeats' % n_repeat[i_repeat])
-    print('%d stimuli' % n_stim[i_stim])
-    print('%d subjects' % n_subj[i_sub])
-    print('%.3f sd' % sd[i_sd])
-    print('\n\n\n\n')
-    time.sleep(1)
-    if variation[i_var][:4] == 'None':
-        sim_ecoset(variation=None,
-                   layer=layer[i_layer],
-                   n_repeat=n_repeat[i_repeat],
-                   n_subj=n_subj[i_sub],
-                   sd=sd[i_sd], boot_type=variation[i_var][5:],
-                   ecoset_path=ecoset_path,
-                   rdm_comparison='corr',
-                   n_stim=n_stim[i_stim],
-                   n_sim=100)
-    else:
-        sim_ecoset(variation=variation[i_var],
-                   layer=layer[i_layer],
-                   n_repeat=n_repeat[i_repeat],
-                   n_subj=n_subj[i_sub],
-                   sd=sd[i_sd], boot_type=variation[i_var],
-                   ecoset_path=ecoset_path,
-                   rdm_comparison='corr',
-                   n_stim=n_stim[i_stim],
-                   n_sim=100)
-
-
 def run_eco_ana(idx, ecoset_path=None):
     """ master script for running the ecoset simulations. Each call to
     this script will run one repetition of the comparisons, i.e. 1000
@@ -1287,6 +1237,57 @@ def run_eco_ana(idx, ecoset_path=None):
                        rdm_comparison='corr',
                        n_stim=n_stim[i_stim],
                        n_sim=100)
+
+
+def run_eco(idx, ecoset_path=None):
+    """ master script for running the ecoset simulations. Each call to
+    this script will run one repetition of the comparisons, i.e. 1000
+    evaluations.
+    run this script with all indices from 1 to 4320 to reproduce  all analyses
+    of this type.
+    """
+    if ecoset_path is None:
+        ecoset_path = '~/ecoset/val/'
+    variation = ['None_both', 'None_stim', 'None_subj',
+                 'both', 'stim', 'subj']
+    n_subj = [5, 10, 20, 40, 80]
+    n_repeat = [2, 4, 8, 16]
+    n_stim = [10, 20, 40, 80, 160]
+    # layer = np.arange(1, 12)
+    layer = [2, 5, 8, 10, 12]
+    sd = [0.05, 0.25, np.inf]
+    (i_sd, i_layer, i_repeat, i_sub, i_var, i_stim) = np.unravel_index(
+        idx, [len(sd), len(layer), len(n_repeat),
+              len(n_subj), len(variation), len(n_stim)])
+    print('analysing simulation:')
+    print('variation: %s' % variation[i_var])
+    print('layer: %d' % layer[i_layer])
+    print('%d repeats' % n_repeat[i_repeat])
+    print('%d stimuli' % n_stim[i_stim])
+    print('%d subjects' % n_subj[i_sub])
+    print('%.3f sd' % sd[i_sd])
+    print('\n\n\n\n')
+    time.sleep(1)
+    if variation[i_var][:4] == 'None':
+        sim_ecoset(variation=None,
+                   layer=layer[i_layer],
+                   n_repeat=n_repeat[i_repeat],
+                   n_subj=n_subj[i_sub],
+                   sd=sd[i_sd], boot_type=variation[i_var][5:],
+                   ecoset_path=ecoset_path,
+                   rdm_comparison='corr',
+                   n_stim=n_stim[i_stim],
+                   n_sim=100)
+    else:
+        sim_ecoset(variation=variation[i_var],
+                   layer=layer[i_layer],
+                   n_repeat=n_repeat[i_repeat],
+                   n_subj=n_subj[i_sub],
+                   sd=sd[i_sd], boot_type=variation[i_var],
+                   ecoset_path=ecoset_path,
+                   rdm_comparison='corr',
+                   n_stim=n_stim[i_stim],
+                   n_sim=100)
 
 
 def summarize_eco(simulation_folder='sim_eco'):
@@ -1400,17 +1401,138 @@ def parse_results(res_string):
     return boot_type, rdm_type, model_type, rdm_comparison, noise_type, n_stim
 
 
+def plot_eco(simulation_folder='sim_eco', variation='both', savefig=False):
+    labels = pd.read_csv(os.path.join(simulation_folder, 'labels.csv'))
+    means = np.load(os.path.join(simulation_folder, 'means.npy'))
+    stds = np.load(os.path.join(simulation_folder, 'stds.npy'))
+    means = means[:len(labels)]
+    # remove nan entries
+    idx_nan = ~np.any(np.isnan(means[:, :, 0]), axis=1)
+    labels = labels[list(idx_nan)]
+    means = means[idx_nan]
+    stds = stds[idx_nan]
+    # get correct variation types
+    variations = labels['variation']
+    if variation is None:
+        labels = labels[pd.isna(variations)]
+        means = means[np.array(pd.isna(variations))]
+        stds = stds[np.array(pd.isna(variations))]
+    elif variation[:4] == 'None':
+        labels = labels[pd.isna(variations)]
+        means = means[np.array(pd.isna(variations))]
+        stds = stds[np.array(pd.isna(variations))]
+        boot_type = labels['boot_type']
+        labels = labels[list(boot_type == variation[5:])]
+        means = means[boot_type == variation[5:]]
+        stds = stds[boot_type == variation[5:]]
+    else:
+        labels = labels[list(variations == variation)]
+        means = means[variations == variation]
+        stds = stds[variations == variation]
+    true_std = np.nanstd(means, axis=1)
+    std_mean = np.nanmean(stds, axis=1)
+    std_var = np.nanvar(stds, axis=1)
+    std_relative = std_mean / true_std
+    std_std = np.sqrt(std_var) 
+    # seaborn based plotting
+    # create full data table
+    data_df = pd.DataFrame()
+    for i_model in range(means.shape[2]):
+        labels['true_std'] = true_std[:, i_model]
+        labels['std_mean'] = std_mean[:, i_model]
+        labels['std_var'] = std_var[:, i_model]
+        labels['std_relative'] = std_relative[:, i_model]
+        labels['std_std'] = std_std[:, i_model]
+        labels['model_layer'] = i_model
+        data_df = data_df.append(labels)
+    data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
+                              'n_rep': 'int'})
+    with sns.axes_style('ticks'):
+        sns.set_context('paper', font_scale=2)
+        # change in true Std
+        g1 = sns.catplot(data=data_df,
+                         x='n_stim', y='true_std', hue='n_subj',
+                         kind='point', ci='sd', palette='Blues_d', dodge=.2)
+        plt.ylim(bottom=0)
+        sns.despine(trim=True, offset=5)
+        g2 = sns.catplot(data=data_df,
+                         x='n_subj', y='true_std', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        plt.ylim(bottom=0)
+        sns.despine(trim=True, offset=5)
+        g3 = sns.catplot(data=data_df,
+                         x='n_rep', y='true_std', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        plt.ylim(bottom=0)
+        sns.despine(trim=True, offset=5)
+        # compare bootstrap to true_std
+        # scatterplot
+        g4 = sns.FacetGrid(data_df, col='boot_type', aspect=1)
+        g4.map(sns.scatterplot, 'true_std', 'std_mean')
+        plt.ylim(bottom=0)
+        plt.xlim(left=0)
+        plt.plot([0, plt.ylim()[1]], [0, plt.ylim()[1]], 'k--')
+        sns.despine(trim=True, offset=5)
+        # relative deviation of the mean
+        g5 = sns.FacetGrid(data_df, col='boot_type')
+        g5.map(sns.scatterplot, 'true_std', 'std_relative')
+        plt.xlim(left=0)
+        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        # relative mean and variance against n
+        g6 = sns.catplot(data=data_df, col='boot_type',
+                         x='n_stim', y='std_relative', hue='n_subj',
+                         kind='point', ci='sd', palette='Blues_d', dodge=.2,
+                         order=[5, 20, 80])
+        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        sns.despine(trim=True, offset=5)
+        g7 = sns.catplot(data=data_df, col='boot_type',
+                         x='n_subj', y='std_relative', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        sns.despine(trim=True, offset=5)
+        g8 = sns.catplot(data=data_df, col='boot_type',
+                         x='n_rep', y='std_relative', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        sns.despine(trim=True, offset=5)
+        g9 = sns.catplot(data=data_df, col='boot_type',
+                         x='n_stim', y='std_std', hue='n_subj',
+                         kind='point', ci='sd', palette='Blues_d', dodge=.2)
+        sns.despine(trim=True, offset=5)
+        g10 = sns.catplot(data=data_df, col='boot_type',
+                          x='n_subj', y='std_std', hue='n_stim',
+                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        sns.despine(trim=True, offset=5)
+        g11 = sns.catplot(data=data_df, col='boot_type',
+                          x='n_rep', y='std_std', hue='n_stim',
+                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        sns.despine(trim=True, offset=5)
+
+        if savefig:
+            g1.fig.savefig('figures/true_std_stim_%s.pdf' % variation)
+            g2.fig.savefig('figures/true_std_subj_%s.pdf' % variation)
+            g3.fig.savefig('figures/true_std_rep_%s.pdf' % variation)
+            g4.fig.savefig('figures/std_scatter_%s.pdf' % variation)
+            g5.fig.savefig('figures/std_rel_scatter_%s.pdf' % variation)
+            g6.fig.savefig('figures/std_rel_stim_%s.pdf' % variation)
+            g7.fig.savefig('figures/std_rel_subj_%s.pdf' % variation)
+            g8.fig.savefig('figures/std_rel_rep_%s.pdf' % variation)
+            g9.fig.savefig('figures/std_std_stim_%s.pdf' % variation)
+            g10.fig.savefig('figures/std_std_subj_%s.pdf' % variation)
+            g11.fig.savefig('figures/std_std_rep_%s.pdf' % variation)
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", type=str,
-                        help="where is ecoset?", default=None)
-    parser.add_argument("sim", help="simulation type",
+    parser.add_argument('-p', '--path', type=str,
+                        help='where is ecoset?', default=None)
+    parser.add_argument('sim', help='simulation type',
                         choices=['comp', 'eco_sim', 'eco_ana', 'eco',
                                  'summarize_eco'],
                         default='comp')
-    parser.add_argument("index", type=int,
-                        help="which simulation index to run")
+    parser.add_argument('index', type=int,
+                        help='which simulation index to run')
     args = parser.parse_args()
     if args.sim == 'comp':
         run_comp(args.index)
