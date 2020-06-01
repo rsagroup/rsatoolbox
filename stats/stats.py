@@ -11,14 +11,11 @@ import os
 import pathlib
 import numpy as np
 from scipy.spatial.distance import squareform
-import matplotlib.pyplot as plt
 import tqdm
 import time
 import scipy.signal as signal
 import PIL
-from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
-import seaborn as sns
 import sys
 import pyrsa
 import nn_simulations as dnn
@@ -28,6 +25,10 @@ from helpers import get_resname
 from helpers import get_stimuli_92
 from helpers import get_stimuli_96
 from helpers import get_stimuli_ecoset
+from helpers import run_inference
+from helpers import parse_fmri
+from helpers import parse_pars
+from helpers import parse_results
 from models import get_models
 
 
@@ -64,64 +65,6 @@ def get_residuals_cross(designs, timecourses, betas, resolution=2, hrf=None):
                                           resolution=resolution,
                                           hrf=hrf)
     return residuals
-
-
-def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
-                  k_rdm=None, k_pattern=None):
-    """ runs a run of inference
-
-    Args:
-        model(pyrsa.model.Model): the model(s) to be tested
-        rdms(pyrsa.rdm.Rdms): the data
-        method(String): rdm comparison method
-        bootstrap(String): Bootstrapping method:
-            pattern: pyrsa.inference.eval_bootstrap_pattern
-            rdm: pyrsa.inference.eval_bootstrap_rdm
-            both: pyrsa.inference.eval_bootstrap
-            crossval: pyrsa.inference.bootstrap_crossval
-            crossval_pattern: pyrsa.inference.bootstrap_crossval(k_rdm=1)
-            crossval_rdms pyrsa.inference.bootstrap_crossval(k_pattern=1)
-    """
-    if bootstrap == 'pattern':
-        results = pyrsa.inference.eval_bootstrap_pattern(
-            model, rdms,
-            boot_noise_ceil=boot_noise_ceil, method=method)
-    elif bootstrap == 'rdm':
-        results = pyrsa.inference.eval_bootstrap_rdm(
-            model, rdms,
-            boot_noise_ceil=boot_noise_ceil, method=method)
-    elif bootstrap == 'both':
-        results = pyrsa.inference.eval_bootstrap(
-            model, rdms,
-            boot_noise_ceil=boot_noise_ceil, method=method)
-    elif bootstrap == 'crossval':
-        if k_pattern is None and k_rdm is None:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method)
-        elif k_pattern is None:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_rdm=k_rdm)
-        elif k_rdm is None:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_pattern=k_pattern)
-        else:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
-    elif bootstrap == 'crossval_pattern':
-        if k_pattern is None:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_rdm=1)
-        else:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_rdm=1, k_pattern=k_pattern)
-    elif bootstrap == 'crossval_rdms':
-        if k_rdm is None:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_pattern=1)
-        else:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_pattern=1, k_rdm=k_rdm)
-    return results
 
 
 def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
@@ -383,60 +326,6 @@ def load_comp(folder):
     return table
 
 
-def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
-                         method='corr', bootstrap='pattern',
-                         folder='comp_zero', n_bin=100):
-    fname = 'p_'
-    if method:
-        fname = fname + ('%s_' % method)
-    else:
-        fname = fname + '*_'
-    if bootstrap:
-        fname = fname + ('%s_' % bootstrap)
-    else:
-        fname = fname + '*_'
-    if n_cond:
-        fname = fname + ('%d_' % n_cond)
-    else:
-        fname = fname + '*_'
-    if n_subj:
-        fname = fname + ('%d_' % n_subj)
-    else:
-        fname = fname + '*_'
-    if n_voxel:
-        fname = fname + ('%d_' % n_voxel)
-    else:
-        fname = fname + '*_'
-    fname = fname + '*.npy'
-    n_significant = []
-    n_binned = []
-    bins = np.linspace(1 / n_bin, 1, n_bin)
-    for p in pathlib.Path(folder).glob(fname):
-        ps = np.load(p)
-        n = np.empty(n_bin)
-        for i_bin in range(n_bin):
-            n[i_bin] = np.sum(ps <= bins[i_bin])
-        n_binned.append(n)
-        n_significant.append(np.sum(ps < 0.05))
-    n_binned = np.array(n_binned)
-    n_significant = np.array(n_significant)
-    n_binned = n_binned / n_binned[:, -1].reshape(-1, 1)
-    ax = plt.subplot(1, 1, 1)
-    plt.plot(bins, n_binned.T)
-    plt.plot([0, 1], [0, 1], 'k--')
-    ax.set_aspect('equal', 'box')
-    plt.xlabel('alpha')
-    plt.ylabel('proportion p<alpha')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    plt.figure()
-    plt.plot(n_significant, 'k.')
-    plt.plot([0 - 0.5, len(n_significant) - 0.5], [50, 50], 'k--')
-    plt.ylim(bottom=0)
-
-
 def save_sim_ecoset(layer=2, sd=0.05,
                     n_voxel=100, n_subj=10, n_stim=320, n_repeat=2,
                     simulation_folder='sim_eco', n_sim=100,
@@ -626,7 +515,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
                simulation_folder='sim_eco', n_sim=100,
                duration=1, pause=1, endzeros=25,
                use_cor_noise=True, resolution=2,
-               sigma_noise=1, ar_coeff=0.5,
+               sigma_noise=5, ar_coeff=0.5,
                ecoset_path='~/ecoset/val/', variation=None,
                model_type='fixed_full',
                rdm_comparison='cosine', n_layer=12, k_pattern=None,
@@ -935,190 +824,6 @@ def analyse_saved_dnn(layer=2, sd=0.05, n_voxel=100, n_repeat=2,
         results.save(res_path + '/res%04d.hdf5' % (i))
 
 
-def plot_saved_dnn(layer=2, sd=0.05, n_voxel=100, idx=0,
-                   n_subj=10, simulation_folder='sim', n_repeat=2,
-                   duration=1, pause=1, endzeros=25, use_cor_noise=True,
-                   resolution=2, sigma_noise=2, ar_coeff=0.5,
-                   model_type='fixed_averagetrue',
-                   rdm_comparison='cosine', n_layer=12, k_pattern=3, k_rdm=3,
-                   rdm_type='crossnobis', n_stimuli=92, fname_base=None,
-                   noise_type='eye'):
-    if fname_base is None:
-        fname_base = get_fname_base(simulation_folder=simulation_folder,
-                                    layer=layer, n_voxel=n_voxel,
-                                    n_subj=n_subj, sd=sd,
-                                    n_repeat=n_repeat, duration=duration,
-                                    pause=pause, endzeros=endzeros,
-                                    use_cor_noise=use_cor_noise,
-                                    resolution=resolution,
-                                    sigma_noise=sigma_noise,
-                                    ar_coeff=ar_coeff)
-    assert os.path.isdir(fname_base), 'simulated data not found!'
-    res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d_%d' % (
-        rdm_type, model_type, rdm_comparison, noise_type, n_stimuli,
-        k_pattern, k_rdm)
-    results = pyrsa.inference.load_results(res_path + '/res%04d.hdf5' % idx)
-    pyrsa.vis.plot_model_comparison(results)
-
-
-def plot_saved_dnn_average(layer=2, sd=3,
-                           n_voxel=100, n_subj=10, simulation_folder='test',
-                           n_sim=100, n_repeat=2, duration=5, pause=1,
-                           endzeros=25, use_cor_noise=True, resolution=2,
-                           sigma_noise=2, ar_coeff=.5, modelType='fixed',
-                           model_rdm='averagetrue', n_stimuli=92,
-                           rdm_comparison='cosine', n_layer=12, n_fold=5,
-                           rdm_type='crossnobis', fname_base=None):
-    if fname_base is None:
-        fname_base = get_fname_base(simulation_folder=simulation_folder,
-                                    layer=layer, n_voxel=n_voxel,
-                                    n_subj=n_subj, duration=duration,
-                                    n_repeat=n_repeat, sd=sd,
-                                    pause=pause, endzeros=endzeros,
-                                    use_cor_noise=use_cor_noise,
-                                    resolution=resolution,
-                                    sigma_noise=sigma_noise,
-                                    ar_coeff=ar_coeff)
-    assert os.path.isdir(fname_base), 'simulated data not found!'
-    scores = np.load(fname_base + 'scores_%s_%s_%s_%s_%d_%d.npy' % (
-        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, n_fold))
-    noise_ceilings = np.load(fname_base + 'noisec_%s_%s_%s_%s_%d_%d.npy' % (
-        rdm_type, modelType, model_rdm, rdm_comparison, n_stimuli, n_fold))
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.tick_params(labelsize=12)
-    for i_sim in range(n_sim):
-        ax.fill_between(np.array([0.5, n_layer + 0.5]),
-                        noise_ceilings[i_sim, 0],
-                        noise_ceilings[i_sim, 1], alpha=1 / n_sim,
-                        facecolor='blue')
-    ax.plot(np.arange(n_layer) + 1 - n_fold / 20,
-            np.mean(scores[:, :n_layer, :], axis=2).T, 'k.')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.set_xlabel('Layer', fontsize=18)
-    ax.set_title('Layer %d' % layer, fontsize=28)
-    if rdm_comparison == 'cosine':
-        plt.ylim([0, 1])
-        ax.set_ylabel('Cosine Distance', fontsize=18)
-    elif rdm_comparison == 'eudlid':
-        ax.set_ylabel('Euclidean Distance', fontsize=18)
-    elif rdm_comparison == 'kendall-tau':
-        ax.set_ylabel('Kendall Tau', fontsize=18)
-    elif rdm_comparison == 'pearson':
-        ax.set_ylabel('Pearson Correlation', fontsize=18)
-    elif rdm_comparison == 'spearman':
-        ax.set_ylabel('Spearman Rho', fontsize=18)
-
-
-def plot_comp(data, alpha=0.05):
-    """ plots comp check data
-    """
-    # methods = np.unique(data[:, 1])
-    boots = np.unique(data[:, 2])
-    n_subj = np.unique(data[:, 3])
-    n_cond = np.unique(data[:, 4])
-    n_voxel = np.unique(data[:, 5])
-    # boot_noise = np.unique(data[:, 6])
-    # sigmas = np.unique(data[:, 7])
-    idx = np.unique(data[:, 8])
-    props = np.nan * np.empty((len(boots), len(n_subj), len(n_cond),
-                               len(n_voxel), len(idx)))
-    for i_boot, boot in enumerate(boots):
-        for i_subj, n_sub in enumerate(n_subj):
-            for i_cond, cond in enumerate(n_cond):
-                for i_vox, vox in enumerate(n_voxel):
-                    for i, _ in enumerate(idx):
-                        dat = data[data[:, 2] == boot, :]
-                        dat = dat[dat[:, 3] == n_sub, :]
-                        dat = dat[dat[:, 4] == cond, :]
-                        dat = dat[dat[:, 5] == vox, :]
-                        dat = dat[dat[:, 8] == idx[i], :]
-                        if len(dat) > 0:
-                            prop = (np.sum(dat[:, 0] > (1 - alpha))
-                                    / len(dat))
-                            props[i_boot, i_subj, i_cond, i_vox, i] = prop
-                        else:
-                            props[i_boot, i_subj, i_cond, i_vox, i] = np.nan
-    # First plot: barplot + scatter for each type of bootstrap
-    plt.figure()
-    ax = plt.subplot(1, 1, 1)
-    for i in range(len(boots)):
-        plt.bar(i, np.mean(props[i]))
-        plt.plot(np.repeat(i, props[i].size)
-                 + 0.1 * np.random.randn(props[i].size),
-                 props[i].flatten(), 'k.')
-    plt.plot([-0.5, 2.5], [alpha, alpha], 'k--')
-    plt.xticks([0, 1, 2], ['both', 'rdm', 'pattern'])
-    plt.ylabel('Proportion significant')
-    plt.xlabel('bootstrap method')
-    # Second plot: plot against n_subj
-    p_max = np.nanmax(props)
-    plt.figure(figsize=(12, 5))
-    for i in range(len(boots)):
-        ax = plt.subplot(1, 3, i+1)
-        h0 = plt.plot(np.arange(len(n_subj)), props[i, :, 0, 0, :], '.',
-                      color=[0.5, 0, 0])
-        h1 = plt.plot(np.arange(len(n_subj)), props[i, :, 1, 0, :], '.',
-                      color=[0.5, 0.2, 0.3])
-        h2 = plt.plot(np.arange(len(n_subj)), props[i, :, 2, 0, :], '.',
-                      color=[0.5, 0.4, 0.7])
-        if len(n_cond) > 3:
-            h3 = plt.plot(np.arange(len(n_subj)), props[i, :, 3, 0, :], '.',
-                          color=[0.5, 0.6, 1])
-        if i == 0:
-            plt.title('both', fontsize=18)
-            plt.ylabel('Proportion significant', fontsize=18)
-        elif i == 1:
-            plt.title('rdm', fontsize=18)
-        elif i == 2:
-            plt.title('pattern', fontsize=18)
-            if len(n_cond) > 3:
-                plt.legend([h0[0], h1[0], h2[0], h3[0]], n_cond.astype('int'),
-                           frameon=False, title='# of patterns')
-            else:
-                plt.legend([h0[0], h1[0], h2[0]], n_cond.astype('int'),
-                           frameon=False, title='# of patterns')
-        plt.xticks(np.arange(len(n_subj)), n_subj.astype('int'))
-        plt.yticks([0, alpha, 2*alpha, 3*alpha])
-        plt.ylim([0, p_max + 0.01])
-        plt.xlim([-1, len(n_subj)])
-        plt.plot([-1, len(n_subj)], [alpha, alpha], 'k--')
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        plt.xlabel('# of rdms', fontsize=18)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-    # Third plot: plot against n_pattern
-    plt.figure(figsize=(12, 5))
-    for i in range(len(boots)):
-        ax = plt.subplot(1, 3, i+1)
-        h0 = plt.plot(np.arange(len(n_cond)), props[i, 0, :, 0, :], '.',
-                      color=[0.5, 0, 0])
-        h1 = plt.plot(np.arange(len(n_cond)), props[i, 1, :, 0, :], '.',
-                      color=[0.5, 0.2, 0.3])
-        h2 = plt.plot(np.arange(len(n_cond)), props[i, 2, :, 0, :], '.',
-                      color=[0.5, 0.4, 0.7])
-        h3 = plt.plot(np.arange(len(n_cond)), props[i, 3, :, 0, :], '.',
-                      color=[0.5, 0.6, 1])
-        if i == 0:
-            plt.title('both', fontsize=18)
-            plt.ylabel('Proportion significant', fontsize=18)
-        elif i == 1:
-            plt.title('rdm', fontsize=18)
-        elif i == 2:
-            plt.title('pattern', fontsize=18)
-            plt.legend([h0[0], h1[0], h2[0], h3[0]], n_subj.astype('int'),
-                       frameon=False, title='# of rdms')
-        plt.xticks(np.arange(len(n_cond)), n_cond.astype('int'))
-        plt.yticks([0, alpha, 2*alpha, 3*alpha])
-        plt.ylim([0, p_max + 0.01])
-        plt.xlim([-1, len(n_cond)])
-        plt.plot([-1, len(n_cond)], [alpha, alpha], 'k--')
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        plt.xlabel('# of patterns', fontsize=18)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-
-
 def run_comp(idx):
     """ master script for running the abstract simulations. Each call to
     this script will run one repetition of the comparisons, i.e. 1000
@@ -1241,7 +946,7 @@ def run_eco_ana(idx, ecoset_path=None):
 
 def run_eco(idx, ecoset_path=None):
     """ master script for running the ecoset simulations. Each call to
-    this script will run one repetition of the comparisons, i.e. 1000
+    this script will run one repetition of the comparisons, i.e. 100
     evaluations.
     run this script with all indices from 1 to 4320 to reproduce  all analyses
     of this type.
@@ -1251,14 +956,15 @@ def run_eco(idx, ecoset_path=None):
     variation = ['None_both', 'None_stim', 'None_subj',
                  'both', 'stim', 'subj']
     n_subj = [5, 10, 20, 40, 80]
-    n_repeat = [2, 4, 8, 16]
     n_stim = [10, 20, 40, 80, 160]
+    n_repeat = [2, 4, 8]
     # layer = np.arange(1, 12)
     layer = [2, 5, 8, 10, 12]
     sd = [0.05, 0.25, np.inf]
-    (i_sd, i_layer, i_repeat, i_sub, i_var, i_stim) = np.unravel_index(
+    n_vox = [10, 100, 1000]
+    (i_sd, i_layer, i_repeat, i_sub, i_var, i_stim, i_vox) = np.unravel_index(
         idx, [len(sd), len(layer), len(n_repeat),
-              len(n_subj), len(variation), len(n_stim)])
+              len(n_subj), len(variation), len(n_stim), len(n_vox)])
     print('analysing simulation:')
     print('variation: %s' % variation[i_var])
     print('layer: %d' % layer[i_layer])
@@ -1266,6 +972,7 @@ def run_eco(idx, ecoset_path=None):
     print('%d stimuli' % n_stim[i_stim])
     print('%d subjects' % n_subj[i_sub])
     print('%.3f sd' % sd[i_sd])
+    print('%d voxel' % n_vox[i_vox])
     print('\n\n\n\n')
     time.sleep(1)
     if variation[i_var][:4] == 'None':
@@ -1277,7 +984,8 @@ def run_eco(idx, ecoset_path=None):
                    ecoset_path=ecoset_path,
                    rdm_comparison='corr',
                    n_stim=n_stim[i_stim],
-                   n_sim=100)
+                   n_sim=100,
+                   sigma_noise=5)
     else:
         sim_ecoset(variation=variation[i_var],
                    layer=layer[i_layer],
@@ -1287,7 +995,8 @@ def run_eco(idx, ecoset_path=None):
                    ecoset_path=ecoset_path,
                    rdm_comparison='corr',
                    n_stim=n_stim[i_stim],
-                   n_sim=100)
+                   n_sim=100,
+                   sigma_noise=5)
 
 
 def summarize_eco(simulation_folder='sim_eco'):
@@ -1322,7 +1031,7 @@ def summarize_eco(simulation_folder='sim_eco'):
                 for results in pathlib.Path(
                         os.path.join(simulation_folder, layer, pars, fmri)
                         ).glob('results_*'):
-                    sys.stdout.write(str(results)+ '\n')
+                    sys.stdout.write(str(results) + '\n')
                     res_string = os.path.split(results)[-1]
                     boot_type, rdm_type, model_type, rdm_comparison, \
                         noise_type, n_stim = parse_results(res_string)
@@ -1356,170 +1065,6 @@ def summarize_eco(simulation_folder='sim_eco'):
             np.save(os.path.join(simulation_folder, 'stds.npy'), stds_array)
             data_labels.to_csv(os.path.join(simulation_folder, 'labels.csv'))
     return data_labels, means, stds
-
-
-def parse_pars(pars_string):
-    split = pars_string.split('_')
-    n_voxel = int(split[1])
-    n_subj = int(split[2])
-    n_rep = int(split[3])
-    sd = float(split[4])
-    if len(split) > 5:
-        variation = split[5]
-    else:
-        variation = None
-    return n_voxel, n_subj, n_rep, sd, variation
-
-
-def parse_fmri(fmri_string):
-    split = fmri_string.split('_')
-    duration = int(split[1])
-    pause = int(split[2])
-    endzeros = int(split[3])
-    if split[4] == 'True':
-        use_cor_noise = True
-    else:
-        use_cor_noise = False
-    resolution = float(split[5])
-    sigma_noise = float(split[6])
-    ar_coeff = float(split[7])
-    return duration, pause, endzeros, use_cor_noise, resolution, \
-        sigma_noise, ar_coeff
-
-
-def parse_results(res_string):
-    split = res_string.split('_')
-    boot_type = split[1]
-    rdm_type = split[2]
-    if len(split) == 8:
-        model_type = split[3] + '_' + split[4]
-    else:
-        model_type = split[3]
-    rdm_comparison = split[-3]
-    noise_type = split[-2]
-    n_stim = int(split[-1])
-    return boot_type, rdm_type, model_type, rdm_comparison, noise_type, n_stim
-
-
-def plot_eco(simulation_folder='sim_eco', variation='both', savefig=False):
-    labels = pd.read_csv(os.path.join(simulation_folder, 'labels.csv'))
-    means = np.load(os.path.join(simulation_folder, 'means.npy'))
-    stds = np.load(os.path.join(simulation_folder, 'stds.npy'))
-    means = means[:len(labels)]
-    # remove nan entries
-    idx_nan = ~np.any(np.isnan(means[:, :, 0]), axis=1)
-    labels = labels[list(idx_nan)]
-    means = means[idx_nan]
-    stds = stds[idx_nan]
-    # get correct variation types
-    variations = labels['variation']
-    if variation is None:
-        labels = labels[pd.isna(variations)]
-        means = means[np.array(pd.isna(variations))]
-        stds = stds[np.array(pd.isna(variations))]
-    elif variation[:4] == 'None':
-        labels = labels[pd.isna(variations)]
-        means = means[np.array(pd.isna(variations))]
-        stds = stds[np.array(pd.isna(variations))]
-        boot_type = labels['boot_type']
-        labels = labels[list(boot_type == variation[5:])]
-        means = means[boot_type == variation[5:]]
-        stds = stds[boot_type == variation[5:]]
-    else:
-        labels = labels[list(variations == variation)]
-        means = means[variations == variation]
-        stds = stds[variations == variation]
-    true_std = np.nanstd(means, axis=1)
-    std_mean = np.nanmean(stds, axis=1)
-    std_var = np.nanvar(stds, axis=1)
-    std_relative = std_mean / true_std
-    std_std = np.sqrt(std_var) 
-    # seaborn based plotting
-    # create full data table
-    data_df = pd.DataFrame()
-    for i_model in range(means.shape[2]):
-        labels['true_std'] = true_std[:, i_model]
-        labels['std_mean'] = std_mean[:, i_model]
-        labels['std_var'] = std_var[:, i_model]
-        labels['std_relative'] = std_relative[:, i_model]
-        labels['std_std'] = std_std[:, i_model]
-        labels['model_layer'] = i_model
-        data_df = data_df.append(labels)
-    data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
-                              'n_rep': 'int'})
-    with sns.axes_style('ticks'):
-        sns.set_context('paper', font_scale=2)
-        # change in true Std
-        g1 = sns.catplot(data=data_df,
-                         x='n_stim', y='true_std', hue='n_subj',
-                         kind='point', ci='sd', palette='Blues_d', dodge=.2)
-        plt.ylim(bottom=0)
-        sns.despine(trim=True, offset=5)
-        g2 = sns.catplot(data=data_df,
-                         x='n_subj', y='true_std', hue='n_stim',
-                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        plt.ylim(bottom=0)
-        sns.despine(trim=True, offset=5)
-        g3 = sns.catplot(data=data_df,
-                         x='n_rep', y='true_std', hue='n_stim',
-                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        plt.ylim(bottom=0)
-        sns.despine(trim=True, offset=5)
-        # compare bootstrap to true_std
-        # scatterplot
-        g4 = sns.FacetGrid(data_df, col='boot_type', aspect=1)
-        g4.map(sns.scatterplot, 'true_std', 'std_mean')
-        plt.ylim(bottom=0)
-        plt.xlim(left=0)
-        plt.plot([0, plt.ylim()[1]], [0, plt.ylim()[1]], 'k--')
-        sns.despine(trim=True, offset=5)
-        # relative deviation of the mean
-        g5 = sns.FacetGrid(data_df, col='boot_type')
-        g5.map(sns.scatterplot, 'true_std', 'std_relative')
-        plt.xlim(left=0)
-        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
-        # relative mean and variance against n
-        g6 = sns.catplot(data=data_df, col='boot_type',
-                         x='n_stim', y='std_relative', hue='n_subj',
-                         kind='point', ci='sd', palette='Blues_d', dodge=.2,
-                         order=[5, 20, 80])
-        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
-        sns.despine(trim=True, offset=5)
-        g7 = sns.catplot(data=data_df, col='boot_type',
-                         x='n_subj', y='std_relative', hue='n_stim',
-                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
-        sns.despine(trim=True, offset=5)
-        g8 = sns.catplot(data=data_df, col='boot_type',
-                         x='n_rep', y='std_relative', hue='n_stim',
-                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
-        sns.despine(trim=True, offset=5)
-        g9 = sns.catplot(data=data_df, col='boot_type',
-                         x='n_stim', y='std_std', hue='n_subj',
-                         kind='point', ci='sd', palette='Blues_d', dodge=.2)
-        sns.despine(trim=True, offset=5)
-        g10 = sns.catplot(data=data_df, col='boot_type',
-                          x='n_subj', y='std_std', hue='n_stim',
-                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        sns.despine(trim=True, offset=5)
-        g11 = sns.catplot(data=data_df, col='boot_type',
-                          x='n_rep', y='std_std', hue='n_stim',
-                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        sns.despine(trim=True, offset=5)
-
-        if savefig:
-            g1.fig.savefig('figures/true_std_stim_%s.pdf' % variation)
-            g2.fig.savefig('figures/true_std_subj_%s.pdf' % variation)
-            g3.fig.savefig('figures/true_std_rep_%s.pdf' % variation)
-            g4.fig.savefig('figures/std_scatter_%s.pdf' % variation)
-            g5.fig.savefig('figures/std_rel_scatter_%s.pdf' % variation)
-            g6.fig.savefig('figures/std_rel_stim_%s.pdf' % variation)
-            g7.fig.savefig('figures/std_rel_subj_%s.pdf' % variation)
-            g8.fig.savefig('figures/std_rel_rep_%s.pdf' % variation)
-            g9.fig.savefig('figures/std_std_stim_%s.pdf' % variation)
-            g10.fig.savefig('figures/std_std_subj_%s.pdf' % variation)
-            g11.fig.savefig('figures/std_std_rep_%s.pdf' % variation)
 
 
 if __name__ == '__main__':
