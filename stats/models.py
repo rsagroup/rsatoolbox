@@ -41,6 +41,25 @@ def get_models(model_type, fname_base_l, stimuli,
                 smoothing=smoothing)
             rdm.pattern_descriptors = pat_desc
             model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
+        elif model_type == 'fixed_average':
+            rdm1 = dnn.get_true_RDM(
+                model=dnn.get_default_model(),
+                layer=i_layer,
+                stimuli=stimuli,
+                smoothing=smoothing)
+            rdm2 = dnn.get_true_RDM(
+                model=dnn.get_default_model(),
+                layer=i_layer,
+                stimuli=stimuli,
+                smoothing=smoothing,
+                average=True)
+            # this weighting comes from E(U[0,1]) **2 = 0.25
+            # and Var(U[0,1]) = 1/12
+            # Thus 1 : 3 should be the right weighting between the two
+            # euclidean distances
+            rdm = pyrsa.rdm.RDMs(3 * rdm1.get_vectors() + rdm2.get_vectors(),
+                           pattern_descriptors=pat_desc)
+            model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
         elif model_type == 'select_full':
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
