@@ -613,8 +613,8 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
             Utrue = []
             for i_subj in range(n_subj):
                 Utrue_subj = [dnn.sample_representation(np.squeeze(U_c),
-                                                        indices_space_subj,
-                                                        weights_subj,
+                                                        indices_space[i_subj],
+                                                        weights[i_subj],
                                                         [sd, sd])
                               for U_c in U_complete]
                 Utrue_subj = np.array(Utrue_subj)
@@ -641,7 +641,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
                         sigmaP=sigmaP[i_subj])
                 else:
                     timecourse = dnn.generate_timecourse(
-                        design, Utrue_subj,
+                        design, Utrue[i_subj],
                         sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
                         sigmaP=None)
                 Usamp = estimate_betas(design, timecourse)
@@ -680,6 +680,11 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
             noise = pyrsa.data.get_prec_from_residuals(residuals)
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor='repeat', noise=noise)
+        # get true U RDMs
+        dat_true = []
+        for i_subj in range(U.shape[0]):
+            dat_true.append(pyrsa.data.Dataset(Utrue[i_subj]))
+        rdms_true = pyrsa.rdm.calc_rdm(dat_true)
         # run inference & save it
         results = run_inference(models, rdms, method=rdm_comparison,
                                 bootstrap=boot_type)
@@ -948,23 +953,49 @@ def run_eco(idx, ecoset_path=None):
     """ master script for running the ecoset simulations. Each call to
     this script will run one repetition of the comparisons, i.e. 100
     evaluations.
-    run this script with all indices from 1 to 4320 to reproduce  all analyses
+    run this script with all indices from 1 to 1800 to reproduce  all analyses
     of this type.
     """
     if ecoset_path is None:
         ecoset_path = '~/ecoset/val/'
+    # combined with all
     variation = ['None_both', 'None_stim', 'None_subj',
                  'both', 'stim', 'subj']
+    boot = ['both', 'pattern', 'rdm',
+            'both', 'pattern', 'rdm']
     n_subj = [5, 10, 20, 40, 80]
     n_stim = [10, 20, 40, 80, 160]
-    n_repeat = [2, 4, 8]
-    # layer = np.arange(1, 12)
-    layer = [2, 5, 8, 10, 12]
-    sd = [0.05, 0.25, np.inf]
-    n_vox = [10, 100, 1000]
-    (i_sd, i_layer, i_repeat, i_sub, i_var, i_stim, i_vox) = np.unravel_index(
-        idx, [len(sd), len(layer), len(n_repeat),
-              len(n_subj), len(variation), len(n_stim), len(n_vox)])
+
+    # varied separately
+    n_repeat = [4, 2, 8]
+    layer = [8, 2, 5, 10, 12]
+    sd = [0.05, 0, 0.25, np.inf]
+    n_vox = [100, 10, 1000]
+    i_separate = int(idx / 150)
+    i_all = idx % 150
+
+    (i_stim, i_sub, i_var) = np.unravel_index(
+        i_all, [len(n_stim), len(n_subj), len(variation)])
+    if i_separate < 5:
+        i_layer = i_separate
+        i_repeat = 0
+        i_sd = 0
+        i_vox = 0
+    elif i_separate < 7:
+        i_layer = 0
+        i_repeat = i_separate - 4
+        i_sd = 0
+        i_vox = 0
+    elif i_separate < 10:
+        i_layer = 0
+        i_repeat = 0
+        i_sd = i_separate - 6
+        i_vox = 0
+    elif i_separate < 12:
+        i_layer = 0
+        i_repeat = 0
+        i_sd = 0
+        i_vox = i_separate - 9
     print('analysing simulation:')
     print('variation: %s' % variation[i_var])
     print('layer: %d' % layer[i_layer])
@@ -980,7 +1011,7 @@ def run_eco(idx, ecoset_path=None):
                    layer=layer[i_layer],
                    n_repeat=n_repeat[i_repeat],
                    n_subj=n_subj[i_sub],
-                   sd=sd[i_sd], boot_type=variation[i_var][5:],
+                   sd=sd[i_sd], boot_type=boot[i_var],
                    ecoset_path=ecoset_path,
                    rdm_comparison='corr',
                    n_stim=n_stim[i_stim],
@@ -991,7 +1022,7 @@ def run_eco(idx, ecoset_path=None):
                    layer=layer[i_layer],
                    n_repeat=n_repeat[i_repeat],
                    n_subj=n_subj[i_sub],
-                   sd=sd[i_sd], boot_type=variation[i_var],
+                   sd=sd[i_sd], boot_type=boot[i_var],
                    ecoset_path=ecoset_path,
                    rdm_comparison='corr',
                    n_stim=n_stim[i_stim],
