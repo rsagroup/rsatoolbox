@@ -119,7 +119,7 @@ def get_true_RDM(model, layer, stimuli, method='euclidean', smoothing=None,
         Ustim = get_complete_representation(model=model, layer=layer,
                                             stimulus=istimulus)
         if average:
-            Ustim = np.mean(Ustim, axis=1, keepdims=True)
+            Ustim = np.sum(Ustim, axis=1, keepdims=True)
         if smoothing:
             if np.isfinite(smoothing):
                 sd = np.array(Ustim.shape[2:4]) * smoothing
@@ -129,7 +129,10 @@ def get_true_RDM(model, layer, stimuli, method='euclidean', smoothing=None,
         U.append(Ustim.flatten())
     U = np.array(U)
     data = pyrsa.data.Dataset(U)
-    return pyrsa.rdm.calc_rdm(data, method=method)
+    if not method == 'euclidean':
+        return pyrsa.rdm.calc_rdm(data, method=method)
+    else:
+        return pyrsa.rdm.calc_rdm_euclid_save_memory(data)
 
 
 def get_sampled_representations(model, layer, sd, stimList, N):
