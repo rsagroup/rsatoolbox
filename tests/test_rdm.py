@@ -254,7 +254,7 @@ class TestCalcRDM(unittest.TestCase):
         data.measurements = np.random.rand(6, 5)
         desc = [0, 1, 2, 3, 4, 5]
         _parse_input.return_value = (data.measurements, desc, 'conds')
-        rdm_expected = pdist(data.measurements)**2/5
+        rdm_expected = pdist(data.measurements)**2
         rdms = calc_rdm(
             self.test_data,
             descriptor='conds',
@@ -291,6 +291,12 @@ class TestCalcRDM(unittest.TestCase):
         rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'mahalanobis')
         assert rdm.n_cond == 6
         
+    def test_calc_euclidean_save_memory(self):
+        rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'euclidean')
+        rdm2 = rsr.calc_rdm_euclid_save_memory(self.test_data,
+                                               descriptor = 'conds')
+        np.testing.assert_almost_equal(rdm.get_vectors(), rdm2.get_vectors())
+
     def test_calc_crossnobis(self):
         rdm = rsr.calc_rdm_crossnobis(self.test_data, descriptor = 'conds', cv_descriptor = 'fold')
         assert rdm.n_cond == 6

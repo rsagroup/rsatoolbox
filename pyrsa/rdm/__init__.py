@@ -9,6 +9,7 @@ from .calc import calc_rdm_euclid
 from .calc import calc_rdm_mahalanobis
 from .calc import calc_rdm_crossnobis
 from .calc import calc_rdm_correlation
+from .calc import calc_rdm_euclid_save_memory
 from .compare import compare
 from .compare import compare_correlation
 from .compare import compare_cosine

@@ -44,7 +44,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
                 rdms.append(calc_rdm(dataset[i_dat], method=method,
                                      descriptor=descriptor,
                                      cv_descriptor=cv_descriptor))
-            elif isinstance(noise, np.ndarray) and noise.ndim==2:
+            elif isinstance(noise, np.ndarray) and noise.ndim == 2:
                 rdms.append(calc_rdm(dataset[i_dat], method=method,
                                      descriptor=descriptor,
                                      noise=noise,
@@ -89,7 +89,40 @@ def calc_rdm_euclid(dataset, descriptor=None):
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
     diff = _calc_pairwise_differences(measurements)
-    rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
+    rdm = np.einsum('ij,ij->i', diff, diff)
+    rdm = RDMs(dissimilarities=np.array([rdm]),
+               dissimilarity_measure='euclidean',
+               descriptors=dataset.descriptors)
+    rdm.pattern_descriptors[descriptor] = desc
+    return rdm
+
+
+def calc_rdm_euclid_save_memory(dataset, descriptor=None):
+    """
+    calculates an RDM from an input dataset using euclidean distance
+    If multiple instances of the same condition are found in the dataset
+    they are averaged.
+
+    Args:
+        dataset (pyrsa.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+
+    """
+    measurements, desc, descriptor = _parse_input(dataset, descriptor)
+    n, _ = measurements.shape
+    rdm = np.zeros(int(n * (n - 1) / 2))
+    k = 0
+    for i in range(measurements.shape[0]):
+        for j in range(i+1, measurements.shape[0]):
+            diff = measurements[i] - measurements[j]
+            rdm[k] = np.sum(diff ** 2)
+            k += 1
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='euclidean',
                descriptors=dataset.descriptors)
@@ -199,12 +232,12 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     weights = []
     rdms = []
-    if noise is None or (isinstance(noise, np.ndarray) and noise.ndim==2):
+    if noise is None or (isinstance(noise, np.ndarray) and noise.ndim == 2):
         for i_fold in range(len(cv_folds)):
             fold = cv_folds[i_fold]
             data_test = dataset.subset_obs(cv_descriptor, fold)
             data_train = dataset.subset_obs(cv_descriptor,
-                                           np.setdiff1d(cv_folds, fold))
+                                            np.setdiff1d(cv_folds, fold))
             measurements_train, _ = average_dataset_by(data_train, descriptor)
             measurements_test, _ = average_dataset_by(data_test, descriptor)
             n_cond = measurements_train.shape[0]
@@ -224,7 +257,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
                     k += 1
         rdms.append(rdm)
         weights.append(data_test.n_obs)
-    else: # a list of noises was provided
+    else:  # a list of noises was provided
         measurements = []
         w_fold = []
         for i_fold in range(len(cv_folds)):
@@ -273,18 +306,19 @@ def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
 
 
 def _gen_default_cv_descriptor(dataset, descriptor):
-    """ generates a default cv_descriptor for crossnobis 
+    """ generates a default cv_descriptor for crossnobis
     This assumes that the first occurence each descriptor value forms the
     first group, the second occurence forms the second group, etc.
     """
     desc = dataset.obs_descriptors[descriptor]
     values, counts = np.unique(desc, return_counts=True)
-    assert np.all(counts==counts[0]), ('cv_descriptor generation failed:\n'
+    assert np.all(counts == counts[0]), (
+        'cv_descriptor generation failed:\n'
         + 'different number of observations per pattern')
     n_repeats = counts[0]
     cv_descriptor = np.zeros_like(desc)
     for i_val in values:
-        cv_descriptor[desc==i_val] = np.arange(n_repeats)
+        cv_descriptor[desc == i_val] = np.arange(n_repeats)
     return cv_descriptor
 
 
