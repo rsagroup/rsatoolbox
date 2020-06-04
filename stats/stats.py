@@ -996,7 +996,7 @@ def run_eco(idx, ecoset_path=None):
         i_repeat = 0
         i_sd = 0
         i_vox = i_separate - 9
-    print('analysing simulation:')
+    print('starting simulation:')
     print('variation: %s' % variation[i_var])
     print('layer: %d' % layer[i_layer])
     print('%d repeats' % n_repeat[i_repeat])
@@ -1015,7 +1015,7 @@ def run_eco(idx, ecoset_path=None):
                    ecoset_path=ecoset_path,
                    rdm_comparison='corr',
                    n_stim=n_stim[i_stim],
-                   n_sim=100,
+                   n_sim=100, n_voxel=n_vox[i_vox],
                    sigma_noise=5)
     else:
         sim_ecoset(variation=variation[i_var],
@@ -1026,7 +1026,7 @@ def run_eco(idx, ecoset_path=None):
                    ecoset_path=ecoset_path,
                    rdm_comparison='corr',
                    n_stim=n_stim[i_stim],
-                   n_sim=100,
+                   n_sim=100, n_voxel=n_vox[i_vox],
                    sigma_noise=5)
 
 
