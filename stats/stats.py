@@ -17,6 +17,7 @@ import scipy.signal as signal
 import PIL
 import pandas as pd
 import sys
+import glob
 import pyrsa
 import nn_simulations as dnn
 from hrf import spm_hrf
