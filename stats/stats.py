@@ -1098,6 +1098,44 @@ def summarize_eco(simulation_folder='sim_eco'):
     return data_labels, means, stds
 
 
+def check_eco(simulation_folder='sim_eco', N=100):
+    """ checks which simulations are complete and lists incomplete simulations
+    i.e. simulations which were started but not finished
+    """
+    folders = os.listdir(simulation_folder)
+    for folder in folders:
+        folder_path = os.path.join(simulation_folder, folder)
+        if os.path.isdir(folder_path):
+            pars = os.listdir(folder_path)
+            for par in pars:
+                par_path = os.path.join(folder_path, par)
+                fmris = os.listdir(par_path)
+                for fmri in fmris:
+                    path = os.path.join(par_path, fmri)
+                    # check for completeness of stimulus and indices
+                    break_results = False
+                    for i in range(100):
+                        if not os.path.isfile(os.path.join(
+                                path, 'stim%04d.txt' % i)):
+                            print(path)
+                            print('stimuli incomplete')
+                            break
+                        if not os.path.isfile(os.path.join(
+                                path, 'indices_space%04d.npy' % i)):
+                            print(path)
+                            print('indices incomplete')
+                            break
+                        for i_res in glob.glob(os.path.join(path, 'results*')):
+                            if not os.path.isfile(os.path.join(
+                                    i_res, 'res%04d.hdf5' % i)):
+                                print(i_res)
+                                print('results incomplete')
+                                break_results = True
+                                break
+                        if break_results:
+                            break
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
