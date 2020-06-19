@@ -164,7 +164,20 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
                         cv_descriptor=None):
     """
     calculates an RDM from an input dataset using Cross-nobis distance
-    This performs leave one out crossvalidation over the cv_descriptor
+    This performs leave one out crossvalidation over the cv_descriptor.
+
+    As the minimum input provide a dataset and a descriptor-name to
+    define the rows & columns of the RDM.
+    You may pass a noise precision. If you don't an identity is assumed.
+    Also a cv_descriptor can be passed to define the crossvalidation folds.
+    It is recommended to do this, to assure correct calculations. If you do
+    not, this function infers a split in order of the dataset, which is
+    guaranteed to fail if there are any unbalances.
+
+    This function also accepts a list of noise precision matricies.
+    It is then assumed that this is the precision of the mean from
+    the corresponding crossvalidation fold, i.e. if multiple measurements
+    enter a fold, please compute the resulting noise precision in advance!
 
     Args:
         dataset (pyrsa.data.dataset.DatasetBase):
@@ -220,22 +233,21 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
             weights.append(data_test.n_obs)
     else:  # a list of noises was provided
         measurements = []
-        w_fold = []
+        variances = []
         for i_fold in range(len(cv_folds)):
             data = dataset.subset_obs(cv_descriptor, cv_folds[i_fold])
             measurements.append(average_dataset_by(data, descriptor)[0])
-            w_fold.append(data.n_obs)
+            variances.append(np.linalg.inv(noise[i_fold]))
         for i_fold in range(len(cv_folds)):
-            for j_fold in range(len(cv_folds)):
+            for j_fold in range(i_fold + 1, len(cv_folds)):
                 if i_fold != j_fold:
-                    rdm = _calc_rdm_crossnobis_single(measurements[i_fold],
-                                                      measurements[j_fold],
-                                                      noise[j_fold])
+                    rdm = _calc_rdm_crossnobis_single(
+                        measurements[i_fold], measurements[j_fold],
+                        np.linalg.inv(variances[i_fold]
+                                      + variances[j_fold]))
                     rdms.append(rdm)
-                    weights.append(w_fold[i_fold] * w_fold[j_fold])
     rdms = np.array(rdms)
-    weights = np.array(weights)
-    rdm = np.einsum('ij,i->j', rdms, weights) / np.sum(weights)
+    rdm = np.einsum('ij->j', rdms)
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='crossnobis',
                descriptors=dataset.descriptors)
@@ -267,18 +279,19 @@ def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
 
 
 def _gen_default_cv_descriptor(dataset, descriptor):
-    """ generates a default cv_descriptor for crossnobis 
+    """ generates a default cv_descriptor for crossnobis
     This assumes that the first occurence each descriptor value forms the
     first group, the second occurence forms the second group, etc.
     """
     desc = dataset.obs_descriptors[descriptor]
     values, counts = np.unique(desc, return_counts=True)
-    assert np.all(counts==counts[0]), ('cv_descriptor generation failed:\n'
+    assert np.all(counts == counts[0]), (
+        'cv_descriptor generation failed:\n'
         + 'different number of observations per pattern')
     n_repeats = counts[0]
     cv_descriptor = np.zeros_like(desc)
     for i_val in values:
-        cv_descriptor[desc==i_val] = np.arange(n_repeats)
+        cv_descriptor[desc == i_val] = np.arange(n_repeats)
     return cv_descriptor
 
 
