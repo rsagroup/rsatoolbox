@@ -14,6 +14,7 @@ import seaborn as sns
 import pandas as pd
 from helpers import get_fname_base
 import pyrsa
+import pathlib
 
 
 def plot_saved_dnn_average(layer=2, sd=3,
@@ -335,7 +336,7 @@ def plot_eco(simulation_folder='sim_eco', variation='both', savefig=False):
         g6 = sns.catplot(data=data_df, col='boot_type',
                          x='n_stim', y='std_relative', hue='n_subj',
                          kind='point', ci='sd', palette='Blues_d', dodge=.2,
-                         order=[5, 20, 80])
+                         order=[10, 20, 40, 80, 160])
         plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
         sns.despine(trim=True, offset=5)
         g7 = sns.catplot(data=data_df, col='boot_type',
