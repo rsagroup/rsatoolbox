@@ -255,8 +255,8 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
                         rdm[k] = np.sum(diff_train
                                         * np.matmul(noise, diff_test))
                     k += 1
-        rdms.append(rdm)
-        weights.append(data_test.n_obs)
+            rdms.append(rdm)
+            weights.append(data_test.n_obs)
     else:  # a list of noises was provided
         measurements = []
         w_fold = []
