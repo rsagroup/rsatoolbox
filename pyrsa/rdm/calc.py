@@ -41,7 +41,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             if noise is None:
                 rdms.append(calc_rdm(dataset[i_dat], method=method,
                                      descriptor=descriptor))
-            elif isinstance(noise, np.ndarray) and noise.ndim==2:
+            elif isinstance(noise, np.ndarray) and noise.ndim == 2:
                 rdms.append(calc_rdm(dataset[i_dat], method=method,
                                      descriptor=descriptor,
                                      noise=noise))
@@ -193,12 +193,12 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     weights = []
     rdms = []
-    if noise is None or (isinstance(noise, np.ndarray) and noise.ndim==2):
+    if noise is None or (isinstance(noise, np.ndarray) and noise.ndim == 2):
         for i_fold in range(len(cv_folds)):
             fold = cv_folds[i_fold]
             data_test = dataset.subset_obs(cv_descriptor, fold)
             data_train = dataset.subset_obs(cv_descriptor,
-                                           np.setdiff1d(cv_folds, fold))
+                                            np.setdiff1d(cv_folds, fold))
             measurements_train, _ = average_dataset_by(data_train, descriptor)
             measurements_test, _ = average_dataset_by(data_test, descriptor)
             n_cond = measurements_train.shape[0]
@@ -216,9 +216,9 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
                         rdm[k] = np.sum(diff_train
                                         * np.matmul(noise, diff_test))
                     k += 1
-        rdms.append(rdm)
-        weights.append(data_test.n_obs)
-    else: # a list of noises was provided
+            rdms.append(rdm)
+            weights.append(data_test.n_obs)
+    else:  # a list of noises was provided
         measurements = []
         w_fold = []
         for i_fold in range(len(cv_folds)):
