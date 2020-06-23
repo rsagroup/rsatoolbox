@@ -7,7 +7,7 @@ Test for visualization class
 """
 
 import unittest 
-import pyrsa.vis as rsv
+from pyrsa.vis import mds
 import pyrsa.rdm as rsr
 import numpy as np 
 
@@ -20,7 +20,7 @@ class TestVIS(unittest.TestCase):
         rdms = rsr.RDMs(dissimilarities=dis,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        mds_emb = rsv.mds(rdms)
+        mds_emb = mds(rdms)
         self.assertEqual(mds_emb.shape,(8,5,2))
 
 if __name__ == '__main__':
