@@ -166,6 +166,10 @@ class RDMs:
     def subsample_pattern(self, by, value):
         """ Returns a subsampled RDMs with repetitions if values are repeated
 
+        This function now generates Nans where the off-diagonal 0s would
+        appear. These values are trivial to predict for models and thus
+        need to be marked and excluded from the evaluation.
+
         Args:
             by(String): the descriptor by which the subset selection
                         is made from descriptors
@@ -189,7 +193,10 @@ class RDMs:
         else:
             selection = np.where(self.rdm_descriptors[by] == value)
         selection = np.sort(selection)
-        dissimilarities = self.get_matrices()[:, selection][:, :, selection]
+        dissimilarities = self.get_matrices()
+        for i_rdm in range(self.n_rdm):
+            np.fill_diagonal(dissimilarities[i_rdm], np.nan)
+        dissimilarities = dissimilarities[:, selection][:, :, selection]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
             self.pattern_descriptors, selection)
@@ -289,7 +296,7 @@ class RDMs:
                 [or opened file]
             file_type(String): Type of file to create:
                 hdf5: hdf5 file
-                pkl: pickle file 
+                pkl: pickle file
 
         """
         rdm_dict = self.to_dict()
@@ -297,11 +304,10 @@ class RDMs:
             write_dict_hdf5(filename, rdm_dict)
         elif file_type == 'pkl':
             write_dict_pkl(filename, rdm_dict)
-        
-    
+
     def to_dict(self):
         """ converts the object into a dictionary, which can be saved to disk
-        
+
         Returns:
             rdm_dict(dict): dictionary containing all information required to
                 recreate the RDMs object
@@ -335,7 +341,7 @@ def rdms_from_dict(rdm_dict):
 
 def load_rdm(filename, file_type=None):
     """ loads a RDMs object from disk
-    
+
     Args:
         filename(String): path to file to load
 
