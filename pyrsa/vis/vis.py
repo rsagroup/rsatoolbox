@@ -12,7 +12,7 @@ from sklearn.manifold import MDS
 from sklearn.decomposition import PCA
 
 sd = np.random.RandomState(seed=1)
-mds = MDS(n_components=2, random_state=sd, dissimilarity="precomputed")
+mds_emb = MDS(n_components=2, random_state=sd, dissimilarity="precomputed")
 
 def rdm_dimension_reduction(rdms, func):
     """ dimension reduction of RDMs class
@@ -42,5 +42,5 @@ def mds(rdms):
         (numpy.ndarray): an MDS embedding
 
     """
-    return rdm_dimension_reduction(rdms,mds)
+    return rdm_dimension_reduction(rdms,mds_emb)
 
