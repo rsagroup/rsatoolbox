@@ -96,6 +96,8 @@ def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
     similar sized groups. This version splits both over rdms and over patterns
     resulting in k_rdm * k_pattern (training, test) pairs.
 
+    If a k is set to 1 the corresponding dimension is not crossvalidated.
+
     Args:
         rdms(pyrsa.rdm.RDMs): rdms to use
         pattern_descriptor(String): descriptor to select pattern groups
@@ -131,8 +133,11 @@ def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
                              (i_group + 1) * group_size_rdm)
         if i_group < additional_rdms:
             test_idx = np.concatenate((test_idx, [-(i_group+1)]))
-        train_idx = np.setdiff1d(np.arange(len(rdm_select)),
-                                 test_idx)
+        if k_rdm <= 1:
+            train_idx = test_idx
+        else:
+            train_idx = np.setdiff1d(np.arange(len(rdm_select)),
+                                     test_idx)
         rdm_sample_test = [rdm_select[int(idx)] for idx in test_idx]
         rdm_sample_train = [rdm_select[int(idx)] for idx in train_idx]
         rdms_test = rdms.subsample(rdm_descriptor,
@@ -206,7 +211,9 @@ def sets_k_fold_rdm(rdms, k_rdm=5, random=True, rdm_descriptor=None):
 def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into k
     similar sized groups. This version splits in the given order or 
-    randomizes the order
+    randomizes the order. For k=1 training and test_set are whole dataset,
+    i.e. no crossvalidation is performed.
+
     For only crossvalidating over patterns there is no independent training
     set for calculating a noise ceiling for the patterns.
     To express this we set ceil_set to None, which makes the crossvalidation
@@ -240,8 +247,11 @@ def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
                              (i_group + 1) * group_size)
         if i_group < additional_patterns:
             test_idx = np.concatenate((test_idx, [-(i_group+1)]))
-        train_idx = np.setdiff1d(np.arange(len(pattern_select)),
-                                 test_idx)
+        if k <= 1:
+            train_idx = test_idx
+        else:
+            train_idx = np.setdiff1d(np.arange(len(pattern_select)),
+                                     test_idx)
         pattern_sample_test = [pattern_select[int(idx)] for idx in test_idx]
         pattern_sample_train = [pattern_select[int(idx)] for idx in train_idx]
         rdms_test = rdms.subset_pattern(pattern_descriptor,
