@@ -7,7 +7,6 @@ Definition of visualization methods
 
 import pyrsa as rsa
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.manifold import MDS
 from sklearn.decomposition import PCA
