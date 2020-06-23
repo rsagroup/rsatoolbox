@@ -29,7 +29,7 @@ def rdm_dimension_reduction(rdms, func):
     rdmm = rdms.get_matrices()
     drs = np.ndarray((rdms.n_rdm,rdms.n_cond,2))
     for i in np.arange(rdms.n_rdm):
-        drs[i,:,:] = func.fit_transform(rdmm)
+        drs[i,:,:] = func.fit_transform(rdmm[i,:,:])
     return drs
 
 def mds(rdms):
