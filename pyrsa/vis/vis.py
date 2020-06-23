@@ -14,7 +14,7 @@ from sklearn.decomposition import PCA
 sd = np.random.RandomState(seed=1)
 mds = MDS(n_components=2, random_state=sd, dissimilarity="precomputed")
 
-def dimension_reduction(rdms, func):
+def rdm_dimension_reduction(rdms, func):
     """ dimension reduction of RDMs class
 
     Args:
@@ -42,5 +42,5 @@ def mds(rdms):
         (numpy.ndarray): an MDS embedding
 
     """
-    return dimension_reduction(rdms,mds)
+    return rdm_dimension_reduction(rdms,mds)
 
