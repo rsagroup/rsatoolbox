@@ -1,1 +1,1 @@
-# from pyrsa.vis import *
+from .model_plot import plot_model_comparison

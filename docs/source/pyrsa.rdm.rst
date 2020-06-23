@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    pyrsa.rdm.calc
+   pyrsa.rdm.compare
    pyrsa.rdm.rdms
 
 Module contents
