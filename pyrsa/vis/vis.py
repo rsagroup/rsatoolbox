@@ -24,12 +24,14 @@ def dimension_reduction(rdms, func):
 
     Returns:
         dr (numpy.ndarray): a dimension-reduced 
-        embedding
+        embedding of size (n_rdm x n_cond x n_emb)
 
     """
     rdmm = rdms.get_matrices()
-    dr = func.fit_transform(rdmm)
-    return dr
+    drs = np.ndarray((rdms.n_rdm,rdms.n_cond,2))
+    for i in np.arange(rdms.n_rdm)
+        drs[i,:,:] = func.fit_transform(rdmm)
+    return drs
 
 def mds(rdms):
     """ multi-dimensional scaling of RDMs class
