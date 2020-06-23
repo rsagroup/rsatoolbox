@@ -21,7 +21,7 @@ class TestVIS(unittest.TestCase):
                         dissimilarity_measure=mes,
                         descriptors=des)
         mds_emb = rsv.mds(rdms)
-        self.assertEqual(mds_emb.shape,(5, 2))
+        self.assertEqual(mds_emb.shape,(8,5,2))
 
 if __name__ == '__main__':
     unittest.main()  
