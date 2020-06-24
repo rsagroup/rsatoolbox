@@ -8,6 +8,7 @@ Created on Tue Feb 18 16:59:33 2020
 
 import unittest
 import numpy as np
+from parameterized import parameterized
 
 
 class TestNoiseCeiling(unittest.TestCase):
@@ -30,7 +31,14 @@ class TestNoiseCeiling(unittest.TestCase):
         noise_min, noise_max = cv_noise_ceiling(rdms, ceil_set, test_set,
                                                 method='cosine')
 
-    def test_boot_noise_ceiling(self):
+    @parameterized.expand([
+        ['cosine'],
+        ['rho-a'],
+        ['tau-a'],
+        ['spearman'],
+        ['corr'],
+    ])
+    def test_boot_noise_ceiling_runs_for_method(self, method):
         from pyrsa.inference import boot_noise_ceiling
         from pyrsa.rdm import RDMs
         dis = np.random.rand(11,10)  # 11 5x5 rdms
@@ -43,8 +51,4 @@ class TestNoiseCeiling(unittest.TestCase):
                     pattern_descriptors=pattern_des,
                     dissimilarity_measure=mes,
                     descriptors=des)
-        noise_min, noise_max = boot_noise_ceiling(rdms, method='cosine')
-        noise_min, noise_max = boot_noise_ceiling(rdms, method='rho-a')
-        noise_min, noise_max = boot_noise_ceiling(rdms, method='tau-a')
-        noise_min, noise_max = boot_noise_ceiling(rdms, method='spearman')
-        noise_min, noise_max = boot_noise_ceiling(rdms, method='corr')
+        noise_min, noise_max = boot_noise_ceiling(rdms, method=method)
