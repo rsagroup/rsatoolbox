@@ -145,6 +145,7 @@ class TestEvaluation(unittest.TestCase):
         evaluations, n_rdms = bootstrap_testset_rdm(m, rdms,
             method='cosine', fitter=None, N=100, rdm_descriptor=None)
 
+
 class TestEvaluationLists(unittest.TestCase):
     """ evaluation tests
     """
