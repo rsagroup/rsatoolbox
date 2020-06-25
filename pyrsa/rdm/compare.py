@@ -43,12 +43,12 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
         sim = compare_kendall_tau(rdm1, rdm2)
     elif method == 'tau-a':
         sim = compare_kendall_tau_a(rdm1, rdm2)
+    elif method == 'rho-a':
+        sim = compare_rho_a(rdm1, rdm2)
     elif method == 'corr_cov':
         sim = compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
     elif method == 'cosine_cov':
         sim = compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
-    elif method == 'rho-a':
-        sim = compare_rho_a(rdm1, rdm2)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
     return sim
@@ -176,7 +176,7 @@ def compare_rho_a(rdm1, rdm2):
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     n = vector1.shape[1]
     sim = np.einsum('ij,kj->ik', vector1, vector2) / (n ** 3 - n) * 12
-    return 1 - sim
+    return sim
 
 
 def compare_kendall_tau(rdm1, rdm2):
