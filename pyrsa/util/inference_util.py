@@ -79,7 +79,7 @@ def pool_rdm(rdms, method='cosine'):
         rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
         rdm_vec = _nan_mean(rdm_vec)
         rdm_vec = rdm_vec - np.nanmin(rdm_vec)
-    elif method == 'spearman':
+    elif method == 'spearman' or method == 'rho-a':
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'rho-a':
@@ -115,8 +115,7 @@ def _nan_mean(rdm_vector):
     """
     nan_idx = ~np.isnan(rdm_vector[0])
     mean_values = np.mean(rdm_vector[:, nan_idx], axis=0)
-    rdm_mean = np.empty((1, rdm_vector.shape[1]))
-    rdm_mean[:] = np.nan
+    rdm_mean = np.empty((1, rdm_vector.shape[1])) * np.nan
     rdm_mean[:, nan_idx] = mean_values
     return rdm_mean
 
