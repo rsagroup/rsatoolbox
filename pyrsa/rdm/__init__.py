@@ -13,3 +13,4 @@ from .compare import compare_correlation
 from .compare import compare_cosine
 from .compare import compare_kendall_tau
 from .compare import compare_spearman
+from .compare import compare_rho_a
