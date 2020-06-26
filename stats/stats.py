@@ -1051,6 +1051,7 @@ def summarize_eco(simulation_folder='sim_eco'):
         'noise_type': [], 'n_stim': []})
     means = []
     stds = []
+    pairs = []
     for layer in [i for i in os.listdir(simulation_folder)
                   if i[:5] == 'layer']:
         i_layer = int(layer[-2:])
@@ -1083,20 +1084,30 @@ def summarize_eco(simulation_folder='sim_eco'):
                         ignore_index=True)
                     mean = np.nan * np.zeros((100, 12))
                     std = np.nan * np.zeros((100, 12))
+                    pairwise = np.nan * np.zeros((100, 12, 12))
                     for i_res in results.glob('res*.hdf5'):
                         idx = int(str(i_res)[-9:-5])
                         res = pyrsa.inference.load_results(i_res,
                                                            file_type='hdf5')
+                        for i in range(12):
+                            for j in range(12):
+                                diff = (res.evaluations[:, i]
+                                        - res.evaluations[:, j])
+                                pairwise[idx, i, j] = np.sum(
+                                    diff[~np.isnan(diff)] > 0)
                         mean[idx] = np.nanmean(res.evaluations, axis=0)
                         std[idx] = np.nanstd(res.evaluations, axis=0)
                     means.append(mean)
                     stds.append(std)
+                    pairs.append(pairwise)
             means_array = np.array(means)
             stds_array = np.array(stds)
+            pairs_array = np.array(pairs)
             np.save(os.path.join(simulation_folder, 'means.npy'), means_array)
             np.save(os.path.join(simulation_folder, 'stds.npy'), stds_array)
+            np.save(os.path.join(simulation_folder, 'pairs.npy'), pairs_array)
             data_labels.to_csv(os.path.join(simulation_folder, 'labels.csv'))
-    return data_labels, means, stds
+    return data_labels, means, stds, pairs
 
 
 def check_eco(simulation_folder='sim_eco', N=100):
