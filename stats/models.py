@@ -58,7 +58,7 @@ def get_models(model_type, fname_base_l, stimuli,
             # Thus 1 : 3 should be the right weighting between the two
             # euclidean distances
             rdm = pyrsa.rdm.RDMs(3 * rdm1.get_vectors() + rdm2.get_vectors(),
-                           pattern_descriptors=pat_desc)
+                                 pattern_descriptors=pat_desc)
             model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
         elif model_type == 'select_full':
             rdms = []

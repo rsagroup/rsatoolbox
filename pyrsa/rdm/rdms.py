@@ -8,7 +8,6 @@ Definition of RSA RDMs class and subclasses
 import os
 import numpy as np
 from scipy.stats import rankdata
-import pickle
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
