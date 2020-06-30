@@ -295,7 +295,7 @@ class RDMs:
                 [or opened file]
             file_type(String): Type of file to create:
                 hdf5: hdf5 file
-                pkl: pickle file 
+                pkl: pickle file
 
         """
         rdm_dict = self.to_dict()
@@ -303,11 +303,10 @@ class RDMs:
             write_dict_hdf5(filename, rdm_dict)
         elif file_type == 'pkl':
             write_dict_pkl(filename, rdm_dict)
-        
-    
+
     def to_dict(self):
         """ converts the object into a dictionary, which can be saved to disk
-        
+
         Returns:
             rdm_dict(dict): dictionary containing all information required to
                 recreate the RDMs object
@@ -319,6 +318,28 @@ class RDMs:
         rdm_dict['pattern_descriptors'] = self.pattern_descriptors
         rdm_dict['dissimilarity_measure'] = self.dissimilarity_measure
         return rdm_dict
+
+    def sort_by(self, by):
+        """ resorts the rdm patterns
+
+        Args:
+            by(String): the descriptor by which the subset selection
+                        is made from descriptors
+            value:      the value by which the subset selection is made
+                        from descriptors
+
+        Returns:
+            RDMs object, with subsampled RDMs
+
+        """
+        desc = self.pattern_descriptors[by]
+        order = np.argsort(desc)
+        self.measurements = self.measurements[order]
+        self.pattern_descriptors = subset_descriptor(
+            self.pattern_descriptors, order)
+        dissimilarities = self.get_matrices()
+        dissimilarities = dissimilarities[:, order][:, :, order]
+        self.dissimilarities = batch_to_vectors(dissimilarities)
 
 
 def rdms_from_dict(rdm_dict):
@@ -341,7 +362,7 @@ def rdms_from_dict(rdm_dict):
 
 def load_rdm(filename, file_type=None):
     """ loads a RDMs object from disk
-    
+
     Args:
         filename(String): path to file to load
 
