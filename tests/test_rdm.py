@@ -316,6 +316,18 @@ class TestCalcRDM(unittest.TestCase):
                                       descriptor='conds', noise=noise)
         assert rdm.n_cond == 6
 
+    def test_calc_poisson(self):
+        rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
+                           method='poisson')
+        assert rdm.n_cond == 6
+
+    def test_calc_poisson_cv(self):
+        rdm = rsr.calc_rdm(self.test_data,
+                           descriptor='conds',
+                           cv_descriptor='fold',
+                           method='poisson_cv')
+        assert rdm.n_cond == 6
+
 
 class TestCompareRDM(unittest.TestCase):
 

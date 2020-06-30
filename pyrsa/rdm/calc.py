@@ -15,7 +15,7 @@ from pyrsa.util.matrix import pairwise_contrast_sparse
 
 
 def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
-             cv_descriptor=None):
+             cv_descriptor=None, prior_lambda=1, prior_weight=0.1):
     """
     calculates an RDM from an input dataset
 
@@ -60,6 +60,15 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
         elif method == 'crossnobis':
             rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
                                       cv_descriptor=cv_descriptor)
+        elif method == 'poisson':
+            rdm = calc_rdm_poisson(dataset, descriptor,
+                                   prior_lambda=prior_lambda,
+                                   prior_weight=prior_weight)
+        elif method == 'poisson_cv':
+            rdm = calc_rdm_poisson_cv(dataset, descriptor,
+                                      cv_descriptor=cv_descriptor,
+                                      prior_lambda=prior_lambda,
+                                      prior_weight=prior_weight)
         else:
             raise(NotImplementedError)
     return rdm
