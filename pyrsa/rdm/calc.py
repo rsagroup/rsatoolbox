@@ -188,6 +188,9 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     the corresponding crossvalidation fold, i.e. if multiple measurements
     enter a fold, please compute the resulting noise precision in advance!
 
+    To assert equal ordering in the folds the dataset is initially sorted
+    according to the descriptor used to define the patterns.
+
     Args:
         dataset (pyrsa.data.dataset.DatasetBase):
             The dataset the RDM is computed from
@@ -212,6 +215,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
         cv_desc = _gen_default_cv_descriptor(dataset, descriptor)
         dataset.obs_descriptors['cv_desc'] = cv_desc
         cv_descriptor = 'cv_desc'
+    dataset.sort_by(descriptor)
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     weights = []
     rdms = []
@@ -304,10 +308,11 @@ def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
 def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
                         prior_weight=0.1, cv_descriptor=None):
     """
-    calculates an RDM from an input dataset using the symmetrized
-    KL-divergence assuming a poisson distribution.
-    If multiple instances of the same condition are found in the dataset
-    they are averaged.
+    calculates an RDM from an input dataset using the crossvalidated
+    symmetrized KL-divergence assuming a poisson distribution
+
+    To assert equal ordering in the folds the dataset is initially sorted
+    according to the descriptor used to define the patterns.
 
     Args:
         dataset (pyrsa.data.DatasetBase):
@@ -327,6 +332,7 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
         cv_desc = _gen_default_cv_descriptor(dataset, descriptor)
         dataset.obs_descriptors['cv_desc'] = cv_desc
         cv_descriptor = 'cv_desc'
+    dataset.sort_by(descriptor)
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     for i_fold in range(len(cv_folds)):
         fold = cv_folds[i_fold]
