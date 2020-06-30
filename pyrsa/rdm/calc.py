@@ -201,6 +201,71 @@ def calc_rdm_crossnobis(dataset,
     return rdm
 
 
+def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
+                     prior_weight=0.1, cv_descriptor=None):
+    """
+    calculates an RDM from an input dataset using the symmetrized
+    KL-divergence assuming a poisson distribution.
+    If multiple instances of the same condition are found in the dataset
+    they are averaged.
+
+    Args:
+        dataset (pyrsa.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+
+    """
+    
+    measurements, desc, descriptor = _parse_input(dataset, descriptor)
+    measurements = (measurements + prior_lambda * prior_weight) \
+        / (prior_lambda * prior_weight)
+    diff = _calc_pairwise_differences(measurements)
+    diff_log = _calc_pairwise_differences(np.log(measurements))
+    rdm = np.einsum('ij,ij->i', diff, diff_log) / measurements.shape[1]
+    rdm = RDMs(dissimilarities=np.array([rdm]),
+               dissimilarity_measure='poisson',
+               descriptors=dataset.descriptors)
+    rdm.pattern_descriptors[descriptor] = desc
+    return rdm
+
+
+def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
+                        prior_weight=0.1):
+    """
+    calculates an RDM from an input dataset using the symmetrized
+    KL-divergence assuming a poisson distribution.
+    If multiple instances of the same condition are found in the dataset
+    they are averaged.
+
+    Args:
+        dataset (pyrsa.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+
+    """
+    measurements, desc, descriptor = _parse_input(dataset, descriptor)
+    measurements = (measurements + prior_lambda * prior_weight) \
+        / (prior_lambda * prior_weight)
+    diff = _calc_pairwise_differences(measurements)
+    diff_log = _calc_pairwise_differences(np.log(measurements))
+    rdm = np.einsum('ij,ij->i', diff, diff_log) / measurements.shape[1]
+    rdm = RDMs(dissimilarities=np.array([rdm]),
+               dissimilarity_measure='poisson_cv',
+               descriptors=dataset.descriptors)
+    rdm.pattern_descriptors[descriptor] = desc
+    return rdm
+
+
 def _calc_rdm_crossnobis_single_sparse(measurements1, measurements2, noise):
     c_matrix = pairwise_contrast_sparse(np.arange(measurements1.shape[0]))
     diff_1 = c_matrix @ measurements1
