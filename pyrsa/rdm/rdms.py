@@ -362,7 +362,7 @@ def rdms_from_dict(rdm_dict):
 
 def load_rdm(filename, file_type=None):
     """ loads a RDMs object from disk
-    
+
     Args:
         filename(String): path to file to load
 
