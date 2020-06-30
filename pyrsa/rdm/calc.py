@@ -212,8 +212,10 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
             data_test = dataset.subset_obs(cv_descriptor, fold)
             data_train = dataset.subset_obs(cv_descriptor,
                                             np.setdiff1d(cv_folds, fold))
-            measurements_train, _ = average_dataset_by(data_train, descriptor)
-            measurements_test, _ = average_dataset_by(data_test, descriptor)
+            measurements_train, _, _ = \
+                average_dataset_by(data_train, descriptor)
+            measurements_test, _, _ = \
+                average_dataset_by(data_test, descriptor)
             n_cond = measurements_train.shape[0]
             rdm = np.empty(int(n_cond * (n_cond-1) / 2))
             k = 0
@@ -251,11 +253,8 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='crossnobis',
                descriptors=dataset.descriptors)
-    if descriptor is None:
-        rdm.pattern_descriptors['pattern'] = np.arange(rdm.n_cond)
-    else:
-        _, desc = average_dataset_by(dataset, descriptor)
-        rdm.pattern_descriptors[descriptor] = desc
+    _, desc, _ = average_dataset_by(dataset, descriptor)
+    rdm.pattern_descriptors[descriptor] = desc
     rdm.descriptors['noise'] = noise
     rdm.descriptors['cv_descriptor'] = cv_descriptor
     return rdm
@@ -325,8 +324,8 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
         data_test = dataset.subset_obs(cv_descriptor, fold)
         data_train = dataset.subset_obs(cv_descriptor,
                                         np.setdiff1d(cv_folds, fold))
-        measurements_train, _ = average_dataset_by(data_train, descriptor)
-        measurements_test, _ = average_dataset_by(data_test, descriptor)
+        measurements_train, _, _ = average_dataset_by(data_train, descriptor)
+        measurements_test, _, _ = average_dataset_by(data_test, descriptor)
         measurements_train = (measurements_train
                               + prior_lambda * prior_weight) \
             / (prior_lambda * prior_weight)
@@ -340,11 +339,8 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='poisson_cv',
                descriptors=dataset.descriptors)
-    if descriptor is None:
-        rdm.pattern_descriptors['pattern'] = np.arange(rdm.n_cond)
-    else:
-        _, desc = average_dataset_by(dataset, descriptor)
-        rdm.pattern_descriptors[descriptor] = desc
+    _, desc, _ = average_dataset_by(dataset, descriptor)
+    rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
 
@@ -399,7 +395,7 @@ def _parse_input(dataset, descriptor):
         desc = np.arange(measurements.shape[0])
         descriptor = 'pattern'
     else:
-        measurements, desc = average_dataset_by(dataset, descriptor)
+        measurements, desc, _ = average_dataset_by(dataset, descriptor)
     return measurements, desc, descriptor
 
 
