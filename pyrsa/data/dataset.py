@@ -143,15 +143,16 @@ class DatasetBase:
         """
         raise NotImplementedError(
             "subset_channel function not implemented in used Dataset class!")
+
     def save(self, filename, file_type='hdf5'):
         """ Saves the dataset object to a file
-            
+
         Args:
             filename(String): path to the file
                 [or opened file]
             file_type(String): Type of file to create:
                 hdf5: hdf5 file
-                pkl: pickle file 
+                pkl: pickle file
 
         """
         data_dict = self.to_dict()
@@ -163,7 +164,7 @@ class DatasetBase:
     def to_dict(self):
         """ Generates a dictionary which contains the information to
         recreate the dataset object. Used for saving to disc
-        
+
         Returns:
             data_dict(dict): dictionary with dataset information
 
@@ -283,10 +284,25 @@ class Dataset(DatasetBase):
                           channel_descriptors=channel_descriptors)
         return dataset
 
+    def sort_by(self, by):
+        """ sorts the dataset by a given observation descriptor
+
+        Args:
+            by(String): the descriptor by which the dataset shall be sorted
+
+        Returns:
+            ---
+
+        """
+        desc = self.obs_descriptors[by]
+        order = np.argsort(desc)
+        self.measurements = self.measurements[order]
+        self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
+
 
 def load_dataset(filename, file_type=None):
     """ loads a Dataset object from disc
-    
+
     Args:
         filename(String): path to file to load
 
