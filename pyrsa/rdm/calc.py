@@ -262,7 +262,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
 
 
 def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
-                     prior_weight=0.1, cv_descriptor=None):
+                     prior_weight=0.1):
     """
     calculates an RDM from an input dataset using the symmetrized
     KL-divergence assuming a poisson distribution.
@@ -280,7 +280,6 @@ def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
-    
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
     measurements = (measurements + prior_lambda * prior_weight) \
         / (prior_lambda * prior_weight)
@@ -295,7 +294,7 @@ def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
 
 
 def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
-                        prior_weight=0.1):
+                        prior_weight=0.1, cv_descriptor=None):
     """
     calculates an RDM from an input dataset using the symmetrized
     KL-divergence assuming a poisson distribution.
@@ -313,16 +312,39 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
-    measurements, desc, descriptor = _parse_input(dataset, descriptor)
-    measurements = (measurements + prior_lambda * prior_weight) \
-        / (prior_lambda * prior_weight)
-    diff = _calc_pairwise_differences(measurements)
-    diff_log = _calc_pairwise_differences(np.log(measurements))
-    rdm = np.einsum('ij,ij->i', diff, diff_log) / measurements.shape[1]
+    if descriptor is None:
+        raise ValueError('descriptor must be a string! Crossvalidation' +
+                         'requires multiple measurements to be grouped')
+    if cv_descriptor is None:
+        cv_desc = _gen_default_cv_descriptor(dataset, descriptor)
+        dataset.obs_descriptors['cv_desc'] = cv_desc
+        cv_descriptor = 'cv_desc'
+    cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
+    for i_fold in range(len(cv_folds)):
+        fold = cv_folds[i_fold]
+        data_test = dataset.subset_obs(cv_descriptor, fold)
+        data_train = dataset.subset_obs(cv_descriptor,
+                                        np.setdiff1d(cv_folds, fold))
+        measurements_train, _ = average_dataset_by(data_train, descriptor)
+        measurements_test, _ = average_dataset_by(data_test, descriptor)
+        measurements_train = (measurements_train
+                              + prior_lambda * prior_weight) \
+            / (prior_lambda * prior_weight)
+        measurements_test = (measurements_test
+                             + prior_lambda * prior_weight) \
+            / (prior_lambda * prior_weight)
+        diff = _calc_pairwise_differences(measurements_train)
+        diff_log = _calc_pairwise_differences(np.log(measurements_test))
+        rdm = np.einsum('ij,ij->i', diff, diff_log) \
+            / measurements_train.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='poisson_cv',
                descriptors=dataset.descriptors)
-    rdm.pattern_descriptors[descriptor] = desc
+    if descriptor is None:
+        rdm.pattern_descriptors['pattern'] = np.arange(rdm.n_cond)
+    else:
+        _, desc = average_dataset_by(dataset, descriptor)
+        rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
 
