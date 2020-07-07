@@ -117,3 +117,14 @@ def read_dict_pkl(file):
         file = open(file, 'rb')
     data = pickle.load(file)
     return data
+
+def remove_file(file):
+    """ Deletes file from OS if it exists
+    
+    Args:
+        file: a filename or opened readable file
+
+    """
+    if isinstance(file, str) and os.path.exists(file):
+        os.remove(file)
+    return
