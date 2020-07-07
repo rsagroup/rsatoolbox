@@ -70,7 +70,7 @@ def sets_leave_one_out_rdm(rdms, rdm_descriptor=None):
     else:
         rdm_select = rdms.rdm_descriptors[rdm_descriptor]
         rdm_select = np.unique(rdm_select)
-    if len(rdm_select) > 1: 
+    if len(rdm_select) > 1:
         train_set = []
         test_set = []
         for i_pattern in rdm_select:
@@ -145,7 +145,8 @@ def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
                                    rdm_sample_test)
         rdms_train = rdms.subsample(rdm_descriptor,
                                     rdm_sample_train)
-        train_new, test_new, _ = sets_k_fold_pattern(rdms_train, k=k_pattern,
+        train_new, test_new, _ = sets_k_fold_pattern(
+            rdms_train, k=k_pattern,
             pattern_descriptor=pattern_descriptor, random=random)
         ceil_new = deepcopy(test_new)
         for i_pattern in range(k_pattern):
@@ -206,12 +207,11 @@ def sets_k_fold_rdm(rdms, k_rdm=5, random=True, rdm_descriptor=None):
         test_set.append([rdms_test, np.arange(rdms_train.n_cond)])
     ceil_set = train_set
     return train_set, test_set, ceil_set
-    
 
 
 def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into k
-    similar sized groups. This version splits in the given order or 
+    similar sized groups. This version splits in the given order or
     randomizes the order. For k=1 training and test_set are whole dataset,
     i.e. no crossvalidation is performed.
 
@@ -267,7 +267,7 @@ def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
 
 def sets_of_k_rdm(rdms, rdm_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into
-    groups of k. This version splits in the given order or 
+    groups of k. This version splits in the given order or
     randomizes the order. If the number of patterns is not divisible by k
     patterns are added to the first groups such that those have k+1 patterns
 
@@ -294,12 +294,12 @@ def sets_of_k_rdm(rdms, rdm_descriptor=None, k=5, random=False):
         'to form groups we can use at most half the patterns per group'
     n_groups = int(len(rdm_select) / k)
     return sets_k_fold_rdm(rdms, rdm_descriptor=rdm_descriptor,
-                               k=n_groups, random=random)
+                           k=n_groups, random=random)
 
 
 def sets_of_k_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into
-    groups of k. This version splits in the given order or 
+    groups of k. This version splits in the given order or
     randomizes the order. If the number of patterns is not divisible by k
     patterns are added to the first groups such that those have k+1 patterns
 
