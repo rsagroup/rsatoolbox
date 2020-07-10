@@ -30,6 +30,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             dataset.n_channel x dataset.n_channel
             precision matrix used to calculate the RDM
             used only for Mahalanobis and Crossnobis estimators
+            defaults to an identity matrix, i.e. euclidean distance
 
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
@@ -59,7 +60,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
         elif method == 'crossnobis':
             rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                      cv_descriptor=cv_descriptor)
+                                      cv_descriptor)
         elif method == 'poisson':
             rdm = calc_rdm_poisson(dataset, descriptor,
                                    prior_lambda=prior_lambda,
@@ -145,6 +146,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
         noise (numpy.ndarray):
             dataset.n_channel x dataset.n_channel
             precision matrix used to calculate the RDM
+            default: identity matrix, i.e. euclidean distance
 
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
@@ -200,6 +202,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
         noise (numpy.ndarray):
             dataset.n_channel x dataset.n_channel
             precision matrix used to calculate the RDM
+            default: identity matrix, i.e. euclidean distance
         cv_descriptor (String):
             obs_descriptor which determines the cross-validation folds
 
