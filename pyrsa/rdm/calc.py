@@ -59,7 +59,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
         elif method == 'crossnobis':
             rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                      cv_descriptor=cv_descriptor)
+                                      cv_descriptor)
         else:
             raise(NotImplementedError)
     return rdm
