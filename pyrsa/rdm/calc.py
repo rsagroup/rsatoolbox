@@ -30,6 +30,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             dataset.n_channel x dataset.n_channel
             precision matrix used to calculate the RDM
             used only for Mahalanobis and Crossnobis estimators
+            defaults to an identity matrix, i.e. euclidean distance
         cv_descriptor (String):
             descriptor for crossvalidation for CrossNobis
 
@@ -64,7 +65,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
         elif method == 'crossnobis':
             rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                      cv_descriptor=cv_descriptor)
+                                      cv_descriptor)
         else:
             raise(NotImplementedError)
     return rdm
@@ -173,6 +174,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
         noise (numpy.ndarray):
             dataset.n_channel x dataset.n_channel
             precision matrix used to calculate the RDM
+            default: identity matrix, i.e. euclidean distance
 
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
@@ -183,6 +185,9 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     else:
         measurements, desc, descriptor = _parse_input(dataset, descriptor)
         noise = _check_noise(noise, dataset.n_channel)
+        # calculate difference @ precision @ difference for all pairs
+        # first calculate the difference vectors diff and precision @ diff
+        # then calculate the inner product
         diff = _calc_pairwise_differences(measurements)
         diff2 = (noise @ diff.T).T
         rdm = np.einsum('ij,ij->i', diff, diff2) / measurements.shape[1]
@@ -195,10 +200,23 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
 
 
 def calc_rdm_crossnobis(dataset, descriptor, noise=None,
-                        cv_descriptor=None, subversion='whiten'):
+                        cv_descriptor=None):
     """
     calculates an RDM from an input dataset using Cross-nobis distance
-    This performs leave one out crossvalidation over the cv_descriptor
+    This performs leave one out crossvalidation over the cv_descriptor.
+
+    As the minimum input provide a dataset and a descriptor-name to
+    define the rows & columns of the RDM.
+    You may pass a noise precision. If you don't an identity is assumed.
+    Also a cv_descriptor can be passed to define the crossvalidation folds.
+    It is recommended to do this, to assure correct calculations. If you do
+    not, this function infers a split in order of the dataset, which is
+    guaranteed to fail if there are any unbalances.
+
+    This function also accepts a list of noise precision matricies.
+    It is then assumed that this is the precision of the mean from
+    the corresponding crossvalidation fold, i.e. if multiple measurements
+    enter a fold, please compute the resulting noise precision in advance!
 
     Args:
         dataset (pyrsa.data.dataset.DatasetBase):
@@ -209,13 +227,9 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
         noise (numpy.ndarray):
             dataset.n_channel x dataset.n_channel
             precision matrix used to calculate the RDM
+            default: identity matrix, i.e. euclidean distance
         cv_descriptor (String):
             obs_descriptor which determines the cross-validation folds
-        subversion (String):
-            switch the version of Crossnobis to run:
-            'pool': prewhiten each estimate with their precision
-            'average': run each combination of \delta_i \Sigma_j^-1 \delta_j
-            'pool_sum': run each combination of \delta_i \Sigma_j^-1 \delta_j
 
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
@@ -259,22 +273,21 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
             weights.append(data_test.n_obs)
     else:  # a list of noises was provided
         measurements = []
-        w_fold = []
+        variances = []
         for i_fold in range(len(cv_folds)):
             data = dataset.subset_obs(cv_descriptor, cv_folds[i_fold])
             measurements.append(average_dataset_by(data, descriptor)[0])
-            w_fold.append(data.n_obs)
+            variances.append(np.linalg.inv(noise[i_fold]))
         for i_fold in range(len(cv_folds)):
-            for j_fold in range(len(cv_folds)):
+            for j_fold in range(i_fold + 1, len(cv_folds)):
                 if i_fold != j_fold:
-                    rdm = _calc_rdm_crossnobis_single(measurements[i_fold],
-                                                      measurements[j_fold],
-                                                      noise[j_fold])
+                    rdm = _calc_rdm_crossnobis_single(
+                        measurements[i_fold], measurements[j_fold],
+                        np.linalg.inv(variances[i_fold]
+                                      + variances[j_fold]))
                     rdms.append(rdm)
-                    weights.append(w_fold[i_fold] * w_fold[j_fold])
     rdms = np.array(rdms)
-    weights = np.array(weights)
-    rdm = np.einsum('ij,i->j', rdms, weights) / np.sum(weights)
+    rdm = np.einsum('ij->j', rdms)
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='crossnobis',
                descriptors=dataset.descriptors)

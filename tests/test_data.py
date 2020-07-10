@@ -148,20 +148,20 @@ class TestNoiseComputations(unittest.TestCase):
         self.res_list = res_list
 
     def test_cov(self):
-        from pyrsa.data import get_cov_from_residuals
-        cov = get_cov_from_residuals(self.residuals)
+        from pyrsa.data import cov_from_residuals
+        cov = cov_from_residuals(self.residuals)
 
     def test_cov_list(self):
-        from pyrsa.data import get_cov_from_residuals
-        cov = get_cov_from_residuals(self.res_list)
+        from pyrsa.data import cov_from_residuals
+        cov = cov_from_residuals(self.res_list)
         
     def test_prec(self):
-        from pyrsa.data import get_prec_from_residuals
-        cov = get_prec_from_residuals(self.residuals)
+        from pyrsa.data import prec_from_residuals
+        cov = prec_from_residuals(self.residuals)
         
     def test_prec_list(self):
-        from pyrsa.data import get_prec_from_residuals
-        cov = get_prec_from_residuals(self.res_list)
+        from pyrsa.data import prec_from_residuals
+        cov = prec_from_residuals(self.res_list)
 
 
 class TestSave(unittest.TestCase):
