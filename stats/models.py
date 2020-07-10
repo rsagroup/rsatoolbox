@@ -18,6 +18,7 @@ def get_models(model_type, fname_base_l, stimuli,
     pat_desc = {'stim': np.arange(n_stimuli)}
     models = []
     smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
+    dnn_model = dnn.get_default_model()
     for i_layer in tqdm.trange(n_layer):
         if model_type == 'fixed_averagetrue':
             rdm_true_average = 0
@@ -35,7 +36,7 @@ def get_models(model_type, fname_base_l, stimuli,
             model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
         elif model_type == 'fixed_full':
             rdm = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
+                model=dnn_model,
                 layer=i_layer,
                 stimuli=stimuli,
                 smoothing=smoothing)
@@ -43,12 +44,12 @@ def get_models(model_type, fname_base_l, stimuli,
             model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
         elif model_type == 'fixed_average':
             rdm1 = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
+                model=dnn_model,
                 layer=i_layer,
                 stimuli=stimuli,
                 smoothing=smoothing)
             rdm2 = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
+                model=dnn_model,
                 layer=i_layer,
                 stimuli=stimuli,
                 smoothing=smoothing,
@@ -64,7 +65,7 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
+                    model=dnn_model,
                     layer=i_layer,
                     stimuli=stimuli,
                     smoothing=smooth,
@@ -77,7 +78,7 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
+                    model=dnn_model,
                     layer=i_layer,
                     stimuli=stimuli,
                     smoothing=smooth,
@@ -90,7 +91,7 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
+                    model=dnn_model,
                     layer=i_layer,
                     stimuli=stimuli,
                     smoothing=smooth,
@@ -98,7 +99,7 @@ def get_models(model_type, fname_base_l, stimuli,
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
                 rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
+                    model=dnn_model,
                     layer=i_layer,
                     stimuli=stimuli,
                     smoothing=smooth,
@@ -111,7 +112,7 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
+                    model=dnn_model,
                     layer=i_layer,
                     stimuli=stimuli,
                     smoothing=smooth,
@@ -124,7 +125,7 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
+                    model=dnn_model,
                     layer=i_layer,
                     stimuli=stimuli,
                     smoothing=smooth,
@@ -137,7 +138,7 @@ def get_models(model_type, fname_base_l, stimuli,
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
                 rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
+                    model=dnn_model,
                     layer=i_layer,
                     stimuli=stimuli,
                     smoothing=smooth,
@@ -146,7 +147,7 @@ def get_models(model_type, fname_base_l, stimuli,
                 rdms.append(rdm)
             for i_smooth in range(len(smoothings) - 1, -1, -1):
                 rdm = dnn.get_true_RDM(
-                    model=dnn.get_default_model(),
+                    model=dnn_model,
                     layer=i_layer,
                     stimuli=stimuli,
                     smoothing=smoothings[i_smooth],
@@ -158,28 +159,28 @@ def get_models(model_type, fname_base_l, stimuli,
         elif model_type == 'weighted_avgfull':
             rdms = []
             rdm = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
+                model=dnn_model,
                 layer=i_layer,
                 stimuli=stimuli,
                 smoothing=None,
                 average=True)
             rdms.append(rdm)
             rdm = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
+                model=dnn_model,
                 layer=i_layer,
                 stimuli=stimuli,
                 smoothing=None,
                 average=False)
             rdms.append(rdm)
             rdm = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
+                model=dnn_model,
                 layer=i_layer,
                 stimuli=stimuli,
                 smoothing=np.inf,
                 average=True)
             rdms.append(rdm)
             rdm = dnn.get_true_RDM(
-                model=dnn.get_default_model(),
+                model=dnn_model,
                 layer=i_layer,
                 stimuli=stimuli,
                 smoothing=np.inf,

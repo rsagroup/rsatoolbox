@@ -57,7 +57,7 @@ def generate_timecourse(design, U0, sigma_noise=1, hrf=None,
         resolution = 2
     if hrf is None:
         t = np.arange(0, 40, resolution)
-        hrf = resolution*spm_hrf(t)
+        hrf = resolution * spm_hrf(t)
     if sigmaP is None:
         sigmaP = np.eye(U0.shape[1])
     hrf = np.array([hrf]).transpose()
@@ -191,6 +191,19 @@ def get_sampled_sigmaP(Ushape, indices_space, weights, sd):
                 / stack.shape[1] / stack.shape[2])
     covWeights = np.einsum('in,ik->nk', weights, weights) / weights.shape[0]
     sigmaP = covGauss * covWeights
+    sigmaP = sigmaP / np.max(sigmaP)
+    return sigmaP
+
+
+def get_spatial_sigmaP(Ushape, indices_space, sd):
+    if len(Ushape) == 4:
+        Ushape = Ushape[1:]
+    stack = np.zeros((indices_space.shape[1], Ushape[1], Ushape[2]))
+    for iC in range(indices_space.shape[1]):
+        stack[iC, indices_space[0, iC], indices_space[1, iC]] = 1
+    stack = gaussian_filter(stack, [0, sd[0], sd[1]])
+    sigmaP = (np.einsum('nij,kij->nk', stack, stack)
+              / stack.shape[1] / stack.shape[2])
     sigmaP = sigmaP / np.max(sigmaP)
     return sigmaP
 

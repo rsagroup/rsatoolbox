@@ -518,7 +518,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
                use_cor_noise=True, resolution=2,
                sigma_noise=5, ar_coeff=0.5,
                ecoset_path='~/ecoset/val/', variation=None,
-               model_type='fixed_full',
+               model_type='fixed_average',
                rdm_comparison='cosine', n_layer=12, k_pattern=None,
                k_rdm=None, rdm_type='crossnobis',
                noise_type='residuals', boot_type='both'):
