@@ -20,8 +20,8 @@ class TestNoiseCeiling(unittest.TestCase):
         dis = np.random.rand(11, 10)  # 11 5x5 rdms
         mes = "Euclidean"
         des = {'subj': 0}
-        rdm_des = {'session':np.array([1, 1, 2, 2, 4, 5, 6, 7, 7, 7, 7])}
-        pattern_des = {'type':np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([1, 1, 2, 2, 4, 5, 6, 7, 7, 7, 7])}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
         rdms = RDMs(
             dissimilarities=dis,
             rdm_descriptors=rdm_des,
