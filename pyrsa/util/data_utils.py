@@ -3,10 +3,8 @@
 """
 Collection of helper methods for data module
 
-+ check_dict_length:   check if each value in dict matches length n
 + extract_dict:        extract key-value pairs with values given indexes.
 + get_unique_unsorted: return a unique unsorted list
-+ check_descriptors_dimension: run check_dict_length and raise an error
 
 @author: baihan
 """
