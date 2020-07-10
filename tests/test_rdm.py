@@ -2,45 +2,45 @@
 # -*- coding: utf-8 -*-
 """
 test_data
-Test for RDM class 
+Test for RDM class
 @author: baihan
 """
 
 import unittest
 from unittest.mock import Mock, patch
-import numpy as np 
+import numpy as np
 from numpy.testing import assert_array_almost_equal
 from numpy.testing import assert_array_equal
 from scipy.spatial.distance import pdist
 import pyrsa.rdm as rsr
 import pyrsa as rsa
 
-class TestRDM(unittest.TestCase): 
-    
+class TestRDM(unittest.TestCase):
+
     def test_rdm3d_init(self):
-        dis = np.zeros((8,5,5))
+        dis = np.zeros((8, 5, 5))
         mes = "Euclidean"
         des = {'session':0, 'subj':0}
         rdms = rsr.RDMs(dissimilarities=dis,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        self.assertEqual(rdms.n_rdm,8)
-        self.assertEqual(rdms.n_cond,5)
+        self.assertEqual(rdms.n_rdm, 8)
+        self.assertEqual(rdms.n_cond, 5)
 
     def test_rdm2d_init(self):
-        dis = np.zeros((8,10))
+        dis = np.zeros((8, 10))
         mes = "Euclidean"
-        des = {'session':0, 'subj':0}
+        des = {'session': 0, 'subj': 0}
         rdms = rsr.RDMs(dissimilarities=dis,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        self.assertEqual(rdms.n_rdm,8)
-        self.assertEqual(rdms.n_cond,5)
+        self.assertEqual(rdms.n_rdm, 8)
+        self.assertEqual(rdms.n_cond, 5)
 
     def test_rdm3d_get_vectors(self):
-        dis = np.zeros((8,5,5))
+        dis = np.zeros((8, 5, 5))
         mes = "Euclidean"
-        des = {'session':0, 'subj':0}
+        des = {'session': 0, 'subj': 0}
         rdms = rsr.RDMs(dissimilarities=dis,
                         dissimilarity_measure=mes,
                         descriptors=des)
@@ -216,12 +216,16 @@ class TestRDM(unittest.TestCase):
         np.testing.assert_array_almost_equal(rdm.dissimilarities,
             np.array([[1., 1., 1., 0., 1., 1.]]))
 
-class TestCalcRDM(unittest.TestCase): 
-    
+
+class TestCalcRDM(unittest.TestCase):
+
     def setUp(self):
-        measurements = np.random.rand(20,5)
-        des = {'session':0,'subj':0}
+        measurements = np.random.rand(20, 5)
+        des = {'session': 0, 'subj': 0}
         obs_des = {'conds':np.array([0,0,1,1,2,2,2,3,4,5,0,0,1,1,2,2,2,3,4,5]),
+                   'fold':np.array([0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1])
+                   }
+        obs_balanced = {'conds':np.array([0,0,1,1,2,2,3,3,4,4,0,0,1,1,2,2,3,3,4,4]),
                    'fold':np.array([0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1])
                    }
         chn_des = {'rois':np.array(['V1','V1','IT','IT','V4'])}
@@ -230,9 +234,15 @@ class TestCalcRDM(unittest.TestCase):
                            obs_descriptors=obs_des,
                            channel_descriptors=chn_des
                            )
+        self.test_data_balanced = rsa.data.Dataset(measurements=measurements,
+                           descriptors=des,
+                           obs_descriptors=obs_balanced,
+                           channel_descriptors=chn_des
+                           )
 
     def test_calc_euclid_nconds(self):
-        rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'euclidean')
+        rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
+                           method='euclidean')
         assert rdm.n_cond == 6
 
     def test_parse_input(self):
@@ -274,7 +284,8 @@ class TestCalcRDM(unittest.TestCase):
         desc = [0, 1, 2, 3, 4, 5]
         _parse_input.return_value = (data.measurements, desc, 'conds')
         rdm_expected = 1 - np.corrcoef(data.measurements)
-        rdme = rsr.RDMs(dissimilarities=np.array([rdm_expected]),
+        rdme = rsr.RDMs(
+            dissimilarities=np.array([rdm_expected]),
             dissimilarity_measure='correlation',
             descriptors=data.descriptors)
         rdm = calc_rdm(
@@ -288,35 +299,73 @@ class TestCalcRDM(unittest.TestCase):
         )
 
     def test_calc_mahalanobis(self):
-        rdm = rsr.calc_rdm(self.test_data, descriptor = 'conds', method = 'mahalanobis')
+        rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
+                           method='mahalanobis')
         assert rdm.n_cond == 6
-        
+
     def test_calc_crossnobis(self):
-        rdm = rsr.calc_rdm_crossnobis(self.test_data, descriptor = 'conds', cv_descriptor = 'fold')
+        rdm = rsr.calc_rdm_crossnobis(self.test_data,
+                                      descriptor='conds',
+                                      cv_descriptor='fold')
+        assert rdm.n_cond == 6
+
+    def test_calc_crossnobis_no_descriptors(self):
+        rdm = rsr.calc_rdm_crossnobis(self.test_data_balanced,
+                                      descriptor='conds')
+        assert rdm.n_cond == 5
+
+    def test_calc_crossnobis_noise(self):
+        noise = np.random.randn(10, 5)
+        noise = np.matmul(noise.T, noise)
+        rdm = rsr.calc_rdm_crossnobis(self.test_data_balanced,
+                                      descriptor='conds',
+                                      noise=noise)
+        assert rdm.n_cond == 5
+
+    def test_calc_crossnobis_noise_list(self):
+        # generate two positive definite noise matricies
+        noise = np.random.randn(2, 10, 5)
+        noise = np.einsum('ijk,ijl->ikl', noise, noise)
+        rdm = rsr.calc_rdm_crossnobis(self.test_data_balanced,
+                                      cv_descriptor='fold',
+                                      descriptor='conds',
+                                      noise=noise)
+        assert rdm.n_cond == 5
+        # test with noise list
+        noise = [noise[i] for i in range(len(noise))]
+        rdm = rsr.calc_rdm_crossnobis(self.test_data_balanced,
+                                      cv_descriptor='fold',
+                                      descriptor='conds',
+                                      noise=noise)
+        assert rdm.n_cond == 5
+        rdm = rsr.calc_rdm_crossnobis(self.test_data, cv_descriptor='fold',
+                                      descriptor='conds', noise=noise)
         assert rdm.n_cond == 6
 
 
-class TestCompareRDM(unittest.TestCase): 
-    
+class TestCompareRDM(unittest.TestCase):
+
     def setUp(self):
-        dissimilarities1 = np.random.rand(1,15)
-        des1 = {'session':0,'subj':0}
-        self.test_rdm1 = rsa.rdm.RDMs(dissimilarities=dissimilarities1,
-                           dissimilarity_measure='test',
-                           descriptors=des1
-                           )
-        dissimilarities2 = np.random.rand(3,15)
-        des2 = {'session':0,'subj':0}
-        self.test_rdm2 = rsa.rdm.RDMs(dissimilarities=dissimilarities2,
-                           dissimilarity_measure='test',
-                           descriptors=des2
-                           )
-        dissimilarities3 = np.random.rand(7,15)
-        des2 = {'session':0,'subj':0}
-        self.test_rdm3 = rsa.rdm.RDMs(dissimilarities=dissimilarities3,
-                           dissimilarity_measure='test',
-                           descriptors=des2
-                           )
+        dissimilarities1 = np.random.rand(1, 15)
+        des1 = {'session': 0, 'subj': 0}
+        self.test_rdm1 = rsa.rdm.RDMs(
+            dissimilarities=dissimilarities1,
+            dissimilarity_measure='test',
+            descriptors=des1)
+        dissimilarities2 = np.random.rand(3, 15)
+        des2 = {'session': 0, 'subj': 0}
+        self.test_rdm2 = rsa.rdm.RDMs(
+            dissimilarities=dissimilarities2,
+            dissimilarity_measure='test',
+            descriptors=des2
+            )
+        dissimilarities3 = np.random.rand(7, 15)
+        des2 = {'session': 0, 'subj': 0}
+        self.test_rdm3 = rsa.rdm.RDMs(
+            dissimilarities=dissimilarities3,
+            dissimilarity_measure='test',
+            descriptors=des2
+            )
 
     def test_compare_cosine(self):
         from pyrsa.rdm.compare import compare_cosine
@@ -324,7 +373,7 @@ class TestCompareRDM(unittest.TestCase):
         assert_array_almost_equal(result, 1)
         result = compare_cosine(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
-        
+
     def test_compare_cosine_cov(self):
         from pyrsa.rdm.compare import compare_cosine_cov_weighted
         result = compare_cosine_cov_weighted(self.test_rdm1,
