@@ -287,7 +287,9 @@ class RDMs:
         self.rdm_descriptors = append_descriptor(self.rdm_descriptors,
                                                  rdm.rdm_descriptors)
         self.n_rdm = self.n_rdm + rdm.n_rdm
-
+ 
+    
+        
     def save(self, filename, file_type='hdf5'):
         """ saves the RDMs object into a file
 
@@ -404,3 +406,49 @@ def concat(rdms):
     for rdm_new in rdms[1:]:
         rdm.append(rdm_new)
     return rdm
+
+
+def permute_rdms(rdms, p = None):
+        """ Permute rows, columns and corresponding pattern descriptors of RDM matrices according to a permutation vector
+        
+        Args:
+            p (numpy array):
+               permutation vector (values must be unique integers from 0 to n_cond of RDM matrix).
+               If p = None, a random permutation vector is created.
+               
+        Returns:
+            rdm_p(pyrsa.rdm.RDMs): the rdm object with a permuted matrix and pattern descriptors
+
+        """
+        if p is None:
+            p = np.random.permutation(rdms.n_cond)
+            print("No permutation vector specified, performing random permutation.")
+        
+        assert p.dtype == 'int', "permutation vector must have integer entries."
+        assert min(p) == 0 and max(p) == rdms.n_cond-1, "permutation vector must have entries ranging from 0 to n_cond"
+        assert len(np.unique(p)) == rdms.n_cond, "permutation vector must only have unique integer entries"
+        
+        rdm_mats = rdms.get_matrices()
+        descriptors = rdms.descriptors.copy()
+        rdm_descriptors = rdms.rdm_descriptors.copy()
+        pattern_descriptors = rdms.pattern_descriptors.copy()
+
+        p_inv = np.arange(len(p))[np.argsort(p)] # To easily reverse permutation later
+        descriptors.update({'p_inv': p_inv})
+        rdm_mats = rdm_mats[:,p,:]
+        rdm_mats = rdm_mats[:,:,p]
+        stims = np.array(pattern_descriptors['stim'])
+        pattern_descriptors.update({'stim': list(stims[p].astype(np.str_))})
+                
+        rdms_p = RDMs(dissimilarities=rdm_mats,
+                    descriptors=descriptors,
+                    rdm_descriptors=rdm_descriptors,
+                    pattern_descriptors=pattern_descriptors)
+        return rdms_p
+
+   
+def inverse_permute_rdms(rdms):
+        p_inv = rdms.descriptors['p_inv']
+        rdms_p = permute_rdms(rdms, p = p_inv)
+        return rdms_p
+        
