@@ -678,7 +678,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
         if noise_type == 'eye':
             noise = None
         elif noise_type == 'residuals':
-            noise = pyrsa.data.get_prec_from_residuals(residuals)
+            noise = pyrsa.data.prec_from_residuals(residuals)
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor='repeat', noise=noise)
         # get true U RDMs
