@@ -362,11 +362,21 @@ def load_rdm(filename, file_type=None):
     return rdms_from_dict(rdm_dict)
 
 
-def rank_transform(rdms):
-    """ applyes a rank_transform and generates a new RDMs object"""
+def rank_transform(rdms, method = 'average'):
+    """ applies a rank_transform and generates a new RDMs object
+    This assigns a rank to each dissimilarity estimate in the RDM, deals with rank ties
+    and saves ranks as new dissimilarity estimates. As an effect, all non-diagonal entries of the RDM will
+    range from 1 to (n_dim²-n_dim)/2, if the RDM has the dimensions n_dim x n_dim.
+    
+    Args:
+        rdms(RDMs): RDMs object
+        method (str):
+            controls how ranks are assigned to equal values, other options are: ‘average’, ‘min’, ‘max’, ‘dense’, ‘ordinal’
+    Returns:
+        rdms_new(RDMs): RDMs object with rank transformed dissimilarity estimates
+    """
     dissimilarities = rdms.get_vectors()
-    dissimilarities = np.array([rankdata(dissimilarities[i])
-                                for i in range(rdms.n_rdm)])
+    dissimilarities = np.array([rankdata(dissimilarities[i], method = method) for i in range(rdms.n_rdm)])
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=rdms.dissimilarity_measure,
                     descriptors=rdms.descriptors,
