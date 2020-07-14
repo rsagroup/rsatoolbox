@@ -287,8 +287,7 @@ class RDMs:
         self.rdm_descriptors = append_descriptor(self.rdm_descriptors,
                                                  rdm.rdm_descriptors)
         self.n_rdm = self.n_rdm + rdm.n_rdm
- 
-    
+        
         
     def save(self, filename, file_type='hdf5'):
         """ saves the RDMs object into a file
@@ -448,6 +447,8 @@ def permute_rdms(rdms, p = None):
 
    
 def inverse_permute_rdms(rdms):
+        """ Gimmick function to reverse the effect of permute_rdms() """   
+
         p_inv = rdms.descriptors['p_inv']
         rdms_p = permute_rdms(rdms, p = p_inv)
         return rdms_p
