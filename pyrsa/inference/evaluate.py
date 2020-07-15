@@ -20,6 +20,34 @@ from .noise_ceiling import boot_noise_ceiling
 from .noise_ceiling import cv_noise_ceiling
 
 
+def eval_fancy(model, data, method='cosine', fitter=None,
+               k_pattern=5, k_rdm=5, N=1000,
+               pattern_descriptor=None, rdm_descriptor=None):
+    """evaluates a model by k-fold crossvalidation within a bootstrap
+    Then uses the correction formula to get an estimate of the variance
+    of the mean.
+
+    If a k is set to 1 no crossvalidation is performed over the
+    corresponding dimension.
+
+    Args:
+        model(pyrsa.model.Model): Model to be evaluated
+        data(pyrsa.rdm.RDMs): RDM data to use
+        method(string): comparison method to use
+        fitter(function): fitting method for model
+        k_pattern(int): #folds over patterns
+        k_rdm(int): #folds over rdms
+        N(int): number of bootstrap samples (default: 1000)
+        pattern_descriptor(string): descriptor to group patterns
+        rdm_descriptor(string): descriptor to group rdms
+        random(bool): randomize group assignments (default: True)
+
+    Returns:
+        numpy.ndarray: matrix of evaluations (N x k)
+
+    """
+
+
 def eval_fixed(model, data, theta=None, method='cosine'):
     """evaluates a model on data, without any bootstrapping or
     cross-validation
@@ -295,7 +323,7 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
 def bootstrap_crossval(model, data, method='cosine', fitter=None,
                        k_pattern=5, k_rdm=5, N=1000,
                        pattern_descriptor=None, rdm_descriptor=None,
-                       random=True):
+                       random=True, boot_type='both'):
     """evaluates a model by k-fold crossvalidation within a bootstrap
 
     If a k is set to 1 no crossvalidation is performed over the
@@ -313,21 +341,44 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         pattern_descriptor(string): descriptor to group patterns
         rdm_descriptor(string): descriptor to group rdms
         random(bool): randomize group assignments (default: True)
+        boot_type(String): which dimension to bootstrap over (default: 'both')
+            alternatives: 'rdm', 'pattern'
 
     Returns:
         numpy.ndarray: matrix of evaluations (N x k)
 
     """
+    if rdm_descriptor is None:
+        rdm_select = np.arange(data.n_rdm)
+        data.rdm_descriptors['index'] = rdm_select
+        rdm_descriptor = 'index'
+    if pattern_descriptor is None:
+        pattern_select = np.arange(data.n_rdm)
+        data.pattern_descriptors['index'] = pattern_select
+        pattern_descriptor = 'index'
     if isinstance(model, Model):
         evaluations = np.zeros((N, 1, k_pattern * k_rdm))
     elif isinstance(model, Iterable):
         evaluations = np.zeros((N, len(model), k_pattern * k_rdm))
     noise_ceil = np.zeros((2, N))
     for i_sample in tqdm.trange(N):
-        sample, rdm_sample, pattern_sample = bootstrap_sample(
-            data,
-            rdm_descriptor=rdm_descriptor,
-            pattern_descriptor=pattern_descriptor)
+        if boot_type == 'both':
+            sample, rdm_sample, pattern_sample = bootstrap_sample(
+                data,
+                rdm_descriptor=rdm_descriptor,
+                pattern_descriptor=pattern_descriptor)
+        elif boot_type == 'pattern':
+            sample, pattern_sample = bootstrap_sample_pattern(
+                data,
+                pattern_descriptor=pattern_descriptor)
+            rdm_sample = np.unique(data.rdm_descriptors[rdm_descriptor])
+        elif boot_type == 'rdm':
+            sample, rdm_sample = bootstrap_sample_rdm(
+                data,
+                rdm_descriptor=rdm_descriptor)
+            pattern_sample = np.unique(data.rdm_descriptors[rdm_descriptor])
+        else:
+            raise ValueError('boot_type not understood')
         if len(np.unique(rdm_sample)) >= k_rdm \
            and len(np.unique(pattern_sample)) >= 3 * k_pattern:
             train_set, test_set, ceil_set = sets_k_fold(
