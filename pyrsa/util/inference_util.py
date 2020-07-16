@@ -7,9 +7,12 @@ Created on Thu Feb 13 14:56:15 2020
 """
 
 import numpy as np
+import scipy.stats as stats
 from scipy.stats import rankdata
 from pyrsa.model import Model
 from pyrsa.rdm import RDMs
+from .matrix import pairwise_contrast
+from .rdm_utils import batch_to_matrices
 from collections.abc import Iterable
 
 
@@ -140,11 +143,12 @@ def pair_tests(evaluations):
 
     Args:
         evaluations (numpy.ndarray):
-            RDMs to be pooled
+            model evaluations to be tested, typically from a results object
 
     Returns:
         numpy.ndarray: matrix of proportions of opposit conclusions, i.e.
         p-values for the bootstrap test
+
     """
     proportions = np.zeros((evaluations.shape[1], evaluations.shape[1]))
     while len(evaluations.shape) > 2:
@@ -159,3 +163,51 @@ def pair_tests(evaluations):
     proportions = np.minimum(proportions, 1 - proportions)
     np.fill_diagonal(proportions, 1)
     return proportions
+
+
+def t_tests(evaluations, variances=None, dof=1):
+    """pairwise t_test based significant tests for a difference in model
+    performance
+
+    Take special care here preparing variances!
+    The default of taking the variance over the third evaluation dimension
+    is not sensible for crossvalidation results!
+    i.e. use the default only for eval_fixed results
+    for all bootstrapping or crossvalidation results precompute the variances!
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be tested, typically from a results object
+        variances (numpy.ndarray):
+            vector of model evaluation variances
+            or covariance matrix of the model evaluations
+            defaults to taking the variance over the third dimension
+            of evaluations and setting dof based on the length of this
+            dimension.
+        dof (integer):
+            degrees of freedom used for the test (default=1)
+            this input is overwritten if no variances are passed
+
+    Returns:
+        numpy.ndarray: matrix of proportions of opposit conclusions, i.e.
+        p-values for the bootstrap test
+
+    """
+    n_model = evaluations.shape[1]
+    evaluations = np.mean(evaluations, 0)
+    if variances is None:
+        variances = np.nanvar(evaluations, axis=-1, ddof=1) \
+            / evaluations.shape[-1]
+        dof = evaluations.shape[-1] - 1
+        assert variances.ndim == 1, 'wrong evaluations dimensions'
+    if len(variances.shape) == 1:
+        variances = np.diag(variances)
+    while evaluations.ndim > 1:
+        evaluations = np.mean(evaluations, axis=-1)
+    C = pairwise_contrast(np.arange(n_model))
+    diffs = C @ evaluations
+    var = np.diag(C @ variances @ C.T)
+    t = diffs / np.sqrt(var)
+    t = batch_to_matrices(np.array([t]))[0]
+    p = 2 * (1 - stats.t.cdf(np.abs(t), dof))
+    return p

@@ -308,3 +308,25 @@ class TestSaveLoad(unittest.TestCase):
         assert res_loaded.method == method
         assert res_loaded.cv_method == cv_method
         assert np.all(res_loaded.evaluations == evaluations)
+
+
+class TestsPairTests(unittest.TestCase):
+
+    def setUp(self):
+        self.evaluations = np.random.rand(100, 5, 10)
+
+    def test_pair_tests(self):
+        from pyrsa.util.inference_util import pair_tests
+        ps = pair_tests(self.evaluations)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+
+    def test_t_tests(self):
+        from pyrsa.util.inference_util import t_tests
+        ps = t_tests(self.evaluations)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+        variances = np.eye(5)
+        ps = t_tests(self.evaluations, variances)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
