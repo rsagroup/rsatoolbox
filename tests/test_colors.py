@@ -11,6 +11,7 @@ import numpy as np
 from pyrsa.vis.colors import color_scale
 from pyrsa.vis.colors import rdm_colormap
 
+
 class ColorTests(unittest.TestCase):
 
     def test_color_scale(self):
