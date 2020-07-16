@@ -1,23 +1,59 @@
-pyrsa package
+API reference
 =============
 
-Subpackages
+pyrsa.data
+----------
+
+.. toctree::
+
+   pyrsa.data.dataset
+   pyrsa.data.computations
+   pyrsa.data.neurodataset
+
+pyrsa.rdm
+---------
+
+.. toctree::
+
+   pyrsa.rdm.calc
+   pyrsa.rdm.compare
+   pyrsa.rdm.rdms
+
+pyrsa.model
 -----------
 
 .. toctree::
 
-   pyrsa.data
-   pyrsa.inference
-   pyrsa.model
-   pyrsa.rdm
-   pyrsa.simulation
-   pyrsa.util
-   pyrsa.vis
+   pyrsa.model.model
 
-Module contents
+pyrsa.inference
 ---------------
 
-.. automodule:: pyrsa
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. toctree::
+
+   pyrsa.inference.evaluate
+   pyrsa.inference.bootstrap
+
+pyrsa.util
+----------
+
+.. toctree::
+
+   pyrsa.util.data_utils
+   pyrsa.util.descriptor_utils
+   pyrsa.util.matrix
+   pyrsa.util.rdm_utils
+
+pyrsa.vis
+---------
+
+.. toctree::
+
+   pyrsa.vis.colors
+
+pyrsa.simulation
+----------------
+
+.. toctree::
+
+   pyrsa.simulation.sim
