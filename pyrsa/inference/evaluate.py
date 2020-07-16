@@ -58,10 +58,19 @@ def eval_fancy(model, data, method='cosine', fitter=None,
         model, data, method=method, fitter=fitter,
         k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='pattern',
         pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
-    var_pattern = np.nanvar(result_pattern.evaluations, axis=0)
-    var_rdm = np.nanvar(result_rdm.evaluations, axis=0)
-    var_full = np.nanvar(result_full.evaluations, axis=0)
-    var_estimate = 2 * (var_rdm + var_pattern) - var_full
+    eval_rdm = result_rdm.evaluations
+    eval_pattern = result_pattern.evaluations
+    eval_full = result_full.evaluations
+    while len(eval_rdm.shape) > 2:
+        eval_rdm = np.mean(eval_rdm, -1)
+        eval_pattern = np.mean(eval_pattern, -1)
+        eval_full = np.mean(eval_full, -1)
+    var_rdm = np.nanvar(eval_rdm, axis=0)
+    var_pattern = np.nanvar(eval_pattern, axis=0)
+    var_full = np.nanvar(eval_full, axis=0)
+    var_estimate = np.min([2 * (var_rdm + var_pattern) - var_full,
+                          var_full], 0)
+    return var_estimate
 
 
 def eval_fixed(model, data, theta=None, method='cosine'):
@@ -83,10 +92,12 @@ def eval_fixed(model, data, theta=None, method='cosine'):
         rdm_pred = model.predict_rdm(theta=theta)
         evaluations = np.array([[compare(rdm_pred, data, method)[0]]])
     elif isinstance(model, Iterable):
+        evaluations = np.repeat(np.expand_dims(evaluations, -1),
+                                data.n_rdm, -1)
         for k in range(len(model)):
             rdm_pred = model[k].predict_rdm(theta=theta[k])
-            evaluations[k] = np.mean(compare(rdm_pred, data, method)[0])
-        evaluations = evaluations.reshape((1, len(model)))
+            evaluations[k] = compare(rdm_pred, data, method)[0]
+        evaluations = evaluations.reshape((1, len(model), data.n_rdm))
     else:
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
