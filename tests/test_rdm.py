@@ -9,12 +9,11 @@ Test for RDM class
 import unittest
 from unittest.mock import Mock, patch
 import numpy as np
-from numpy.testing import assert_array_almost_equal
-from numpy.testing import assert_array_equal
-from scipy.spatial.distance import pdist
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+from scipy.spatial.distance import pdist, squareform
 import pyrsa.rdm as rsr
 import pyrsa as rsa
-from scipy.spatial.distance import squareform
+
 
 
 class TestRDM(unittest.TestCase):
