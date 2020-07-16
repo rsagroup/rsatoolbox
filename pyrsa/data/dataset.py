@@ -289,10 +289,25 @@ class Dataset(DatasetBase):
                           channel_descriptors=channel_descriptors)
         return dataset
 
+    def sort_by(self, by):
+        """ sorts the dataset by a given observation descriptor
+
+        Args:
+            by(String): the descriptor by which the dataset shall be sorted
+
+        Returns:
+            ---
+
+        """
+        desc = self.obs_descriptors[by]
+        order = np.argsort(desc)
+        self.measurements = self.measurements[order]
+        self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
+
 
 def load_dataset(filename, file_type=None):
     """ loads a Dataset object from disc
-    
+
     Args:
         filename(String): path to file to load
 
@@ -319,7 +334,7 @@ def dataset_from_dict(data_dict):
 
     Args:
         data_dict(dict): the dictionary representation
-    
+
     Returns:
         data(Dataset): the regenerated Dataset
 
@@ -330,11 +345,11 @@ def dataset_from_dict(data_dict):
                        obs_descriptors=data_dict['obs_descriptors'],
                        channel_descriptors=data_dict['channel_descriptors'])
     elif data_dict['type'] == 'DatasetBase':
-        data = DatasetBase(data_dict['measurements'],
-                       descriptors=data_dict['descriptors'],
-                       obs_descriptors=data_dict['obs_descriptors'],
-                       channel_descriptors=data_dict['channel_descriptors'])
+        data = DatasetBase(
+            data_dict['measurements'],
+            descriptors=data_dict['descriptors'],
+            obs_descriptors=data_dict['obs_descriptors'],
+            channel_descriptors=data_dict['channel_descriptors'])
     else:
         raise ValueError('type of Dataset not recognized')
     return data
-        
