@@ -353,7 +353,7 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         data.rdm_descriptors['index'] = rdm_select
         rdm_descriptor = 'index'
     if pattern_descriptor is None:
-        pattern_select = np.arange(data.n_rdm)
+        pattern_select = np.arange(data.n_cond)
         data.pattern_descriptors['index'] = pattern_select
         pattern_descriptor = 'index'
     if isinstance(model, Model):
@@ -376,7 +376,8 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
             sample, rdm_sample = bootstrap_sample_rdm(
                 data,
                 rdm_descriptor=rdm_descriptor)
-            pattern_sample = np.unique(data.rdm_descriptors[rdm_descriptor])
+            pattern_sample = np.unique(
+                data.pattern_descriptors[pattern_descriptor])
         else:
             raise ValueError('boot_type not understood')
         if len(np.unique(rdm_sample)) >= k_rdm \
