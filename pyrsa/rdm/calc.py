@@ -323,6 +323,8 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
             defaults to one row/column per row in the dataset
+        cv_descriptor (str): The descriptor that indicates the folds
+            to use for crossvalidation
 
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
