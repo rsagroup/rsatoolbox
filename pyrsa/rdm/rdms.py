@@ -44,6 +44,7 @@ class RDMs:
         n_cond(int): number of patterns
 
     """
+
     def __init__(self, dissimilarities,
                  dissimilarity_measure=None,
                  descriptors=None,
@@ -109,8 +110,8 @@ class RDMs:
         allows indexing with []
         """
         idx = np.array(idx)
-        dissimilarities = self.dissimilarities[idx].reshape(-1,
-                                self.dissimilarities.shape[1])
+        dissimilarities = self.dissimilarities[idx].reshape(
+            -1, self.dissimilarities.shape[1])
         rdm_descriptors = subset_descriptor(self.rdm_descriptors, idx)
         rdms = RDMs(dissimilarities,
                     dissimilarity_measure=self.dissimilarity_measure,
@@ -170,7 +171,7 @@ class RDMs:
     def subsample_pattern(self, by, value):
         """ Returns a subsampled RDMs with repetitions if values are repeated
 
-        This function now generates Nans where the off-diagonal 0s would 
+        This function now generates Nans where the off-diagonal 0s would
         appear. These values are trivial to predict for models and thus
         need to be marked and excluded from the evaluation.
 
@@ -443,14 +444,15 @@ def get_categorical_rdm(category_vector, category_name='category'):
     n = len(category_vector)
     rdm_list = []
     for i_cat in range(n):
-        for j_cat in range(i_cat+1,n):
+        for j_cat in range(i_cat + 1, n):
             if isinstance(category_vector[i_cat], Iterable):
                 comparisons = [np.array(category_vector[i_cat][idx])
                                != np.array(category_vector[j_cat][idx])
                                for idx in range(len(category_vector[i_cat]))]
                 rdm_list.append(np.any(comparisons))
             else:
-                rdm_list.append(category_vector[i_cat] != category_vector[j_cat])
+                rdm_list.append(category_vector[i_cat]
+                                != category_vector[j_cat])
     rdm = RDMs(np.array(rdm_list, dtype=np.float),
-               pattern_descriptors={category_name:np.array(category_vector)})
+               pattern_descriptors={category_name: np.array(category_vector)})
     return rdm
