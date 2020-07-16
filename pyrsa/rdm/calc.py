@@ -5,11 +5,10 @@ Calculation of RDMs from datasets
 @author: heiko
 """
 
-import numpy as np
 from collections.abc import Iterable
+import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
-from pyrsa.data.dataset import Dataset
 from pyrsa.data import average_dataset_by
 from pyrsa.util.matrix import pairwise_contrast_sparse
 
