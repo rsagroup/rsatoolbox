@@ -59,18 +59,22 @@ def eval_fancy(model, data, method='cosine', fitter=None,
         k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='pattern',
         pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
     eval_rdm = result_rdm.evaluations
+    eval_rdm = eval_rdm[~np.isnan(eval_rdm[:, 0, 0])]
+    eval_rdm = np.mean(eval_rdm, -1)
+    var_rdm = np.cov(eval_rdm.T)
     eval_pattern = result_pattern.evaluations
+    eval_pattern = eval_pattern[~np.isnan(eval_pattern[:, 0, 0])]
+    eval_pattern = np.mean(eval_pattern, -1)
+    var_pattern = np.cov(eval_pattern.T)
     eval_full = result_full.evaluations
-    while len(eval_rdm.shape) > 2:
-        eval_rdm = np.mean(eval_rdm, -1)
-        eval_pattern = np.mean(eval_pattern, -1)
-        eval_full = np.mean(eval_full, -1)
-    var_rdm = np.nanvar(eval_rdm, axis=0)
-    var_pattern = np.nanvar(eval_pattern, axis=0)
-    var_full = np.nanvar(eval_full, axis=0)
-    var_estimate = np.min([2 * (var_rdm + var_pattern) - var_full,
-                          var_full], 0)
-    return var_estimate
+    eval_full = eval_full[~np.isnan(eval_full[:, 0, 0])]
+    eval_full = np.mean(eval_full, -1)
+    var_full = np.cov(eval_full.T)
+    var_estimate = 2 * (var_rdm + var_pattern) - var_full
+    result = Result(model, result_full.evaluations, method=method,
+                    cv_method='fancy', noise_ceiling=result_full.noise_ceiling,
+                    variances=var_estimate)
+    return result
 
 
 def eval_fixed(model, data, theta=None, method='cosine'):

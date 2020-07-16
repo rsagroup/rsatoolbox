@@ -44,11 +44,13 @@ class TestCrossval(unittest.TestCase):
         from pyrsa.inference import eval_fancy
         from pyrsa.rdm import RDMs
         from pyrsa.model import ModelFixed
-        dis = np.random.rand(11, 45)  # 11 10x10 rdms
+        dis = np.random.rand(11, 190)  # 11 20x20 rdms
         mes = "Euclidean"
         des = {'subj': 0}
         rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7, 7, 7, 7])}
-        pattern_des = {'type': np.array([0, 1, 2, 2, 4, 5, 5, 5, 6, 7])}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4, 5, 5, 5, 6, 7,
+                                         10, 11, 12, 12, 14, 15, 15, 15,
+                                         16, 17])}
         rdms = RDMs(dissimilarities=dis,
                     rdm_descriptors=rdm_des,
                     pattern_descriptors=pattern_des,
@@ -77,7 +79,7 @@ class TestCrossval(unittest.TestCase):
         res = bootstrap_crossval(m, rdms, N=10, k_rdm=2, k_pattern=2,
                                  pattern_descriptor='type',
                                  rdm_descriptor='session')
-        
+
     def test_bootstrap_crossval_pattern(self):
         from pyrsa.inference import bootstrap_crossval
         from pyrsa.rdm import RDMs
