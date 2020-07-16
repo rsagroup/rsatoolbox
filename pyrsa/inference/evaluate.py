@@ -46,6 +46,22 @@ def eval_fancy(model, data, method='cosine', fitter=None,
         numpy.ndarray: matrix of evaluations (N x k)
 
     """
+    result_full = bootstrap_crossval(
+        model, data, method=method, fitter=fitter,
+        k_pattern=k_pattern, k_rdm=k_rdm, N=N,
+        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
+    result_rdm = bootstrap_crossval(
+        model, data, method=method, fitter=fitter,
+        k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='rdm',
+        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
+    result_pattern = bootstrap_crossval(
+        model, data, method=method, fitter=fitter,
+        k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='pattern',
+        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
+    var_pattern = np.nanvar(result_pattern.evaluations, axis=0)
+    var_rdm = np.nanvar(result_rdm.evaluations, axis=0)
+    var_full = np.nanvar(result_full.evaluations, axis=0)
+    var_estimate = 2 * (var_rdm + var_pattern) - var_full
 
 
 def eval_fixed(model, data, theta=None, method='cosine'):
