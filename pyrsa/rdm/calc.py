@@ -5,17 +5,16 @@ Calculation of RDMs from datasets
 @author: heiko
 """
 
-import numpy as np
 from collections.abc import Iterable
+import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
-from pyrsa.data.dataset import Dataset
 from pyrsa.data import average_dataset_by
 from pyrsa.util.matrix import pairwise_contrast_sparse
 
 
 def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
-             cv_descriptor=None):
+             cv_descriptor=None, prior_lambda=1, prior_weight=0.1):
     """
     calculates an RDM from an input dataset
 
@@ -61,6 +60,15 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
         elif method == 'crossnobis':
             rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
                                       cv_descriptor)
+        elif method == 'poisson':
+            rdm = calc_rdm_poisson(dataset, descriptor,
+                                   prior_lambda=prior_lambda,
+                                   prior_weight=prior_weight)
+        elif method == 'poisson_cv':
+            rdm = calc_rdm_poisson_cv(dataset, descriptor,
+                                      cv_descriptor=cv_descriptor,
+                                      prior_lambda=prior_lambda,
+                                      prior_weight=prior_weight)
         else:
             raise(NotImplementedError)
     return rdm
@@ -180,6 +188,9 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     the corresponding crossvalidation fold, i.e. if multiple measurements
     enter a fold, please compute the resulting noise precision in advance!
 
+    To assert equal ordering in the folds the dataset is initially sorted
+    according to the descriptor used to define the patterns.
+
     Args:
         dataset (pyrsa.data.dataset.DatasetBase):
             The dataset the RDM is computed from
@@ -205,6 +216,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
         cv_desc = _gen_default_cv_descriptor(dataset, descriptor)
         dataset.obs_descriptors['cv_desc'] = cv_desc
         cv_descriptor = 'cv_desc'
+    dataset.sort_by(descriptor)
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     weights = []
     rdms = []
@@ -214,8 +226,10 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
             data_test = dataset.subset_obs(cv_descriptor, fold)
             data_train = dataset.subset_obs(cv_descriptor,
                                             np.setdiff1d(cv_folds, fold))
-            measurements_train, _ = average_dataset_by(data_train, descriptor)
-            measurements_test, _ = average_dataset_by(data_test, descriptor)
+            measurements_train, _, _ = \
+                average_dataset_by(data_train, descriptor)
+            measurements_test, _, _ = \
+                average_dataset_by(data_test, descriptor)
             n_cond = measurements_train.shape[0]
             rdm = np.empty(int(n_cond * (n_cond-1) / 2))
             k = 0
@@ -253,13 +267,98 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='crossnobis',
                descriptors=dataset.descriptors)
-    if descriptor is None:
-        rdm.pattern_descriptors['pattern'] = np.arange(rdm.n_cond)
-    else:
-        _, desc = average_dataset_by(dataset, descriptor)
-        rdm.pattern_descriptors[descriptor] = desc
+    _, desc, _ = average_dataset_by(dataset, descriptor)
+    rdm.pattern_descriptors[descriptor] = desc
     rdm.descriptors['noise'] = noise
     rdm.descriptors['cv_descriptor'] = cv_descriptor
+    return rdm
+
+
+def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
+                     prior_weight=0.1):
+    """
+    calculates an RDM from an input dataset using the symmetrized
+    KL-divergence assuming a poisson distribution.
+    If multiple instances of the same condition are found in the dataset
+    they are averaged.
+
+    Args:
+        dataset (pyrsa.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+
+    """
+    measurements, desc, descriptor = _parse_input(dataset, descriptor)
+    measurements = (measurements + prior_lambda * prior_weight) \
+        / (prior_lambda * prior_weight)
+    diff = _calc_pairwise_differences(measurements)
+    diff_log = _calc_pairwise_differences(np.log(measurements))
+    rdm = np.einsum('ij,ij->i', diff, diff_log) / measurements.shape[1]
+    rdm = RDMs(dissimilarities=np.array([rdm]),
+               dissimilarity_measure='poisson',
+               descriptors=dataset.descriptors)
+    rdm.pattern_descriptors[descriptor] = desc
+    return rdm
+
+
+def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
+                        prior_weight=0.1, cv_descriptor=None):
+    """
+    calculates an RDM from an input dataset using the crossvalidated
+    symmetrized KL-divergence assuming a poisson distribution
+
+    To assert equal ordering in the folds the dataset is initially sorted
+    according to the descriptor used to define the patterns.
+
+    Args:
+        dataset (pyrsa.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+        cv_descriptor (str): The descriptor that indicates the folds
+            to use for crossvalidation
+
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+
+    """
+    if descriptor is None:
+        raise ValueError('descriptor must be a string! Crossvalidation' +
+                         'requires multiple measurements to be grouped')
+    if cv_descriptor is None:
+        cv_desc = _gen_default_cv_descriptor(dataset, descriptor)
+        dataset.obs_descriptors['cv_desc'] = cv_desc
+        cv_descriptor = 'cv_desc'
+    dataset.sort_by(descriptor)
+    cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
+    for i_fold in range(len(cv_folds)):
+        fold = cv_folds[i_fold]
+        data_test = dataset.subset_obs(cv_descriptor, fold)
+        data_train = dataset.subset_obs(cv_descriptor,
+                                        np.setdiff1d(cv_folds, fold))
+        measurements_train, _, _ = average_dataset_by(data_train, descriptor)
+        measurements_test, _, _ = average_dataset_by(data_test, descriptor)
+        measurements_train = (measurements_train
+                              + prior_lambda * prior_weight) \
+            / (prior_lambda * prior_weight)
+        measurements_test = (measurements_test
+                             + prior_lambda * prior_weight) \
+            / (prior_lambda * prior_weight)
+        diff = _calc_pairwise_differences(measurements_train)
+        diff_log = _calc_pairwise_differences(np.log(measurements_test))
+        rdm = np.einsum('ij,ij->i', diff, diff_log) \
+            / measurements_train.shape[1]
+    rdm = RDMs(dissimilarities=np.array([rdm]),
+               dissimilarity_measure='poisson_cv',
+               descriptors=dataset.descriptors)
+    _, desc, _ = average_dataset_by(dataset, descriptor)
+    rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
 
@@ -314,7 +413,7 @@ def _parse_input(dataset, descriptor):
         desc = np.arange(measurements.shape[0])
         descriptor = 'pattern'
     else:
-        measurements, desc = average_dataset_by(dataset, descriptor)
+        measurements, desc, _ = average_dataset_by(dataset, descriptor)
     return measurements, desc, descriptor
 
 

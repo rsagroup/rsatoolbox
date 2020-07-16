@@ -9,11 +9,11 @@ Test for RDM class
 import unittest
 from unittest.mock import Mock, patch
 import numpy as np
-from numpy.testing import assert_array_almost_equal
-from numpy.testing import assert_array_equal
-from scipy.spatial.distance import pdist
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+from scipy.spatial.distance import pdist, squareform
 import pyrsa.rdm as rsr
 import pyrsa as rsa
+
 
 
 class TestRDM(unittest.TestCase):
@@ -225,6 +225,11 @@ class TestCalcRDM(unittest.TestCase):
 
     def setUp(self):
         measurements = np.random.rand(20, 5)
+        measurements_deterministic = np.array([
+            [0.11, 0.12, 0.21, 0.22, 0.30, 0.31],
+            [0.13, 0.14, 0.24, 0.21, 0.29, 0.28],
+            [0.10, 0.11, 0.24, 0.25, 0.32, 0.33],
+        ]).T
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5,
                                       0, 0, 1, 1, 2, 2, 2, 3, 4, 5]),
@@ -249,6 +254,14 @@ class TestCalcRDM(unittest.TestCase):
             obs_descriptors=obs_balanced,
             channel_descriptors=chn_des
             )
+        self.test_data_deterministic = rsa.data.Dataset(
+            measurements=measurements_deterministic,
+            descriptors=des,
+            obs_descriptors=dict(
+                conds=np.array([0, 0, 1, 1, 2, 2]),
+            ),
+            channel_descriptors=dict(feats=['v1', 'v2', 'v3'])
+        )
 
     def test_calc_euclid_nconds(self):
         rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
@@ -350,6 +363,38 @@ class TestCalcRDM(unittest.TestCase):
         assert rdm.n_cond == 5
         rdm = rsr.calc_rdm_crossnobis(self.test_data, cv_descriptor='fold',
                                       descriptor='conds', noise=noise)
+        assert rdm.n_cond == 6
+
+    def test_calc_poisson_6_conditions(self):
+        rdm = rsr.calc_rdm(
+            self.test_data,
+            descriptor='conds',
+            method='poisson'
+        )
+        assert rdm.n_cond == 6
+
+    def test_calc_poisson_extreme_pairs(self):
+        """Check the dissimilarities computed with the 'poisson' method
+
+        The closest pair should be that between the condition 1 and itself
+        The furthest pair should be that between condition 1 and condition 3
+        """
+        rdm = rsr.calc_rdm(
+            self.test_data_deterministic,
+            descriptor='conds',
+            method='poisson'
+        )
+        rdm_array = squareform(rdm.get_vectors()[0, :])
+        closest_pair_index = np.argmin(rdm_array)
+        furthest_pair_index = np.argmax(rdm_array)
+        self.assertEqual(closest_pair_index, 0)
+        self.assertEqual(furthest_pair_index, 2)
+
+    def test_calc_poisson_cv(self):
+        rdm = rsr.calc_rdm(self.test_data,
+                           descriptor='conds',
+                           cv_descriptor='fold',
+                           method='poisson_cv')
         assert rdm.n_cond == 6
 
 
