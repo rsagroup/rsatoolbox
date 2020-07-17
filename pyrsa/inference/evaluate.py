@@ -167,7 +167,7 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
-    dof = min(data.n_rdm, data.n_pattern) - 1
+    dof = min(data.n_rdm, data.n_cond) - 1
     variances = np.cov(evaluations.T)
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap', noise_ceiling=noise_ceil,
@@ -461,7 +461,7 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
     elif boot_type == 'rdm':
         cv_method = 'bootstrap_crossval_rdm'
         dof = data.n_rdm - 1
-    evals_nonan = np.mean(evaluations[~np.isnan(evaluations[:,0,0])], -1)
+    evals_nonan = np.mean(evaluations[~np.isnan(evaluations[:, 0, 0])], -1)
     variances = np.cov(evals_nonan.T)
     result = Result(model, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
