@@ -165,15 +165,12 @@ def pair_tests(evaluations):
     return proportions
 
 
-def t_tests(evaluations, variances=None, dof=1):
+def t_tests(evaluations, variances, dof=1):
     """pairwise t_test based significant tests for a difference in model
     performance
 
-    Take special care here preparing variances!
-    The default of taking the variance over the third evaluation dimension
-    is not sensible for crossvalidation results!
-    i.e. use the default only for eval_fixed results
-    for all bootstrapping or crossvalidation results precompute the variances!
+    Take special care here preparing variances! This should be the covariance
+    matrix for the model evaluations.
 
     Args:
         evaluations (numpy.ndarray):
@@ -193,13 +190,10 @@ def t_tests(evaluations, variances=None, dof=1):
         p-values for the bootstrap test
 
     """
+    if variances is None:
+        raise ValueError('No variance estimates provided for t_test!')
     n_model = evaluations.shape[1]
     evaluations = np.mean(evaluations, 0)
-    if variances is None:
-        variances = np.nanvar(evaluations, axis=-1, ddof=1) \
-            / evaluations.shape[-1]
-        dof = evaluations.shape[-1] - 1
-        assert variances.ndim == 1, 'wrong evaluations dimensions'
     if len(variances.shape) == 1:
         variances = np.diag(variances)
     while evaluations.ndim > 1:
@@ -208,6 +202,6 @@ def t_tests(evaluations, variances=None, dof=1):
     diffs = C @ evaluations
     var = np.diag(C @ variances @ C.T)
     t = diffs / np.sqrt(var)
-    t = batch_to_matrices(np.array([t]))[0]
+    t = batch_to_matrices(np.array([t]))[0][0]
     p = 2 * (1 - stats.t.cdf(np.abs(t), dof))
     return p

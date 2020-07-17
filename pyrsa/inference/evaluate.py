@@ -107,8 +107,12 @@ def eval_fixed(model, data, theta=None, method='cosine'):
                          + ' such objects')
     noise_ceil = boot_noise_ceiling(
         data, method=method, rdm_descriptor='index')
+    variances = np.cov(evaluations[0], ddof=1) \
+        / evaluations.shape[-1]
+    dof = evaluations.shape[-1] - 1
     result = Result(model, evaluations, method=method,
-                    cv_method='fixed', noise_ceiling=noise_ceil)
+                    cv_method='fixed', noise_ceiling=noise_ceil,
+                    variances=variances, dof=dof)
     return result
 
 
@@ -163,8 +167,11 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
+    dof = min(data.n_rdm, data.n_pattern) - 1
+    variances = np.cov(evaluations.T)
     result = Result(model, evaluations, method=method,
-                    cv_method='bootstrap', noise_ceiling=noise_ceil)
+                    cv_method='bootstrap', noise_ceiling=noise_ceil,
+                    variances=variances, dof=dof)
     return result
 
 
@@ -220,8 +227,11 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
+    dof = data.n_cond - 1
+    variances = np.cov(evaluations.T)
     result = Result(model, evaluations, method=method,
-                    cv_method='bootstrap_pattern', noise_ceiling=noise_ceil)
+                    cv_method='bootstrap_pattern', noise_ceiling=noise_ceil,
+                    variances=variances, dof=dof)
     return result
 
 
@@ -269,8 +279,11 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
+    dof = data.n_rdm - 1
+    variances = np.cov(evaluations.T)
     result = Result(model, evaluations, method=method,
-                    cv_method='bootstrap_rdm', noise_ceiling=noise_ceil)
+                    cv_method='bootstrap_rdm', noise_ceiling=noise_ceil,
+                    variances=variances, dof=dof)
     return result
 
 
@@ -439,8 +452,20 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
             elif isinstance(model, Iterable):
                 evaluations[i_sample, :, :] = np.nan
             noise_ceil[:, i_sample] = np.nan
+    if boot_type == 'both':
+        cv_method = 'bootstrap_crossval'
+        dof = min(data.n_rdm, data.n_cond) - 1
+    elif boot_type == 'pattern':
+        cv_method = 'bootstrap_crossval_pattern'
+        dof = data.n_cond - 1
+    elif boot_type == 'rdm':
+        cv_method = 'bootstrap_crossval_rdm'
+        dof = data.n_rdm - 1
+    evals_nonan = np.mean(evaluations[~np.isnan(evaluations[:,0,0])], -1)
+    variances = np.cov(evals_nonan.T)
     result = Result(model, evaluations, method=method,
-                    cv_method='bootstrap_crossval', noise_ceiling=noise_ceil)
+                    cv_method=cv_method, noise_ceiling=noise_ceil,
+                    variances=variances, dof=dof)
     return result
 
 
