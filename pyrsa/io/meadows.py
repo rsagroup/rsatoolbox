@@ -1,6 +1,6 @@
 """Covers import of data downloaded from the Meadows behavior platform
 
-For information on available downloads see: 
+For information on available downloads see:
 https://meadows-research.com/documentation/researcher/downloads/
 """
 from os.path import basename
@@ -16,7 +16,7 @@ def load_rdms(fpath):
 
     Raises:
         ValueError: Will raise an error if the file is missing an expected
-            variable. This can happen if the file does not contain MA task 
+            variable. This can happen if the file does not contain MA task
             data.
 
     Returns:
@@ -29,11 +29,12 @@ def load_rdms(fpath):
             raise ValueError(f'File missing variable: {var}')
 
     desc_info_keys = ('participant', 'task_index', 'experiment_name')
+    conds = [f.split('.')[0] for f in data['stimuli']]
     return RDMs(
         data['rdmutv'],
         dissimilarity_measure='euclidean',
         descriptors={k: info[k] for k in desc_info_keys},
-        pattern_descriptors=dict(),
+        pattern_descriptors=dict(conds=conds),
     )
 
 
@@ -45,9 +46,9 @@ def extract_filename_segments(fpath):
         this file covers.
     - task_scope: 'single' or 'multiple', how many experiment tasks this file
         covers.
-    - participant: the Meadows nickname of the participant, if this is a 
+    - participant: the Meadows nickname of the participant, if this is a
         single participation file.
-    - task_index: the 1-based index of the task in the experiment, if 
+    - task_index: the 1-based index of the task in the experiment, if
         this is a single task file.
     - version: the experiment version as a string.
     - experiment_name: name of the experiment on Meadows.

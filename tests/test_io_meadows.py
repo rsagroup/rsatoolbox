@@ -1,8 +1,9 @@
-import unittest
+from unittest import TestCase
 import pkg_resources
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 
-class MeadowsIOTests(unittest.TestCase):
+class MeadowsIOTests(TestCase):
     """Acceptance and unit tests for loading Meadows data.
     """
 
@@ -21,9 +22,9 @@ class MeadowsIOTests(unittest.TestCase):
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
         self.assertEqual(rdms.dissimilarity_measure, 'euclidean')
         conds = rdms.pattern_descriptors.get('conds')
-        self.assertEqual(conds[:1], ['stim118', 'stim117'])
-        self.assertEqual(
-            rdms.dissimilarities[:2],
+        assert_array_equal(conds[:2], ['stim118', 'stim117'])
+        assert_array_almost_equal(
+            rdms.dissimilarities[0, :2],
             [0.00791285387561264, 0.00817090931233484]
         )
 
