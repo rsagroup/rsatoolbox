@@ -18,6 +18,7 @@ class MeadowsIOTests(unittest.TestCase):
         rdms = pyrsa.io.meadows.load_rdms(fpath)
         self.assertEqual(rdms.descriptors.get('participant'), 'cuddly-bunny')
         self.assertEqual(rdms.descriptors.get('task_index'), 3)
+        self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
         self.assertEqual(rdms.dissimilarity_measure, 'euclidean')
         conds = rdms.pattern_descriptors.get('conds')
         self.assertEqual(conds[:1], ['stim118', 'stim117'])

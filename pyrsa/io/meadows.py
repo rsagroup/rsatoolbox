@@ -1,3 +1,8 @@
+"""Covers import of data downloaded from the Meadows behavior platform
+
+For information on available downloads see: 
+https://meadows-research.com/documentation/researcher/downloads/
+"""
 from os.path import basename
 from scipy.io import loadmat
 from pyrsa.rdm.rdms import RDMs
@@ -17,34 +22,36 @@ def load_rdms(fpath):
     Returns:
         RDMs: All rdms found in the data file as an RDMs object
     """
+    info = extract_filename_segments(fpath)
     data = loadmat(fpath)
     for var in ('stimuli', 'rdmutv'):
         if var not in data:
             raise ValueError(f'File missing variable: {var}')
-    
+
+    desc_info_keys = ('participant', 'task_index', 'experiment_name')
     return RDMs(
         data['rdmutv'],
         dissimilarity_measure='euclidean',
-        descriptors=dict(),
+        descriptors={k: info[k] for k in desc_info_keys},
         pattern_descriptors=dict(),
     )
 
 
 def extract_filename_segments(fpath):
-    """Get information from the name of a donwloaded results file
+    """Get information from the name of a downloaded results file
 
     Will determine:
     - participant_scope: 'single' or 'multiple', how many participant sessions
-        this file covers
+        this file covers.
     - task_scope: 'single' or 'multiple', how many experiment tasks this file
-        covers
+        covers.
     - participant: the Meadows nickname of the participant, if this is a 
         single participation file.
     - task_index: the 1-based index of the task in the experiment, if 
         this is a single task file.
     - version: the experiment version as a string.
     - experiment_name: name of the experiment on Meadows.
-    - structure: the structure of the data contained, one of 'tree', ,
+    - structure: the structure of the data contained, one of 'tree',
         'events', '1D', '2D', etc.
     - filetype: the file extension and file format used to serialize the data.
 
