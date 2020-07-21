@@ -1,4 +1,5 @@
 import unittest
+import pkg_resources
 
 
 class MeadowsIOTests(unittest.TestCase):
@@ -11,4 +12,7 @@ class MeadowsIOTests(unittest.TestCase):
         single participant. Should have descriptors and dissimilarities
         as found in file.
         """
-        self.fail('unfinished test')
+        import pyrsa.io.meadows
+        fname = 'Meadows_myExp_v_v1_cuddly-bunny_3_1D.mat'
+        fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
+        myDataSet = pyrsa.io.meadows.load_datasets(fpath)
