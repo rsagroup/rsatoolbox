@@ -42,8 +42,12 @@ def load_rdms(fpath):
         utv_vars = ['rdmutv_' + p.replace('-', '_') for p in pnames]
         utvs = numpy.squeeze(numpy.stack([data[v] for v in utv_vars]))
 
-    desc_info_keys = ('participant', 'task_index', 'task_name',
-        'experiment_name')
+    desc_info_keys = (
+        'participant',
+        'task_index',
+        'task_name',
+        'experiment_name'
+    )
     conds = [f.split('.')[0] for f in stimuli_fnames]
     return RDMs(
         utvs,
