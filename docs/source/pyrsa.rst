@@ -34,6 +34,14 @@ pyrsa.inference
    pyrsa.inference.evaluate
    pyrsa.inference.bootstrap
 
+pyrsa.io
+--------
+
+.. toctree::
+
+   pyrsa.io.meadows
+
+
 pyrsa.util
 ----------
 

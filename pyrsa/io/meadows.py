@@ -1,7 +1,10 @@
-"""Covers import of data downloaded from the Meadows behavior platform
+"""Covers import of data downloaded from the
+`Meadows online behavior platform <https://meadows-research.com/>`_.
 
-For information on available downloads see:
-https://meadows-research.com/documentation/researcher/downloads/
+
+For information on available file types see the meadows
+`documentation on downloads <https://meadows-research.com/documentation\
+/researcher/downloads/>`_.
 """
 from os.path import basename
 from scipy.io import loadmat
@@ -42,19 +45,20 @@ def extract_filename_segments(fpath):
     """Get information from the name of a downloaded results file
 
     Will determine:
-    - participant_scope: 'single' or 'multiple', how many participant sessions
-        this file covers.
-    - task_scope: 'single' or 'multiple', how many experiment tasks this file
-        covers.
-    - participant: the Meadows nickname of the participant, if this is a
-        single participation file.
-    - task_index: the 1-based index of the task in the experiment, if
-        this is a single task file.
-    - version: the experiment version as a string.
-    - experiment_name: name of the experiment on Meadows.
-    - structure: the structure of the data contained, one of 'tree',
-        'events', '1D', '2D', etc.
-    - filetype: the file extension and file format used to serialize the data.
+        * participant_scope: 'single' or 'multiple', how many participant
+            sessions this file covers.
+        * task_scope: 'single' or 'multiple', how many experiment tasks this
+            file covers.
+        * participant: the Meadows nickname of the participant, if this is a
+            single participation file.
+        * task_index: the 1-based index of the task in the experiment, if
+            this is a single task file.
+        * version: the experiment version as a string.
+        * experiment_name: name of the experiment on Meadows.
+        * structure: the structure of the data contained, one of 'tree',
+            'events', '1D', '2D', etc.
+        * filetype: the file extension and file format used to serialize the
+            data.
 
     Args:
         fpath (str): File system path to downloaded file
