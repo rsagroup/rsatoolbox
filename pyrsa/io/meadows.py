@@ -7,6 +7,7 @@ For information on available file types see the meadows
 /researcher/downloads/>`_.
 """
 from os.path import basename
+import numpy
 from scipy.io import loadmat
 from pyrsa.rdm.rdms import RDMs
 
@@ -27,16 +28,28 @@ def load_rdms(fpath):
     """
     info = extract_filename_segments(fpath)
     data = loadmat(fpath)
-    for var in ('stimuli', 'rdmutv'):
-        if var not in data:
-            raise ValueError(f'File missing variable: {var}')
+    if info['participant_scope'] == 'single':
+        for var in ('stimuli', 'rdmutv'):
+            if var not in data:
+                raise ValueError(f'File missing variable: {var}')
+        utvs = data['rdmutv']
+        stimuli_fnames = data['stimuli']
+        pnames = [info['participant']]
+    else:
+        stim_vars = [v for v in data.keys() if v[:7] == 'stimuli']
+        stimuli_fnames = data[stim_vars[0]]
+        pnames = ['-'.join(v.split('_')[1:]) for v in stim_vars]
+        utv_vars = ['rdmutv_' + p.replace('-', '_') for p in pnames]
+        utvs = numpy.squeeze(numpy.stack([data[v] for v in utv_vars]))
 
-    desc_info_keys = ('participant', 'task_index', 'experiment_name')
-    conds = [f.split('.')[0] for f in data['stimuli']]
+    desc_info_keys = ('participant', 'task_index', 'task_name',
+        'experiment_name')
+    conds = [f.split('.')[0] for f in stimuli_fnames]
     return RDMs(
-        data['rdmutv'],
+        utvs,
         dissimilarity_measure='euclidean',
-        descriptors={k: info[k] for k in desc_info_keys},
+        descriptors={k: info[k] for k in desc_info_keys if k in info},
+        rdm_descriptors=dict(participants=pnames),
         pattern_descriptors=dict(conds=conds),
     )
 
