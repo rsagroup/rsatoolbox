@@ -52,7 +52,9 @@ def extract_filename_segments(fpath):
         * participant: the Meadows nickname of the participant, if this is a
             single participation file.
         * task_index: the 1-based index of the task in the experiment, if
-            this is a single task file.
+            this is a single participant file.
+        * task_name: the name of the task in the experiment, if
+            this is not a single participant file.
         * version: the experiment version as a string.
         * experiment_name: name of the experiment on Meadows.
         * structure: the structure of the data contained, one of 'tree',
@@ -68,13 +70,18 @@ def extract_filename_segments(fpath):
     """
     fname, ext = basename(fpath).split('.')
     segments = fname.split('_')
-    return dict(
-        participant_scope='single',
+    info = dict(
         task_scope='single',
-        participant=segments[-3],
-        task_index=int(segments[-2]),
         version=segments[3].replace('v', ''),
         experiment_name=segments[1],
         structure=segments[-1],
         filetype=ext
     )
+    if segments[-2].isdigit():
+        info['participant_scope'] = 'single'
+        info['participant'] = segments[-3]
+        info['task_index'] = int(segments[-2])
+    else:
+        info['participant_scope'] = 'multiple'
+        info['task_name'] = segments[-2]
+    return info

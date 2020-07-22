@@ -45,3 +45,23 @@ class MeadowsIOTests(TestCase):
         self.assertEqual(info.get('experiment_name'), 'myExp')
         self.assertEqual(info.get('structure'), '1D')
         self.assertEqual(info.get('filetype'), 'mat')
+        self.assertIsNone(info.get('task_name'))
+
+    def test_extract_filename_segments_mp_1t(self):
+        """Test interpretation of the filename of a Meadows results download
+
+        This case covers a filename for multiple participants, single task,
+        downloaded in 2019.
+        """
+        from pyrsa.io.meadows import extract_filename_segments
+        fname = 'Meadows_myExp_v_v1_arrangement_1D.mat'
+        info = extract_filename_segments(fname)
+        self.assertEqual(info.get('participant_scope'), 'multiple')
+        self.assertEqual(info.get('task_scope'), 'single')
+        self.assertEqual(info.get('task_name'), 'arrangement')
+        self.assertEqual(info.get('version'), '1')
+        self.assertEqual(info.get('experiment_name'), 'myExp')
+        self.assertEqual(info.get('structure'), '1D')
+        self.assertEqual(info.get('filetype'), 'mat')
+        self.assertIsNone(info.get('participant'))
+        self.assertIsNone(info.get('task_index'))
