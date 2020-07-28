@@ -205,3 +205,37 @@ def t_tests(evaluations, variances, dof=1):
     t = batch_to_matrices(np.array([t]))[0][0]
     p = 2 * (1 - stats.t.cdf(np.abs(t), dof))
     return p
+
+
+def t_test_0(evaluations, variances, dof=1):
+    """
+    t-tests against 0 performance.
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be tested, typically from a results object
+        variances (numpy.ndarray):
+            vector of model evaluation variances
+            or covariance matrix of the model evaluations
+            defaults to taking the variance over the third dimension
+            of evaluations and setting dof based on the length of this
+            dimension.
+        dof (integer):
+            degrees of freedom used for the test (default=1)
+            this input is overwritten if no variances are passed
+
+    Returns:
+        numpy.ndarray: p-values for the raw t-test of each model against 0.
+
+    """
+    if variances is None:
+        raise ValueError('No variance estimates provided for t_test!')
+    evaluations = np.mean(evaluations, 0)
+    if len(variances.shape) == 1:
+        variances = np.diag(variances)
+    while evaluations.ndim > 1:
+        evaluations = np.mean(evaluations, axis=-1)
+    var = np.diag(variances)
+    t = evaluations / np.sqrt(var)
+    p = 1 - stats.t.cdf(t, dof)
+    return p
