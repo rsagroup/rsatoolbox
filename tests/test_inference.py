@@ -309,3 +309,38 @@ class TestSaveLoad(unittest.TestCase):
         assert res_loaded.method == method
         assert res_loaded.cv_method == cv_method
         assert np.all(res_loaded.evaluations == evaluations)
+
+
+class TestsPairTests(unittest.TestCase):
+
+    def setUp(self):
+        self.evaluations = np.random.rand(100, 5, 10)
+
+    def test_pair_tests(self):
+        from pyrsa.util.inference_util import pair_tests
+        ps = pair_tests(self.evaluations)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+
+    def test_t_tests(self):
+        from pyrsa.util.inference_util import t_tests
+        variances = np.eye(5)
+        ps = t_tests(self.evaluations, variances)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+
+    def test_t_scipy(self):
+        from pyrsa.util.inference_util import t_tests
+        from pyrsa.inference import eval_fixed
+        from pyrsa.rdm import RDMs
+        from pyrsa.model import ModelFixed
+        import scipy.stats
+
+        rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
+        m = ModelFixed('test', rdms.get_vectors()[0])
+        m2 = ModelFixed('test', rdms.get_vectors()[2])
+        value = eval_fixed([m, m2], rdms)
+        ps = t_tests(value.evaluations, value.variances, dof=value.dof)
+        scipy_t = scipy.stats.ttest_rel(value.evaluations[0, 0],
+                                        value.evaluations[0, 1])
+        self.assertAlmostEqual(scipy_t.pvalue, ps[0,1])
