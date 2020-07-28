@@ -276,6 +276,8 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
     """
     if variances is None:
         raise ValueError('No variance estimates provided for t_test!')
+    if noise_ceil_var is not None:
+        noise_ceil_var = np.array(noise_ceil_var)
     evaluations = np.mean(evaluations, 0)
     if len(variances.shape) == 1:
         variances = np.diag(variances)
