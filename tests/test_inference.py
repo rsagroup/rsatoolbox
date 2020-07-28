@@ -344,3 +344,25 @@ class TestsPairTests(unittest.TestCase):
         scipy_t = scipy.stats.ttest_rel(value.evaluations[0, 0],
                                         value.evaluations[0, 1])
         self.assertAlmostEqual(scipy_t.pvalue, ps[0,1])
+
+    def test_t_test_0(self):
+        from pyrsa.util.inference_util import t_test_0
+        variances = np.eye(5)
+        ps = t_test_0(self.evaluations, variances)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+
+    def test_t_test_0(self):
+        from pyrsa.util.inference_util import t_test_nc
+        variances = np.eye(5)
+        ps = t_test_nc(self.evaluations, variances, 0.3)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+        ps = t_test_nc(self.evaluations, variances, 0.3, noise_ceil_var=0.1)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+        noise_ceil_var = [0.01, 0.1, 0.2, 0.1, 0.1, 0.3]
+        ps = t_test_nc(self.evaluations, variances, 0.3,
+                       noise_ceil_var=noise_ceil_var)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)

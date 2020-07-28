@@ -11,6 +11,7 @@ from pyrsa.util.inference_util import pool_rdm
 from pyrsa.rdm import compare
 from .crossvalsets import sets_leave_one_out_rdm
 
+
 def cv_noise_ceiling(rdms, ceil_set, test_set, method='cosine',
                      pattern_descriptor=None):
     """ calculates the noise ceiling for crossvalidation.
@@ -42,9 +43,11 @@ def cv_noise_ceiling(rdms, ceil_set, test_set, method='cosine',
         train = ceil_set[i]
         test = test_set[i]
         pred_train = pool_rdm(train[0], method=method)
-        pred_test = rdms.subset_pattern(by=pattern_descriptor,
-                                        value=test[1])
-        pred_test = pool_rdm(pred_test, method=method)
+        pred_train = pred_train.subsample_pattern(by=pattern_descriptor,
+                                                  value=test[1])
+        pred_test = pool_rdm(rdms, method=method)
+        pred_test = pred_test.subsample_pattern(by=pattern_descriptor,
+                                                value=test[1])
         noise_min.append(np.mean(compare(pred_train, test[0], method)))
         noise_max.append(np.mean(compare(pred_test, test[0], method)))
     noise_min = np.mean(np.array(noise_min))

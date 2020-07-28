@@ -21,7 +21,7 @@ from .noise_ceiling import cv_noise_ceiling
 
 
 def eval_fancy(model, data, method='cosine', fitter=None,
-               k_pattern=5, k_rdm=5, N=1000,
+               k_pattern=5, k_rdm=5, N=1000, boot_noise_ceil=False,
                pattern_descriptor=None, rdm_descriptor=None):
     """evaluates a model by k-fold crossvalidation within a bootstrap
     Then uses the correction formula to get an estimate of the variance
@@ -59,21 +59,30 @@ def eval_fancy(model, data, method='cosine', fitter=None,
         k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='pattern',
         pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
     eval_rdm = result_rdm.evaluations
-    eval_rdm = eval_rdm[~np.isnan(eval_rdm[:, 0, 0])]
+    ok_rdm = ~np.isnan(eval_rdm[:, 0, 0])
+    eval_rdm = eval_rdm[ok_rdm]
+    nc_rdm = result_rdm.noise_ceiling[:, ok_rdm]
     eval_rdm = np.mean(eval_rdm, -1)
-    var_rdm = np.cov(eval_rdm.T)
+    var_rdm = np.cov(np.concatenate([eval_rdm.T, nc_rdm]))
     eval_pattern = result_pattern.evaluations
-    eval_pattern = eval_pattern[~np.isnan(eval_pattern[:, 0, 0])]
+    ok_pattern = ~np.isnan(eval_pattern[:, 0, 0])
+    eval_pattern = eval_pattern[ok_pattern]
+    nc_pattern = result_pattern.noise_ceiling[:, ok_pattern]
     eval_pattern = np.mean(eval_pattern, -1)
-    var_pattern = np.cov(eval_pattern.T)
+    var_pattern = np.cov(np.concatenate([eval_pattern.T, nc_pattern]))
     eval_full = result_full.evaluations
-    eval_full = eval_full[~np.isnan(eval_full[:, 0, 0])]
+    ok_full = ~np.isnan(eval_full[:, 0, 0])
+    eval_full = eval_full[ok_full]
+    nc_full = result_full.noise_ceiling[:, ok_full]
     eval_full = np.mean(eval_full, -1)
-    var_full = np.cov(eval_full.T)
+    var_full = np.cov(np.concatenate([eval_full.T, nc_full]))
     var_estimate = 2 * (var_rdm + var_pattern) - var_full
     result = Result(model, result_full.evaluations, method=method,
-                    cv_method='fancy', noise_ceiling=result_full.noise_ceiling,
-                    variances=var_estimate)
+                    cv_method='fancy',
+                    noise_ceiling=result_full.noise_ceiling,
+                    variances=var_estimate[:-2, :-2],
+                    noise_ceil_var=var_estimate[:, -2:],
+                    dof=result_full.dof)
     return result
 
 
@@ -173,14 +182,19 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
         evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
+        var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
+        variances = var[:-2, :-2]
+        noise_ceil_var = var[:, -2:]
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
+        variances = np.cov(evaluations.T)
+        noise_ceil_var = None
     dof = min(data.n_rdm, data.n_cond) - 1
-    variances = np.cov(evaluations.T)
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof,
+                    noise_ceil_var=noise_ceil_var)
     return result
 
 
@@ -241,14 +255,19 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
         evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
+        var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
+        variances = var[:-2, :-2]
+        noise_ceil_var = var[:, -2:]
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
+        variances = np.cov(evaluations.T)
+        noise_ceil_var = None
     dof = data.n_cond - 1
-    variances = np.cov(evaluations.T)
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap_pattern', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof,
+                    noise_ceil_var=noise_ceil_var)
     return result
 
 
@@ -294,14 +313,20 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
         evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
+        var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
+        variances = var[:-2, :-2]
+        noise_ceil_var = var[:, -2:]
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
+        variances = np.cov(evaluations.T)
+        noise_ceil_var = None
     dof = data.n_rdm - 1
     variances = np.cov(evaluations.T)
     result = Result(model, evaluations, method=method,
                     cv_method='bootstrap_rdm', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof,
+                    noise_ceil_var=noise_ceil_var)
     return result
 
 
@@ -484,11 +509,14 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
     elif boot_type == 'rdm':
         cv_method = 'bootstrap_crossval_rdm'
         dof = data.n_rdm - 1
-    evals_nonan = np.mean(evaluations[~np.isnan(evaluations[:, 0, 0])], -1)
-    variances = np.cov(evals_nonan.T)
+    eval_ok = ~np.isnan(evaluations[:, 0, 0])
+    evals_nonan = np.mean(evaluations[eval_ok], -1)
+    noise_ceil_nonan = noise_ceil[:, eval_ok]
+    variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
     result = Result(model, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances[:-2, :-2], dof=dof,
+                    noise_ceil_var=variances[:, -2:])
     return result
 
 
