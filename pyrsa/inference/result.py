@@ -40,7 +40,7 @@ class Result:
     """
 
     def __init__(self, models, evaluations, method, cv_method, noise_ceiling,
-                 variances=None, dof=1):
+                 variances=None, dof=1, noise_ceil_var=None):
         if isinstance(models, pyrsa.model.Model):
             models = [models]
         assert len(models) == evaluations.shape[1], 'evaluations shape does' \
@@ -53,6 +53,7 @@ class Result:
         self.noise_ceiling = noise_ceiling
         self.variances = variances
         self.dof = dof
+        self.noise_ceil_var = noise_ceil_var
 
     def save(self, filename, file_type='hdf5'):
         """ saves the results into a file.
@@ -84,6 +85,7 @@ class Result:
         result_dict['dof'] = self.dof
         result_dict['variances'] = self.variances
         result_dict['noise_ceiling'] = self.noise_ceiling
+        result_dict['noise_ceil_var'] = self.noise_ceil_var
         result_dict['method'] = self.method
         result_dict['cv_method'] = self.cv_method
         result_dict['models'] = {}
@@ -127,8 +129,16 @@ def result_from_dict(result_dict):
     """
     if 'variances' in result_dict.keys():
         variances = result_dict['variances']
+    else:
+        variances = None
     if 'dof' in result_dict.keys():
-        variances = result_dict['dof']
+        dof = result_dict['dof']
+    else:
+        dof = None
+    if 'noise_ceil_var' in result_dict.keys():
+        noise_ceil_var = result_dict['noise_ceil_var']
+    else:
+        noise_ceil_var = None
     evaluations = result_dict['evaluations']
     method = result_dict['method']
     cv_method = result_dict['cv_method']
@@ -139,4 +149,6 @@ def result_from_dict(result_dict):
         models[i_model] = pyrsa.model.model_from_dict(
             result_dict['models'][key])
     return Result(models, evaluations, method, cv_method, noise_ceiling,
-                  variances=variances)
+                  variances=variances, dof=dof,
+                  noise_ceil_var=noise_ceil_var)
+

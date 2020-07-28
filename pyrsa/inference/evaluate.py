@@ -72,7 +72,8 @@ def eval_fancy(model, data, method='cosine', fitter=None,
     var_full = np.cov(eval_full.T)
     var_estimate = 2 * (var_rdm + var_pattern) - var_full
     result = Result(model, result_full.evaluations, method=method,
-                    cv_method='fancy', noise_ceiling=result_full.noise_ceiling,
+                    cv_method='fancy',
+                    noise_ceiling=result_full.noise_ceiling,
                     variances=var_estimate)
     return result
 
