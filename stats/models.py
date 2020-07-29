@@ -12,7 +12,7 @@ import nn_simulations as dnn
 import pyrsa
 
 
-def get_models(model_type, fname_base_l, stimuli,
+def get_models(model_type, stimuli,
                n_layer=12, n_sim=1000, smoothing=None):
     n_stimuli = len(stimuli)
     pat_desc = {'stim': np.arange(n_stimuli)}
@@ -20,21 +20,7 @@ def get_models(model_type, fname_base_l, stimuli,
     smoothings = np.array([0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf])
     dnn_model = dnn.get_default_model()
     for i_layer in tqdm.trange(n_layer):
-        if model_type == 'fixed_averagetrue':
-            rdm_true_average = 0
-            for i in range(n_sim):
-                Utrue = np.load(fname_base_l % i_layer
-                                + 'Utrue%04d.npy' % i)
-                dat_true = [pyrsa.data.Dataset(Utrue[i, :n_stimuli, :])
-                            for i in range(Utrue.shape[0])]
-                rdm_true = pyrsa.rdm.calc_rdm(dat_true, method='euclidean')
-                rdm_mat = rdm_true.get_vectors()
-                rdm_mat = rdm_mat / np.sqrt(np.mean(rdm_mat ** 2))
-                rdm_true_average = rdm_true_average + np.mean(rdm_mat, 0)
-            rdm = rdm_true_average / n_sim
-            rdm = pyrsa.rdm.RDMs(rdm, pattern_descriptors=pat_desc)
-            model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
-        elif model_type == 'fixed_full':
+        if model_type == 'fixed_full':
             rdm = dnn.get_true_RDM(
                 model=dnn_model,
                 layer=i_layer,

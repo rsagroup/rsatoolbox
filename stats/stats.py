@@ -335,6 +335,8 @@ def load_comp(folder):
             boot = 1
         elif split[2] == 'pattern':
             boot = 2
+        elif split[2] == 'fancy':
+            boot = 3
         if split[3] == 't':
             test_type = 1
         else:
@@ -505,16 +507,10 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
         U = np.array(U)
 
         # run analysis
-        # get models
-        fname_base_l = get_fname_base(
-            simulation_folder=simulation_folder,
-            layer=None, n_voxel=n_voxel, n_subj=n_subj,
-            n_repeat=n_repeat, sd=sd, duration=duration,
-            pause=pause, endzeros=endzeros, sigma_noise=sigma_noise,
-            use_cor_noise=use_cor_noise, resolution=resolution,
-            ar_coeff=ar_coeff)
-        models = get_models(model_type, fname_base_l, stim_list,
-                            n_layer=n_layer, n_sim=n_sim, smoothing=sd)
+        # get models if stimulus changed, subjects are irrelevant
+        if i == 0 or variation in ['stim', 'both']:
+            models = get_models(model_type, stim_list,
+                                n_layer=n_layer, n_sim=n_sim, smoothing=sd)
         # calculate RDMs
         data = []
         desc = {'stim': np.tile(np.arange(n_stim), n_repeat),
@@ -585,10 +581,10 @@ def run_eco(idx, ecoset_path=None):
     if ecoset_path is None:
         ecoset_path = '~/ecoset/val/'
     # combined with all
-    variation = ['None_both', 'None_stim', 'None_subj',
-                 'both', 'stim', 'subj']
-    boot = ['both', 'pattern', 'rdm',
-            'both', 'pattern', 'rdm']
+    variation = ['None_both', 'None_stim', 'None_subj', 'None_fancy',
+                 'both', 'stim', 'subj', 'both_fancy']
+    boot = ['both', 'pattern', 'rdm', 'fancy',
+            'both', 'pattern', 'rdm', 'fancy']
     n_subj = [5, 10, 20, 40, 80]
     n_stim = [10, 20, 40, 80, 160]
 

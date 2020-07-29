@@ -96,7 +96,8 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
             both: pyrsa.inference.eval_bootstrap
             crossval: pyrsa.inference.bootstrap_crossval
             crossval_pattern: pyrsa.inference.bootstrap_crossval(k_rdm=1)
-            crossval_rdms pyrsa.inference.bootstrap_crossval(k_pattern=1)
+            crossval_rdms: pyrsa.inference.bootstrap_crossval(k_pattern=1)
+            fancy: pyrsa.inference.eval_fancy
     """
     if bootstrap == 'pattern':
         results = pyrsa.inference.eval_bootstrap_pattern(
@@ -137,6 +138,19 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
         else:
             results = pyrsa.inference.bootstrap_crossval(
                 model, rdms, method=method, k_pattern=1, k_rdm=k_rdm)
+    elif bootstrap == 'fancy':
+        if k_pattern is None and k_rdm is None:
+            results = pyrsa.inference.eval_fancy(
+                model, rdms, method=method)
+        elif k_pattern is None:
+            results = pyrsa.inference.eval_fancy(
+                model, rdms, method=method, k_rdm=k_rdm)
+        elif k_rdm is None:
+            results = pyrsa.inference.eval_fancy(
+                model, rdms, method=method, k_pattern=k_pattern)
+        else:
+            results = pyrsa.inference.eval_fancy(
+                model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
     return results
 
 
