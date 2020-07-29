@@ -6,6 +6,7 @@
 import numpy as np
 from pyrsa.util.rdm_utils import add_pattern_index
 
+
 def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
     """Draws a bootstrap_sample from the data.
 
