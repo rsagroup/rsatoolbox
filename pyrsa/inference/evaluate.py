@@ -14,6 +14,7 @@ from pyrsa.inference import bootstrap_sample_rdm
 from pyrsa.inference import bootstrap_sample_pattern
 from pyrsa.model import Model
 from pyrsa.util.inference_util import input_check_model
+from pyrsa.util.inference_util import default_k_pattern, default_k_rdm
 from .result import Result
 from .crossvalsets import sets_k_fold
 from .noise_ceiling import boot_noise_ceiling
@@ -21,7 +22,7 @@ from .noise_ceiling import cv_noise_ceiling
 
 
 def eval_fancy(model, data, method='cosine', fitter=None,
-               k_pattern=5, k_rdm=5, N=1000, boot_noise_ceil=False,
+               k_pattern=None, k_rdm=None, N=1000, boot_noise_ceil=False,
                pattern_descriptor=None, rdm_descriptor=None):
     """evaluates a model by k-fold crossvalidation within a bootstrap
     Then uses the correction formula to get an estimate of the variance
@@ -409,7 +410,7 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
 
 
 def bootstrap_crossval(model, data, method='cosine', fitter=None,
-                       k_pattern=5, k_rdm=5, N=1000,
+                       k_pattern=None, k_rdm=None, N=1000,
                        pattern_descriptor=None, rdm_descriptor=None,
                        random=True, boot_type='both'):
     """evaluates a model by k-fold crossvalidation within a bootstrap
@@ -417,6 +418,9 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
     If a k is set to 1 no crossvalidation is performed over the
     corresponding dimension.
 
+    by default ks are set by pyrsa.util.inference_util.default_k_pattern
+    and pyrsa.util.inference_util.default_k_rdm based on the number of
+    rdms and patterns provided. the ks are then in the range 2-5.
 
     Args:
         model(pyrsa.model.Model): Model to be evaluated
@@ -444,6 +448,14 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         pattern_select = np.arange(data.n_cond)
         data.pattern_descriptors['index'] = pattern_select
         pattern_descriptor = 'index'
+    if k_pattern is None:
+        n_pattern = len(np.unique(data.pattern_descriptors[
+            pattern_descriptor]))
+        k_pattern = default_k_pattern((1 - 1 / np.exp(1)) * n_pattern)
+    if k_rdm is None:
+        n_rdm = len(np.unique(data.rdm_descriptors[
+            rdm_descriptor]))
+        k_rdm = default_k_rdm((1 - 1 / np.exp(1)) * n_rdm)
     if isinstance(model, Model):
         evaluations = np.zeros((N, 1, k_pattern * k_rdm))
     elif isinstance(model, Iterable):

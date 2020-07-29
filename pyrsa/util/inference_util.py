@@ -302,3 +302,46 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
         t = (evaluations[i] - noise_ceil) / np.sqrt(var_i)
         p[i] = 2 * (1 - stats.t.cdf(np.abs(t), dof))
     return p
+
+
+def default_k_pattern(n_pattern):
+    """ the default number of pattern divisions for crossvalidation
+    minimum number of patterns is 3*k_pattern. Thus for n_pattern <=9 this
+    returns 2. From there it grows gradually until 5 groups are made for 40
+    patterns. From this point onwards the number of groups is kept at 5.
+
+    bootstrapped crossvalidation also uses this function to set k, but scales
+    n_rdm to the expected proportion of samples retained when bootstrapping
+    (1-np.exp(-1))
+    """
+    if n_pattern < 12:
+        k_pattern = 2
+    elif n_pattern < 24:
+        k_pattern = 3
+    elif n_pattern < 40:
+        k_pattern = 4
+    else:
+        k_pattern = 5
+    return k_pattern
+
+
+def default_k_rdm(n_rdm):
+    """ the default number of rdm groupsfor crossvalidation
+    minimum number of subjects is k_rdm. We switch to more groups whenever
+    the groups all contain more rdms, e.g. we make 3 groups of 2 instead of
+    2 groups of 3. We follow this scheme until we reach 5 groups of 4.
+    From there on this function returns 5 groups forever.
+
+    bootstrapped crossvalidation also uses this function to set k, but scales
+    n_rdm to the expected proportion of samples retained when bootstrapping
+    (1-np.exp(-1))
+    """
+    if n_rdm < 6:
+        k_rdm = 2
+    elif n_rdm < 12:
+        k_rdm = 3
+    elif n_rdm < 20:
+        k_rdm = 4
+    else:
+        k_rdm = 5
+    return k_rdm
