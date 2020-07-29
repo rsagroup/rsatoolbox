@@ -33,27 +33,32 @@ def cov_from_residuals(residuals, dof=None):
             if dof is None:
                 s_shrink.append(cov_from_residuals(residuals[i]))
             elif isinstance(dof, Iterable):
-                s_shrink.append(cov_from_residuals(residuals[i], dof[i]))
+                s_shrink.append(
+                    cov_from_residuals(residuals[i], dof[i]))
             else:
-                s_shrink.append(cov_from_residuals(residuals[i], dof))
+                s_shrink.append(
+                    cov_from_residuals(residuals[i], dof))
     else:
         if dof is None:
             dof = residuals.shape[0] - 1
         # calculate sample covariance matrix s
         residuals = residuals - np.mean(residuals, axis=0, keepdims=True)
-        xt_x = np.einsum('ij, ik-> ijk', residuals, residuals)
-        s = np.sum(xt_x, axis=0) / xt_x.shape[0]
+        xt_x = np.einsum('ij, ik-> jk', residuals, residuals)
+        s = xt_x / residuals.shape[0]
         # calculate the scalar estimators to find the optimal shrinkage:
         # m, d^2, b^2 as in Ledoit & Wolfe paper
         m = np.sum(np.diag(s)) / s.shape[0]
         d2 = np.sum((s - m * np.eye(s.shape[0])) ** 2)
-        b2 = np.sum((xt_x - s) ** 2) / xt_x.shape[0] / xt_x.shape[0]
+        z = np.zeros_like(s)
+        for i in range(residuals.shape[0]):
+            z += (np.einsum('i,j -> ij', residuals[i], residuals[i]) - s) ** 2
+        b2 = np.sum(z) / residuals.shape[0] / residuals.shape[0]
         b2 = min(d2, b2)
         # shrink covariance matrix
         s_shrink = b2 / d2 * m * np.eye(s.shape[0]) \
             + (d2-b2) / d2 * s
         # correction for degrees of freedom
-        s_shrink = s_shrink * xt_x.shape[0] / dof
+        s_shrink = s_shrink * residuals.shape[0] / dof
     return s_shrink
 
 

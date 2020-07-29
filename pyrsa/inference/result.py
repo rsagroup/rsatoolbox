@@ -155,4 +155,3 @@ def result_from_dict(result_dict):
     return Result(models, evaluations, method, cv_method, noise_ceiling,
                   variances=variances, dof=dof,
                   noise_ceil_var=noise_ceil_var)
-
