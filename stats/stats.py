@@ -522,7 +522,9 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
         if noise_type == 'eye':
             noise = None
         elif noise_type == 'residuals':
+            print("calculating noise precision\n")
             noise = pyrsa.data.prec_from_residuals(residuals)
+        print('starting RDM calculation\n')
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor='repeat', noise=noise)
         # get true U RDMs
@@ -593,8 +595,8 @@ def run_eco(idx, ecoset_path=None):
     layer = [8, 2, 5, 10, 12]
     sd = [0.05, 0, 0.25, np.inf]
     n_vox = [100, 10, 1000]
-    i_separate = int(idx / 150)
-    i_all = idx % 150
+    i_separate = int(idx / 200)
+    i_all = idx % 200
 
     (i_stim, i_sub, i_var) = np.unravel_index(
         i_all, [len(n_stim), len(n_subj), len(variation)])
@@ -618,6 +620,10 @@ def run_eco(idx, ecoset_path=None):
         i_repeat = 0
         i_sd = 0
         i_vox = i_separate - 9
+    if i_vox == 2:
+        noise_type = 'eye'
+    else:
+        noise_type = 'residuals'
     print('starting simulation:')
     print('variation: %s' % variation[i_var])
     print('layer: %d' % layer[i_layer])
@@ -638,6 +644,7 @@ def run_eco(idx, ecoset_path=None):
                    rdm_comparison='corr',
                    n_stim=n_stim[i_stim],
                    n_sim=100, n_voxel=n_vox[i_vox],
+                   noise_type=noise_type,
                    sigma_noise=5)
     else:
         sim_ecoset(variation=variation[i_var],
@@ -649,6 +656,7 @@ def run_eco(idx, ecoset_path=None):
                    rdm_comparison='corr',
                    n_stim=n_stim[i_stim],
                    n_sim=100, n_voxel=n_vox[i_vox],
+                   noise_type=noise_type,
                    sigma_noise=5)
 
 
