@@ -12,7 +12,7 @@ from pyrsa.rdm import rank_transform
 
 
 def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
-             cmap=None, rdm_descriptor=None):
+             cmap=None, rdm_descriptor=None, dpi=300):
     """shows an rdm object
 
     Parameters
@@ -30,6 +30,7 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
         conventions as for matplotlib colormaps
 
     """
+    plt.figure(dpi=dpi)
     if do_rank_transform:
         rdm = rank_transform(rdm)
     rdm_mat = rdm.get_matrices()
@@ -63,13 +64,22 @@ def _add_descriptor_labels(rdm, descriptor, ax=None):
     if ax is None:
         ax = plt.gca()
     if descriptor is not None:
+        
         desc = rdm.pattern_descriptors[descriptor]
         ax.set_xticks(np.arange(rdm.n_cond))
-        ax.set_xticklabels(desc)
+        ax.set_xticklabels(desc, {'fontsize': 'xx-small',
+                     'fontweight': 'normal',
+                     'verticalalignment': 'center',
+                     'horizontalalignment':'center'})
         ax.set_yticks(np.arange(rdm.n_cond))
-        ax.set_yticklabels(desc)
+        ax.set_yticklabels(desc, {'fontsize': 'xx-small',
+                     'fontweight': 'normal',
+                     'verticalalignment': 'center',
+                     'horizontalalignment':'right'})
         plt.ylim(rdm.n_cond - 0.5, -0.5)
         plt.xlim(-0.5, rdm.n_cond - 0.5)
+        plt.setp(ax.get_xticklabels(), rotation=90, ha="right",
+                 rotation_mode="anchor")
     else:
         ax.set_xticks([])
         ax.set_yticks([])
