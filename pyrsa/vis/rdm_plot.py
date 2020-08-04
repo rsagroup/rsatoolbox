@@ -9,6 +9,7 @@ Created on Thu Mar 12 16:21:53 2020
 import numpy as np
 import matplotlib.pyplot as plt
 from pyrsa.rdm import rank_transform
+from pyrsa.vis.colors import rdm_colormap
 
 
 def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
@@ -31,15 +32,17 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
     dpi : int
         dots per inch (determines visual resolution of plots)
     filename : str
-        relative path to which the plot will be saved (if None: do not save plot)
+        relative path to which the plot will be saved
+        (if None: do not save plot)
 
     """
-    
     plt.figure(dpi=dpi)
+    if cmap is None:
+        cmap = rdm_colormap()
     if do_rank_transform:
         rdm = rank_transform(rdm)
     rdm_mat = rdm.get_matrices()
-    if rdm.n_rdm  > 1:
+    if rdm.n_rdm > 1:
         m = np.ceil(np.sqrt(rdm.n_rdm+1))
         n = np.ceil((1 + rdm.n_rdm) / m)
         for idx in range(rdm.n_rdm):
@@ -66,23 +69,28 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
         fig1.savefig(filename, bbox_inches='tight')
     plt.show()
 
+
 def _add_descriptor_labels(rdm, descriptor, ax=None):
     """ adds a descriptor as ticklabels """
     if ax is None:
         ax = plt.gca()
     if descriptor is not None:
-        
+
         desc = rdm.pattern_descriptors[descriptor]
         ax.set_xticks(np.arange(rdm.n_cond))
-        ax.set_xticklabels(desc, {'fontsize': 'xx-small',
-                     'fontweight': 'normal',
-                     'verticalalignment': 'center',
-                     'horizontalalignment':'center'})
+        ax.set_xticklabels(
+            desc,
+            {'fontsize': 'xx-small',
+             'fontweight': 'normal',
+             'verticalalignment': 'center',
+             'horizontalalignment': 'center'})
         ax.set_yticks(np.arange(rdm.n_cond))
-        ax.set_yticklabels(desc, {'fontsize': 'xx-small',
-                     'fontweight': 'normal',
-                     'verticalalignment': 'center',
-                     'horizontalalignment':'right'})
+        ax.set_yticklabels(
+            desc,
+            {'fontsize': 'xx-small',
+             'fontweight': 'normal',
+             'verticalalignment': 'center',
+             'horizontalalignment': 'right'})
         plt.ylim(rdm.n_cond - 0.5, -0.5)
         plt.xlim(-0.5, rdm.n_cond - 0.5)
         plt.setp(ax.get_xticklabels(), rotation=90, ha="right",

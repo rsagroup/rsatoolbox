@@ -119,6 +119,7 @@ class TestEvaluation(unittest.TestCase):
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
         value = eval_bootstrap_rdm(m, rdms, N=10)
+        value = eval_bootstrap_rdm(m, rdms, N=10, boot_noise_ceil=True)
 
     def test_bootstrap_testset(self):
         from pyrsa.inference import bootstrap_testset
