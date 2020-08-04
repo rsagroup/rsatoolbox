@@ -197,6 +197,7 @@ class RDMs:
             selection = np.concatenate(selection)
         else:
             selection = np.where(self.rdm_descriptors[by] == value)
+        selection = np.sort(selection)
         dissimilarities = self.get_matrices()
         for i_rdm in range(self.n_rdm):
             np.fill_diagonal(dissimilarities[i_rdm], np.nan)

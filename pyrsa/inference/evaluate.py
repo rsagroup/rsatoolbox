@@ -80,24 +80,33 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
         sample, rdm_sample, pattern_sample = \
             bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
                              pattern_descriptor=pattern_descriptor)
-        if isinstance(model, Model):
-            rdm_pred = model.predict_rdm(theta=theta)
-            rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                                  pattern_sample)
-            evaluations[i] = np.mean(compare(rdm_pred, sample, method))
-        elif isinstance(model, Iterable):
-            j = 0
-            for mod in model:
-                rdm_pred = mod.predict_rdm(theta=theta[j])
+        if len(np.unique(pattern_sample)) >= 3:
+            if isinstance(model, Model):
+                rdm_pred = model.predict_rdm(theta=theta)
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_sample)
-                evaluations[i, j] = np.mean(compare(rdm_pred, sample, method))
-                j += 1
-        if boot_noise_ceil:
-            noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
-                method=method, rdm_descriptor=rdm_descriptor)
-            noise_min.append(noise_min_sample)
-            noise_max.append(noise_max_sample)
+                evaluations[i] = np.mean(compare(rdm_pred, sample, method))
+            elif isinstance(model, Iterable):
+                j = 0
+                for mod in model:
+                    rdm_pred = mod.predict_rdm(theta=theta[j])
+                    rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
+                                                          pattern_sample)
+                    evaluations[i, j] = np.mean(compare(rdm_pred, sample,
+                                                        method))
+                    j += 1
+            if boot_noise_ceil:
+                noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
+                    method=method, rdm_descriptor=rdm_descriptor)
+                noise_min.append(noise_min_sample)
+                noise_max.append(noise_max_sample)
+        else:
+            if isinstance(model, Model):   
+                evaluations[i] = np.nan
+            elif isinstance(model, Iterable):
+                evaluations[i, :] = np.nan
+            noise_min.append(np.nan)
+            noise_max.append(np.nan)
     if isinstance(model, Model):
         evaluations = evaluations.reshape((N,1))
     if boot_noise_ceil:
@@ -136,25 +145,33 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
     for i in tqdm.trange(N):
         sample, pattern_sample = \
             bootstrap_sample_pattern(data, pattern_descriptor)
-        if isinstance(model, Model):
-            rdm_pred = model.predict_rdm(theta=theta)
-            rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                                  pattern_sample)
-            evaluations[i] = np.mean(compare(rdm_pred, sample, method))
-        elif isinstance(model, Iterable):
-            j = 0
-            for mod in model:
-                rdm_pred = mod.predict_rdm(theta=theta[j])
+        if len(np.unique(pattern_sample)) >= 3:
+            if isinstance(model, Model):
+                rdm_pred = model.predict_rdm(theta=theta)
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_sample)
-                evaluations[i, j] = np.mean(compare(rdm_pred, sample,
-                                                    method))
-                j += 1
-        if boot_noise_ceil:
-            noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
-                method=method, rdm_descriptor=rdm_descriptor)
-            noise_min.append(noise_min_sample)
-            noise_max.append(noise_max_sample)
+                evaluations[i] = np.mean(compare(rdm_pred, sample, method))
+            elif isinstance(model, Iterable):
+                j = 0
+                for mod in model:
+                    rdm_pred = mod.predict_rdm(theta=theta[j])
+                    rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
+                                                          pattern_sample)
+                    evaluations[i, j] = np.mean(compare(rdm_pred, sample,
+                                                        method))
+                    j += 1
+            if boot_noise_ceil:
+                noise_min_sample, noise_max_sample = boot_noise_ceiling(sample,
+                    method=method, rdm_descriptor=rdm_descriptor)
+                noise_min.append(noise_min_sample)
+                noise_max.append(noise_max_sample)
+        else:
+            if isinstance(model, Model):   
+                evaluations[i] = np.nan
+            elif isinstance(model, Iterable):
+                evaluations[i, :] = np.nan
+            noise_min.append(np.nan)
+            noise_max.append(np.nan)
     if isinstance(model, Model):
         evaluations = evaluations.reshape((N,1))
     if boot_noise_ceil:
