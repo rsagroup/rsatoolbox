@@ -170,7 +170,7 @@ class RDMs:
     def subsample_pattern(self, by, value):
         """ Returns a subsampled RDMs with repetitions if values are repeated
 
-        This function now generates Nans where the off-diagonal 0s would 
+        This function now generates Nans where the off-diagonal 0s would
         appear. These values are trivial to predict for models and thus
         need to be marked and excluded from the evaluation.
 
@@ -196,6 +196,7 @@ class RDMs:
             selection = np.concatenate(selection)
         else:
             selection = np.where(self.rdm_descriptors[by] == value)
+        selection = np.sort(selection)
         dissimilarities = self.get_matrices()
         for i_rdm in range(self.n_rdm):
             np.fill_diagonal(dissimilarities[i_rdm], np.nan)
