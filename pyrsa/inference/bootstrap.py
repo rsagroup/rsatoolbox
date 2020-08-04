@@ -35,14 +35,8 @@ def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
         numpy.ndarray: rdm_sample
             sampled rdm indices
 
-        numpy.ndarray: rdm_select
-            rdm group descritor values
-
         numpy.ndarray: pattern_sample
             sampled pattern descriptor indices
-
-        numpy.ndarray: pattern_select
-            sampled pattern descriptor values
 
     """
     if rdm_descriptor is None:

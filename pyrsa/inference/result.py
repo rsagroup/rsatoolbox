@@ -47,10 +47,10 @@ class Result:
             + 'not match number of models'
         self.models = models
         self.n_model = len(models)
-        self.evaluations = evaluations
+        self.evaluations = np.array(evaluations)
         self.method = method
         self.cv_method = cv_method
-        self.noise_ceiling = noise_ceiling
+        self.noise_ceiling = np.array(noise_ceiling)
         self.variances = variances
         self.dof = dof
         self.noise_ceil_var = noise_ceil_var
@@ -151,4 +151,3 @@ def result_from_dict(result_dict):
     return Result(models, evaluations, method, cv_method, noise_ceiling,
                   variances=variances, dof=dof,
                   noise_ceil_var=noise_ceil_var)
-
