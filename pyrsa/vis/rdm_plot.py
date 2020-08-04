@@ -12,7 +12,7 @@ from pyrsa.rdm import rank_transform
 
 
 def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
-             cmap=None, rdm_descriptor=None, dpi=300):
+             cmap=None, rdm_descriptor=None, dpi=300, filename=None):
     """shows an rdm object
 
     Parameters
@@ -23,13 +23,18 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
         whether we should do a rank transform before plotting
     pattern_descriptor : String
         name of a pattern descriptor which will be used as an axis label
-    pattern_descriptor : String
+    rdm_descriptor : String
         name of a rdm descriptor which will be used as a title per RDM
     cmap : color map
         colormap or identifier for a colormap to be used
         conventions as for matplotlib colormaps
+    dpi : int
+        dots per inch (determines visual resolution of plots)
+    filename : str
+        relative path to which the plot will be saved (if None: do not save plot)
 
     """
+    
     plt.figure(dpi=dpi)
     if do_rank_transform:
         rdm = rank_transform(rdm)
@@ -56,8 +61,10 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
             plt.title(rdm.rdm_descriptors[rdm_descriptor][0])
         elif isinstance(rdm_descriptor, str):
             plt.title(rdm_descriptor)
+    if isinstance(filename, str):
+        fig1 = plt.gcf()
+        fig1.savefig(filename, bbox_inches='tight')
     plt.show()
-
 
 def _add_descriptor_labels(rdm, descriptor, ax=None):
     """ adds a descriptor as ticklabels """
