@@ -161,6 +161,22 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(rdms_sample.n_rdm, 3)
         assert_array_equal(rdms_sample.dissimilarities[0], dis[3])
 
+    def test_rank_transform(self):
+        from pyrsa.rdm import rank_transform
+        dis = np.zeros((8, 10))
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        rank_rdm = rank_transform(rdms)
+        assert rank_rdm.n_rdm == rdms.n_rdm
+        assert rank_rdm.n_cond == rdms.n_cond
+
     def test_rdm_append(self):
         dis = np.zeros((8, 10))
         mes = "Euclidean"
@@ -195,6 +211,13 @@ class TestRDM(unittest.TestCase):
                          rdm_descriptors=rdm_des)
         rdms = concat((rdms1, rdms2))
         assert rdms.n_rdm == 16
+
+    def test_categorical_rdm(self):
+        from pyrsa.rdm import get_categorical_rdm
+        category_vector = [1, 2, 2, 3]
+        rdm = get_categorical_rdm(category_vector)
+        np.testing.assert_array_almost_equal(rdm.dissimilarities,
+            np.array([[1., 1., 1., 0., 1., 1.]]))
 
 
 class TestCalcRDM(unittest.TestCase):
