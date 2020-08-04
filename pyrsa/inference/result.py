@@ -47,10 +47,10 @@ class Result:
             + 'not match number of models'
         self.models = models
         self.n_model = len(models)
-        self.evaluations = evaluations
+        self.evaluations = np.array(evaluations)
         self.method = method
         self.cv_method = cv_method
-        self.noise_ceiling = noise_ceiling
+        self.noise_ceiling = np.array(noise_ceiling)
 
     def save(self, filename, file_type='hdf5', overwrite=False):
         """ saves the results into a file. 
