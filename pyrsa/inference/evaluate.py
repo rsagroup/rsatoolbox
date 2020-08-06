@@ -20,49 +20,49 @@ from .noise_ceiling import boot_noise_ceiling
 from .noise_ceiling import cv_noise_ceiling
 
 
-def eval_fixed(model, data, theta=None, method='cosine'):
-    """evaluates a model on data, without any bootstrapping or
+def eval_fixed(models, data, theta=None, method='cosine'):
+    """evaluates models on data, without any bootstrapping or
     cross-validation
 
     Args:
-        model(pyrsa.model.Model): Model to be evaluated
+        models(list of pyrsa.model.Model): models to be evaluated
         data(pyrsa.rdm.RDMs): data to evaluate on
-        theta(numpy.ndarray): parameter vector for the model
+        theta(numpy.ndarray): parameter vector for the models
         method(string): comparison method to use
 
     Returns:
         float: evaluation
 
     """
-    evaluations, theta, _ = input_check_model(model, theta, None, 1)
-    if isinstance(model, Model):
-        rdm_pred = model.predict_rdm(theta=theta)
+    evaluations, theta, _ = input_check_model(models, theta, None, 1)
+    if isinstance(models, Model):
+        rdm_pred = models.predict_rdm(theta=theta)
         evaluations = np.array([[compare(rdm_pred, data, method)[0]]])
-    elif isinstance(model, Iterable):
-        for k in range(len(model)):
-            rdm_pred = model[k].predict_rdm(theta=theta[k])
+    elif isinstance(models, Iterable):
+        for k in range(len(models)):
+            rdm_pred = models[k].predict_rdm(theta=theta[k])
             evaluations[k] = np.mean(compare(rdm_pred, data, method)[0])
-        evaluations = evaluations.reshape((1, len(model)))
+        evaluations = evaluations.reshape((1, len(models)))
     else:
-        raise ValueError('model should be a pyrsa.model.Model or a list of'
+        raise ValueError('models should be a pyrsa.model.Model or a list of'
                          + ' such objects')
     noise_ceil = boot_noise_ceiling(
         data, method=method, rdm_descriptor='index')
-    result = Result(model, evaluations, method=method,
+    result = Result(models, evaluations, method=method,
                     cv_method='fixed', noise_ceiling=noise_ceil)
     return result
 
 
-def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
+def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
                    pattern_descriptor=None, rdm_descriptor=None,
                    boot_noise_ceil=True):
-    """evaluates a model on data
+    """evaluates models on data
     performs bootstrapping to get a sampling distribution
 
     Args:
-        model(pyrsa.model.Model): Model to be evaluated
+        models(pyrsa.model.Model): models to be evaluated
         data(pyrsa.rdm.RDMs): data to evaluate on
-        theta(numpy.ndarray): parameter vector for the model
+        theta(numpy.ndarray): parameter vector for the models
         method(string): comparison method to use
         N(int): number of samples
         pattern_descriptor(string): descriptor to group patterns for bootstrap
@@ -72,7 +72,7 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
         numpy.ndarray: vector of evaluations
 
     """
-    evaluations, theta, fitter = input_check_model(model, theta, None, N)
+    evaluations, theta, fitter = input_check_model(models, theta, None, N)
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
@@ -80,14 +80,14 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
             bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
                              pattern_descriptor=pattern_descriptor)
         if len(np.unique(pattern_idx)) >= 3:
-            if isinstance(model, Model):
-                rdm_pred = model.predict_rdm(theta=theta)
+            if isinstance(models, Model):
+                rdm_pred = models.predict_rdm(theta=theta)
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_idx)
                 evaluations[i] = np.mean(compare(rdm_pred, sample, method))
-            elif isinstance(model, Iterable):
+            elif isinstance(models, Iterable):
                 j = 0
-                for mod in model:
+                for mod in models:
                     rdm_pred = mod.predict_rdm(theta=theta[j])
                     rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                           pattern_idx)
@@ -101,34 +101,34 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
                 noise_min.append(noise_min_sample)
                 noise_max.append(noise_max_sample)
         else:
-            if isinstance(model, Model):
+            if isinstance(models, Model):
                 evaluations[i] = np.nan
-            elif isinstance(model, Iterable):
+            elif isinstance(models, Iterable):
                 evaluations[i, :] = np.nan
             noise_min.append(np.nan)
             noise_max.append(np.nan)
-    if isinstance(model, Model):
+    if isinstance(models, Model):
         evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
-    result = Result(model, evaluations, method=method,
+    result = Result(models, evaluations, method=method,
                     cv_method='bootstrap', noise_ceiling=noise_ceil)
     return result
 
 
-def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
+def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
                            pattern_descriptor=None, rdm_descriptor=None,
                            boot_noise_ceil=True):
-    """evaluates a model on data
+    """evaluates a models on data
     performs bootstrapping over patterns to get a sampling distribution
 
     Args:
-        model(pyrsa.model.Model): Model to be evaluated
+        models(pyrsa.model.Model): models to be evaluated
         data(pyrsa.rdm.RDMs): data to evaluate on
-        theta(numpy.ndarray): parameter vector for the model
+        theta(numpy.ndarray): parameter vector for the models
         method(string): comparison method to use
         N(int): number of samples
         pattern_descriptor(string): descriptor to group patterns for bootstrap
@@ -139,21 +139,21 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
         numpy.ndarray: vector of evaluations
 
     """
-    evaluations, theta, fitter = input_check_model(model, theta, None, N)
+    evaluations, theta, fitter = input_check_model(models, theta, None, N)
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
         sample, pattern_idx = \
             bootstrap_sample_pattern(data, pattern_descriptor)
         if len(np.unique(pattern_idx)) >= 3:
-            if isinstance(model, Model):
-                rdm_pred = model.predict_rdm(theta=theta)
+            if isinstance(models, Model):
+                rdm_pred = models.predict_rdm(theta=theta)
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_idx)
                 evaluations[i] = np.mean(compare(rdm_pred, sample, method))
-            elif isinstance(model, Iterable):
+            elif isinstance(models, Iterable):
                 j = 0
-                for mod in model:
+                for mod in models:
                     rdm_pred = mod.predict_rdm(theta=theta[j])
                     rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                           pattern_idx)
@@ -166,33 +166,33 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
                 noise_min.append(noise_min_sample)
                 noise_max.append(noise_max_sample)
         else:
-            if isinstance(model, Model):
+            if isinstance(models, Model):
                 evaluations[i] = np.nan
-            elif isinstance(model, Iterable):
+            elif isinstance(models, Iterable):
                 evaluations[i, :] = np.nan
             noise_min.append(np.nan)
             noise_max.append(np.nan)
-    if isinstance(model, Model):
+    if isinstance(models, Model):
         evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
-    result = Result(model, evaluations, method=method,
+    result = Result(models, evaluations, method=method,
                     cv_method='bootstrap_pattern', noise_ceiling=noise_ceil)
     return result
 
 
-def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
+def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
                        rdm_descriptor=None, boot_noise_ceil=True):
-    """evaluates a model on data
+    """evaluates models on data
     performs bootstrapping to get a sampling distribution
 
     Args:
-        model(pyrsa.model.Model): Model to be evaluated
+        models(pyrsa.model.Model): models to be evaluated
         data(pyrsa.rdm.RDMs): data to evaluate on
-        theta(numpy.ndarray): parameter vector for the model
+        theta(numpy.ndarray): parameter vector for the models
         method(string): comparison method to use
         N(int): number of samples
         rdm_descriptor(string): rdm_descriptor to group rdms for bootstrap
@@ -201,17 +201,17 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
         numpy.ndarray: vector of evaluations
 
     """
-    evaluations, theta, _ = input_check_model(model, theta, None, N)
+    evaluations, theta, _ = input_check_model(models, theta, None, N)
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
         sample, rdm_idx = bootstrap_sample_rdm(data, rdm_descriptor)
-        if isinstance(model, Model):
-            rdm_pred = model.predict_rdm(theta=theta)
+        if isinstance(models, Model):
+            rdm_pred = models.predict_rdm(theta=theta)
             evaluations[i] = np.mean(compare(rdm_pred, sample, method))
-        elif isinstance(model, Iterable):
+        elif isinstance(models, Iterable):
             j = 0
-            for mod in model:
+            for mod in models:
                 rdm_pred = mod.predict_rdm(theta=theta[j])
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample,
                                                     method))
@@ -221,24 +221,24 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
                 sample, method=method, rdm_descriptor=rdm_descriptor)
             noise_min.append(noise_min_sample)
             noise_max.append(noise_max_sample)
-    if isinstance(model, Model):
+    if isinstance(models, Model):
         evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
-    result = Result(model, evaluations, method=method,
+    result = Result(models, evaluations, method=method,
                     cv_method='bootstrap_rdm', noise_ceiling=noise_ceil)
     return result
 
 
-def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
+def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
              fitter=None, pattern_descriptor=None):
-    """evaluates a model on cross-validation sets
+    """evaluates models on cross-validation sets
 
     Args:
-        model(pyrsa.model.Model): Model to be evaluated
+        models(pyrsa.model.Model): models to be evaluated
         rdms(pyrsa.rdm.RDMs): full dataset
         train_set(list): a list of the training RDMs with 2-tuple entries:
             (RDMs, pattern_idx)
@@ -265,28 +265,28 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
         test = test_set[i]
         if (train[0].n_rdm == 0 or test[0].n_rdm == 0 or
                 train[0].n_cond <= 2 or test[0].n_cond <= 2):
-            if isinstance(model, Model):
+            if isinstance(models, Model):
                 evals = np.nan
-            elif isinstance(model, Iterable):
-                evals = np.empty(len(model)) * np.nan
+            elif isinstance(models, Iterable):
+                evals = np.empty(len(models)) * np.nan
         else:
-            if isinstance(model, Model):
+            if isinstance(models, Model):
                 if fitter is None:
-                    fitter = model.default_fitter
-                theta = fitter(model, train[0], method=method,
+                    fitter = models.default_fitter
+                theta = fitter(models, train[0], method=method,
                                pattern_idx=train[1],
                                pattern_descriptor=pattern_descriptor)
-                pred = model.predict_rdm(theta)
+                pred = models.predict_rdm(theta)
                 pred = pred.subsample_pattern(by=pattern_descriptor,
                                               value=test[1])
                 evals = np.mean(compare(pred, test[0], method))
-            elif isinstance(model, Iterable):
-                evals, _, fitter = input_check_model(model, None, fitter)
-                for j in range(len(model)):
-                    theta = fitter[j](model[j], train[0], method=method,
+            elif isinstance(models, Iterable):
+                evals, _, fitter = input_check_model(models, None, fitter)
+                for j in range(len(models)):
+                    theta = fitter[j](models[j], train[0], method=method,
                                       pattern_idx=train[1],
                                       pattern_descriptor=pattern_descriptor)
-                    pred = model[j].predict_rdm(theta)
+                    pred = models[j].predict_rdm(theta)
                     pred = pred.subsample_pattern(by=pattern_descriptor,
                                                   value=test[1])
                     evals[j] = np.mean(compare(pred, test[0], method))
@@ -296,35 +296,35 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
                                            value=test[1]),
                     method=method))
         evaluations.append(evals)
-    if isinstance(model, Model):
-        model = [model]
-    evaluations = np.array(evaluations).T  # .T to switch model/set order
-    evaluations = evaluations.reshape((1, len(model), len(train_set)))
+    if isinstance(models, Model):
+        models = [models]
+    evaluations = np.array(evaluations).T  # .T to switch models/set order
+    evaluations = evaluations.reshape((1, len(models), len(train_set)))
     if ceil_set is not None:
         noise_ceil = cv_noise_ceiling(rdms, ceil_set, test_set, method=method,
                                       pattern_descriptor=pattern_descriptor)
     else:
         noise_ceil = np.array(noise_ceil).T
-    result = Result(model, evaluations, method=method,
+    result = Result(models, evaluations, method=method,
                     cv_method='crossvalidation', noise_ceiling=noise_ceil)
     return result
 
 
-def bootstrap_crossval(model, data, method='cosine', fitter=None,
+def bootstrap_crossval(models, data, method='cosine', fitter=None,
                        k_pattern=5, k_rdm=5, N=1000,
                        pattern_descriptor=None, rdm_descriptor=None,
                        random=True):
-    """evaluates a model by k-fold crossvalidation within a bootstrap
+    """evaluates models by k-fold crossvalidation within a bootstrap
 
     If a k is set to 1 no crossvalidation is performed over the
     corresponding dimension.
 
 
     Args:
-        model(pyrsa.model.Model): Model to be evaluated
+        models(pyrsa.model.Model): models to be evaluated
         data(pyrsa.rdm.RDMs): RDM data to use
         method(string): comparison method to use
-        fitter(function): fitting method for model
+        fitter(function): fitting method for models
         k_pattern(int): #folds over patterns
         k_rdm(int): #folds over rdms
         N(int): number of bootstrap samples (default: 1000)
@@ -336,10 +336,10 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         numpy.ndarray: matrix of evaluations (N x k)
 
     """
-    if isinstance(model, Model):
+    if isinstance(models, Model):
         evaluations = np.zeros((N, 1, k_pattern * k_rdm))
-    elif isinstance(model, Iterable):
-        evaluations = np.zeros((N, len(model), k_pattern * k_rdm))
+    elif isinstance(models, Iterable):
+        evaluations = np.zeros((N, len(models), k_pattern * k_rdm))
     noise_ceil = np.zeros((2, N))
     for i_sample in tqdm.trange(N):
         sample, rdm_idx, pattern_idx = bootstrap_sample(
@@ -359,22 +359,22 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
                 train_set[idx][1] = _concat_sampling(pattern_idx,
                                                      train_set[idx][1])
             cv_result = crossval(
-                model, sample,
+                models, sample,
                 train_set, test_set,
                 method=method, fitter=fitter,
                 pattern_descriptor=pattern_descriptor)
-            if isinstance(model, Model):
+            if isinstance(models, Model):
                 evaluations[i_sample, 0, :] = cv_result.evaluations[0, 0]
-            elif isinstance(model, Iterable):
+            elif isinstance(models, Iterable):
                 evaluations[i_sample, :, :] = cv_result.evaluations[0]
             noise_ceil[:, i_sample] = np.mean(cv_result.noise_ceiling, axis=-1)
         else:  # sample does not allow desired crossvalidation
-            if isinstance(model, Model):
+            if isinstance(models, Model):
                 evaluations[i_sample, 0, :] = np.nan
-            elif isinstance(model, Iterable):
+            elif isinstance(models, Iterable):
                 evaluations[i_sample, :, :] = np.nan
             noise_ceil[:, i_sample] = np.nan
-    result = Result(model, evaluations, method=method,
+    result = Result(models, evaluations, method=method,
                     cv_method='bootstrap_crossval', noise_ceiling=noise_ceil)
     return result
 
