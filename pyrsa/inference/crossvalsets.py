@@ -23,9 +23,9 @@ def sets_leave_one_out_pattern(rdms, pattern_descriptor):
         pattern_descriptor(String): descriptor to select groups
 
     Returns:
-        train_set(list): list of tuples (rdms, pattern_sample)
-        test_set(list): list of tuples (rdms, pattern_sample)
-        ceil_set(list): list of tuples (rdms, pattern_sample)
+        train_set(list): list of tuples (rdms, pattern_idx)
+        test_set(list): list of tuples (rdms, pattern_idx)
+        ceil_set(list): list of tuples (rdms, pattern_idx)
 
     """
     pattern_descriptor, pattern_select = \
@@ -34,17 +34,17 @@ def sets_leave_one_out_pattern(rdms, pattern_descriptor):
     test_set = []
     ceil_set = []
     for i_pattern in pattern_select:
-        pattern_sample_train = np.setdiff1d(pattern_select, i_pattern)
+        pattern_idx_train = np.setdiff1d(pattern_select, i_pattern)
         rdms_train = rdms.subset_pattern(pattern_descriptor,
-                                         pattern_sample_train)
-        pattern_sample_test = [i_pattern]
+                                         pattern_idx_train)
+        pattern_idx_test = [i_pattern]
         rdms_test = rdms.subset_pattern(pattern_descriptor,
-                                        pattern_sample_test)
+                                        pattern_idx_test)
         rdms_ceil = rdms.subset_pattern(pattern_descriptor,
-                                        pattern_sample_test)
-        train_set.append((rdms_train, pattern_sample_train))
-        test_set.append((rdms_test, pattern_sample_test))
-        ceil_set.append((rdms_ceil, pattern_sample_test))
+                                        pattern_idx_test)
+        train_set.append((rdms_train, pattern_idx_train))
+        test_set.append((rdms_test, pattern_idx_test))
+        ceil_set.append((rdms_ceil, pattern_idx_test))
     return train_set, test_set, ceil_set
 
 
@@ -57,9 +57,9 @@ def sets_leave_one_out_rdm(rdms, rdm_descriptor=None):
         rdm_descriptor(String): descriptor to select groups
 
     Returns:
-        train_set(list): list of tuples (rdms, pattern_sample)
-        test_set(list): list of tuples (rdms, pattern_sample)
-        ceil_set(list): list of tuples (rdms, pattern_sample)
+        train_set(list): list of tuples (rdms, pattern_idx)
+        test_set(list): list of tuples (rdms, pattern_idx)
+        ceil_set(list): list of tuples (rdms, pattern_idx)
 
     """
     if rdm_descriptor is None:
@@ -69,16 +69,16 @@ def sets_leave_one_out_rdm(rdms, rdm_descriptor=None):
     else:
         rdm_select = rdms.rdm_descriptors[rdm_descriptor]
         rdm_select = np.unique(rdm_select)
-    if len(rdm_select) > 1: 
+    if len(rdm_select) > 1:
         train_set = []
         test_set = []
         for i_pattern in rdm_select:
-            rdm_sample_train = np.setdiff1d(rdm_select, i_pattern)
+            rdm_idx_train = np.setdiff1d(rdm_select, i_pattern)
             rdms_train = rdms.subset(rdm_descriptor,
-                                     rdm_sample_train)
-            rdm_sample_test = [i_pattern]
+                                     rdm_idx_train)
+            rdm_idx_test = [i_pattern]
             rdms_test = rdms.subset(rdm_descriptor,
-                                    rdm_sample_test)
+                                    rdm_idx_test)
             train_set.append((rdms_train, np.arange(rdms.n_cond)))
             test_set.append((rdms_test, np.arange(rdms.n_cond)))
         ceil_set = train_set
@@ -107,9 +107,9 @@ def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
         random(bool): whether the assignment shall be randomized
 
     Returns:
-        train_set(list): list of tuples (rdms, pattern_sample)
-        test_set(list): list of tuples (rdms, pattern_sample)
-        ceil_set(list): list of tuples (rdms, pattern_sample)
+        train_set(list): list of tuples (rdms, pattern_idx)
+        test_set(list): list of tuples (rdms, pattern_idx)
+        ceil_set(list): list of tuples (rdms, pattern_idx)
 
     """
     if rdm_descriptor is None:
@@ -138,13 +138,14 @@ def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
         else:
             train_idx = np.setdiff1d(np.arange(len(rdm_select)),
                                      test_idx)
-        rdm_sample_test = [rdm_select[int(idx)] for idx in test_idx]
-        rdm_sample_train = [rdm_select[int(idx)] for idx in train_idx]
+        rdm_idx_test = [rdm_select[int(idx)] for idx in test_idx]
+        rdm_idx_train = [rdm_select[int(idx)] for idx in train_idx]
         rdms_test = rdms.subsample(rdm_descriptor,
-                                   rdm_sample_test)
+                                   rdm_idx_test)
         rdms_train = rdms.subsample(rdm_descriptor,
-                                    rdm_sample_train)
-        train_new, test_new, _ = sets_k_fold_pattern(rdms_train, k=k_pattern,
+                                    rdm_idx_train)
+        train_new, test_new, _ = sets_k_fold_pattern(
+            rdms_train, k=k_pattern,
             pattern_descriptor=pattern_descriptor, random=random)
         ceil_new = test_new.copy()
         for i_pattern in range(k_pattern):
@@ -169,8 +170,8 @@ def sets_k_fold_rdm(rdms, k_rdm=5, random=True, rdm_descriptor=None):
         random(bool): whether the assignment shall be randomized
 
     Returns:
-        train_set(list): list of tuples (rdms, pattern_sample)
-        test_set(list): list of tuples (rdms, pattern_sample)
+        train_set(list): list of tuples (rdms, pattern_idx)
+        test_set(list): list of tuples (rdms, pattern_idx)
 
     """
     if rdm_descriptor is None:
@@ -195,22 +196,21 @@ def sets_k_fold_rdm(rdms, k_rdm=5, random=True, rdm_descriptor=None):
             test_idx = np.concatenate((test_idx, [-(i_group+1)]))
         train_idx = np.setdiff1d(np.arange(len(rdm_select)),
                                  test_idx)
-        rdm_sample_test = [rdm_select[int(idx)] for idx in test_idx]
-        rdm_sample_train = [rdm_select[int(idx)] for idx in train_idx]
+        rdm_idx_test = [rdm_select[int(idx)] for idx in test_idx]
+        rdm_idx_train = [rdm_select[int(idx)] for idx in train_idx]
         rdms_test = rdms.subsample(rdm_descriptor,
-                                   rdm_sample_test)
+                                   rdm_idx_test)
         rdms_train = rdms.subsample(rdm_descriptor,
-                                    rdm_sample_train)
+                                    rdm_idx_train)
         train_set.append([rdms_train, np.arange(rdms_train.n_cond)])
         test_set.append([rdms_test, np.arange(rdms_train.n_cond)])
     ceil_set = train_set
     return train_set, test_set, ceil_set
-    
 
 
 def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into k
-    similar sized groups. This version splits in the given order or 
+    similar sized groups. This version splits in the given order or
     randomizes the order. For k=1 training and test_set are whole dataset,
     i.e. no crossvalidation is performed.
 
@@ -227,8 +227,8 @@ def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
         random(bool): whether the assignment shall be randomized
 
     Returns:
-        train_set(list): list of tuples (rdms, pattern_sample)
-        test_set(list): list of tuples (rdms, pattern_sample)
+        train_set(list): list of tuples (rdms, pattern_idx)
+        test_set(list): list of tuples (rdms, pattern_idx)
         ceil_set = None
 
     """
@@ -252,21 +252,21 @@ def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
         else:
             train_idx = np.setdiff1d(np.arange(len(pattern_select)),
                                      test_idx)
-        pattern_sample_test = [pattern_select[int(idx)] for idx in test_idx]
-        pattern_sample_train = [pattern_select[int(idx)] for idx in train_idx]
+        pattern_idx_test = [pattern_select[int(idx)] for idx in test_idx]
+        pattern_idx_train = [pattern_select[int(idx)] for idx in train_idx]
         rdms_test = rdms.subset_pattern(pattern_descriptor,
-                                        pattern_sample_test)
+                                        pattern_idx_test)
         rdms_train = rdms.subset_pattern(pattern_descriptor,
-                                         pattern_sample_train)
-        test_set.append([rdms_test, pattern_sample_test])
-        train_set.append([rdms_train, pattern_sample_train])
+                                         pattern_idx_train)
+        test_set.append([rdms_test, pattern_idx_test])
+        train_set.append([rdms_train, pattern_idx_train])
     ceil_set = None
     return train_set, test_set, ceil_set
 
 
 def sets_of_k_rdm(rdms, rdm_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into
-    groups of k. This version splits in the given order or 
+    groups of k. This version splits in the given order or
     randomizes the order. If the number of patterns is not divisible by k
     patterns are added to the first groups such that those have k+1 patterns
 
@@ -277,9 +277,9 @@ def sets_of_k_rdm(rdms, rdm_descriptor=None, k=5, random=False):
         random(bool): whether the assignment shall be randomized
 
     Returns:
-        train_set(list): list of tuples (rdms, pattern_sample)
-        test_set(list): list of tuples (rdms, pattern_sample)
-        ceil_set(list): list of tuples (rdms, pattern_sample)
+        train_set(list): list of tuples (rdms, pattern_idx)
+        test_set(list): list of tuples (rdms, pattern_idx)
+        ceil_set(list): list of tuples (rdms, pattern_idx)
 
     """
     if rdm_descriptor is None:
@@ -293,12 +293,12 @@ def sets_of_k_rdm(rdms, rdm_descriptor=None, k=5, random=False):
         'to form groups we can use at most half the patterns per group'
     n_groups = int(len(rdm_select) / k)
     return sets_k_fold_rdm(rdms, rdm_descriptor=rdm_descriptor,
-                               k=n_groups, random=random)
+                           k=n_groups, random=random)
 
 
 def sets_of_k_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     """ generates training and test set combinations by splitting into
-    groups of k. This version splits in the given order or 
+    groups of k. This version splits in the given order or
     randomizes the order. If the number of patterns is not divisible by k
     patterns are added to the first groups such that those have k+1 patterns
 
@@ -309,8 +309,8 @@ def sets_of_k_pattern(rdms, pattern_descriptor=None, k=5, random=False):
         random(bool): whether the assignment shall be randomized
 
     Returns:
-        train_set(list): list of tuples (rdms, pattern_sample)
-        test_set(list): list of tuples (rdms, pattern_sample)
+        train_set(list): list of tuples (rdms, pattern_idx)
+        test_set(list): list of tuples (rdms, pattern_idx)
 
     """
     pattern_descriptor, pattern_select = \

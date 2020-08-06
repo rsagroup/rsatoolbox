@@ -76,21 +76,21 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
-        sample, rdm_sample, pattern_sample = \
+        sample, rdm_idx, pattern_idx = \
             bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
                              pattern_descriptor=pattern_descriptor)
-        if len(np.unique(pattern_sample)) >= 3:
+        if len(np.unique(pattern_idx)) >= 3:
             if isinstance(model, Model):
                 rdm_pred = model.predict_rdm(theta=theta)
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                                      pattern_sample)
+                                                      pattern_idx)
                 evaluations[i] = np.mean(compare(rdm_pred, sample, method))
             elif isinstance(model, Iterable):
                 j = 0
                 for mod in model:
                     rdm_pred = mod.predict_rdm(theta=theta[j])
                     rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                                          pattern_sample)
+                                                          pattern_idx)
                     evaluations[i, j] = np.mean(compare(rdm_pred, sample,
                                                         method))
                     j += 1
@@ -143,20 +143,20 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
-        sample, pattern_sample = \
+        sample, pattern_idx = \
             bootstrap_sample_pattern(data, pattern_descriptor)
-        if len(np.unique(pattern_sample)) >= 3:
+        if len(np.unique(pattern_idx)) >= 3:
             if isinstance(model, Model):
                 rdm_pred = model.predict_rdm(theta=theta)
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                                      pattern_sample)
+                                                      pattern_idx)
                 evaluations[i] = np.mean(compare(rdm_pred, sample, method))
             elif isinstance(model, Iterable):
                 j = 0
                 for mod in model:
                     rdm_pred = mod.predict_rdm(theta=theta[j])
                     rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                                          pattern_sample)
+                                                          pattern_idx)
                     evaluations[i, j] = np.mean(compare(rdm_pred, sample,
                                                         method))
                     j += 1
@@ -205,7 +205,7 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
-        sample, rdm_sample = bootstrap_sample_rdm(data, rdm_descriptor)
+        sample, rdm_idx = bootstrap_sample_rdm(data, rdm_descriptor)
         if isinstance(model, Model):
             rdm_pred = model.predict_rdm(theta=theta)
             evaluations[i] = np.mean(compare(rdm_pred, sample, method))
@@ -241,9 +241,9 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
         model(pyrsa.model.Model): Model to be evaluated
         rdms(pyrsa.rdm.RDMs): full dataset
         train_set(list): a list of the training RDMs with 2-tuple entries:
-            (RDMs, pattern_sample)
+            (RDMs, pattern_idx)
         test_set(list): a list of the test RDMs with 2-tuple entries:
-            (RDMs, pattern_sample)
+            (RDMs, pattern_idx)
         method(string): comparison method to use
         pattern_descriptor(string): descriptor to group patterns
 
@@ -274,7 +274,7 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
                 if fitter is None:
                     fitter = model.default_fitter
                 theta = fitter(model, train[0], method=method,
-                               pattern_sample=train[1],
+                               pattern_idx=train[1],
                                pattern_descriptor=pattern_descriptor)
                 pred = model.predict_rdm(theta)
                 pred = pred.subsample_pattern(by=pattern_descriptor,
@@ -284,7 +284,7 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
                 evals, _, fitter = input_check_model(model, None, fitter)
                 for j in range(len(model)):
                     theta = fitter[j](model[j], train[0], method=method,
-                                      pattern_sample=train[1],
+                                      pattern_idx=train[1],
                                       pattern_descriptor=pattern_descriptor)
                     pred = model[j].predict_rdm(theta)
                     pred = pred.subsample_pattern(by=pattern_descriptor,
@@ -342,21 +342,21 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         evaluations = np.zeros((N, len(model), k_pattern * k_rdm))
     noise_ceil = np.zeros((2, N))
     for i_sample in tqdm.trange(N):
-        sample, rdm_sample, pattern_sample = bootstrap_sample(
+        sample, rdm_idx, pattern_idx = bootstrap_sample(
             data,
             rdm_descriptor=rdm_descriptor,
             pattern_descriptor=pattern_descriptor)
-        if len(np.unique(rdm_sample)) >= k_rdm \
-           and len(np.unique(pattern_sample)) >= 3 * k_pattern:
+        if len(np.unique(rdm_idx)) >= k_rdm \
+           and len(np.unique(pattern_idx)) >= 3 * k_pattern:
             train_set, test_set, ceil_set = sets_k_fold(
                 sample,
                 pattern_descriptor=pattern_descriptor,
                 rdm_descriptor=rdm_descriptor,
                 k_pattern=k_pattern, k_rdm=k_rdm, random=random)
             for idx in range(len(test_set)):
-                test_set[idx][1] = _concat_sampling(pattern_sample,
+                test_set[idx][1] = _concat_sampling(pattern_idx,
                                                     test_set[idx][1])
-                train_set[idx][1] = _concat_sampling(pattern_sample,
+                train_set[idx][1] = _concat_sampling(pattern_idx,
                                                      train_set[idx][1])
             cv_result = crossval(
                 model, sample,
