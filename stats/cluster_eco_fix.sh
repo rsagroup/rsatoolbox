@@ -7,7 +7,7 @@
 #SBATCH --job-name=eco_fix
 #SBATCH --mail-type=END
 #SBATCH --mail-user=hhs4@nyu.edu
-#SBATCH --output=slurm-output/slurm_eco_%a.out
+#SBATCH --output=slurm-output/slurm_fix_%a.out
 
 index=$SLURM_ARRAY_TASK_ID
 job=$SLURM_JOB_ID
