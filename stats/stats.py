@@ -852,7 +852,7 @@ if __name__ == '__main__':
                         help='where is ecoset?', default=None)
     parser.add_argument('sim', help='simulation type',
                         choices=['comp', 'eco',
-                                 'summarize_eco'],
+                                 'summarize_eco', 'fix_eco'],
                         default='comp')
     parser.add_argument('index', type=int,
                         help='which simulation index to run')
