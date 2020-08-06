@@ -639,7 +639,7 @@ def summarize_eco(simulation_folder='sim_eco'):
         'rdm_type': [], 'model_type': [], 'rdm_comparison': [],
         'noise_type': [], 'n_stim': []})
     means = []
-    stds = []
+    variances = []
     pairs = []
     for layer in [i for i in os.listdir(simulation_folder)
                   if i[:5] == 'layer']:
@@ -672,31 +672,38 @@ def summarize_eco(simulation_folder='sim_eco'):
                          'n_stim': n_stim},
                         ignore_index=True)
                     mean = np.nan * np.zeros((100, 12))
-                    std = np.nan * np.zeros((100, 12))
+                    variance = np.nan * np.zeros((100, 12, 12))
                     pairwise = np.nan * np.zeros((100, 12, 12))
                     for i_res in results.glob('res*.hdf5'):
                         idx = int(str(i_res)[-9:-5])
                         res = pyrsa.inference.load_results(i_res,
                                                            file_type='hdf5')
-                        for i in range(12):
-                            for j in range(12):
-                                diff = (res.evaluations[:, i]
-                                        - res.evaluations[:, j])
-                                pairwise[idx, i, j] = np.sum(
-                                    diff[~np.isnan(diff)] > 0)
-                        mean[idx] = np.nanmean(res.evaluations, axis=0)
-                        std[idx] = np.nanstd(res.evaluations, axis=0)
+                        no_nan_idx = ~np.isnan(res.evaluations[0, :])
+                        if np.any(no_nan_idx):
+                            for i in range(12):
+                                for j in range(12):
+                                    diff = (res.evaluations[:, i]
+                                            - res.evaluations[:, j])
+                                    pairwise[idx, i, j] = np.sum(
+                                        diff[~np.isnan(diff)] > 0)
+                            mean[idx] = np.mean(res.evaluations[:, no_nan_idx],
+                                                axis=0)
+                            variance[idx] = res.variances
+                        else:
+                            mean[idx] = np.nan
+                            variance[idx] = np.nan
+                            pairwise[idx] = np.nan
                     means.append(mean)
-                    stds.append(std)
+                    variances.append(variance)
                     pairs.append(pairwise)
             means_array = np.array(means)
-            stds_array = np.array(stds)
+            vars_array = np.array(variances)
             pairs_array = np.array(pairs)
             np.save(os.path.join(simulation_folder, 'means.npy'), means_array)
-            np.save(os.path.join(simulation_folder, 'stds.npy'), stds_array)
+            np.save(os.path.join(simulation_folder, 'stds.npy'), vars_array)
             np.save(os.path.join(simulation_folder, 'pairs.npy'), pairs_array)
             data_labels.to_csv(os.path.join(simulation_folder, 'labels.csv'))
-    return data_labels, means, stds, pairs
+    return data_labels, means, variances, pairs
 
 
 def check_eco(simulation_folder='sim_eco', N=100):
@@ -856,3 +863,5 @@ if __name__ == '__main__':
         run_eco(args.index, ecoset_path=args.path)
     elif args.sim == 'summarize_eco':
         summarize_eco()
+    elif args.sim == 'fix_eco':
+        fix_eco(ecoset_path=args.path)
