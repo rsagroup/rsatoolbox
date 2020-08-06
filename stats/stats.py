@@ -371,7 +371,8 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
                model_type='fixed_average',
                rdm_comparison='cosine', n_layer=12, k_pattern=None,
                k_rdm=None, rdm_type='crossnobis',
-               noise_type='residuals', boot_type='both'):
+               noise_type='residuals', boot_type='both',
+               start_idx=0):
     """ simulates representations based on randomly chosen ecoset images
         (or any other folder of folders with images inside)
         and directly runs the analysis on it saving only the subject
@@ -396,7 +397,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
     print(res_path)
     if not os.path.isdir(res_path):
         os.mkdir(res_path)
-    for i in tqdm.trange(n_sim):
+    for i in tqdm.trange(start_idx, n_sim):
         # get stimulus list or save one if there is none yet
         if os.path.isfile(fname_base + 'stim%04d.txt' % i):
             stim_list = []
@@ -522,16 +523,14 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
         if noise_type == 'eye':
             noise = None
         elif noise_type == 'residuals':
-            print("calculating noise precision\n")
             noise = pyrsa.data.prec_from_residuals(residuals)
-        print('starting RDM calculation\n')
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor='repeat', noise=noise)
         # get true U RDMs
-        dat_true = []
-        for i_subj in range(U.shape[0]):
-            dat_true.append(pyrsa.data.Dataset(Utrue[i_subj]))
-        rdms_true = pyrsa.rdm.calc_rdm(dat_true)
+        # dat_true = []
+        # for i_subj in range(U.shape[0]):
+        #     dat_true.append(pyrsa.data.Dataset(Utrue[i_subj]))
+        # rdms_true = pyrsa.rdm.calc_rdm(dat_true)
         # run inference & save it
         results = run_inference(models, rdms, method=rdm_comparison,
                                 bootstrap=boot_type)
@@ -573,66 +572,27 @@ def run_comp(idx):
                              bootstrap=boot_type[i_boot])
 
 
-def run_eco(idx, ecoset_path=None):
+def run_eco(idx, ecoset_path=None, start_idx=0):
     """ master script for running the ecoset simulations. Each call to
     this script will run one repetition of the comparisons, i.e. 100
     evaluations.
-    run this script with all indices from 1 to 1800 to reproduce  all analyses
+    run this script with all indices from 1 to 2400 to reproduce all analyses
     of this type.
     """
     if ecoset_path is None:
         ecoset_path = '~/ecoset/val/'
-    # combined with all
-    variation = ['None_both', 'None_stim', 'None_subj', 'None_fancy',
-                 'both', 'stim', 'subj', 'both_fancy']
-    boot = ['both', 'pattern', 'rdm', 'fancy',
-            'both', 'pattern', 'rdm', 'fancy']
-    n_subj = [5, 10, 20, 40, 80]
-    n_stim = [10, 20, 40, 80, 160]
-
-    # varied separately
-    n_repeat = [4, 2, 8]
-    layer = [8, 2, 5, 10, 12]
-    sd = [0.05, 0, 0.25, np.inf]
-    n_vox = [100, 10, 1000]
-    i_separate = int(idx / 200)
-    i_all = idx % 200
-
-    (i_stim, i_sub, i_var) = np.unravel_index(
-        i_all, [len(n_stim), len(n_subj), len(variation)])
-    if i_separate < 5:
-        i_layer = i_separate
-        i_repeat = 0
-        i_sd = 0
-        i_vox = 0
-    elif i_separate < 7:
-        i_layer = 0
-        i_repeat = i_separate - 4
-        i_sd = 0
-        i_vox = 0
-    elif i_separate < 10:
-        i_layer = 0
-        i_repeat = 0
-        i_sd = i_separate - 6
-        i_vox = 0
-    elif i_separate < 12:
-        i_layer = 0
-        i_repeat = 0
-        i_sd = 0
-        i_vox = i_separate - 9
-    if i_vox == 2:
-        noise_type = 'eye'
-    else:
-        noise_type = 'residuals'
-    print('starting simulation:')
-    print('variation: %s' % variation[i_var])
-    print('layer: %d' % layer[i_layer])
-    print('%d repeats' % n_repeat[i_repeat])
-    print('%d stimuli' % n_stim[i_stim])
-    print('%d subjects' % n_subj[i_sub])
-    print('%.3f sd' % sd[i_sd])
-    print('%d voxel' % n_vox[i_vox])
-    print('\n\n\n\n')
+    variation, boot, i_var, layer, i_layer, n_repeat, i_repeat, n_stim, \
+        i_stim, n_subj, i_sub, sd, i_sd, n_vox, i_vox, noise_type = \
+        _resolve_idx(idx)
+    print('starting simulation:', flush=True)
+    print('variation: %s' % variation[i_var], flush=True)
+    print('layer: %d' % layer[i_layer], flush=True)
+    print('%d repeats' % n_repeat[i_repeat], flush=True)
+    print('%d stimuli' % n_stim[i_stim], flush=True)
+    print('%d subjects' % n_subj[i_sub], flush=True)
+    print('%.3f sd' % sd[i_sd], flush=True)
+    print('%d voxel' % n_vox[i_vox], flush=True)
+    print('\n\n\n\n', flush=True)
     time.sleep(1)
     if variation[i_var][:4] == 'None':
         sim_ecoset(variation=None,
@@ -645,7 +605,7 @@ def run_eco(idx, ecoset_path=None):
                    n_stim=n_stim[i_stim],
                    n_sim=100, n_voxel=n_vox[i_vox],
                    noise_type=noise_type,
-                   sigma_noise=5)
+                   sigma_noise=5, start_idx=start_idx)
     else:
         sim_ecoset(variation=variation[i_var],
                    layer=layer[i_layer],
@@ -657,7 +617,7 @@ def run_eco(idx, ecoset_path=None):
                    n_stim=n_stim[i_stim],
                    n_sim=100, n_voxel=n_vox[i_vox],
                    noise_type=noise_type,
-                   sigma_noise=5)
+                   sigma_noise=5, start_idx=start_idx)
 
 
 def summarize_eco(simulation_folder='sim_eco'):
@@ -775,6 +735,107 @@ def check_eco(simulation_folder='sim_eco', N=100):
                                 break
                         if break_results:
                             break
+
+
+def fix_eco(
+        simulation_folder='sim_eco', n_sim=100,
+        duration=1, pause=1, endzeros=25, resolution=2,
+        sigma_noise=5, ar_coeff=0.5, ecoset_path='~/ecoset/val/',
+        model_type='fixed_average',
+        rdm_comparison='corr', n_layer=12, k_pattern=None,
+        k_rdm=None, rdm_type='crossnobis',
+        boot_type='both'):
+    """
+    checks the completeness of eco simulations and starts a completion job
+    if a simulation is not finished yet. Proceeds in random order
+    only ends if all simulations are complete.
+    """
+    indices = np.random.permutation(2400)
+    for idx in indices:
+        variation, boot, i_var, layer, i_layer, n_repeat, i_repeat, n_stim, \
+            i_stim, n_subj, i_sub, sd, i_sd, n_vox, i_vox, noise_type = \
+            _resolve_idx(idx)
+        # check how far the simulation was processed
+        fname_base = get_fname_base(simulation_folder=simulation_folder,
+                                    layer=layer[i_layer], n_voxel=n_vox[i_vox],
+                                    n_subj=n_subj[i_sub],
+                                    n_repeat=n_repeat[i_repeat],
+                                    sd=sd[i_sd], duration=duration,
+                                    pause=pause, endzeros=endzeros,
+                                    use_cor_noise=True,
+                                    resolution=resolution,
+                                    sigma_noise=sigma_noise,
+                                    ar_coeff=ar_coeff,
+                                    variation=variation[i_var])
+        if os.path.isdir(fname_base):
+            res_name = get_resname(boot[i_var], rdm_type, model_type,
+                                   rdm_comparison, noise_type, n_stim[i_stim],
+                                   k_pattern, k_rdm)
+            if os.path.isdir(os.path.join(fname_base, res_name)):
+                start_idx = 0
+                for i_res in pathlib.Path(
+                        os.path.join(fname_base, res_name)
+                        ).glob('*res*.hdf5'):
+                    i = int(str(i_res)[-9:-5])
+                    if i >= start_idx:
+                        start_idx = i + 1
+            else:
+                start_idx = 0
+        else:
+            start_idx = 0
+        if start_idx < 100:
+            run_eco(idx, ecoset_path=ecoset_path, start_idx=start_idx)
+        print(f'index # {idx} complete\n', flush=True)
+
+
+def _resolve_idx(idx):
+    """ helper to convert linear index into simulation parameters.
+
+    """
+    # combined with all
+    variation = ['None_both', 'None_stim', 'None_subj', 'None_fancy',
+                 'both', 'stim', 'subj', 'both_fancy']
+    boot = ['both', 'pattern', 'rdm', 'fancy',
+            'both', 'pattern', 'rdm', 'fancy']
+    n_subj = [5, 10, 20, 40, 80]
+    n_stim = [10, 20, 40, 80, 160]
+
+    # varied separately
+    n_repeat = [4, 2, 8]
+    layer = [8, 2, 5, 10, 12]
+    sd = [0.05, 0, 0.25, np.inf]
+    n_vox = [100, 10, 1000]
+    i_separate = int(idx / 200)
+    i_all = idx % 200
+
+    (i_stim, i_sub, i_var) = np.unravel_index(
+        i_all, [len(n_stim), len(n_subj), len(variation)])
+    if i_separate < 5:
+        i_layer = i_separate
+        i_repeat = 0
+        i_sd = 0
+        i_vox = 0
+    elif i_separate < 7:
+        i_layer = 0
+        i_repeat = i_separate - 4
+        i_sd = 0
+        i_vox = 0
+    elif i_separate < 10:
+        i_layer = 0
+        i_repeat = 0
+        i_sd = i_separate - 6
+        i_vox = 0
+    elif i_separate < 12:
+        i_layer = 0
+        i_repeat = 0
+        i_sd = 0
+        i_vox = i_separate - 9
+    if i_vox == 2:
+        noise_type = 'eye'
+    else:
+        noise_type = 'residuals'
+    return (variation, boot, i_var, layer, i_layer, n_repeat, i_repeat, n_stim,
+            i_stim, n_subj, i_sub, sd, i_sd, n_vox, i_vox, noise_type)
 
 
 if __name__ == '__main__':
