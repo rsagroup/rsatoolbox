@@ -20,4 +20,4 @@ source activate RSA
 
 which python
 
-~/.conda/envs/RSA/bin/python stats.py -p /scratch/hhs4/ecoset/val fix_eco
+~/.conda/envs/RSA/bin/python stats.py -p /scratch/hhs4/ecoset/val fix_eco $index
