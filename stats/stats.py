@@ -394,7 +394,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
     res_name = get_resname(boot_type, rdm_type, model_type, rdm_comparison,
                            noise_type, n_stim, k_pattern, k_rdm)
     res_path = fname_base + res_name
-    print(res_path)
+    print(res_path, flush=True)
     if not os.path.isdir(res_path):
         os.mkdir(res_path)
     for i in tqdm.trange(start_idx, n_sim):
