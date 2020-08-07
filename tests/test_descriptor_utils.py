@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from unittest import TestCase
+"""
+test_descriptor_utils
+Test for descriptor utils
+@author: heiko, adkipnis
+"""
+
+import unittest
 import numpy as np
 
 
-class TestDescriptorUtils(TestCase):
+class TestDescriptorUtils(unittest.TestCase):
 
     def test_format_descriptor(self):
         from pyrsa.util.descriptor_utils import format_descriptor
@@ -65,3 +71,14 @@ class TestDescriptorUtils(TestCase):
         from pyrsa.util.descriptor_utils import check_descriptor_length_error
         descriptors = {'foo': ['bar', 'bar2']}
         check_descriptor_length_error(descriptors, 'test', 2)
+
+    def test_append_obs_descriptors(self):
+        from pyrsa.util.descriptor_utils import append_obs_descriptors
+        descriptors_1 = {'foo': ['bar1', 'bar2'], 'boo': ['far1']}
+        descriptors_2 = {'foo': ['bar3', 'bar4'], 'boo': ['far2']}
+        desc_appended = append_obs_descriptors(descriptors_1, descriptors_2)
+        assert np.all((desc_appended['foo'] == ['bar%d' % i for i in range(1,5)]))
+        assert np.all((desc_appended['boo'] == ['far%d' % i for i in range(1,3)]))
+ 
+if __name__ == '__main__':
+    unittest.main()
