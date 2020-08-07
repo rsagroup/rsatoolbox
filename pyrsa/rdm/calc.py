@@ -14,7 +14,7 @@ from pyrsa.util.matrix import pairwise_contrast_sparse
 
 
 def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
-             cv_descriptor=None, prior_lambda=1, prior_weight=0.1, sort_desc=True):
+             cv_descriptor=None, prior_lambda=1, prior_weight=0.1):
     """
     calculates an RDM from an input dataset
 
@@ -59,8 +59,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
         elif method == 'crossnobis':
             rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                      cv_descriptor,
-                                      sort_desc=sort_desc)
+                                      cv_descriptor)
         elif method == 'poisson':
             rdm = calc_rdm_poisson(dataset, descriptor,
                                    prior_lambda=prior_lambda,
@@ -69,8 +68,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             rdm = calc_rdm_poisson_cv(dataset, descriptor,
                                       cv_descriptor=cv_descriptor,
                                       prior_lambda=prior_lambda,
-                                      prior_weight=prior_weight,
-                                      sort_desc=sort_desc)
+                                      prior_weight=prior_weight)
         else:
             raise(NotImplementedError)
     return rdm
@@ -172,7 +170,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
 
 
 def calc_rdm_crossnobis(dataset, descriptor, noise=None,
-                        cv_descriptor=None, sort_desc=True):
+                        cv_descriptor=None):
     """
     calculates an RDM from an input dataset using Cross-nobis distance
     This performs leave one out crossvalidation over the cv_descriptor.
@@ -218,8 +216,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
         cv_desc = _gen_default_cv_descriptor(dataset, descriptor)
         dataset.obs_descriptors['cv_desc'] = cv_desc
         cv_descriptor = 'cv_desc'
-    if sort_desc:
-        dataset.sort_by(descriptor)
+    dataset.sort_by(descriptor)
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     weights = []
     rdms = []
@@ -278,7 +275,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
 
 
 def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
-                     prior_weight=0.1, sort_desc=True):
+                     prior_weight=0.1):
     """
     calculates an RDM from an input dataset using the symmetrized
     KL-divergence assuming a poisson distribution.
@@ -338,8 +335,8 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
         cv_desc = _gen_default_cv_descriptor(dataset, descriptor)
         dataset.obs_descriptors['cv_desc'] = cv_desc
         cv_descriptor = 'cv_desc'
-    if sort_desc:
-        dataset.sort_by(descriptor)
+
+    dataset.sort_by(descriptor)
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     for i_fold in range(len(cv_folds)):
         fold = cv_folds[i_fold]
