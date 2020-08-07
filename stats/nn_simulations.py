@@ -170,13 +170,22 @@ def get_sampled_representation(indices_space, weights, sd,
 def sample_representation(U, indices_space, weights, sd):
     sd = sd * U.shape[2]
     if len(U.shape) == 3:
-        U = gaussian_filter(U, [0, sd[0], sd[1]])
-        U = U[:, indices_space[0], indices_space[1]]
-        U = np.einsum('in,in->n', U, weights)
+        if np.isfinite(sd[0]):
+            U = gaussian_filter(U, [0, sd[0], sd[1]])
+            U = U[:, indices_space[0], indices_space[1]]
+            U = np.einsum('in, in->n', U, weights)
+        else:
+            # for infinite sd U is the same at all locations
+            U = np.mean(np.mean(U, axis=2), axis=1)
+            U = np.einsum('i, in->n', U, weights)
     elif len(U.shape) == 4:
-        U = gaussian_filter(U, [0, 0, sd[0], sd[1]])
-        U = U[:, :, indices_space[0], indices_space[1]]
-        U = np.einsum('kin,in->kn', U, weights)
+        if np.isfinite(sd[0]):
+            U = gaussian_filter(U, [0, 0, sd[0], sd[1]])
+            U = U[:, :, indices_space[0], indices_space[1]]
+            U = np.einsum('kin,in->kn', U, weights)
+        else:
+            U = np.mean(np.mean(U, axis=3), axis=2)
+            U = np.einsum('ki,in->kn', U, weights)
     return U
 
 
@@ -186,7 +195,12 @@ def get_sampled_sigmaP(Ushape, indices_space, weights, sd):
     stack = np.zeros((indices_space.shape[1], Ushape[1], Ushape[2]))
     for iC in range(indices_space.shape[1]):
         stack[iC, indices_space[0, iC], indices_space[1, iC]] = 1
-    stack = gaussian_filter(stack, [0, sd[0], sd[1]])
+    if np.isfinite(sd[0]):
+        stack = gaussian_filter(stack, [0, sd[0], sd[1]])
+    else:
+        stack = np.mean(
+            np.mean(stack, axis=1, keepdims=True), axis=2, keepdims=True)
+        stack = np.tile(stack, [1, Ushape[1], Ushape[2]])
     covGauss = (np.einsum('nij,kij->nk', stack, stack)
                 / stack.shape[1] / stack.shape[2])
     covWeights = np.einsum('in,ik->nk', weights, weights) / weights.shape[0]
