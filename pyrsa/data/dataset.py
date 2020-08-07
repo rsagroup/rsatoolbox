@@ -436,6 +436,10 @@ def nested_odd_even_split(dataset, l1_obs_desc, l2_obs_desc):
     according to the l1_obs_desc and each partition is again partitioned
     according to the l2_obs_desc (after which the actual oe-split occurs).
     
+    Useful for balancing, especially if the order of your measurements is
+    inconsistent, or if the two descriptors are not orthogonalized. It's
+    advised to apply .sort_by(l2_obs_desc) to the output of this function.
+    
     Args:
         dataset (Dataset):
             PyRSA dataset which will be split
