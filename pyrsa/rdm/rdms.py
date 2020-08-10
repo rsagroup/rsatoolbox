@@ -20,6 +20,7 @@ from pyrsa.util.file_io import write_dict_hdf5
 from pyrsa.util.file_io import write_dict_pkl
 from pyrsa.util.file_io import read_dict_hdf5
 from pyrsa.util.file_io import read_dict_pkl
+from pyrsa.util.file_io import remove_file
 
 
 class RDMs:
@@ -299,7 +300,7 @@ class RDMs:
                                                  rdm.rdm_descriptors)
         self.n_rdm = self.n_rdm + rdm.n_rdm
 
-    def save(self, filename, file_type='hdf5'):
+    def save(self, filename, file_type='hdf5', overwrite=False):
         """ saves the RDMs object into a file
 
         Args:
@@ -308,9 +309,12 @@ class RDMs:
             file_type(String): Type of file to create:
                 hdf5: hdf5 file
                 pkl: pickle file
+            overwrite(Boolean): overwrites file if it already exists
 
         """
         rdm_dict = self.to_dict()
+        if overwrite:
+            remove_file(filename)
         if file_type == 'hdf5':
             write_dict_hdf5(filename, rdm_dict)
         elif file_type == 'pkl':
