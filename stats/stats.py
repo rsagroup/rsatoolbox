@@ -760,14 +760,14 @@ def fix_eco(
     if a simulation is not finished yet. Proceeds in random order
     only ends if all simulations are complete.
     """
-    indices = np.array([3])  # np.random.permutation(2400)
+    indices = np.random.permutation(2400)
     for idx in indices:
         variation, boot, i_var, layer, i_layer, n_repeat, i_repeat, n_stim, \
             i_stim, n_subj, i_sub, sd, i_sd, n_vox, i_vox, noise_type = \
             _resolve_idx(idx)
         # check how far the simulation was processed
         if variation[i_var][:4] == 'None':
-            vari = 'None'
+            vari = None
         else:
             vari = variation[i_var]
         fname_base = get_fname_base(simulation_folder=simulation_folder,
