@@ -405,7 +405,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
             stim_paths = f.read()
             f.close()
             stim_paths = stim_paths.split('\n')
-        elif i == 0 or variation in ['stim', 'both']:
+        elif i == start_idx or variation in ['stim', 'both']:
             stim_paths = []
             folders = os.listdir(ecoset_path)
             for i_stim in range(n_stim_all):
@@ -421,7 +421,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
                     f.write("%s\n" % item)
         stim_list = get_stimuli_ecoset(ecoset_path, stim_paths[:n_stim])
         # Recalculate U_complete if necessary
-        if i == 0 or variation in ['stim', 'both']:
+        if i == start_idx or variation in ['stim', 'both']:
             U_complete = []
             for i_stim in range(n_stim):
                 U_complete.append(
@@ -440,7 +440,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
                     U_shape, indices_space[i_subj], weights[i_subj], [sd, sd])
                 sigmaP.append(sigmaP_subj)
             sigmaP = np.array(sigmaP)
-        elif i == 0 or variation in ['subj', 'both']:
+        elif i == start_idx or variation in ['subj', 'both']:
             sigmaP = []
             indices_space = []
             weights = []
@@ -461,7 +461,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
             np.save(fname_base + 'indices_space%04d.npy' % i, indices_space)
 
         # extract new dnn activations
-        if i == 0 or variation in ['subj', 'stim', 'both']:
+        if i == start_idx or variation in ['subj', 'stim', 'both']:
             Utrue = []
             for i_subj in range(n_subj):
                 Utrue_subj = [dnn.sample_representation(np.squeeze(U_c),
@@ -509,7 +509,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
 
         # run analysis
         # get models if stimulus changed, subjects are irrelevant
-        if i == 0 or variation in ['stim', 'both']:
+        if i == start_idx or variation in ['stim', 'both']:
             models = get_models(model_type, stim_list,
                                 n_layer=n_layer, n_sim=n_sim, smoothing=sd)
         # calculate RDMs
@@ -678,16 +678,19 @@ def summarize_eco(simulation_folder='sim_eco'):
                         idx = int(str(i_res)[-9:-5])
                         res = pyrsa.inference.load_results(i_res,
                                                            file_type='hdf5')
-                        no_nan_idx = ~np.isnan(res.evaluations[0, :])
+                        no_nan_idx = ~np.isnan(res.evaluations[:, 0, 0])
                         if np.any(no_nan_idx):
                             for i in range(12):
                                 for j in range(12):
                                     diff = (res.evaluations[:, i]
                                             - res.evaluations[:, j])
                                     pairwise[idx, i, j] = np.sum(
-                                        diff[~np.isnan(diff)] > 0)
-                            mean[idx] = np.mean(res.evaluations[:, no_nan_idx],
-                                                axis=0)
+                                        diff[no_nan_idx] > 0)
+                            m = np.mean(res.evaluations[no_nan_idx],
+                                        axis=0)
+                            while m.ndim > 1:
+                                m = np.mean(m, axis=-1)
+                            mean[idx] = m
                             variance[idx] = res.variances
                         else:
                             mean[idx] = np.nan
