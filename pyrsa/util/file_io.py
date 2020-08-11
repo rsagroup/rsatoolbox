@@ -123,12 +123,15 @@ def remove_file(file):
     """ Deletes file from OS if it exists
     
     Args:
-        file (str, Path or io.IOBase):
+        file (str, Path, or io.IOBase):
             a filename or opened readable file
 
     """
     import io
     from pathlib import Path
-    if isinstance(file, (str, Path, io.IOBase)) and os.path.exists(file):
+    if isinstance(file, (str, Path)) and os.path.exists(file):
         os.remove(file)
+    if isinstance(file, io.IOBase) and os.path.exists(file.name):
+        file.close()
+        os.remove(file.name)
     return
