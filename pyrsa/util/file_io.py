@@ -12,6 +12,7 @@ import numpy as np
 import os
 
 
+
 def write_dict_hdf5(file, dictionary):
     """ writes a nested dictionary containing strings & arrays as data into
     a hdf5 file
@@ -122,9 +123,12 @@ def remove_file(file):
     """ Deletes file from OS if it exists
     
     Args:
-        file: a filename or opened readable file
+        file (str, Path or io.IOBase):
+            a filename or opened readable file
 
     """
-    if isinstance(file, str) and os.path.exists(file):
+    import io
+    from pathlib import Path
+    if isinstance(file, (str, Path, io.IOBase)) and os.path.exists(file):
         os.remove(file)
     return
