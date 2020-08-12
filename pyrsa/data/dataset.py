@@ -300,8 +300,79 @@ class Dataset(DatasetBase):
         order = np.argsort(desc)
         self.measurements = self.measurements[order]
         self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
-
-
+    
+    def odd_even_split(self, obs_desc):
+        """
+        Perform a simple odd-even split on a PyRSA dataset. It will be partitioned
+        into n different datasets, where n is the number of distinct values on
+        dataset.obs_descriptors[obs_desc]. The resulting list will be split into
+        odd and even (index) subset. The datasets contained in these subsets will
+        then be merged.
+        
+        Args:
+            obs_desc (str):
+                Observation descriptor, basis for partitioning (must contained in
+                keys of dataset.obs_descriptors)
+        
+        Returns:
+            odd_split (Dataset):
+                subset of the Dataset with odd list-indices after partitioning
+                according to obs_desc
+            even_split (Dataset):
+                subset of the Dataset with even list-indices after partitioning
+                according to obs_desc
+        """
+        assert obs_desc in self.obs_descriptors.keys(), \
+            "obs_desc must be contained in keys of dataset.obs_descriptors"
+             
+        ds_part = self.split_obs(obs_desc)
+        odd_list = ds_part[0::2]
+        even_list = ds_part[1::2]
+        odd_split = merge_subsets(odd_list)
+        even_split = merge_subsets(even_list)
+    
+        return odd_split, even_split
+    
+    def nested_odd_even_split(self, l1_obs_desc, l2_obs_desc):
+        """
+        Nested version of odd_even_split, where dataset is first partitioned
+        according to the l1_obs_desc and each partition is again partitioned
+        according to the l2_obs_desc (after which the actual oe-split occurs).
+        
+        Useful for balancing, especially if the order of your measurements is
+        inconsistent, or if the two descriptors are not orthogonalized. It's
+        advised to apply .sort_by(l2_obs_desc) to the output of this function.
+        
+        Args:
+            l1_obs_desc (str):
+                Observation descriptor, basis for level 1 partitioning
+                (must contained in keys of dataset.obs_descriptors)
+            
+        Returns:
+            odd_split (Dataset):
+                subset of the Dataset with odd list-indices after partitioning
+                according to obs_desc
+            even_split (Dataset):
+                subset of the Dataset with even list-indices after partitioning
+                according to obs_desc
+    
+        """
+        assert l1_obs_desc and l2_obs_desc in self.obs_descriptors.keys(), \
+            "observation descriptors must be contained in keys of dataset.obs_descriptors"
+            
+        ds_part = self.split_obs(l1_obs_desc)
+        odd_list = []
+        even_list = []
+        for partition in ds_part:
+            odd_split, even_split = partition.odd_even_split(l2_obs_desc)
+            odd_list.append(odd_split)
+            even_list.append(even_split)
+        odd_split = merge_subsets(odd_list)
+        even_split = merge_subsets(even_list)
+        
+        return odd_split, even_split
+    
+    
 def load_dataset(filename, file_type=None):
     """ loads a Dataset object from disc
 
@@ -394,79 +465,79 @@ def merge_subsets(dataset_list):
 
 
 
-def odd_even_split(dataset, obs_desc):
-    """
-    Perform a simple odd-even split on a PyRSA dataset. It will be partitioned
-    into n different datasets, where n is the number of distinct values on
-    dataset.obs_descriptors[obs_desc]. The resulting list will be split into
-    odd and even (index) subset. The datasets contained in these subsets will
-    then be merged.
+# def odd_even_split(dataset, obs_desc):
+#     """
+#     Perform a simple odd-even split on a PyRSA dataset. It will be partitioned
+#     into n different datasets, where n is the number of distinct values on
+#     dataset.obs_descriptors[obs_desc]. The resulting list will be split into
+#     odd and even (index) subset. The datasets contained in these subsets will
+#     then be merged.
     
-    Args:
-        dataset (Dataset):
-            PyRSA dataset which will be split
-        obs_desc (str):
-            Observation descriptor, basis for partitioning (must contained in
-            keys of dataset.obs_descriptors)
+#     Args:
+#         dataset (Dataset):
+#             PyRSA dataset which will be split
+#         obs_desc (str):
+#             Observation descriptor, basis for partitioning (must contained in
+#             keys of dataset.obs_descriptors)
     
-    Returns:
-        odd_split (Dataset):
-            subset of the Dataset with odd list-indices after partitioning
-            according to obs_desc
-        even_split (Dataset):
-            subset of the Dataset with even list-indices after partitioning
-            according to obs_desc
-    """
-    assert obs_desc in dataset.obs_descriptors.keys(), \
-        "obs_desc must be contained in keys of dataset.obs_descriptors"
+#     Returns:
+#         odd_split (Dataset):
+#             subset of the Dataset with odd list-indices after partitioning
+#             according to obs_desc
+#         even_split (Dataset):
+#             subset of the Dataset with even list-indices after partitioning
+#             according to obs_desc
+#     """
+#     assert obs_desc in dataset.obs_descriptors.keys(), \
+#         "obs_desc must be contained in keys of dataset.obs_descriptors"
          
-    ds_part = dataset.split_obs(obs_desc)
-    odd_list = ds_part[0::2]
-    even_list = ds_part[1::2]
-    odd_split = merge_subsets(odd_list)
-    even_split = merge_subsets(even_list)
+#     ds_part = dataset.split_obs(obs_desc)
+#     odd_list = ds_part[0::2]
+#     even_list = ds_part[1::2]
+#     odd_split = merge_subsets(odd_list)
+#     even_split = merge_subsets(even_list)
     
     
-    return odd_split, even_split
+#     return odd_split, even_split
 
 
-def nested_odd_even_split(dataset, l1_obs_desc, l2_obs_desc):
-    """
-    Nested version of odd_even_split, where dataset is first partitioned
-    according to the l1_obs_desc and each partition is again partitioned
-    according to the l2_obs_desc (after which the actual oe-split occurs).
+# def nested_odd_even_split(dataset, l1_obs_desc, l2_obs_desc):
+#     """
+#     Nested version of odd_even_split, where dataset is first partitioned
+#     according to the l1_obs_desc and each partition is again partitioned
+#     according to the l2_obs_desc (after which the actual oe-split occurs).
     
-    Useful for balancing, especially if the order of your measurements is
-    inconsistent, or if the two descriptors are not orthogonalized. It's
-    advised to apply .sort_by(l2_obs_desc) to the output of this function.
+#     Useful for balancing, especially if the order of your measurements is
+#     inconsistent, or if the two descriptors are not orthogonalized. It's
+#     advised to apply .sort_by(l2_obs_desc) to the output of this function.
     
-    Args:
-        dataset (Dataset):
-            PyRSA dataset which will be split
-        l1_obs_desc (str):
-            Observation descriptor, basis for level 1 partitioning
-            (must contained in keys of dataset.obs_descriptors)
+#     Args:
+#         dataset (Dataset):
+#             PyRSA dataset which will be split
+#         l1_obs_desc (str):
+#             Observation descriptor, basis for level 1 partitioning
+#             (must contained in keys of dataset.obs_descriptors)
         
-    Returns:
-        odd_split (Dataset):
-            subset of the Dataset with odd list-indices after partitioning
-            according to obs_desc
-        even_split (Dataset):
-            subset of the Dataset with even list-indices after partitioning
-            according to obs_desc
+#     Returns:
+#         odd_split (Dataset):
+#             subset of the Dataset with odd list-indices after partitioning
+#             according to obs_desc
+#         even_split (Dataset):
+#             subset of the Dataset with even list-indices after partitioning
+#             according to obs_desc
 
-    """
-    assert l1_obs_desc and l2_obs_desc in dataset.obs_descriptors.keys(), \
-        "obs_desc must be contained in keys of dataset.obs_descriptors"
+#     """
+#     assert l1_obs_desc and l2_obs_desc in dataset.obs_descriptors.keys(), \
+#         "observation descriptors must be contained in keys of dataset.obs_descriptors"
         
-    ds_part = dataset.split_obs(l1_obs_desc)
-    odd_list = []
-    even_list = []
-    for partition in ds_part:
-        odd_split, even_split = odd_even_split(partition, l2_obs_desc)
-        odd_list.append(odd_split)
-        even_list.append(even_split)
-    odd_split = merge_subsets(odd_list)
-    even_split = merge_subsets(even_list)
+#     ds_part = dataset.split_obs(l1_obs_desc)
+#     odd_list = []
+#     even_list = []
+#     for partition in ds_part:
+#         odd_split, even_split = odd_even_split(partition, l2_obs_desc)
+#         odd_list.append(odd_split)
+#         even_list.append(even_split)
+#     odd_split = merge_subsets(odd_list)
+#     even_split = merge_subsets(even_list)
     
-    return odd_split, even_split
+#     return odd_split, even_split

@@ -262,8 +262,7 @@ class TestOESplit(unittest.TestCase):
             )
     
     def test_odd_even_split(self):
-        self.odd_split, self.even_split = rsd.odd_even_split(
-            self.full_data, 'conds')
+        self.odd_split, self.even_split = self.full_data.odd_even_split('conds')
         
         np.testing.assert_array_equal(
             self.odd_data.measurements,
@@ -320,8 +319,8 @@ class TestNestedOESplit(unittest.TestCase):
             )
     
     def test_odd_even_split(self):
-        self.odd_split, self.even_split = rsd.nested_odd_even_split(
-            self.full_data, 'conds', 'runs')
+        self.odd_split, self.even_split = self.full_data.nested_odd_even_split(
+            'conds', 'runs')
         self.odd_split.sort_by('runs')
         self.even_split.sort_by('runs')
         
