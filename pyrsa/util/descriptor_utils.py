@@ -165,3 +165,4 @@ def append_obs_descriptors(dict_orig, dict_addit):
         values = np.array(np.append(dict_orig[k], dict_addit[k]))
         dict_merged.update({k:values})
     return dict_merged
+

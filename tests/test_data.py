@@ -224,14 +224,17 @@ class TestMerge(unittest.TestCase):
     def test_merge(self):
         subsets = self.test_data.split_obs('conds')
         self.test_data_merged = rsd.merge_subsets(subsets)
-        assert np.all(self.test_data_merged.measurements == \
-                self.test_data.measurements)
-        assert self.test_data_merged.descriptors == \
-                self.test_data.descriptors
-        assert np.all(self.test_data_merged.obs_descriptors['conds'] == \
-                self.test_data.obs_descriptors['conds'])
-        assert np.all(self.test_data_merged.channel_descriptors['rois'] == \
-                self.test_data.channel_descriptors['rois'])
+        np.testing.assert_array_equal(
+            self.test_data_merged.measurements,
+            self.test_data.measurements)
+        self.assertEqual(self.test_data_merged.descriptors,
+                         self.test_data.descriptors)
+        np.testing.assert_array_equal(
+            self.test_data_merged.obs_descriptors['conds'],
+            self.test_data.obs_descriptors['conds'])
+        np.testing.assert_array_equal(
+            self.test_data_merged.channel_descriptors['rois'],
+            self.test_data.channel_descriptors['rois'])
 
 class TestOESplit(unittest.TestCase):
     def setUp(self):
@@ -259,24 +262,31 @@ class TestOESplit(unittest.TestCase):
             )
     
     def test_odd_even_split(self):
-        self.odd_split, self.even_split = rsd.odd_even_split(self.full_data, 'conds')
+        self.odd_split, self.even_split = rsd.odd_even_split(
+            self.full_data, 'conds')
         
-        assert np.all(self.odd_data.measurements == \
-                self.odd_split.measurements)
-        assert self.odd_data.descriptors == \
-                self.odd_split.descriptors
-        assert np.all(self.odd_data.obs_descriptors['conds'] == \
-                self.odd_split.obs_descriptors['conds'])
-        assert np.all(self.odd_data.channel_descriptors['rois'] == \
-                self.odd_split.channel_descriptors['rois'])   
-        assert np.all(self.even_data.measurements == \
-                self.even_split.measurements)
-        assert self.even_data.descriptors == \
-                self.even_split.descriptors
-        assert np.all(self.even_data.obs_descriptors['conds'] == \
-                self.even_split.obs_descriptors['conds'])
-        assert np.all(self.even_data.channel_descriptors['rois'] == \
-                self.even_split.channel_descriptors['rois'])     
+        np.testing.assert_array_equal(
+            self.odd_data.measurements,
+            self.odd_split.measurements)
+        self.assertEqual(self.odd_data.descriptors,
+                         self.odd_split.descriptors)
+        np.testing.assert_array_equal(
+            self.odd_data.obs_descriptors['conds'],
+            self.odd_split.obs_descriptors['conds'])
+        np.testing.assert_array_equal(
+            self.odd_data.channel_descriptors['rois'],
+            self.odd_split.channel_descriptors['rois'])   
+        np.testing.assert_array_equal(
+            self.even_data.measurements,
+            self.even_split.measurements)
+        self.assertEqual(self.even_data.descriptors,
+                         self.even_split.descriptors)
+        np.testing.assert_array_equal(
+            self.even_data.obs_descriptors['conds'],
+            self.even_split.obs_descriptors['conds'])
+        np.testing.assert_array_equal(
+            self.even_data.channel_descriptors['rois'],
+            self.even_split.channel_descriptors['rois'])     
 
 class TestNestedOESplit(unittest.TestCase):
     def setUp(self):
@@ -293,14 +303,16 @@ class TestNestedOESplit(unittest.TestCase):
             channel_descriptors=chn_des
             ) 
         self.odd_data = rsd.Dataset(
-            measurements=np.append(measurements[0:4], measurements[8:12], axis=0),
+            measurements=np.append(measurements[0:4], measurements[8:12],
+                                   axis=0),
             descriptors=des,
             obs_descriptors={'conds': np.hstack((conds, conds)),
                              'runs': np.repeat(runs[0::2], 4)},
             channel_descriptors=chn_des
             )         
         self.even_data = rsd.Dataset(
-            measurements=np.append(measurements[4:8], measurements[12:16], axis=0),
+            measurements=np.append(measurements[4:8], measurements[12:16],
+                                   axis=0),
             descriptors=des,
            obs_descriptors={'conds': np.hstack((conds, conds)),
                              'runs': np.repeat(runs[1::2], 4)},
@@ -308,26 +320,33 @@ class TestNestedOESplit(unittest.TestCase):
             )
     
     def test_odd_even_split(self):
-        self.odd_split, self.even_split = rsd.nested_odd_even_split(self.full_data, 'conds', 'runs')
+        self.odd_split, self.even_split = rsd.nested_odd_even_split(
+            self.full_data, 'conds', 'runs')
         self.odd_split.sort_by('runs')
         self.even_split.sort_by('runs')
         
-        assert np.all(self.odd_data.measurements == \
-                self.odd_split.measurements)
-        assert self.odd_data.descriptors == \
-                self.odd_split.descriptors
-        assert np.all(self.odd_data.obs_descriptors['conds'] == \
-                self.odd_split.obs_descriptors['conds'])
-        assert np.all(self.odd_data.channel_descriptors['rois'] == \
-                self.odd_split.channel_descriptors['rois'])   
-        assert np.all(self.even_data.measurements == \
-                self.even_split.measurements)
-        assert self.even_data.descriptors == \
-                self.even_split.descriptors
-        assert np.all(self.even_data.obs_descriptors['conds'] == \
-                self.even_split.obs_descriptors['conds'])
-        assert np.all(self.even_data.channel_descriptors['rois'] == \
-                self.even_split.channel_descriptors['rois'])
+        np.testing.assert_array_equal(
+            self.odd_data.measurements,
+            self.odd_split.measurements)
+        self.assertEqual(self.odd_data.descriptors,
+                         self.odd_split.descriptors)
+        np.testing.assert_array_equal(
+            self.odd_data.obs_descriptors['conds'], 
+            self.odd_split.obs_descriptors['conds'])
+        np.testing.assert_array_equal(
+            self.odd_data.channel_descriptors['rois'], 
+            self.odd_split.channel_descriptors['rois'])   
+        np.testing.assert_array_equal(
+            self.even_data.measurements, 
+            self.even_split.measurements)
+        self.assertEqual(self.even_data.descriptors,
+                         self.even_split.descriptors)
+        np.testing.assert_array_equal(
+            self.even_data.obs_descriptors['conds'],
+            self.even_split.obs_descriptors['conds'])
+        np.testing.assert_array_equal(
+            self.even_data.channel_descriptors['rois'],
+            self.even_split.channel_descriptors['rois'])
             
 if __name__ == '__main__':
     unittest.main()
