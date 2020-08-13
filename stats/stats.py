@@ -680,7 +680,7 @@ def summarize_eco(simulation_folder='sim_eco'):
                                                            file_type='hdf5')
                         if res.evaluations.ndim == 2:
                             no_nan_idx = ~np.isnan(res.evaluations[:, 0])
-                        elif res.evaluations.n_dim == 3:
+                        elif res.evaluations.ndim == 3:
                             no_nan_idx = ~np.isnan(res.evaluations[:, 0, 0])
                         if np.any(no_nan_idx):
                             for i in range(12):
