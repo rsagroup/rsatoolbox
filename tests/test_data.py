@@ -208,8 +208,6 @@ class TestSave(unittest.TestCase):
 
 class TestMerge(unittest.TestCase):
     def setUp(self):
-        # measurements = np.array([i for i in range(10,50)])
-        # measurements = np.reshape(measurements, (4,10))
         measurements = np.random.rand(4, 10)
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([str(i) for i in range(1,5)])}
