@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan 24 16:55:20 2020
-
-@author: heiko
+boostrap-testset evaluation methods
+variants of taking a bootstrap sample and taking the unsampled patterns as
+a testset
 """
 
 import numpy as np

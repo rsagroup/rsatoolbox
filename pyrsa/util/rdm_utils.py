@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Collection of helper methods for rdm module
-
-+ batch_to_vectors:  batch squareform() to vectors
-+ batch_to_matrices: batch squareform() to matrices
-
-@author: baihan
-
+"""
+utility methods for rdm module
 """
 
 import numpy as np

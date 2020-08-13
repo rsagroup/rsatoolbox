@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec  6 13:01:12 2019
-
-@author: heiko
+Comparison methods for comparing two RDMs objects
 """
 import numpy as np
 import scipy.stats
-import scipy.sparse.linalg as s_lin
 from scipy.stats._stats import _kendall_dis
 from pyrsa.util.matrix import pairwise_contrast_sparse
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors

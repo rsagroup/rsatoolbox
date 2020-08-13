@@ -2,11 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Collection of different utility Matrices
-    indicator:  indicator variable for each unique element in vector
-    pairwise_contrast:  All n_unique*(n_unique-1)/2 pairwise contrasts
-    centering: Centering matrix which removes the column or row mean
-
-@author: jdiedrichsen
 """
 
 import numpy as np

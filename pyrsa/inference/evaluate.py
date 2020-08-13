@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-inference module: evaluate models
-@author: heiko
+evaluate model performance
 """
 
 import numpy as np

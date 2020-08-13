@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jan 20 09:44:04 2020
-
-@author: heiko
+generation of crossvalidation splits
 """
 
 import numpy as np

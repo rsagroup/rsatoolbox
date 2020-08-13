@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Apr 13 12:42:06 2020
-
-@author: heiko
+Noise handling operations, especially estimating covariances and precisions
+from residuals
 """
 
 from collections.abc import Iterable

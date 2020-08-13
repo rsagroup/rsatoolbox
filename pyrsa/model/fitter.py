@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan 24 15:54:31 2020
-
-@author: heiko
+Parameter fitting methods for models
 """
 
 import numpy as np

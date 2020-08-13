@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Definition of visualization methods
-@author: baihan
 """
 
 import numpy as np

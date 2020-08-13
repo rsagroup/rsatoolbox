@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Feb 13 14:56:15 2020
-
-@author: heiko
+Inference module utilities
 """
 
 import numpy as np

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Definition of RSA Dataset class and subclasses
-@author: baihan, jdiedrichsen
 """
 
 

@@ -2,11 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Collection of helper methods for data module
-
-+ extract_dict:        extract key-value pairs with values given indexes.
-+ get_unique_unsorted: return a unique unsorted list
-
-@author: baihan
 """
 
 import numpy as np
