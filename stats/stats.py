@@ -678,7 +678,10 @@ def summarize_eco(simulation_folder='sim_eco'):
                         idx = int(str(i_res)[-9:-5])
                         res = pyrsa.inference.load_results(i_res,
                                                            file_type='hdf5')
-                        no_nan_idx = ~np.isnan(res.evaluations[:, 0])
+                        if res.evaluations.ndim == 2:
+                            no_nan_idx = ~np.isnan(res.evaluations[:, 0])
+                        elif res.evaluations.n_dim == 3:
+                            no_nan_idx = ~np.isnan(res.evaluations[:, 0, 0])
                         if np.any(no_nan_idx):
                             for i in range(12):
                                 for j in range(12):
