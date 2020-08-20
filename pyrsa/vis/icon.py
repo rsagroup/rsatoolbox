@@ -119,10 +119,14 @@ class Icon:
                 imagebox, (x, y),  frameon=False,
                 pad=0)
             ax.add_artist(ab)
+            zorder = ab.zorder
+        else:
+            zorder = 0
         if self.string is not None:
             ax.annotate(self.string, (x, y),
                         horizontalalignment='center',
-                        verticalalignment='center')
+                        verticalalignment='center',
+                        zorder=zorder + 1)
         if self.border_color is not None:
             pass
 
@@ -159,6 +163,9 @@ class Icon:
                     },
                 pad=0.1)
             ax.add_artist(ab)
+            zorder = ab.zorder
+        else:
+            zorder = 0
         if self.string is not None:
             ax.annotate(
                 self.string, (x, 0),
@@ -171,7 +178,8 @@ class Icon:
                     'arrowstyle': '-',
                     'shrinkA': 0,
                     'shrinkB': 1
-                    })
+                    },
+                zorder=zorder + 1)
 
     def y_tick_label(self, y, size, offset=7, ax=None):
         """
@@ -206,6 +214,9 @@ class Icon:
                     },
                 pad=0.1)
             ax.add_artist(ab)
+            zorder = ab.zorder
+        else:
+            zorder = 0
         if self.string is not None:
             ax.annotate(
                 self.string, (0, y),
@@ -218,14 +229,15 @@ class Icon:
                     'arrowstyle': '-',
                     'shrinkA': 0,
                     'shrinkB': 1
-                    })
+                    },
+                zorder=zorder + 1)
 
 
 test_im = PIL.Image.fromarray(255 * np.random.rand(50, 100))
 ic = Icon(image=test_im)
 ax = plt.subplot(1, 1, 1)
 ic.plot(0.5, 0.5, ax=ax)
-ic2 = Icon(image=test_im, border_color='black', border_width=15)
+ic2 = Icon(image=test_im, border_color='black', border_width=15, string='test')
 ic2.plot(0.8, 0.2, ax=ax, size=0.4)
 ic2.x_tick_label(0.5, 0.15, offset=7)
 ic2.y_tick_label(0.5, 0.25, offset=7)
