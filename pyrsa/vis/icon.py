@@ -15,10 +15,24 @@ class Icon:
     an axis label.
 
     Args:
-        image
-        string
-        col
-        border_color
+        image (np.ndarray or PIL.Image)
+            the image to use as an icon
+        string (String)
+            string to place on the icon
+        col (color definition)
+            background color
+        border_color (color defintion)
+            color of the border around the image
+            default: None -> no border
+        cmap (color map)
+            color map applied to the image
+        border_type (String)
+            'pad' : pads the image with the border color
+        border_width (integer)
+            width of the border
+        make_square (bool)
+            if set to true the image is first reshaped into a square
+
     """
 
     def __init__(self, image=None, string=None, col=None, border_color=None,
@@ -36,6 +50,9 @@ class Icon:
 
     def set(self, image=None, string=None, col=None, border_color=None,
             cmap=None, border_type=None, border_width=None, make_square=None):
+        """ sets individual parameters of the object and recomputes the
+        icon image
+        """
         if image is not None:
             self.image = image
         if string is not None:
@@ -55,6 +72,8 @@ class Icon:
         self.recompute_final_image()
 
     def recompute_final_image(self):
+        """ computes the icon image from the parameters
+        """
         if self.image is None:
             self.final_image = None
             return
@@ -74,18 +93,18 @@ class Icon:
         self.final_image = im
 
     def plot(self, x, y, ax=None, size=None):
-        """
-        plots the icon into an axis
+        """ plots the icon into an axis
 
-        Args
-        ax : TYPE
-            DESCRIPTION.
-        x : TYPE
-            DESCRIPTION.
-        y : TYPE
-            DESCRIPTION.
-        size : float
-            size of the icon
+        Args:
+            x (float)
+                x-position
+            y (float)
+                y-position
+            ax (matplotlib axis)
+                the axis to plot in
+            size : float
+                size of the icon scaling the image
+
         """
         if ax is None:
             ax = plt.gca()
@@ -111,12 +130,15 @@ class Icon:
         """
         uses the icon as a ticklabel at location x
 
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None.
+        Args:
+            x (float)
+                the position of the tick
+            size (float)
+                scaling the size of the icon
+            offset (integer)
+                how far the icon should be from the axis in points
+            ax (matplotlib axis)
+                the axis to put the label on
 
         """
         if ax is None:
@@ -153,14 +175,17 @@ class Icon:
 
     def y_tick_label(self, y, size, offset=7, ax=None):
         """
-        uses the icon as a ticklabel at location y
+        uses the icon as a ticklabel at location x
 
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None.
+        Args:
+            y (float)
+                the position of the tick
+            size (float)
+                scaling the size of the icon
+            offset (integer)
+                how far the icon should be from the axis in points
+            ax (matplotlib axis)
+                the axis to put the label on
 
         """
         if ax is None:
