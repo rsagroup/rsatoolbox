@@ -5,9 +5,10 @@ icon object which can be plotted into an axis
 """
 
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import numpy as np
 import PIL
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 
 class Icon:
@@ -78,9 +79,16 @@ class Icon:
             self.final_image = None
             return
         elif isinstance(self.image, np.ndarray):
-            im = PIL.Image.fromarray(self.image)
+            if self.image.dtype == np.float and np.any(self.image > 1):
+                im = self.image / 255
+            else:
+                im = self.image
+            if self.cmap is not None:
+                im = cm.get_cmap(self.cmap)(im)
+            im = PIL.Image.fromarray((im * 255).astype(np.uint8))
         else:  # we hope it is a PIL image or equivalent
             im = self.image
+        im = im.convert('RGBA')
         if self.make_square:
             new_size = max(im.width, im.height)
             im = im.resize((new_size, new_size), PIL.Image.NEAREST)
@@ -110,11 +118,9 @@ class Icon:
             ax = plt.gca()
         if self.final_image is not None:
             if size is None:
-                imagebox = OffsetImage(self.final_image,
-                                       cmap=self.cmap, zoom=1)
+                imagebox = OffsetImage(self.final_image, zoom=1)
             else:
-                imagebox = OffsetImage(self.final_image,
-                                       cmap=self.cmap, zoom=size)
+                imagebox = OffsetImage(self.final_image, zoom=size)
             ab = AnnotationBbox(
                 imagebox, (x, y),  frameon=False,
                 pad=0)
@@ -234,7 +240,7 @@ class Icon:
 
 
 test_im = PIL.Image.fromarray(255 * np.random.rand(50, 100))
-ic = Icon(image=test_im)
+ic = Icon(image=255 * np.random.rand(50, 100), cmap='Blues')
 ax = plt.subplot(1, 1, 1)
 ic.plot(0.5, 0.5, ax=ax)
 ic2 = Icon(image=test_im, border_color='black', border_width=15, string='test')
