@@ -285,7 +285,10 @@ def plot_eco(simulation_folder='sim_eco', variation='both', savefig=False):
         stds = stds[variations == variation]
     true_std = np.nanstd(means, axis=1)
     std_mean = np.nanmean(stds, axis=1)
+    std_mean = np.array([np.diag(i) for i in std_mean])
+    std_mean = np.sqrt(std_mean)  # those are actually variances!
     std_var = np.nanvar(stds, axis=1)
+    std_var = np.array([np.diag(i) for i in std_var])
     std_relative = std_mean / true_std
     std_std = np.sqrt(std_var)
     # seaborn based plotting
