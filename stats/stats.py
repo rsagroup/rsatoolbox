@@ -533,7 +533,8 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
         # rdms_true = pyrsa.rdm.calc_rdm(dat_true)
         # run inference & save it
         results = run_inference(models, rdms, method=rdm_comparison,
-                                bootstrap=boot_type)
+                                bootstrap=boot_type,
+                                k_rdm=k_rdm, k_pattern=k_pattern)
         results.save(res_path + '/res%04d.hdf5' % (i))
 
 
@@ -812,8 +813,8 @@ def _resolve_idx(idx):
     # combined with all
     variation = ['None_both', 'None_stim', 'None_subj', 'None_fancy',
                  'both', 'stim', 'subj', 'both_fancy']
-    boot = ['both', 'pattern', 'rdm', 'fancy',
-            'both', 'pattern', 'rdm', 'fancy']
+    boot = ['both', 'pattern', 'rdm', 'fancyboot',
+            'both', 'pattern', 'rdm', 'fancyboot']
     n_subj = [5, 10, 20, 40, 80]
     n_stim = [10, 20, 40, 80, 160]
 

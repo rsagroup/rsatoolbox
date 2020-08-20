@@ -151,6 +151,9 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
         else:
             results = pyrsa.inference.eval_fancy(
                 model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
+    elif bootstrap == 'fancyboot':
+        results = pyrsa.inference.eval_fancy(
+            model, rdms, method=method, k_pattern=1, k_rdm=1)
     return results
 
 
