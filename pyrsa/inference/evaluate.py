@@ -487,9 +487,17 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
                 pattern_descriptor=pattern_descriptor,
                 rdm_descriptor=rdm_descriptor,
                 k_pattern=k_pattern, k_rdm=k_rdm, random=random)
-            cv_nc = cv_noise_ceiling(sample, ceil_set, test_set, method=method,
-                                     pattern_descriptor=pattern_descriptor)
-            noise_ceil[:, i_sample] = cv_nc
+            if k_rdm > 1 or k_pattern > 1:
+                cv_nc = cv_noise_ceiling(sample, ceil_set, test_set,
+                                         method=method,
+                                         pattern_descriptor=pattern_descriptor)
+                noise_ceil[:, i_sample] = cv_nc
+            else:
+                nc = boot_noise_ceiling(
+                    sample,
+                    method=method,
+                    rdm_descriptor=rdm_descriptor)
+                noise_ceil[:, i_sample] = nc
             for idx in range(len(test_set)):
                 test_set[idx][1] = _concat_sampling(pattern_sample,
                                                     test_set[idx][1])
