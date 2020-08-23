@@ -299,7 +299,37 @@ class Dataset(DatasetBase):
         order = np.argsort(desc)
         self.measurements = self.measurements[order]
         self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
+        
+    def get_measurements(self):
+        "Getter function for measurements"
+        return self.measurements.copy()
+    
+    def get_measurements_tensor(self, by):
+        """ Returns a tensor version of the measurements array, split by an 
+        observation descriptor
 
+        Args:
+            by(String):
+                the descriptor by which the splitting is made
+
+        Returns:
+            measurements_tensor (ndarray):
+                3d array with the selected obs_descriptor constituting the
+                third dimension.
+        """
+        assert len(self.obs_descriptors.keys()) > 1, \
+            "dataset has too few obs_descriptors to build a tensor from it"
+        assert by in self.obs_descriptors.keys(), \
+            "third dimension not in obs_descriptors"
+        unique_values = get_unique_unsorted(self.obs_descriptors[by])
+        measurements_list = []
+        for v in unique_values:
+            selection = (self.obs_descriptors[by] == v)
+            measurements_subset = self.measurements[selection, :]
+            measurements_list.append(measurements_subset)
+        measurements_tensor = np.stack(measurements_list, axis=0)
+        measurements_tensor = np.swapaxes(measurements_tensor, 1, 2)
+        return measurements_tensor
 
 def load_dataset(filename, file_type=None):
     """ loads a Dataset object from disc
