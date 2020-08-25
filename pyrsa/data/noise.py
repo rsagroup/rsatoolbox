@@ -197,8 +197,7 @@ def cov_from_measurements(dataset, obs_desc, dof=None):
 def prec_from_measurements(dataset, obs_desc, dof=None):
     """
     Computes a covariance matrix for measurements, applies a shrinkage
-    transform to it and finds its multiplicative inverse
-    (= the precision matrix)
+    transform to it and finds its inverse, i.e. the precision matrix
 
     Args:
         residuals(numpy.ndarray or list of these): n_residuals x n_channels
