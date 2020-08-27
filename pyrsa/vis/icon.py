@@ -34,47 +34,80 @@ class Icon:
             width of the border
         make_square (bool)
             if set to true the image is first reshaped into a square
+        circ_cut (flag)
+            sets how the icon is cut into circular shape
+            None : default, no cutting
+            'cut' : sets alpha to 0 out of a circular aperture
+            'cosine' : sets alpha to a raised cosine window
+            a number between 0 and 1 : a tukey window with the flat proportion
+                of the aperture given by the number. For 0 this corresponds
+                to the cosine window, for 1 it corresponds to 'cut'.
 
     """
 
     def __init__(self, image=None, string=None, col=None, border_color=None,
                  cmap=None, border_type='pad', border_width=2,
-                 make_square=False):
-        self.image = image
-        self.string = string
-        self.col = col
-        self.border_color = border_color
-        self.border_type = border_type
-        self.border_width = border_width
-        self.cmap = cmap
-        self.make_square = make_square
-        self.recompute_final_image()
+                 make_square=False, circ_cut=None):
+        self.set(image, string, col, border_color, cmap, border_type,
+                 border_width, make_square, circ_cut)
 
     def set(self, image=None, string=None, col=None, border_color=None,
-            cmap=None, border_type=None, border_width=None, make_square=None):
+            cmap=None, border_type=None, border_width=None, make_square=None,
+            circ_cut=None):
         """ sets individual parameters of the object and recomputes the
         icon image
         """
         if image is not None:
             self.image = image
+        else:
+            self.image = getattr(self, 'image', None)
         if string is not None:
             self.string = string
+        else:
+            self.string = getattr(self, 'string', None)
         if col is not None:
             self.col = col
+        else:
+            self.col = getattr(self, 'col', None)
         if border_color is not None:
             self.border_color = border_color
+        else:
+            self.border_color = getattr(self, 'border_color', None)
         if cmap is not None:
             self.cmap = cmap
+        else:
+            self.cmap = getattr(self, 'cmap', None)
         if border_type is not None:
             self.border_type = border_type
+        else:
+            self.border_type = getattr(self, 'border_type', None)
         if border_width is not None:
             self.border_width = border_width
+        else:
+            self.border_width = getattr(self, 'border_width', None)
         if make_square is not None:
             self.make_square = make_square
+        else:
+            self.make_square = getattr(self, 'make_square', None)
+        if circ_cut is not None:
+            if circ_cut == 'cut':
+                self.circ_cut = 1
+            elif circ_cut == 'cosine':
+                self.circ_cut = 0
+            else:
+                assert circ_cut <= 1 and circ_cut >= 0, \
+                    'a numeric circ_cut must be in [0,1]'
+                self.circ_cut = circ_cut
+        else:
+            self.circ_cut = getattr(self, 'circ_cut', None)
         self.recompute_final_image()
 
     def recompute_final_image(self):
         """ computes the icon image from the parameters
+
+        This function handles most of the image processing and must be run
+        again if any properties are changed. If you use set to change
+        properties this is automatically run.
         """
         if self.image is None:
             self.final_image = None
@@ -93,6 +126,25 @@ class Icon:
         if self.make_square:
             new_size = max(im.width, im.height)
             im = im.resize((new_size, new_size), PIL.Image.NEAREST)
+        if self.circ_cut is not None:
+            middle = np.array(im.size) / 2
+            x = np.arange(im.size[0]) - middle[0] + 0.5
+            x = x / np.max(np.abs(x))
+            y = np.arange(im.size[1]) - middle[1] + 0.5
+            y = y / np.max(np.abs(y))
+            yy, xx = np.meshgrid(y, x)
+            r = np.sqrt(xx ** 2 + yy ** 2)
+            alpha = np.empty(r.shape)
+            alpha[r > 1] = 0
+            alpha[r <= self.circ_cut] = 1
+            val = (r > self.circ_cut) & (r <= 1)
+            alpha[val] = (
+                0.5 + 0.5 * np.cos(
+                    np.pi * (r[val] - self.circ_cut)
+                    / (1 - self.circ_cut)))
+            alpha = alpha.T * np.array(im.getchannel('A'))
+            alpha = PIL.Image.fromarray(np.uint8(alpha))
+            im.putalpha(alpha)
         if self.border_color is not None:
             if self.border_type == 'pad':
                 im = PIL.ImageOps.expand(
