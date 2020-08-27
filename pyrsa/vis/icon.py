@@ -10,6 +10,7 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import numpy as np
 import PIL
 import PIL.ImageOps
+import PIL.ImageFilter
 
 
 class Icon:
@@ -22,14 +23,15 @@ class Icon:
         string (String)
             string to place on the icon
         col (color definition)
-            background color
-        border_color (color defintion)
-            color of the border around the image
-            default: None -> no border
+            background / border color
+            default: None -> no border or background
         cmap (color map)
             color map applied to the image
         border_type (String)
-            'pad' : pads the image with the border color
+            None : default, puts the color as a background
+                where the alpha of the image is not 0
+            'pad' : pads the image with the border color -> square border
+            'conv' : extends the area by convolving with a circle
         border_width (integer)
             width of the border
         make_square (bool)
@@ -45,13 +47,13 @@ class Icon:
 
     """
 
-    def __init__(self, image=None, string=None, col=None, border_color=None,
-                 cmap=None, border_type='pad', border_width=2,
+    def __init__(self, image=None, string=None, col=None,
+                 cmap=None, border_type=None, border_width=2,
                  make_square=False, circ_cut=None):
-        self.set(image, string, col, border_color, cmap, border_type,
+        self.set(image, string, col, cmap, border_type,
                  border_width, make_square, circ_cut)
 
-    def set(self, image=None, string=None, col=None, border_color=None,
+    def set(self, image=None, string=None, col=None,
             cmap=None, border_type=None, border_width=None, make_square=None,
             circ_cut=None):
         """ sets individual parameters of the object and recomputes the
@@ -69,10 +71,6 @@ class Icon:
             self.col = col
         else:
             self.col = getattr(self, 'col', None)
-        if border_color is not None:
-            self.border_color = border_color
-        else:
-            self.border_color = getattr(self, 'border_color', None)
         if cmap is not None:
             self.cmap = cmap
         else:
@@ -145,12 +143,33 @@ class Icon:
             alpha = alpha.T * np.array(im.getchannel('A'))
             alpha = PIL.Image.fromarray(np.uint8(alpha))
             im.putalpha(alpha)
-        if self.border_color is not None:
-            if self.border_type == 'pad':
+        if self.col is not None:
+            if self.border_type is None:
+                bg_alpha = np.array(im.getchannel('A'))
+                bg_alpha = bg_alpha > 0
+                bg_alpha = PIL.Image.fromarray(255 * np.uint8(bg_alpha))
+                bg = PIL.Image.new('RGBA', im.size, color=self.col)
+                bg.putalpha(bg_alpha)
+                im = PIL.Image.alpha_composite(bg, im)
+            elif self.border_type == 'pad':
                 im = PIL.ImageOps.expand(
                     im,
                     border=self.border_width,
-                    fill=self.border_color)
+                    fill=self.col)
+            elif self.border_type == 'conv':
+                im = PIL.ImageOps.expand(
+                    im,
+                    border=self.border_width,
+                    fill=(0, 0, 0, 0))
+                bg_alpha = im.getchannel('A')
+                bg_alpha = bg_alpha.filter(PIL.ImageFilter.BoxBlur(
+                    self.border_width))
+                bg_alpha = np.array(bg_alpha)
+                bg_alpha = 255 * np.uint8(bg_alpha > 0)
+                bg_alpha = PIL.Image.fromarray(bg_alpha)
+                bg = PIL.Image.new('RGBA', im.size, color=self.col)
+                bg.putalpha(bg_alpha)
+                im = PIL.Image.alpha_composite(bg, im)
         self.final_image = im
 
     def plot(self, x, y, ax=None, size=None):
