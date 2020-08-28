@@ -11,6 +11,8 @@ import numpy as np
 import PIL
 import PIL.ImageOps
 import PIL.ImageFilter
+from PIL import UnidentifiedImageError
+import os
 
 
 class Icon:
@@ -49,13 +51,13 @@ class Icon:
 
     def __init__(self, image=None, string=None, col=None,
                  cmap=None, border_type=None, border_width=2,
-                 make_square=False, circ_cut=None):
+                 make_square=False, circ_cut=None, resolution=None):
         self.set(image, string, col, cmap, border_type,
-                 border_width, make_square, circ_cut)
+                 border_width, make_square, circ_cut, resolution=resolution)
 
     def set(self, image=None, string=None, col=None,
             cmap=None, border_type=None, border_width=None, make_square=None,
-            circ_cut=None):
+            circ_cut=None, resolution=None):
         """ sets individual parameters of the object and recomputes the
         icon image
         """
@@ -87,6 +89,10 @@ class Icon:
             self.make_square = make_square
         else:
             self.make_square = getattr(self, 'make_square', None)
+        if resolution is not None:
+            self.resolution = np.array(resolution)
+        else:
+            self.resolution = getattr(self, 'resolution', None)
         if circ_cut is not None:
             if circ_cut == 'cut':
                 self.circ_cut = 1
@@ -124,6 +130,11 @@ class Icon:
         if self.make_square:
             new_size = max(im.width, im.height)
             im = im.resize((new_size, new_size), PIL.Image.NEAREST)
+        if self.resolution is not None:
+            if self.resolution.size == 1:
+                im = im.resize((self.resolution, self.resolution))
+            else:
+                im = im.resize(self.resolution)
         if self.circ_cut is not None:
             middle = np.array(im.size) / 2
             x = np.arange(im.size[0]) - middle[0] + 0.5
@@ -205,8 +216,6 @@ class Icon:
                         horizontalalignment='center',
                         verticalalignment='center',
                         zorder=zorder + 1)
-        if self.border_color is not None:
-            pass
 
     def x_tick_label(self, x, size, offset=7, ax=None):
         """
@@ -309,3 +318,24 @@ class Icon:
                     'shrinkB': 1
                     },
                 zorder=zorder + 1)
+
+
+def icons_from_folder(folder, resolution=None, col=None,
+                      cmap=None, border_type=None, border_width=2,
+                      make_square=False, circ_cut=None):
+    """ generates a dictionary of Icons for all images in a folder
+
+    """
+    icons = dict()
+    for filename in os.listdir(folder):
+        try:
+            im = PIL.Image.open(filename)
+            icons[filename] = Icon(
+                image=im, col=col, resolution=resolution,
+                cmap=cmap, border_type=border_type,
+                border_width=border_width,
+                make_square=make_square, circ_cut=circ_cut)
+        except (FileNotFoundError, UnidentifiedImageError, IsADirectoryError,
+                PermissionError):
+            pass
+    return icons
