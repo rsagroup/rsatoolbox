@@ -306,16 +306,20 @@ class Dataset(DatasetBase):
     
     def get_measurements_tensor(self, by):
         """ Returns a tensor version of the measurements array, split by an 
-        observation descriptor
-
+        observation descriptor. This procedure will keep the order of 
+        measurements the same as it is in the dataset.
+        
         Args:
             by(String):
                 the descriptor by which the splitting is made
 
         Returns:
-            measurements_tensor (ndarray):
-                3d array with the selected obs_descriptor constituting the
-                third dimension.
+            measurements_tensor (numpy.ndarray):
+                n_obs_rest x n_channel x n_obs_by 3d-array, where n_obs_by is
+                are the unique values that the obs_descriptor "by" takes, and
+                n_obs_rest is the remaining number of observations per unique
+                instance of "by"
+                
         """
         assert len(self.obs_descriptors.keys()) > 1, \
             "dataset has too few obs_descriptors to build a tensor from it"
@@ -329,7 +333,7 @@ class Dataset(DatasetBase):
             measurements_list.append(measurements_subset)
         measurements_tensor = np.stack(measurements_list, axis=0)
         measurements_tensor = np.swapaxes(measurements_tensor, 1, 2)
-        return measurements_tensor
+        return measurements_tensor, unique_values
 
 def load_dataset(filename, file_type=None):
     """ loads a Dataset object from disc

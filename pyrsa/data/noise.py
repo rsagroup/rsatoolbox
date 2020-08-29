@@ -183,7 +183,7 @@ def cov_from_measurements(dataset, obs_desc, dof=None):
     assert obs_desc in dataset.obs_descriptors.keys(), \
         "obs_desc not contained in the dataset's obs_descriptors"
     
-    tensor = dataset.get_measurements_tensor(obs_desc)
+    tensor, _ = dataset.get_measurements_tensor(obs_desc)
     if dof is None:
         dof = tensor.shape[0] * tensor.shape[2] - 1
     # calculate sample covariance matrix s
