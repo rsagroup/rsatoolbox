@@ -6,7 +6,8 @@ icon object which can be plotted into an axis
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox, DrawingArea
+from matplotlib.image import BboxImage
 import numpy as np
 import PIL
 import PIL.ImageOps
@@ -299,17 +300,62 @@ class Icon:
                 xycoords=('data', 'axes fraction'),
                 box_alignment=(.5, 1),
                 boxcoords='offset points',
-                bboxprops={'edgecolor': 'none'},
+                bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
                 arrowprops={
                     'arrowstyle': '-',
                     'shrinkA': 0,
                     'shrinkB': 1
                     },
                 pad=0.1)
-            ax.add_artist(ab)
             zorder = ab.zorder
+            ax.add_artist(ab)
         else:
             zorder = 0
+        if self.marker:
+            if self.final_image is not None:
+                markersize = max(self.final_image.size)
+            else:
+                markersize = 50
+            markersize = markersize * size
+            d = DrawingArea(markersize, markersize)
+            if self.marker_front:
+                zorder_marker = zorder + 0.1
+            else:
+                zorder_marker = zorder - 0.1
+            d.set_zorder(zorder_marker)
+            d.set_alpha(0)
+            if self.marker_front:
+                d.add_artist(plt.Line2D(
+                    [markersize / 2], [markersize / 2],
+                    marker=self.marker, markeredgecolor=self.col,
+                    markerfacecolor=(0, 0, 0, 0), markersize=markersize,
+                    markeredgewidth=self.markeredgewidth,
+                    transform=d.get_transform(),
+                    zorder=zorder_marker))
+            else:
+                d.add_artist(plt.Line2D(
+                    [markersize / 2], [markersize / 2],
+                    marker=self.marker, markeredgecolor=self.col,
+                    markerfacecolor=self.col, markersize=markersize,
+                    markeredgewidth=self.markeredgewidth,
+                    transform=d.get_transform(),
+                    zorder=zorder_marker))
+            ab_marker = AnnotationBbox(
+                d, (x, 0),
+                xybox=(0, -offset),
+                xycoords=('data', 'axes fraction'),
+                box_alignment=(.5, 1),
+                boxcoords='offset points',
+                bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
+                arrowprops={
+                    'arrowstyle': '-',
+                    'shrinkA': 0,
+                    'shrinkB': 1
+                    },
+                pad=0.1)
+            ab_marker.set_zorder(zorder_marker)
+            ab_marker.set_alpha(0)
+            ax.add_artist(ab_marker)
         if self.string is not None:
             ax.annotate(
                 self.string, (x, 0),
@@ -323,7 +369,7 @@ class Icon:
                     'shrinkA': 0,
                     'shrinkB': 1
                     },
-                zorder=zorder + 1)
+                zorder=zorder + 0.2)
 
     def y_tick_label(self, y, size, offset=7, ax=None):
         """
@@ -350,7 +396,7 @@ class Icon:
                 xycoords=('axes fraction', 'data'),
                 box_alignment=(1, .5),
                 boxcoords='offset points',
-                bboxprops={'edgecolor': 'none'},
+                bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
                 arrowprops={
                     'arrowstyle': '-',
                     'shrinkA': 0,
@@ -361,6 +407,51 @@ class Icon:
             zorder = ab.zorder
         else:
             zorder = 0
+        if self.marker:
+            if self.final_image is not None:
+                markersize = max(self.final_image.size)
+            else:
+                markersize = 50
+            markersize = markersize * size
+            d = DrawingArea(markersize, markersize)
+            if self.marker_front:
+                zorder_marker = zorder + 0.1
+            else:
+                zorder_marker = zorder - 0.1
+            d.set_zorder(zorder_marker)
+            d.set_alpha(0)
+            if self.marker_front:
+                d.add_artist(plt.Line2D(
+                    [markersize / 2], [markersize / 2],
+                    marker=self.marker, markeredgecolor=self.col,
+                    markerfacecolor=(0, 0, 0, 0), markersize=markersize,
+                    markeredgewidth=self.markeredgewidth,
+                    transform=d.get_transform(),
+                    zorder=zorder_marker))
+            else:
+                d.add_artist(plt.Line2D(
+                    [markersize / 2], [markersize / 2],
+                    marker=self.marker, markeredgecolor=self.col,
+                    markerfacecolor=self.col, markersize=markersize,
+                    markeredgewidth=self.markeredgewidth,
+                    transform=d.get_transform(),
+                    zorder=zorder_marker))
+            ab_marker = AnnotationBbox(
+                d, (0, y),
+                xybox=(-offset, 0),
+                xycoords=('axes fraction', 'data'),
+                box_alignment=(1, 0.5),
+                boxcoords='offset points',
+                bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
+                arrowprops={
+                    'arrowstyle': '-',
+                    'shrinkA': 0,
+                    'shrinkB': 1
+                    },
+                pad=0.1)
+            ab_marker.set_zorder(zorder_marker)
+            ab_marker.set_alpha(0)
+            ax.add_artist(ab_marker)
         if self.string is not None:
             ax.annotate(
                 self.string, (0, y),
