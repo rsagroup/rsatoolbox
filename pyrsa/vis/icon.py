@@ -13,6 +13,8 @@ import PIL.ImageOps
 import PIL.ImageFilter
 from PIL import UnidentifiedImageError
 import os
+from pyrsa.rdm import RDMs
+from pyrsa.util.inference_util import pool_rdm
 
 
 class Icon:
@@ -20,13 +22,18 @@ class Icon:
     an axis label.
 
     Args:
-        image (np.ndarray or PIL.Image)
+        image (np.ndarray or PIL.Image or RDMs or Icon)
             the image to use as an icon
+            arrays and images should give the image directly
+            RDMs takes the average RDM from the object
+            If an Icon is passed its image property is used
         string (String)
             string to place on the icon
         col (color definition)
             background / border color
             default: None -> no border or background
+        marker (matplotlib markertype)
+            sets what kind of symbol to plot
         cmap (color map)
             color map applied to the image
         border_type (String)
@@ -46,22 +53,42 @@ class Icon:
             a number between 0 and 1 : a tukey window with the flat proportion
                 of the aperture given by the number. For 0 this corresponds
                 to the cosine window, for 1 it corresponds to 'cut'.
+        resolution (1 or two numbers):
+            sets a resolution for the icon to which the image is resized
+            prior to all processing. If only one number is provided,
+            the image is resized to a square with that size
+        marker_front (bool):
+            switches whether the marker is plotted in front or behind the
+            image. If True the marker is plotted unfilled in front
+            If False the marker is plotted behind the image filled.
+            default = True
 
     """
 
-    def __init__(self, image=None, string=None, col=None,
+    def __init__(self, image=None, string=None, col=None, marker=None,
                  cmap=None, border_type=None, border_width=2,
-                 make_square=False, circ_cut=None, resolution=None):
-        self.set(image, string, col, cmap, border_type,
-                 border_width, make_square, circ_cut, resolution=resolution)
+                 make_square=False, circ_cut=None, resolution=None,
+                 marker_front=True, markeredgewidth=2):
+        self.set(image, string, col, marker, cmap, border_type,
+                 border_width, make_square, circ_cut, resolution=resolution,
+                 marker_front=marker_front, markeredgewidth=markeredgewidth)
 
-    def set(self, image=None, string=None, col=None,
+    def set(self, image=None, string=None, col=None, marker=None,
             cmap=None, border_type=None, border_width=None, make_square=None,
-            circ_cut=None, resolution=None):
+            circ_cut=None, resolution=None, marker_front=None,
+            markeredgewidth=None):
         """ sets individual parameters of the object and recomputes the
         icon image
         """
-        if image is not None:
+        if isinstance(image, Icon):
+            self.image = image.image
+        elif isinstance(image, RDMs):
+            avg_rdm = pool_rdm(image)
+            image = avg_rdm.get_matrices()[0]
+            self.image = image / np.max(image)
+            if resolution is None:
+                resolution = 100
+        elif image is not None:
             self.image = image
         else:
             self.image = getattr(self, 'image', None)
@@ -73,6 +100,10 @@ class Icon:
             self.col = col
         else:
             self.col = getattr(self, 'col', None)
+        if marker is not None:
+            self.marker = marker
+        else:
+            self.marker = getattr(self, 'marker', None)
         if cmap is not None:
             self.cmap = cmap
         else:
@@ -104,6 +135,12 @@ class Icon:
                 self.circ_cut = circ_cut
         else:
             self.circ_cut = getattr(self, 'circ_cut', None)
+        if marker_front is not None:
+            self.marker_front = marker_front
+        else:
+            self.marker_front = getattr(self, 'marker_front', True)
+        if markeredgewidth is not None:
+            self.markeredgewidth = markeredgewidth
         self.recompute_final_image()
 
     def recompute_final_image(self):
@@ -132,9 +169,11 @@ class Icon:
             im = im.resize((new_size, new_size), PIL.Image.NEAREST)
         if self.resolution is not None:
             if self.resolution.size == 1:
-                im = im.resize((self.resolution, self.resolution))
+                im = im.resize((self.resolution, self.resolution),
+                               PIL.Image.NEAREST)
             else:
-                im = im.resize(self.resolution)
+                im = im.resize(self.resolution,
+                               PIL.Image.NEAREST)
         if self.circ_cut is not None:
             middle = np.array(im.size) / 2
             x = np.arange(im.size[0]) - middle[0] + 0.5
@@ -156,6 +195,8 @@ class Icon:
             im.putalpha(alpha)
         if self.col is not None:
             if self.border_type is None:
+                pass
+            elif self.border_type == 'alpha':
                 bg_alpha = np.array(im.getchannel('A'))
                 bg_alpha = bg_alpha > 0
                 bg_alpha = PIL.Image.fromarray(255 * np.uint8(bg_alpha))
@@ -211,11 +252,27 @@ class Icon:
             zorder = ab.zorder
         else:
             zorder = 0
+        if self.marker:
+            if self.final_image is not None:
+                markersize = max(self.final_image.size)
+            else:
+                markersize = 50
+            markersize = markersize * size
+            if self.marker_front:
+                plt.plot(x, y, marker=self.marker, markeredgecolor=self.col,
+                         markerfacecolor=(0, 0, 0, 0), markersize=markersize,
+                         zorder=zorder + 0.1,
+                         markeredgewidth=self.markeredgewidth)
+            else:
+                plt.plot(x, y, marker=self.marker, markeredgecolor=self.col,
+                         markerfacecolor=self.col, markersize=markersize,
+                         zorder=zorder - 0.1,
+                         markeredgewidth=self.markeredgewidth)
         if self.string is not None:
             ax.annotate(self.string, (x, y),
                         horizontalalignment='center',
                         verticalalignment='center',
-                        zorder=zorder + 1)
+                        zorder=zorder + 0.2)
 
     def x_tick_label(self, x, size, offset=7, ax=None):
         """
