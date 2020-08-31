@@ -7,7 +7,6 @@ icon object which can be plotted into an axis
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox, DrawingArea
-from matplotlib.image import BboxImage
 import numpy as np
 import PIL
 import PIL.ImageOps
@@ -69,15 +68,49 @@ class Icon:
     def __init__(self, image=None, string=None, col=None, marker=None,
                  cmap=None, border_type=None, border_width=2,
                  make_square=False, circ_cut=None, resolution=None,
-                 marker_front=True, markeredgewidth=2):
-        self.set(image, string, col, marker, cmap, border_type,
-                 border_width, make_square, circ_cut, resolution=resolution,
-                 marker_front=marker_front, markeredgewidth=markeredgewidth)
+                 marker_front=True, markeredgewidth=2,
+                 fontsize=None, fontname=None, fontcolor=None):
+        if isinstance(image, Icon):
+            self.image = image.image
+        elif isinstance(image, RDMs):
+            avg_rdm = pool_rdm(image)
+            image = avg_rdm.get_matrices()[0]
+            self.image = image / np.max(image)
+            if resolution is None:
+                resolution = 100
+        else:
+            self.image = image
+        self.fontsize = fontsize
+        self.fontname = fontname
+        self.marker_front = marker_front
+        self.resolution = resolution
+        self.markeredgewidth = markeredgewidth
+        self.make_square = make_square
+        self.border_width = border_width
+        self.border_type = border_type
+        self.cmap = cmap
+        self.marker = marker
+        self.col = col
+        self.image = image
+        self.string = string
+        self.fontcolor = fontcolor
+        if circ_cut is None:
+            self.circ_cut = None
+        elif circ_cut == 'cut':
+            self.circ_cut = 1
+        elif circ_cut == 'cosine':
+            self.circ_cut = 0
+        else:
+            assert circ_cut <= 1 and circ_cut >= 0, \
+                'a numeric circ_cut must be in [0,1]'
+            self.circ_cut = circ_cut
+        self.set(image, string, col, marker, cmap, border_type)
 
     def set(self, image=None, string=None, col=None, marker=None,
             cmap=None, border_type=None, border_width=None, make_square=None,
             circ_cut=None, resolution=None, marker_front=None,
-            markeredgewidth=None):
+            markeredgewidth=None, fontsize=None, fontname=None,
+            fontcolor=None):
         """ sets individual parameters of the object and recomputes the
         icon image
         """
@@ -91,40 +124,22 @@ class Icon:
                 resolution = 100
         elif image is not None:
             self.image = image
-        else:
-            self.image = getattr(self, 'image', None)
         if string is not None:
             self.string = string
-        else:
-            self.string = getattr(self, 'string', None)
         if col is not None:
             self.col = col
-        else:
-            self.col = getattr(self, 'col', None)
         if marker is not None:
             self.marker = marker
-        else:
-            self.marker = getattr(self, 'marker', None)
         if cmap is not None:
             self.cmap = cmap
-        else:
-            self.cmap = getattr(self, 'cmap', None)
         if border_type is not None:
             self.border_type = border_type
-        else:
-            self.border_type = getattr(self, 'border_type', None)
         if border_width is not None:
             self.border_width = border_width
-        else:
-            self.border_width = getattr(self, 'border_width', None)
         if make_square is not None:
             self.make_square = make_square
-        else:
-            self.make_square = getattr(self, 'make_square', None)
         if resolution is not None:
             self.resolution = np.array(resolution)
-        else:
-            self.resolution = getattr(self, 'resolution', None)
         if circ_cut is not None:
             if circ_cut == 'cut':
                 self.circ_cut = 1
@@ -134,14 +149,16 @@ class Icon:
                 assert circ_cut <= 1 and circ_cut >= 0, \
                     'a numeric circ_cut must be in [0,1]'
                 self.circ_cut = circ_cut
-        else:
-            self.circ_cut = getattr(self, 'circ_cut', None)
         if marker_front is not None:
             self.marker_front = marker_front
-        else:
-            self.marker_front = getattr(self, 'marker_front', True)
         if markeredgewidth is not None:
             self.markeredgewidth = markeredgewidth
+        if fontname is not None:
+            self.fontname = fontname
+        if fontsize is not None:
+            self.fontsize = fontsize
+        if fontcolor is not None:
+            self.fontcolor = fontcolor
         self.recompute_final_image()
 
     def recompute_final_image(self):
@@ -273,7 +290,9 @@ class Icon:
             ax.annotate(self.string, (x, y),
                         horizontalalignment='center',
                         verticalalignment='center',
-                        zorder=zorder + 0.2)
+                        zorder=zorder + 0.2,
+                        fontsize=self.fontsize, fontname=self.fontname,
+                        color=self.fontcolor)
 
     def x_tick_label(self, x, size, offset=7, ax=None):
         """
@@ -369,7 +388,9 @@ class Icon:
                     'shrinkA': 0,
                     'shrinkB': 1
                     },
-                zorder=zorder + 0.2)
+                zorder=zorder + 0.2,
+                fontsize=self.fontsize, fontname=self.fontname,
+                color=self.fontcolor)
 
     def y_tick_label(self, y, size, offset=7, ax=None):
         """
@@ -465,7 +486,9 @@ class Icon:
                     'shrinkA': 0,
                     'shrinkB': 1
                     },
-                zorder=zorder + 1)
+                zorder=zorder + 1,
+                fontsize=self.fontsize, fontname=self.fontname,
+                color=self.fontcolor)
 
 
 def icons_from_folder(folder, resolution=None, col=None,
