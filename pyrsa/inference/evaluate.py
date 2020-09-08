@@ -14,10 +14,77 @@ from pyrsa.inference import bootstrap_sample_rdm
 from pyrsa.inference import bootstrap_sample_pattern
 from pyrsa.model import Model
 from pyrsa.util.inference_util import input_check_model
+from pyrsa.util.inference_util import default_k_pattern, default_k_rdm
 from .result import Result
 from .crossvalsets import sets_k_fold
 from .noise_ceiling import boot_noise_ceiling
 from .noise_ceiling import cv_noise_ceiling
+
+
+def eval_fancy(model, data, method='cosine', fitter=None,
+               k_pattern=None, k_rdm=None, N=1000, boot_noise_ceil=False,
+               pattern_descriptor=None, rdm_descriptor=None):
+    """evaluates a model by k-fold crossvalidation within a bootstrap
+    Then uses the correction formula to get an estimate of the variance
+    of the mean.
+
+    If a k is set to 1 no crossvalidation is performed over the
+    corresponding dimension.
+
+    Args:
+        model(pyrsa.model.Model): Model to be evaluated
+        data(pyrsa.rdm.RDMs): RDM data to use
+        method(string): comparison method to use
+        fitter(function): fitting method for model
+        k_pattern(int): #folds over patterns
+        k_rdm(int): #folds over rdms
+        N(int): number of bootstrap samples (default: 1000)
+        pattern_descriptor(string): descriptor to group patterns
+        rdm_descriptor(string): descriptor to group rdms
+        random(bool): randomize group assignments (default: True)
+
+    Returns:
+        numpy.ndarray: matrix of evaluations (N x k)
+
+    """
+    result_full = bootstrap_crossval(
+        model, data, method=method, fitter=fitter,
+        k_pattern=k_pattern, k_rdm=k_rdm, N=N,
+        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
+    result_rdm = bootstrap_crossval(
+        model, data, method=method, fitter=fitter,
+        k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='rdm',
+        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
+    result_pattern = bootstrap_crossval(
+        model, data, method=method, fitter=fitter,
+        k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='pattern',
+        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
+    eval_rdm = result_rdm.evaluations
+    ok_rdm = ~np.isnan(eval_rdm[:, 0, 0, 0])
+    eval_rdm = eval_rdm[ok_rdm]
+    nc_rdm = result_rdm.noise_ceiling[:, ok_rdm]
+    eval_rdm = np.mean(np.mean(eval_rdm, -1), -1)
+    var_rdm = np.cov(np.concatenate([eval_rdm.T, nc_rdm]))
+    eval_pattern = result_pattern.evaluations
+    ok_pattern = ~np.isnan(eval_pattern[:, 0, 0, 0])
+    eval_pattern = eval_pattern[ok_pattern]
+    nc_pattern = result_pattern.noise_ceiling[:, ok_pattern]
+    eval_pattern = np.mean(np.mean(eval_pattern, -1), -1)
+    var_pattern = np.cov(np.concatenate([eval_pattern.T, nc_pattern]))
+    eval_full = result_full.evaluations
+    ok_full = ~np.isnan(eval_full[:, 0, 0, 0])
+    eval_full = eval_full[ok_full]
+    nc_full = result_full.noise_ceiling[:, ok_full]
+    eval_full = np.mean(np.mean(eval_full, -1), -1)
+    var_full = np.cov(np.concatenate([eval_full.T, nc_full]))
+    var_estimate = 2 * (var_rdm + var_pattern) - var_full
+    result = Result(model, result_full.evaluations, method=method,
+                    cv_method='fancy',
+                    noise_ceiling=result_full.noise_ceiling,
+                    variances=var_estimate[:-2, :-2],
+                    noise_ceil_var=var_estimate[:, -2:],
+                    dof=result_full.dof)
+    return result
 
 
 def eval_fixed(model, data, theta=None, method='cosine'):
@@ -39,17 +106,23 @@ def eval_fixed(model, data, theta=None, method='cosine'):
         rdm_pred = model.predict_rdm(theta=theta)
         evaluations = np.array([[compare(rdm_pred, data, method)[0]]])
     elif isinstance(model, Iterable):
+        evaluations = np.repeat(np.expand_dims(evaluations, -1),
+                                data.n_rdm, -1)
         for k in range(len(model)):
             rdm_pred = model[k].predict_rdm(theta=theta[k])
-            evaluations[k] = np.mean(compare(rdm_pred, data, method)[0])
-        evaluations = evaluations.reshape((1, len(model)))
+            evaluations[k] = compare(rdm_pred, data, method)[0]
+        evaluations = evaluations.reshape((1, len(model), data.n_rdm))
     else:
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
     noise_ceil = boot_noise_ceiling(
         data, method=method, rdm_descriptor='index')
+    variances = np.cov(evaluations[0], ddof=1) \
+        / evaluations.shape[-1]
+    dof = evaluations.shape[-1] - 1
     result = Result(model, evaluations, method=method,
-                    cv_method='fixed', noise_ceiling=noise_ceil)
+                    cv_method='fixed', noise_ceiling=noise_ceil,
+                    variances=variances, dof=dof)
     return result
 
 
@@ -110,11 +183,19 @@ def eval_bootstrap(model, data, theta=None, method='cosine', N=1000,
         evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
+        var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
+        variances = var[:-2, :-2]
+        noise_ceil_var = var[:, -2:]
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
+        variances = np.cov(evaluations.T)
+        noise_ceil_var = None
+    dof = min(data.n_rdm, data.n_cond) - 1
     result = Result(model, evaluations, method=method,
-                    cv_method='bootstrap', noise_ceiling=noise_ceil)
+                    cv_method='bootstrap', noise_ceiling=noise_ceil,
+                    variances=variances, dof=dof,
+                    noise_ceil_var=noise_ceil_var)
     return result
 
 
@@ -175,11 +256,19 @@ def eval_bootstrap_pattern(model, data, theta=None, method='cosine', N=1000,
         evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
+        var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
+        variances = var[:-2, :-2]
+        noise_ceil_var = var[:, -2:]
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
+        variances = np.cov(evaluations.T)
+        noise_ceil_var = None
+    dof = data.n_cond - 1
     result = Result(model, evaluations, method=method,
-                    cv_method='bootstrap_pattern', noise_ceiling=noise_ceil)
+                    cv_method='bootstrap_pattern', noise_ceiling=noise_ceil,
+                    variances=variances, dof=dof,
+                    noise_ceil_var=noise_ceil_var)
     return result
 
 
@@ -224,11 +313,20 @@ def eval_bootstrap_rdm(model, data, theta=None, method='cosine', N=1000,
         evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
+        var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
+        variances = var[:-2, :-2]
+        noise_ceil_var = var[:, -2:]
     else:
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
+        variances = np.cov(evaluations.T)
+        noise_ceil_var = None
+    dof = data.n_rdm - 1
+    variances = np.cov(evaluations.T)
     result = Result(model, evaluations, method=method,
-                    cv_method='bootstrap_rdm', noise_ceiling=noise_ceil)
+                    cv_method='bootstrap_rdm', noise_ceiling=noise_ceil,
+                    variances=variances, dof=dof,
+                    noise_ceil_var=noise_ceil_var)
     return result
 
 
@@ -310,9 +408,9 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
 
 
 def bootstrap_crossval(model, data, method='cosine', fitter=None,
-                       k_pattern=5, k_rdm=5, N=1000, n_cv=1,
+                       k_pattern=None, k_rdm=None, N=1000, n_cv=1,
                        pattern_descriptor=None, rdm_descriptor=None,
-                       random=True):
+                       random=True, boot_type='both'):
     """evaluates a model by k-fold crossvalidation within a bootstrap
 
     If a k is set to 1 no crossvalidation is performed over the
@@ -323,6 +421,9 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
     of n_cv=1 inflates the estimated variance. Setting this value
     higher will decrease this effect at the cost of more computation time.
 
+    by default ks are set by pyrsa.util.inference_util.default_k_pattern
+    and pyrsa.util.inference_util.default_k_rdm based on the number of
+    rdms and patterns provided. the ks are then in the range 2-5.
 
     Args:
         model(pyrsa.model.Model): Model to be evaluated
@@ -336,24 +437,56 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         pattern_descriptor(string): descriptor to group patterns
         rdm_descriptor(string): descriptor to group rdms
         random(bool): randomize group assignments (default: True)
+        boot_type(String): which dimension to bootstrap over (default: 'both')
+            alternatives: 'rdm', 'pattern'
 
     Returns:
         numpy.ndarray: matrix of evaluations (N x k)
 
     """
+    if rdm_descriptor is None:
+        rdm_select = np.arange(data.n_rdm)
+        data.rdm_descriptors['index'] = rdm_select
+        rdm_descriptor = 'index'
+    if pattern_descriptor is None:
+        pattern_select = np.arange(data.n_cond)
+        data.pattern_descriptors['index'] = pattern_select
+        pattern_descriptor = 'index'
+    if k_pattern is None:
+        n_pattern = len(np.unique(data.pattern_descriptors[
+            pattern_descriptor]))
+        k_pattern = default_k_pattern((1 - 1 / np.exp(1)) * n_pattern)
+    if k_rdm is None:
+        n_rdm = len(np.unique(data.rdm_descriptors[
+            rdm_descriptor]))
+        k_rdm = default_k_rdm((1 - 1 / np.exp(1)) * n_rdm)
     if isinstance(model, Model):
-        evaluations = np.zeros((N, 1, k_pattern * k_rdm), n_cv)
+        evaluations = np.zeros((N, 1, k_pattern * k_rdm, n_cv))
     elif isinstance(model, Iterable):
-        evaluations = np.zeros((N, len(model), k_pattern * k_rdm))
+        evaluations = np.zeros((N, len(model), k_pattern * k_rdm, n_cv))
     noise_ceil = np.zeros((2, N))
     for i_sample in tqdm.trange(N):
-        sample, rdm_sample, pattern_sample = bootstrap_sample(
-            data,
-            rdm_descriptor=rdm_descriptor,
-            pattern_descriptor=pattern_descriptor)
+        if boot_type == 'both':
+            sample, rdm_sample, pattern_sample = bootstrap_sample(
+                data,
+                rdm_descriptor=rdm_descriptor,
+                pattern_descriptor=pattern_descriptor)
+        elif boot_type == 'pattern':
+            sample, pattern_sample = bootstrap_sample_pattern(
+                data,
+                pattern_descriptor=pattern_descriptor)
+            rdm_sample = np.unique(data.rdm_descriptors[rdm_descriptor])
+        elif boot_type == 'rdm':
+            sample, rdm_sample = bootstrap_sample_rdm(
+                data,
+                rdm_descriptor=rdm_descriptor)
+            pattern_sample = np.unique(
+                data.pattern_descriptors[pattern_descriptor])
+        else:
+            raise ValueError('boot_type not understood')
         if len(np.unique(rdm_sample)) >= k_rdm \
            and len(np.unique(pattern_sample)) >= 3 * k_pattern:
-            for i_repeat in range(n_cv):
+            for i_rep in range(n_cv):
                 train_set, test_set, ceil_set = sets_k_fold(
                     sample,
                     pattern_descriptor=pattern_descriptor,
@@ -369,14 +502,37 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
                     train_set, test_set,
                     method=method, fitter=fitter,
                     pattern_descriptor=pattern_descriptor)
-                evaluations[i_sample, :, :] = cv_result.evaluations[0]
+                if isinstance(model, Model):
+                    evaluations[i_sample, 0, :, i_rep] = \
+                        cv_result.evaluations[0, 0]
+                elif isinstance(model, Iterable):
+                    evaluations[i_sample, :, :, i_rep] = \
+                        cv_result.evaluations[0]
                 noise_ceil[:, i_sample] = np.mean(cv_result.noise_ceiling,
                                                   axis=-1)
         else:  # sample does not allow desired crossvalidation
-            evaluations[i_sample, :, :] = np.nan
+            if isinstance(model, Model):
+                evaluations[i_sample, 0, :] = np.nan
+            elif isinstance(model, Iterable):
+                evaluations[i_sample, :, :] = np.nan
             noise_ceil[:, i_sample] = np.nan
+    if boot_type == 'both':
+        cv_method = 'bootstrap_crossval'
+        dof = min(data.n_rdm, data.n_cond) - 1
+    elif boot_type == 'pattern':
+        cv_method = 'bootstrap_crossval_pattern'
+        dof = data.n_cond - 1
+    elif boot_type == 'rdm':
+        cv_method = 'bootstrap_crossval_rdm'
+        dof = data.n_rdm - 1
+    eval_ok = ~np.isnan(evaluations[:, 0, 0, 0])
+    evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
+    noise_ceil_nonan = noise_ceil[:, eval_ok]
+    variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
     result = Result(model, evaluations, method=method,
-                    cv_method='bootstrap_crossval', noise_ceiling=noise_ceil)
+                    cv_method=cv_method, noise_ceiling=noise_ceil,
+                    variances=variances[:-2, :-2], dof=dof,
+                    noise_ceil_var=variances[:, -2:])
     return result
 
 
