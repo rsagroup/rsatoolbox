@@ -395,9 +395,9 @@ def crossval(model, rdms, train_set, test_set, ceil_set=None, method='cosine',
 
 
 def bootstrap_crossval(model, data, method='cosine', fitter=None,
-                       k_pattern=None, k_rdm=None, N=1000, n_cv=1,
+                       k_pattern=None, k_rdm=None, N=1000, n_cv=2,
                        pattern_descriptor=None, rdm_descriptor=None,
-                       random=True, boot_type='both'):
+                       random=True, boot_type='both', use_correction=True):
     """evaluates a model by k-fold crossvalidation within a bootstrap
 
     If a k is set to 1 no crossvalidation is performed over the
@@ -426,6 +426,8 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         random(bool): randomize group assignments (default: True)
         boot_type(String): which dimension to bootstrap over (default: 'both')
             alternatives: 'rdm', 'pattern'
+        use_correction(bool): switch for the correction for the
+            variance caused by crossvalidation (default: True)
 
     Returns:
         numpy.ndarray: matrix of evaluations (N x k)
@@ -513,13 +515,38 @@ def bootstrap_crossval(model, data, method='cosine', fitter=None,
         cv_method = 'bootstrap_crossval_rdm'
         dof = data.n_rdm - 1
     eval_ok = ~np.isnan(evaluations[:, 0, 0, 0])
-    evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
-    noise_ceil_nonan = noise_ceil[:, eval_ok]
-    variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
+    if use_correction and n_cv > 1:
+        # we essentially project from the two points for 1 repetition and
+        # for n_cv repetitions to infinitely many cv repetitions
+        evals_mean = np.mean(np.mean(evaluations[eval_ok], -1), -1)
+        evals_1 = np.mean(evaluations[eval_ok], -2)
+        var_mean = np.cov(evals_mean.T)
+        var_1 = []
+        for i in range(n_cv):
+            var_1.append(np.cov(evals_1[:, :, i].T))
+        var_1 = np.mean(np.array(var_1), axis=0)
+        # this is the main formula for the correction:
+        variances = (n_cv * var_mean - var_1) / (n_cv - 1)
+        # for the noise_ceiling we are interested in the covariance,
+        # which should be correct from the mean estimates, as the covariance
+        # of the crossvalidation noise should be 0
+        noise_ceil_nonan = noise_ceil[:, eval_ok]
+        vars_nc = np.cov(np.concatenate([evals_mean.T, noise_ceil_nonan]))
+        noise_ceil_var = vars_nc[:, -2:]
+    else:
+        if use_correction:
+            raise Warning('correction requested, but only one cv run'
+                          + ' per sample requested. This is invalid!'
+                          + ' We do not use the correction for now.')
+        evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
+        noise_ceil_nonan = noise_ceil[:, eval_ok]
+        variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
+        noise_ceil_var = variances[:, -2:]
+        variances = variances[:-2, :-2]
     result = Result(model, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
-                    variances=variances[:-2, :-2], dof=dof,
-                    noise_ceil_var=variances[:, -2:])
+                    variances=variances, dof=dof,
+                    noise_ceil_var=noise_ceil_var)
     return result
 
 
