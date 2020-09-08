@@ -21,7 +21,7 @@ from .noise_ceiling import boot_noise_ceiling
 from .noise_ceiling import cv_noise_ceiling
 
 
-def eval_fancy(model, data, method='cosine', fitter=None,
+def eval_fancy(model, data, method='cosine', fitter=None, n_cv=1,
                k_pattern=None, k_rdm=None, N=1000, boot_noise_ceil=False,
                pattern_descriptor=None, rdm_descriptor=None):
     """evaluates a model by k-fold crossvalidation within a bootstrap
@@ -36,6 +36,7 @@ def eval_fancy(model, data, method='cosine', fitter=None,
         data(pyrsa.rdm.RDMs): RDM data to use
         method(string): comparison method to use
         fitter(function): fitting method for model
+        n_cv(int): number of crossvalidation runs per sample
         k_pattern(int): #folds over patterns
         k_rdm(int): #folds over rdms
         N(int): number of bootstrap samples (default: 1000)
@@ -59,30 +60,16 @@ def eval_fancy(model, data, method='cosine', fitter=None,
         model, data, method=method, fitter=fitter,
         k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='pattern',
         pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
-    eval_rdm = result_rdm.evaluations
-    ok_rdm = ~np.isnan(eval_rdm[:, 0, 0, 0])
-    eval_rdm = eval_rdm[ok_rdm]
-    nc_rdm = result_rdm.noise_ceiling[:, ok_rdm]
-    eval_rdm = np.mean(np.mean(eval_rdm, -1), -1)
-    var_rdm = np.cov(np.concatenate([eval_rdm.T, nc_rdm]))
-    eval_pattern = result_pattern.evaluations
-    ok_pattern = ~np.isnan(eval_pattern[:, 0, 0, 0])
-    eval_pattern = eval_pattern[ok_pattern]
-    nc_pattern = result_pattern.noise_ceiling[:, ok_pattern]
-    eval_pattern = np.mean(np.mean(eval_pattern, -1), -1)
-    var_pattern = np.cov(np.concatenate([eval_pattern.T, nc_pattern]))
-    eval_full = result_full.evaluations
-    ok_full = ~np.isnan(eval_full[:, 0, 0, 0])
-    eval_full = eval_full[ok_full]
-    nc_full = result_full.noise_ceiling[:, ok_full]
-    eval_full = np.mean(np.mean(eval_full, -1), -1)
-    var_full = np.cov(np.concatenate([eval_full.T, nc_full]))
-    var_estimate = 2 * (var_rdm + var_pattern) - var_full
+    var_estimate = 2 * (result_rdm.variances + result_pattern.variances) \
+        - result_full.variances
+    var_nc_estimate = 2 * (result_rdm.noise_ceil_var
+                           + result_pattern.noise_ceil_var) \
+        - result_full.noise_ceil_var
     result = Result(model, result_full.evaluations, method=method,
                     cv_method='fancy',
                     noise_ceiling=result_full.noise_ceiling,
-                    variances=var_estimate[:-2, :-2],
-                    noise_ceil_var=var_estimate[:, -2:],
+                    variances=var_estimate,
+                    noise_ceil_var=var_nc_estimate,
                     dof=result_full.dof)
     return result
 
