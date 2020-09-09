@@ -812,7 +812,7 @@ def _resolve_idx(idx):
     """
     # combined with all
     variation = ['None_both', 'None_stim', 'None_subj', 'None_fancy',
-                 'both', 'stim', 'subj', 'both_fancy']
+                 'both', 'stim', 'subj', 'both']
     boot = ['both', 'pattern', 'rdm', 'fancyboot',
             'both', 'pattern', 'rdm', 'fancyboot']
     n_subj = [5, 10, 20, 40, 80]
