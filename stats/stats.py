@@ -538,6 +538,32 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
         results.save(res_path + '/res%04d.hdf5' % (i))
 
 
+def save_metric(idx, simulation_folder='sim_metric'):
+    """ saves simulations for the comparison of metrics, without bootstrapping!
+    uses run_eco still
+    """
+    rdm_comparisons = ['cosine', 'spearman', 'corr', 'kendall', 'tau-a',
+                       'rho-a', 'corr_cov', 'cosine_cov']
+    variations = [None, 'stim', 'subj', 'both']
+    i_comp, i_var = np.unravel_index(idx, (8, 4))
+    rdm_comparison = rdm_comparisons[i_comp]
+    variation = variations[i_var]
+    sim_ecoset(layer=8, sd=0.05, n_stim_all=320,
+               n_voxel=100, n_subj=10, n_stim=40, n_repeat=2,
+               simulation_folder=simulation_folder, n_sim=100,
+               duration=1, pause=1, endzeros=25,
+               use_cor_noise=True, resolution=2,
+               sigma_noise=5, ar_coeff=0.5,
+               ecoset_path='~/ecoset/val/',
+               variation=variation,
+               model_type='fixed_average',
+               rdm_comparison=rdm_comparison,
+               n_layer=12, k_pattern=None,
+               k_rdm=None, rdm_type='crossnobis',
+               noise_type='residuals', boot_type='fix',
+               start_idx=0)
+
+
 def run_comp(idx):
     """ master script for running the abstract simulations. Each call to
     this script will run one repetition of the comparisons, i.e. 1000
