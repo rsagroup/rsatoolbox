@@ -7,7 +7,7 @@ import numpy as np
 from pyrsa.util.rdm_utils import add_pattern_index
 
 
-def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
+def bootstrap_sample(rdms, rdm_descriptor='index', pattern_descriptor='index'):
     """Draws a bootstrap_sample from the data.
 
     This function generates a bootstrap sample of RDMs resampled over
@@ -39,12 +39,7 @@ def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
             sampled pattern descriptor indices
 
     """
-    if rdm_descriptor is None:
-        rdm_select = np.arange(rdms.n_rdm)
-        rdms.rdm_descriptors['index'] = rdm_select
-        rdm_descriptor = 'index'
-    else:
-        rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
+    rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
     pattern_descriptor, pattern_select = \
         add_pattern_index(rdms, pattern_descriptor)
     rdm_sample = np.random.randint(0, len(rdm_select),
@@ -59,7 +54,7 @@ def bootstrap_sample(rdms, rdm_descriptor=None, pattern_descriptor=None):
     return rdms, rdm_sample, pattern_sample
 
 
-def bootstrap_sample_rdm(rdms, rdm_descriptor=None):
+def bootstrap_sample_rdm(rdms, rdm_descriptor='index'):
     """Draws a bootstrap_sample from the data.
 
     This function generates a bootstrap sample of RDMs resampled over
@@ -85,20 +80,15 @@ def bootstrap_sample_rdm(rdms, rdm_descriptor=None):
             rdm group descritor values
 
     """
-    if rdm_descriptor is None:
-        rdm_select = np.arange(rdms.n_rdm)
-        rdms.rdm_descriptors['index'] = rdm_select
-        rdm_descriptor = 'index'
-    else:
-        rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
-    rdm_sample = np.random.randint(0, len(rdm_select),
+    rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
+    rdm_sample = np.random.randint(0, len(rdm_select) - 1,
                                    size=len(rdm_select))
     rdm_sample = rdm_select[rdm_sample]
     rdms = rdms.subsample(rdm_descriptor, rdm_sample)
     return rdms, rdm_sample
 
 
-def bootstrap_sample_pattern(rdms, pattern_descriptor=None):
+def bootstrap_sample_pattern(rdms, pattern_descriptor='index'):
     """Draws a bootstrap_sample from the data.
 
     This function generates a bootstrap sample of RDMs resampled over
