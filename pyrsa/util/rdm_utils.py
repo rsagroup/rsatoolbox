@@ -97,10 +97,6 @@ def add_pattern_index(rdms, pattern_descriptor):
         pattern_select
 
     """
-    if pattern_descriptor is None:
-        pattern_select = np.arange(rdms.n_cond)
-        pattern_descriptor = 'index'
-    else:
-        pattern_select = rdms.pattern_descriptors[pattern_descriptor]
-        pattern_select = np.unique(pattern_select)
+    pattern_select = rdms.pattern_descriptors[pattern_descriptor]
+    pattern_select = np.unique(pattern_select)
     return pattern_descriptor, pattern_select
