@@ -11,7 +11,7 @@ from .crossvalsets import sets_leave_one_out_rdm
 
 
 def cv_noise_ceiling(rdms, ceil_set, test_set, method='cosine',
-                     pattern_descriptor=None):
+                     pattern_descriptor='index'):
     """ calculates the noise ceiling for crossvalidation.
     The upper bound is calculated by pooling all rdms for the appropriate
     patterns in the testsets.
@@ -33,8 +33,6 @@ def cv_noise_ceiling(rdms, ceil_set, test_set, method='cosine',
     """
     assert len(ceil_set) == len(test_set), \
         'train_set and test_set must have the same length'
-    if pattern_descriptor is None:
-        pattern_descriptor = 'index'
     noise_min = []
     noise_max = []
     for i in range(len(ceil_set)):
@@ -53,7 +51,7 @@ def cv_noise_ceiling(rdms, ceil_set, test_set, method='cosine',
     return noise_min, noise_max
 
 
-def boot_noise_ceiling(rdms, method='cosine', rdm_descriptor=None):
+def boot_noise_ceiling(rdms, method='cosine', rdm_descriptor='index'):
     """ calculates a noise ceiling by leave one out & full set
 
     Args:

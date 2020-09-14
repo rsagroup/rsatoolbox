@@ -53,7 +53,7 @@ def eval_fixed(models, data, theta=None, method='cosine'):
 
 
 def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
-                   pattern_descriptor=None, rdm_descriptor=None,
+                   pattern_descriptor='index', rdm_descriptor='index',
                    boot_noise_ceil=True):
     """evaluates models on data
     performs bootstrapping to get a sampling distribution
@@ -95,8 +95,7 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
                     j += 1
             if boot_noise_ceil:
                 noise_min_sample, noise_max_sample = boot_noise_ceiling(
-                    sample,
-                    method=method, rdm_descriptor=rdm_descriptor)
+                    sample, method=method, rdm_descriptor=rdm_descriptor)
                 noise_min.append(noise_min_sample)
                 noise_max.append(noise_max_sample)
         else:
@@ -119,7 +118,7 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
 
 
 def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
-                           pattern_descriptor=None, rdm_descriptor=None,
+                           pattern_descriptor='index', rdm_descriptor='index',
                            boot_noise_ceil=True):
     """evaluates a models on data
     performs bootstrapping over patterns to get a sampling distribution
@@ -184,7 +183,7 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
 
 
 def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
-                       rdm_descriptor=None, boot_noise_ceil=True):
+                       rdm_descriptor='index', boot_noise_ceil=True):
     """evaluates models on data
     performs bootstrapping to get a sampling distribution
 
@@ -233,7 +232,7 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
 
 
 def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
-             fitter=None, pattern_descriptor=None):
+             fitter=None, pattern_descriptor='index'):
     """evaluates models on cross-validation sets
 
     Args:
@@ -255,8 +254,6 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
     if ceil_set is not None:
         assert len(ceil_set) == len(test_set), \
             'ceil_set and test_set must have the same length'
-    if pattern_descriptor is None:
-        pattern_descriptor = 'index'
     evaluations = []
     noise_ceil = []
     for i in range(len(train_set)):
@@ -311,7 +308,7 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
 
 def bootstrap_crossval(models, data, method='cosine', fitter=None,
                        k_pattern=5, k_rdm=5, N=1000,
-                       pattern_descriptor=None, rdm_descriptor=None,
+                       pattern_descriptor='index', rdm_descriptor='index',
                        random=True):
     """evaluates models by k-fold crossvalidation within a bootstrap
 

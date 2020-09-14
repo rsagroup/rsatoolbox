@@ -46,7 +46,7 @@ def sets_leave_one_out_pattern(rdms, pattern_descriptor):
     return train_set, test_set, ceil_set
 
 
-def sets_leave_one_out_rdm(rdms, rdm_descriptor=None):
+def sets_leave_one_out_rdm(rdms, rdm_descriptor='index'):
     """ generates training and test set combinations by leaving one level
     of rdm_descriptor out as a test set.\
 
@@ -60,13 +60,8 @@ def sets_leave_one_out_rdm(rdms, rdm_descriptor=None):
         ceil_set(list): list of tuples (rdms, pattern_idx)
 
     """
-    if rdm_descriptor is None:
-        rdm_select = np.arange(rdms.n_rdm)
-        rdms.rdm_descriptors['index'] = rdm_select
-        rdm_descriptor = 'index'
-    else:
-        rdm_select = rdms.rdm_descriptors[rdm_descriptor]
-        rdm_select = np.unique(rdm_select)
+    rdm_select = rdms.rdm_descriptors[rdm_descriptor]
+    rdm_select = np.unique(rdm_select)
     if len(rdm_select) > 1:
         train_set = []
         test_set = []
@@ -89,7 +84,7 @@ def sets_leave_one_out_rdm(rdms, rdm_descriptor=None):
 
 
 def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
-                pattern_descriptor=None, rdm_descriptor=None):
+                pattern_descriptor=None, rdm_descriptor='index'):
     """ generates training and test set combinations by splitting into k
     similar sized groups. This version splits both over rdms and over patterns
     resulting in k_rdm * k_pattern (training, test) pairs.
@@ -110,13 +105,8 @@ def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
         ceil_set(list): list of tuples (rdms, pattern_idx)
 
     """
-    if rdm_descriptor is None:
-        rdm_select = np.arange(rdms.n_rdm)
-        rdms.rdm_descriptors['index'] = rdm_select
-        pattern_descriptor = 'index'
-    else:
-        rdm_select = rdms.rdm_descriptors[rdm_descriptor]
-        rdm_select = np.unique(rdm_select)
+    rdm_select = rdms.rdm_descriptors[rdm_descriptor]
+    rdm_select = np.unique(rdm_select)
     assert k_rdm <= len(rdm_select), \
         'Can make at most as many groups as rdms'
     if random:
@@ -156,7 +146,7 @@ def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
     return train_set, test_set, ceil_set
 
 
-def sets_k_fold_rdm(rdms, k_rdm=5, random=True, rdm_descriptor=None):
+def sets_k_fold_rdm(rdms, k_rdm=5, random=True, rdm_descriptor='index'):
     """ generates training and test set combinations by splitting into k
     similar sized groups. This version splits both over rdms and over patterns
     resulting in k_rdm * k_pattern (training, test) pairs.
@@ -172,13 +162,8 @@ def sets_k_fold_rdm(rdms, k_rdm=5, random=True, rdm_descriptor=None):
         test_set(list): list of tuples (rdms, pattern_idx)
 
     """
-    if rdm_descriptor is None:
-        rdm_select = np.arange(rdms.n_rdm)
-        rdms.rdm_descriptors['index'] = rdm_select
-        rdm_descriptor = 'index'
-    else:
-        rdm_select = rdms.rdm_descriptors[rdm_descriptor]
-        rdm_select = np.unique(rdm_select)
+    rdm_select = rdms.rdm_descriptors[rdm_descriptor]
+    rdm_select = np.unique(rdm_select)
     assert k_rdm <= len(rdm_select), \
         'Can make at most as many groups as rdms'
     if random:
@@ -206,7 +191,7 @@ def sets_k_fold_rdm(rdms, k_rdm=5, random=True, rdm_descriptor=None):
     return train_set, test_set, ceil_set
 
 
-def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
+def sets_k_fold_pattern(rdms, pattern_descriptor='index', k=5, random=False):
     """ generates training and test set combinations by splitting into k
     similar sized groups. This version splits in the given order or
     randomizes the order. For k=1 training and test_set are whole dataset,
@@ -262,7 +247,7 @@ def sets_k_fold_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     return train_set, test_set, ceil_set
 
 
-def sets_of_k_rdm(rdms, rdm_descriptor=None, k=5, random=False):
+def sets_of_k_rdm(rdms, rdm_descriptor='index', k=5, random=False):
     """ generates training and test set combinations by splitting into
     groups of k. This version splits in the given order or
     randomizes the order. If the number of patterns is not divisible by k
@@ -280,13 +265,8 @@ def sets_of_k_rdm(rdms, rdm_descriptor=None, k=5, random=False):
         ceil_set(list): list of tuples (rdms, pattern_idx)
 
     """
-    if rdm_descriptor is None:
-        rdm_select = np.arange(rdms.n_rdm)
-        rdms.rdm_descriptors['index'] = rdm_select
-        rdm_descriptor = 'index'
-    else:
-        rdm_select = rdms.rdm_descriptors[rdm_descriptor]
-        rdm_select = np.unique(rdm_select)
+    rdm_select = rdms.rdm_descriptors[rdm_descriptor]
+    rdm_select = np.unique(rdm_select)
     assert k <= len(rdm_select) / 2, \
         'to form groups we can use at most half the patterns per group'
     n_groups = int(len(rdm_select) / k)
