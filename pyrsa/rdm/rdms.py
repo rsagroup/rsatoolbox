@@ -331,6 +331,21 @@ class RDMs:
         rdm_dict['dissimilarity_measure'] = self.dissimilarity_measure
         return rdm_dict
 
+    def reorder(self, new_order):
+        """Reorder the patterns according to the index in new_order
+
+        Args:
+            new_order (numpy.ndarray): new order of patterns,
+                vector of length equal to the number of patterns
+        """
+        matrices = self.get_matrices()
+        row_col_idx = np.ix_(new_order, new_order)
+        matrices = matrices[:, row_col_idx[0], row_col_idx[1]]
+        self.dissimilarities = batch_to_vectors(matrices)[0]
+        for dname, descriptors in self.pattern_descriptors.items():
+            self.pattern_descriptors[dname] = descriptors[new_order]
+
+
     def sort_by(self, by):
         """ resorts the rdm patterns
 
