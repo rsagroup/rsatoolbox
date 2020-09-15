@@ -16,7 +16,7 @@ class MeadowsIOTests(TestCase):
         import pyrsa.io.meadows
         fname = 'Meadows_myExp_v_v1_cuddly-bunny_3_1D.mat'
         fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
-        rdms = pyrsa.io.meadows.load_rdms(fpath)
+        rdms = pyrsa.io.meadows.load_rdms(fpath, sort=False)
         self.assertEqual(rdms.descriptors.get('participant'), 'cuddly-bunny')
         self.assertEqual(rdms.descriptors.get('task_index'), 3)
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
@@ -28,6 +28,21 @@ class MeadowsIOTests(TestCase):
             [0.00791285387561264, 0.00817090931233484]
         )
 
+    def test_load_rdms_and_sort(self):
+        """As above but with sorting
+        """
+        import pyrsa.io.meadows
+        fname = 'Meadows_myExp_v_v1_cuddly-bunny_3_1D.mat'
+        fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
+        rdms = pyrsa.io.meadows.load_rdms(fpath, sort=True)
+        conds = rdms.pattern_descriptors.get('conds')
+        assert_array_equal(conds[:2], ['stim001', 'stim002'])
+        assert_array_equal(conds[-2:], ['stim117', 'stim118'])
+        assert_array_almost_equal(
+            rdms.dissimilarities[0, -2:],
+            [0.00817090931233484, 0.00791285387561264]
+        )
+
     def test_load_rdms_from_mat_file_3p(self):
         """Acceptance test for loading data from a Meadows
         .mat file download containing data for a single task,
@@ -37,7 +52,7 @@ class MeadowsIOTests(TestCase):
         import pyrsa.io.meadows
         fname = 'Meadows_myExp_v_v1_arrangement_1D.mat'
         fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
-        rdms = pyrsa.io.meadows.load_rdms(fpath)
+        rdms = pyrsa.io.meadows.load_rdms(fpath, sort=False)
         self.assertEqual(rdms.descriptors.get('task_name'), 'arrangement')
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
         self.assertEqual(

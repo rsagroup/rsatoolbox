@@ -12,11 +12,12 @@ from scipy.io import loadmat
 from pyrsa.rdm.rdms import RDMs
 
 
-def load_rdms(fpath):
+def load_rdms(fpath, sort=True):
     """Read a Meadows results file and return any RDMs as a pyrsa object
 
     Args:
         fpath (str): path to .mat Meadows results file
+        sort (bool): whether to sort the RDM based on the stimulus names
 
     Raises:
         ValueError: Will raise an error if the file is missing an expected
@@ -49,13 +50,16 @@ def load_rdms(fpath):
         'experiment_name'
     )
     conds = [f.split('.')[0] for f in stimuli_fnames]
-    return RDMs(
+    rdms = RDMs(
         utvs,
         dissimilarity_measure='euclidean',
         descriptors={k: info[k] for k in desc_info_keys if k in info},
         rdm_descriptors=dict(participants=pnames),
         pattern_descriptors=dict(conds=conds),
     )
+    if sort:
+        rdms.sort_by(conds='alpha')
+    return rdms
 
 
 def extract_filename_segments(fpath):
