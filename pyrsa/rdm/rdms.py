@@ -344,28 +344,26 @@ class RDMs:
         for dname, descriptors in self.pattern_descriptors.items():
             self.pattern_descriptors[dname] = descriptors[new_order]
 
+    def sort(self, **kwargs):
+        """Reorder the patterns by sorting a descriptor
 
-    def sort_by(self, by):
-        """ resorts the rdm patterns
+        Pass keyword arguments that correspond to descriptors,
+        with value 'alpha'. 
 
-        Args:
-            by(String): the descriptor by which the subset selection
-                        is made from descriptors
-            value:      the value by which the subset selection is made
-                        from descriptors
+        Example:
+            Sorts the condition descriptor alphabetically:
 
-        Returns:
-            RDMs object, with subsampled RDMs
+            `rdms.sort(condition='alpha')`
 
+        Raises:
+            ValueError: Raised if the method chosen is not implemented
         """
-        desc = self.pattern_descriptors[by]
-        order = np.argsort(desc)
-        self.measurements = self.measurements[order]
-        self.pattern_descriptors = subset_descriptor(
-            self.pattern_descriptors, order)
-        dissimilarities = self.get_matrices()
-        dissimilarities = dissimilarities[:, order][:, :, order]
-        self.dissimilarities = batch_to_vectors(dissimilarities)
+        for dname, method in kwargs.items():
+            if method == 'alpha':
+                descriptor = self.pattern_descriptors[dname]
+                self.reorder(np.argsort(descriptor))
+            else:
+                raise ValueError(f'Unknown sorting method: {method}')
 
 
 def rdms_from_dict(rdm_dict):
