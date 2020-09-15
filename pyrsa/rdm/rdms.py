@@ -339,8 +339,7 @@ class RDMs:
                 vector of length equal to the number of patterns
         """
         matrices = self.get_matrices()
-        row_col_idx = np.ix_(new_order, new_order)
-        matrices = matrices[:, row_col_idx[0], row_col_idx[1]]
+        matrices = matrices[(slice(None),) + np.ix_(new_order, new_order)]
         self.dissimilarities = batch_to_vectors(matrices)[0]
         for dname, descriptors in self.pattern_descriptors.items():
             self.pattern_descriptors[dname] = descriptors[new_order]
