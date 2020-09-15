@@ -119,10 +119,12 @@ def eval_fixed(model, data, theta=None, method='cosine'):
         data, method=method, rdm_descriptor='index')
     variances = np.cov(evaluations[0], ddof=1) \
         / evaluations.shape[-1]
+    noise_ceil_var = np.zeros((evaluations.shape[1] + 2, 2))
     dof = evaluations.shape[-1] - 1
     result = Result(model, evaluations, method=method,
                     cv_method='fixed', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof,
+                    noise_ceil_var=noise_ceil_var)
     return result
 
 

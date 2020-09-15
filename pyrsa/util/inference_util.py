@@ -167,7 +167,7 @@ def pair_tests(evaluations):
             proportions[j_model, i_model] = proportions[i_model, j_model]
     proportions = np.minimum(proportions, 1 - proportions) * 2
     proportions = (len(evaluations) - 1) / len(evaluations) * proportions \
-         + 1 / len(evaluations)
+        + 1 / len(evaluations)
     np.fill_diagonal(proportions, 1)
     return proportions
 
