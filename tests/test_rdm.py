@@ -245,7 +245,7 @@ class TestRDM(unittest.TestCase):
             rdms.pattern_descriptors.get('conds')
         )
 
-    def test_sort(self):
+    def test_sort_by(self):
         from pyrsa.rdm import RDMs
         rdm = np.array([
             [0., 1., 2., 3.],
@@ -258,7 +258,7 @@ class TestRDM(unittest.TestCase):
             np.atleast_2d(squareform(rdm)),
             pattern_descriptors=dict(conds=conds)
         )
-        rdms.sort(conds='alpha')
+        rdms.sort_by(conds='alpha')
         new_order = np.argsort(conds)
         rdm_reordered = rdm[np.ix_(new_order, new_order)]
         assert_array_equal(

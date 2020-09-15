@@ -344,7 +344,7 @@ class RDMs:
         for dname, descriptors in self.pattern_descriptors.items():
             self.pattern_descriptors[dname] = descriptors[new_order]
 
-    def sort(self, **kwargs):
+    def sort_by(self, **kwargs):
         """Reorder the patterns by sorting a descriptor
 
         Pass keyword arguments that correspond to descriptors,
