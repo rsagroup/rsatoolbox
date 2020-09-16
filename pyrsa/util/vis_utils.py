@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """Collection of helper methods for vis module
 
-+ Weighted_MDS:  an MDS class that incorporates weighting
++ Weighted_MDS:       an MDS class that incorporates weighting
++ weight_to_matrices: batch squareform() to weight matrices
 
 @author: baihan
 
@@ -24,6 +25,29 @@ from sklearn.utils import check_random_state, check_array, check_symmetric
 from sklearn.externals.joblib import Parallel
 from sklearn.externals.joblib import delayed
 from sklearn.isotonic import IsotonicRegression
+from scipy.spatial.distance import squareform
+from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
+
+def weight_to_matrices(x):
+    """converts a *stack* of weights in vector or matrix form into matrix form
+
+    Args:
+        x: stack of weight matrices or vectors
+
+    Returns:
+        tuple: **v** (np.ndarray): 3D, matrix form of the stack of weight matrices
+    """
+    if x.ndim == 2:
+        v = x
+        n_rdm = x.shape[0]
+        n_cond = _get_n_from_reduced_vectors(x)
+        m = np.ndarray((n_rdm, n_cond, n_cond))
+        for idx in np.arange(n_rdm):
+            m[idx, :, :] = squareform(v[idx, :])
+    elif x.ndim == 3:
+        m = x
+    return m
+
 
 def _e_vect(n, N):
     """

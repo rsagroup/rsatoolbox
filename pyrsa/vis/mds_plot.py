@@ -3,7 +3,7 @@
 """
 Definition of visualization methods
 
-+ rdm_dimension_reduction: dimension reduction of RDMs class 
++ rdm_dimension_reduction: dimension reduction base function of RDMs class 
 + mds:                     multi-dimensional scaling of RDMs class
 + weighted_mds:            weighted multi-dimensional scaling of RDMs class
 
@@ -12,12 +12,12 @@ Definition of visualization methods
 
 import numpy as np
 from sklearn.manifold import MDS
-from pyrsa.util import Weighted_MDS
+from pyrsa.util.vis_utils import weight_to_matrices, Weighted_MDS
 
 sd = np.random.RandomState(seed=1)
 
 def rdm_dimension_reduction(rdms, func, dim=2, weight=None):
-    """ dimension reduction of RDMs class
+    """ dimension reduction base function of RDMs class
 
     Args:
         rdms (RDMs class): an RDMs class object
@@ -25,7 +25,7 @@ def rdm_dimension_reduction(rdms, func, dim=2, weight=None):
 
     Returns:
         dr (numpy.ndarray): a dimension-reduced
-        embedding of size (n_rdm x n_cond x n_emb)
+        embedding of size (n_rdm x n_cond x n_dim)
 
     """
     rdmm = rdms.get_matrices()
