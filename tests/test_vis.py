@@ -57,7 +57,7 @@ class TestVIS(unittest.TestCase):
 
     def test_vis_weighted_mds_output_behaves_like_mds(self):
         dis = np.random.rand(8, 10)
-        wes = np.random.ones((8,10))
+        wes = np.ones((8,10))
         mes = "Euclidean"
         des = {'session': 0, 'subj': 0}
         rdms = rsr.RDMs(dissimilarities=dis,
@@ -69,7 +69,7 @@ class TestVIS(unittest.TestCase):
 
     def test_vis_3d_weighted_mds_output_behaves_like_mds(self):
         dis = np.random.rand(8, 10)
-        wes = np.random.ones((8,10))
+        wes = np.ones((8,10))
         mes = "Euclidean"
         des = {'session': 0, 'subj': 0}
         rdms = rsr.RDMs(dissimilarities=dis,
