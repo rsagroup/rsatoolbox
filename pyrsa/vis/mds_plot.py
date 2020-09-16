@@ -21,12 +21,12 @@ def rdm_dimension_reduction(rdms, func, dim=2, weight=None):
     """ dimension reduction base function of RDMs class
 
     Args:
-        rdms (RDMs class): an RDMs class object
-        func (function): an sklearn transform function
+        **rdms** (pyrsa.rdm.RDMs): an RDMs class object
+        **func** (function): an sklearn transform function
 
     Returns:
-        dr (numpy.ndarray): a dimension-reduced
-        embedding of size (n_rdm x n_cond x n_dim)
+        (np.ndarray): a dimension-reduced embedding of 
+            size (n_rdm x n_cond x n_dim)
     """
     rdmm = rdms.get_matrices()
     ws = weight_to_matrices(weight) if weight is not None else None
@@ -44,14 +44,14 @@ def mds(rdms, dim=2, weight=None):
     """ multi-dimensional scaling of RDMs class
 
     Args:
-        rdms (RDMs class): an RDMs class object
+        **rdms** (RDMs class): an RDMs class object
 
-        dim: the dimension of MDS embedding
+        **dim** (int): the dimension of MDS embedding
 
-        weight: an importance matrix with optimization factors
+        **weight** (np.ndarray): an importance matrix for distances
 
     Returns:
-        (numpy.ndarray): an MDS embedding
+        (np.ndarray): an MDS embedding
     """
     emb = MDS if weight is None else Weighted_MDS
     mds_emb = emb(n_components=dim, 
