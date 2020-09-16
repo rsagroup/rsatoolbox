@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Collection of helper methods for vis module
 
-+ MDS:  an updated MDS function that incorporate weighting
++ Weighted_MDS:  an MDS class that incorporates weighting
 
 @author: baihan
 
@@ -375,7 +375,7 @@ class Weighted_MDS(BaseEstimator):
         Computes the position of the points in the embedding space
         Parameters
         ----------
-        X : array, shape=[n_samples, n_features], or [n_samples, n_samples] \
+        X : array, shape=[n_samples, n_features], or [n_samples, n_samples] 
                 if dissimilarity='precomputed'
             Input data.
         init : {None or ndarray, shape (n_samples,)}, optional
@@ -392,7 +392,7 @@ class Weighted_MDS(BaseEstimator):
         Fit the data from X, and returns the embedded coordinates
         Parameters
         ----------
-        X : array, shape=[n_samples, n_features], or [n_samples, n_samples] \
+        X : array, shape=[n_samples, n_features], or [n_samples, n_samples] 
                 if dissimilarity='precomputed'
             Input data.
         init : {None or ndarray, shape (n_samples,)}, optional

@@ -3,9 +3,9 @@
 """
 Definition of visualization methods
 
-+ rdm_dimension_reduction:  dimension reduction of RDMs class 
-+ mds:  multi-dimensional scaling of RDMs class
-+ weighted_mds:  weighted multi-dimensional scaling of RDMs class
++ rdm_dimension_reduction: dimension reduction of RDMs class 
++ mds:                     multi-dimensional scaling of RDMs class
++ weighted_mds:            weighted multi-dimensional scaling of RDMs class
 
 @author: baihan
 """
