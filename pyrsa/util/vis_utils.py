@@ -22,8 +22,7 @@ import warnings
 from sklearn.base import BaseEstimator
 from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_random_state, check_array, check_symmetric
-from sklearn.externals.joblib import Parallel
-from sklearn.externals.joblib import delayed
+from joblib import Parallel, delayed
 from sklearn.isotonic import IsotonicRegression
 from scipy.spatial.distance import squareform
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
