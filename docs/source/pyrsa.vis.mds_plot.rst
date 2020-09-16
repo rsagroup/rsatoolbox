@@ -1,4 +1,4 @@
-pyrsa.vis.mds_plot module
+pyrsa.vis.mds\_plot module
 =======================
 
 .. automodule:: pyrsa.vis.mds_plot
