@@ -12,12 +12,13 @@ Definition of visualization methods
 
 import numpy as np
 from sklearn.manifold import MDS
+from pyrsa.util import Weighted_MDS
 
 sd = np.random.RandomState(seed=1)
 mds_emb = MDS(n_components=2, random_state=sd, dissimilarity="precomputed")
 
 
-def rdm_dimension_reduction(rdms, func):
+def rdm_dimension_reduction(rdms, func, dim=2, weight=None):
     """ dimension reduction of RDMs class
 
     Args:
@@ -37,6 +38,19 @@ def rdm_dimension_reduction(rdms, func):
 
 
 def mds(rdms):
+    """ multi-dimensional scaling of RDMs class
+
+    Args:
+        rdms (RDMs class): an RDMs class object
+
+    Returns:
+        (numpy.ndarray): an MDS embedding
+
+    """
+    return rdm_dimension_reduction(rdms, mds_emb)
+
+
+def weighted_mds(rdms):
     """ multi-dimensional scaling of RDMs class
 
     Args:

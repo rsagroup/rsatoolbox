@@ -301,8 +301,8 @@ def smacof(similarities, metric=True, n_components=2, init=None, weight=None,
         return best_pos, best_stress
 
 
-class MDS(BaseEstimator):
-    """Multidimensional scaling
+class Weighted_MDS(BaseEstimator):
+    """ Weighted multidimensional scaling
     Read more in the :ref:`User Guide <multidimensional_scaling>`.
     Parameters
     ----------
