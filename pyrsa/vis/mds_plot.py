@@ -29,10 +29,11 @@ def rdm_dimension_reduction(rdms, func, dim=2, weight=None):
 
     """
     rdmm = rdms.get_matrices()
+    ws = weight_to_matrices(weight)
     drs = np.ndarray((rdms.n_rdm, rdms.n_cond, dim))
     for i in np.arange(rdms.n_rdm):
         if weight is not None:
-            drs[i, :, :] = func.fit_transform(rdmm[i, :, :],weight=weight)
+            drs[i, :, :] = func.fit_transform(rdmm[i, :, :],weight=ws[i, :, :])
         else:
             drs[i, :, :] = func.fit_transform(rdmm[i, :, :])
     return drs

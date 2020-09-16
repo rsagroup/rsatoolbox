@@ -32,7 +32,7 @@ def weight_to_matrices(x):
     """converts a *stack* of weights in vector or matrix form into matrix form
 
     Args:
-        x: stack of weight matrices or vectors
+        x: stack of weight matrices or weight vectors
 
     Returns:
         tuple: **v** (np.ndarray): 3D, matrix form of the stack of weight matrices
