@@ -44,7 +44,7 @@ class TestVIS(unittest.TestCase):
         mds_emb = rsv.weighted_mds(rdms, weight=wes)
         self.assertEqual(mds_emb.shape, (8, 5, 2))
 
-    def test_vis_weighted_3d_mds_output_shape_corresponds_to_inputs(self):
+    def test_vis_3d_weighted_mds_output_shape_corresponds_to_inputs(self):
         dis = np.random.rand(8, 10)
         wes = np.random.random((8,10))
         mes = "Euclidean"
