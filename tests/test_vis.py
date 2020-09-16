@@ -30,27 +30,29 @@ class TestVIS(unittest.TestCase):
         rdms = rsr.RDMs(dissimilarities=dis,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        mds_emb = rsv.mds(rdms,dim=3)
+        mds_emb = rsv.mds(rdms, dim=3)
         self.assertEqual(mds_emb.shape, (8, 5, 3))
 
     def test_vis_weighted_mds_output_shape_corresponds_to_inputs(self):
         dis = np.random.rand(8, 10)
+        wes = np.random.random((8,10))
         mes = "Euclidean"
         des = {'session': 0, 'subj': 0}
         rdms = rsr.RDMs(dissimilarities=dis,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        mds_emb = rsv.weighted_mds(rdms)
+        mds_emb = rsv.weighted_mds(rdms, weight=wes)
         self.assertEqual(mds_emb.shape, (8, 5, 2))
 
     def test_vis_weighted_3d_mds_output_shape_corresponds_to_inputs(self):
         dis = np.random.rand(8, 10)
+        wes = np.random.random((8,10))
         mes = "Euclidean"
         des = {'session': 0, 'subj': 0}
         rdms = rsr.RDMs(dissimilarities=dis,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        mds_emb = rsv.weighted_mds(rdms,dim=3)
+        mds_emb = rsv.weighted_mds(rdms,dim=3, weight=wes)
         self.assertEqual(mds_emb.shape, (8, 5, 3))
 
 if __name__ == '__main__':
