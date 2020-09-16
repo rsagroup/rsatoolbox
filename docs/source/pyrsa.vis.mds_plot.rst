@@ -1,7 +1,7 @@
-pyrsa.vis.colors module
+pyrsa.vis.mds_plot module
 =======================
 
-.. automodule:: pyrsa.vis.colors
+.. automodule:: pyrsa.vis.mds_plot
    :members:
    :undoc-members:
    :show-inheritance:
