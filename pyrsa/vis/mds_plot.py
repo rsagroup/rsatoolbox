@@ -27,14 +27,14 @@ def rdm_dimension_reduction(rdms, func, dim=2, weight=None):
     Returns:
         dr (numpy.ndarray): a dimension-reduced
         embedding of size (n_rdm x n_cond x n_dim)
-
     """
     rdmm = rdms.get_matrices()
     ws = weight_to_matrices(weight) if weight is not None else None
     drs = np.ndarray((rdms.n_rdm, rdms.n_cond, dim))
     for i in np.arange(rdms.n_rdm):
         if weight is not None:
-            drs[i, :, :] = func.fit_transform(rdmm[i, :, :],weight=ws[i, :, :])
+            drs[i, :, :] = func.fit_transform(rdmm[i, :, :], 
+                                              weight=ws[i, :, :])
         else:
             drs[i, :, :] = func.fit_transform(rdmm[i, :, :])
     return drs
@@ -52,7 +52,6 @@ def mds(rdms, dim=2, weight=None):
 
     Returns:
         (numpy.ndarray): an MDS embedding
-
     """
     emb = MDS if weight is None else Weighted_MDS
     mds_emb = emb(n_components=dim, 
