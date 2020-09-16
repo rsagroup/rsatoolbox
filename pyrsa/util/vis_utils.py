@@ -328,8 +328,8 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
         return best_pos, best_stress
 
 
-class MDS(BaseEstimator):
-    """Multidimensional scaling.
+class Weighted_MDS(BaseEstimator):
+    """Multidimensional scaling with weighting options.
 
     Read more in the :ref:`User Guide <multidimensional_scaling>`.
 
