@@ -30,7 +30,7 @@ def rdm_dimension_reduction(rdms, func, dim=2, weight=None):
 
     """
     rdmm = rdms.get_matrices()
-    ws = weight_to_matrices(weight)
+    ws = weight_to_matrices(weight) if weight is not None else None
     drs = np.ndarray((rdms.n_rdm, rdms.n_cond, dim))
     for i in np.arange(rdms.n_rdm):
         if weight is not None:
