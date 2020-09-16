@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 """Collection of helper methods for vis module
 
-+ batch_to_vectors:  batch squareform() to vectors
-+ batch_to_matrices: batch squareform() to matrices
++ MDS:  an updated MDS function that incorporate weighting
 
 @author: baihan
 
