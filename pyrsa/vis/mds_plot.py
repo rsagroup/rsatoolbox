@@ -31,7 +31,10 @@ def rdm_dimension_reduction(rdms, func, dim=2, weight=None):
     rdmm = rdms.get_matrices()
     drs = np.ndarray((rdms.n_rdm, rdms.n_cond, dim))
     for i in np.arange(rdms.n_rdm):
-        drs[i, :, :] = func.fit_transform(rdmm[i, :, :])
+        if weight is not None:
+            drs[i, :, :] = func.fit_transform(rdmm[i, :, :],weight=weight)
+        else:
+            drs[i, :, :] = func.fit_transform(rdmm[i, :, :])
     return drs
 
 
@@ -48,7 +51,7 @@ def mds(rdms, dim=2):
     mds_emb = MDS(n_components=dim, 
                   random_state=sd, 
                   dissimilarity="precomputed")
-    return rdm_dimension_reduction(rdms, mds_emb)
+    return rdm_dimension_reduction(rdms, mds_emb, dim)
 
 
 def weighted_mds(rdms, dim=2, weight=None):
@@ -64,4 +67,4 @@ def weighted_mds(rdms, dim=2, weight=None):
     wmds_emb = Weighted_MDS(n_components=dim, 
                             random_state=sd, 
                             dissimilarity="precomputed")
-    return rdm_dimension_reduction(rdms, wmds_emb)
+    return rdm_dimension_reduction(rdms, wmds_emb, dim, weight)
