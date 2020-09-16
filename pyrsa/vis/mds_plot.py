@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Definition of visualization methods
+Dimensional reduction transformations and visualizations (with potential 
+integrations of additional plotting options)
 
 + rdm_dimension_reduction: dimension reduction base function of RDMs class 
 + mds:                     multi-dimensional scaling of RDMs class
@@ -39,33 +40,22 @@ def rdm_dimension_reduction(rdms, func, dim=2, weight=None):
     return drs
 
 
-def mds(rdms, dim=2):
+def mds(rdms, dim=2, weight=None):
     """ multi-dimensional scaling of RDMs class
 
     Args:
         rdms (RDMs class): an RDMs class object
 
+        dim: the dimension of MDS embedding
+
+        weight: an importance matrix with optimization factors
+
     Returns:
         (numpy.ndarray): an MDS embedding
 
     """
-    mds_emb = MDS(n_components=dim, 
+    emb = MDS if weight is None else Weighted_MDS
+    mds_emb = emb(n_components=dim, 
                   random_state=sd, 
                   dissimilarity="precomputed")
-    return rdm_dimension_reduction(rdms, mds_emb, dim)
-
-
-def weighted_mds(rdms, dim=2, weight=None):
-    """ multi-dimensional scaling of RDMs class
-
-    Args:
-        rdms (RDMs class): an RDMs class object
-
-    Returns:
-        (numpy.ndarray): an MDS embedding
-
-    """
-    wmds_emb = Weighted_MDS(n_components=dim, 
-                            random_state=sd, 
-                            dissimilarity="precomputed")
-    return rdm_dimension_reduction(rdms, wmds_emb, dim, weight)
+    return rdm_dimension_reduction(rdms, mds_emb, dim, weight)
