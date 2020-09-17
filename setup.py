@@ -10,8 +10,8 @@ with open('README.md', encoding='utf-8') as readmefile:
 
 
 setup(
-    name='pyrsa',
-    version='3.0.0',
+    name='rsa3',
+    version='0.0.0',
     description='Python Representational Similarity Analysis (RSA)',
     url='https://github.com/rsagroup/pyrsa',
     long_description=long_description,
