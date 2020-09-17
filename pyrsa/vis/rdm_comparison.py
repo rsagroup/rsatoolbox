@@ -8,9 +8,9 @@ Created on 2020-09-17
 
 from matplotlib import pyplot
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 from pyrsa.rdm import RDMs
-from pyrsa.util.vis_utils import subplot_idx
 
 
 def rdm_comparison_scatterplot(rdms,
@@ -56,13 +56,32 @@ def rdm_comparison_scatterplot(rdms,
     n_rdms_x = rdms_x.n_rdm
     n_rdms_y = rdms_y.n_rdm
 
-    # main_axes = pyplot.subplot(n_rdms_x, n_rdms_y, sharex=True, sharey=True)
+    fig: Figure = pyplot.figure(figsize=(8, 8))
 
+    # Set up gridspec
+    grid_n_rows = n_rdms_y
+    grid_n_cols = n_rdms_x
+    grid_width_ratios = tuple(6 for _ in range(grid_n_cols))
+    grid_height_ratios = tuple(6 for _ in range(grid_n_rows))
+    if show_marginal_distributions:
+        # Add extra row & col for marginal distributions
+        grid_n_rows += 1
+        grid_n_cols += 1
+        grid_width_ratios = (1, *grid_width_ratios)
+        grid_height_ratios = (*grid_height_ratios, 1)
+    gridspec = fig.add_gridspec(
+        nrows=grid_n_rows,
+        ncols=grid_n_cols,
+        width_ratios=grid_width_ratios,
+        height_ratios=grid_height_ratios,
+        figure=fig,
+    )
+
+    # TODO: rename these vars
     for ix, rx in enumerate(rdms_x):
         for iy, ry in enumerate(rdms_y):
-            pyplot.figure()
 
-            sub_axis: Axes = pyplot.subplot(n_rdms_x, n_rdms_y, subplot_idx(ix, iy, n_rdms_x, n_rdms_y))
+            sub_axis: Axes = fig.add_subplot(gridspec[ix, iy])
 
             pyplot.scatter(rx.get_vectors(), ry.get_vectors())
 
@@ -73,4 +92,4 @@ def rdm_comparison_scatterplot(rdms,
             # Square axes
             sub_axis.set_aspect('equal', adjustable='box')
 
-    # return main_axes
+    return fig
