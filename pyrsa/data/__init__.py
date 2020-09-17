@@ -1,3 +1,4 @@
+from .pooling import BidsDerivatives
 from .dataset import Dataset
 from .dataset import load_dataset
 from .dataset import dataset_from_dict
