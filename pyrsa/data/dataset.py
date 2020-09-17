@@ -341,7 +341,7 @@ class DatasetTime(Dataset):
                                       )
         check_descriptor_length_error(time_descriptors,
                                       "time_descriptors",
-                                      self.n_channel
+                                      self.n_time
                                       )        
         self.descriptors = parse_input_descriptor(descriptors)
         self.obs_descriptors = parse_input_descriptor(obs_descriptors)
@@ -470,7 +470,7 @@ class DatasetTime(Dataset):
                               time_descriptors=time_descriptors)
         return dataset
     
-    def subset_time(self, by):
+    def subset_time(self, by, value):
         """ Returns a list DatasetTime splited by time
 
         Args:
