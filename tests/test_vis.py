@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 import pyrsa.vis as rsv
 import pyrsa.rdm as rsr
-
+from scipy.spatial.distance import pdist
 
 class TestVIS(unittest.TestCase):
 
@@ -79,7 +79,7 @@ class TestVIS(unittest.TestCase):
                         descriptors=des)
         mds_emb = rsv.mds(rdms, dim=3)
         wmds_emb = rsv.mds(rdms, dim=3, weight=wes)
-        np.testing.assert_allclose(mds_emb, wmds_emb)
+        np.testing.assert_allclose(pdist(mds_emb), pdist(wmds_emb))
 
 if __name__ == '__main__':
     unittest.main()
