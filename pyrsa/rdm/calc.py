@@ -74,6 +74,54 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
     return rdm
 
 
+def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
+             cv_descriptor=None, prior_lambda=1, prior_weight=0.1, bins=None):
+    """    
+    Args:
+        dataset : TYPE
+            DESCRIPTION.
+        descriptor : TYPE, optional
+            DESCRIPTION. The default is None.
+
+    Returns:
+        prsa.rdm.rdms.RDMs: RDMs object with RDM movie
+    
+    """
+    
+    if isinstance(dataset, Iterable):
+        rdms = []
+        for i_dat in range(len(dataset)):
+            if noise is None:
+                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
+                                     descriptor=descriptor))
+            elif isinstance(noise, np.ndarray) and noise.ndim == 3:
+                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
+                                     descriptor=descriptor,
+                                     noise=noise))
+            elif isinstance(noise, Iterable):
+                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
+                                     descriptor=descriptor,
+                                     noise=noise[i_dat]))
+        rdm = concat(rdms)
+    else:
+            
+        if bins is None:
+            splited_data = dataset.split_time('time')
+        else:
+            splited_data = dataset.bin_time('time', bins)
+            
+        rdms = []
+        for dat in splited_data:
+            rdms.append(calc_rdm(dat, method=method,
+                                 descriptor=descriptor,noise=noise,
+                                 cv_descriptor=cv_descriptor, prior_lambda=prior_lambda, 
+                                 prior_weight=prior_weight))  
+        
+        rdm = concat(rdms)
+    
+    return rdm
+    
+
 def calc_rdm_euclid(dataset, descriptor=None):
     """
     calculates an RDM from an input dataset using euclidean distance
