@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-utility methods for rdm module
+"""Collection of helper methods for rdm module
+
++ batch_to_vectors:  batch squareform() to vectors
++ batch_to_matrices: batch squareform() to matrices
++ add_pattern_index: adds index if pattern_descriptor is None
+
+@author: baihan
 """
 
 import numpy as np
@@ -43,7 +48,7 @@ def batch_to_matrices(x):
     """converts a *stack* of RDMs in vector or matrix form into matrix form
 
     Args:
-        x: stack of RDMs
+        **x**: stack of RDMs
 
     Returns:
         tuple: **v** (np.ndarray): 3D, matrix form of the stack of RDMs
@@ -71,7 +76,7 @@ def _get_n_from_reduced_vectors(x):
     calculates the size of the RDM from the vector representation
 
     Args:
-        x(np.ndarray): stack of RDM vectors (2D)
+        **x**(np.ndarray): stack of RDM vectors (2D)
 
     Returns:
         int: n: size of the RDM
@@ -85,7 +90,7 @@ def add_pattern_index(rdms, pattern_descriptor):
     adds index if pattern_descriptor is None
 
     Args:
-        rdms(pyrsa.rdm.RDMs): rdms object to be parsed
+        **rdms** (pyrsa.rdm.RDMs): rdms object to be parsed
 
     Returns:
         pattern_descriptor
