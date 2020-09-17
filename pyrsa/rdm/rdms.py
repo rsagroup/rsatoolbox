@@ -331,27 +331,39 @@ class RDMs:
         rdm_dict['dissimilarity_measure'] = self.dissimilarity_measure
         return rdm_dict
 
-    def sort_by(self, by):
-        """ resorts the rdm patterns
+    def reorder(self, new_order):
+        """Reorder the patterns according to the index in new_order
 
         Args:
-            by(String): the descriptor by which the subset selection
-                        is made from descriptors
-            value:      the value by which the subset selection is made
-                        from descriptors
-
-        Returns:
-            RDMs object, with subsampled RDMs
-
+            new_order (numpy.ndarray): new order of patterns,
+                vector of length equal to the number of patterns
         """
-        desc = self.pattern_descriptors[by]
-        order = np.argsort(desc)
-        self.measurements = self.measurements[order]
-        self.pattern_descriptors = subset_descriptor(
-            self.pattern_descriptors, order)
-        dissimilarities = self.get_matrices()
-        dissimilarities = dissimilarities[:, order][:, :, order]
-        self.dissimilarities = batch_to_vectors(dissimilarities)
+        matrices = self.get_matrices()
+        matrices = matrices[(slice(None),) + np.ix_(new_order, new_order)]
+        self.dissimilarities = batch_to_vectors(matrices)[0]
+        for dname, descriptors in self.pattern_descriptors.items():
+            self.pattern_descriptors[dname] = descriptors[new_order]
+
+    def sort_by(self, **kwargs):
+        """Reorder the patterns by sorting a descriptor
+
+        Pass keyword arguments that correspond to descriptors,
+        with value 'alpha'. 
+
+        Example:
+            Sorts the condition descriptor alphabetically:
+
+            `rdms.sort(condition='alpha')`
+
+        Raises:
+            ValueError: Raised if the method chosen is not implemented
+        """
+        for dname, method in kwargs.items():
+            if method == 'alpha':
+                descriptor = self.pattern_descriptors[dname]
+                self.reorder(np.argsort(descriptor))
+            else:
+                raise ValueError(f'Unknown sorting method: {method}')
 
 
 def rdms_from_dict(rdm_dict):

@@ -220,6 +220,57 @@ class TestRDM(unittest.TestCase):
             rdm.dissimilarities,
             np.array([[1., 1., 1., 0., 1., 1.]]))
 
+    def test_reorder(self):
+        from pyrsa.rdm import RDMs
+        rdm = np.array([
+            [0., 1., 2., 3.],
+            [1., 0., 1., 2.],
+            [2., 1., 0., 1.],
+            [3., 2., 1., 0.]]
+        )
+        conds = ['a', 'b', 'c', 'd']
+        rdms = RDMs(
+            np.atleast_2d(squareform(rdm)),
+            pattern_descriptors=dict(conds=conds)
+        )
+        conds_ordered = ['b', 'a', 'c', 'd']
+        new_order = [conds.index(l) for l in conds_ordered]
+        rdm_reordered = rdm[np.ix_(new_order, new_order)]
+        rdms.reorder(new_order)
+        assert_array_equal(
+            np.atleast_2d(squareform(rdm_reordered)),
+            rdms.dissimilarities
+        )
+        assert_array_equal(
+            conds_ordered,
+            rdms.pattern_descriptors.get('conds')
+        )
+
+    def test_sort_by(self):
+        from pyrsa.rdm import RDMs
+        rdm = np.array([
+            [0., 1., 2., 3.],
+            [1., 0., 1., 2.],
+            [2., 1., 0., 1.],
+            [3., 2., 1., 0.]]
+        )
+        conds = ['b', 'a', 'c', 'd']
+        rdms = RDMs(
+            np.atleast_2d(squareform(rdm)),
+            pattern_descriptors=dict(conds=conds)
+        )
+        rdms.sort_by(conds='alpha')
+        new_order = np.argsort(conds)
+        rdm_reordered = rdm[np.ix_(new_order, new_order)]
+        assert_array_equal(
+            np.atleast_2d(squareform(rdm_reordered)),
+            rdms.dissimilarities
+        )
+        assert_array_equal(
+            sorted(conds),
+            rdms.pattern_descriptors.get('conds')
+        )
+
 
 class TestCalcRDM(unittest.TestCase):
 
