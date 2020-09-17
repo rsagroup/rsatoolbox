@@ -83,7 +83,10 @@ class Icon:
         self.fontsize = fontsize
         self.fontname = fontname
         self.marker_front = marker_front
-        self.resolution = resolution
+        if resolution is not None:
+            self.resolution = np.array(resolution)
+        else:
+            self.resolution = None
         self.markeredgewidth = markeredgewidth
         self.make_square = make_square
         self.border_width = border_width
