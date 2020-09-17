@@ -1,7 +1,7 @@
 coverage
 numpy
 scipy
-sklearn
+scikit-learn
 scikit-image
 tqdm
 h5py
