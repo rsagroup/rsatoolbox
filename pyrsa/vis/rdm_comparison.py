@@ -17,6 +17,7 @@ from pyrsa.rdm import RDMs
 
 def rdm_comparison_scatterplot(rdms,
                                show_marginal_distributions: bool = True,
+                               axlim: Tuple[float, float] = None,
                                **kwargs):
     """
 
@@ -120,6 +121,11 @@ def rdm_comparison_scatterplot(rdms,
 
             # Square axes
             sub_axis.set_aspect('equal', adjustable='box')
+
+    # Apply specified axlim to the reference axis:
+    if axlim is not None:
+        reference_axis.set_xlim(axlim[0], axlim[1])
+        reference_axis.set_ylim(axlim[0], axlim[1])
 
     if show_marginal_distributions:
         # Add marginal distributions along the x axis
