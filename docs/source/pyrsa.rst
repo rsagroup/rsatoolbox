@@ -48,15 +48,17 @@ pyrsa.util
 .. toctree::
 
    pyrsa.util.data_utils
+   pyrsa.util.rdm_utils
+   pyrsa.util.vis_utils
    pyrsa.util.descriptor_utils
    pyrsa.util.matrix
-   pyrsa.util.rdm_utils
 
 pyrsa.vis
 ---------
 
 .. toctree::
 
+   pyrsa.vis.mds_plot
    pyrsa.vis.colors
 
 pyrsa.simulation
