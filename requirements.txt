@@ -6,3 +6,4 @@ scikit-image
 tqdm
 h5py
 matplotlib
+joblib
