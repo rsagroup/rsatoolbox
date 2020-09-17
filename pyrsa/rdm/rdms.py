@@ -107,6 +107,7 @@ class RDMs:
     def __getitem__(self, idx):
         """
         allows indexing with []
+        also allows use of "for in" loops
         """
         idx = np.array(idx)
         dissimilarities = self.dissimilarities[idx].reshape(-1,

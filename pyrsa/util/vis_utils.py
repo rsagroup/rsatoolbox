@@ -511,3 +511,23 @@ class Weighted_MDS(BaseEstimator):
             return_n_iter=True, weight=weight)
 
         return self.embedding_
+
+
+def subplot_idx(i: int, j: int, nx: int, ny: int) -> int:
+    """
+    Converts row/column indices to subplot index
+    Args:
+        i: 0-indexed row number
+        j: 0-indexed column index
+        nx: total number of rows
+        ny: total number of columns
+
+    Returns:
+        1-indexed serial index for use in matplotlib.pyplot.subplot
+
+    """
+    assert i < nx
+    assert j < ny
+    return (
+        j * ny + i + 1
+    )
