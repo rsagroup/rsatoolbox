@@ -6,7 +6,6 @@ Definition of RSA Dataset class and subclasses
 
 
 import numpy as np
-import pickle
 from pyrsa.util.data_utils import get_unique_unsorted
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import subset_descriptor
@@ -37,6 +36,7 @@ class DatasetBase:
     Returns:
         dataset object
     """
+
     def __init__(self, measurements, descriptors=None,
                  obs_descriptors=None, channel_descriptors=None):
         if measurements.ndim != 2:

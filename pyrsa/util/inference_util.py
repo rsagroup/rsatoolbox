@@ -12,6 +12,29 @@ from collections.abc import Iterable
 
 
 def input_check_model(model, theta=None, fitter=None, N=1):
+    """ Checks whether model related inputs to evaluations are valid and
+    generates an evaluation-matrix of fitting size.
+
+    Args:
+        model : [list of] pyrsa.rdm.RDMs
+            the models to be evaluated
+        theta : numpy.ndarray or list , optional
+            Parameter(s) for the model(s). The default is None.
+        fitter : [list of] function, optional
+            fitting function to overwrite the model default.
+            The default is None, i.e. keep default
+        N : int, optional
+            number of samples/rows in evaluations matrix. The default is 1.
+
+    Returns:
+        evaluations : numpy.ndarray
+            empty evaluations-matrix
+        theta : list
+            the processed and checked model parameters
+        fitter : [list of] functions
+            checked and processed fitter functions
+
+    """
     if isinstance(model, Model):
         evaluations = np.zeros(N)
     elif isinstance(model, Iterable):
