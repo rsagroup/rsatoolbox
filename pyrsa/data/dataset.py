@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Definition of RSA Dataset class and subclasses
-@author: baihan, jdiedrichsen
+@author: baihan, jdiedrichsen, bpeters
 """
 
 
@@ -299,6 +299,206 @@ class Dataset(DatasetBase):
         order = np.argsort(desc)
         self.measurements = self.measurements[order]
         self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
+        
+
+class DatasetTime(Dataset):
+    """
+    DatasetTime for spatio-temporal datasets
+    
+
+    Args:
+        measurements (numpy.ndarray): n_obs x n_channel x time 3d-array,
+        descriptors (dict):           descriptors (metadata)
+        obs_descriptors (dict):       observation descriptors (all
+            are array-like with shape = (n_obs,...))
+        channel_descriptors (dict):   channel descriptors (all are
+            array-like with shape = (n_channel,...))
+        time_descriptors (dict):      time descriptors (alls are 
+            array-like with shape= (n_time,...))
+        
+            time_descriptors needs to contain one entry 'time' that 
+            specifies the time-coordinate
+
+    Returns:
+        dataset object
+    """
+    def __init__(self, measurements, descriptors=None,
+                 obs_descriptors=None, channel_descriptors=None,
+                 time_descriptors=None):
+        
+        if measurements.ndim != 3:
+            raise AttributeError(
+                "measurements must be in dimension n_obs x n_channel x time")
+        self.measurements = measurements
+        self.n_obs, self.n_channel, self.n_time = self.measurements.shape
+        check_descriptor_length_error(obs_descriptors,
+                                      "obs_descriptors",
+                                      self.n_obs
+                                      )
+        check_descriptor_length_error(channel_descriptors,
+                                      "channel_descriptors",
+                                      self.n_channel
+                                      )
+        check_descriptor_length_error(time_descriptors,
+                                      "time_descriptors",
+                                      self.n_channel
+                                      )        
+        self.descriptors = parse_input_descriptor(descriptors)
+        self.obs_descriptors = parse_input_descriptor(obs_descriptors)
+        self.channel_descriptors = parse_input_descriptor(channel_descriptors)
+        self.time_descriptors = parse_input_descriptor(time_descriptors)
+
+    def split_obs(self, by):
+        """ Returns a list DatasetTime splited by obs
+
+        Args:
+            by(String): the descriptor by which the splitting is made
+
+        Returns:
+            list of DatasetTime, splitted by the selected obs_descriptor
+        """
+        unique_values = get_unique_unsorted(self.obs_descriptors[by])
+        dataset_list = []
+        for v in unique_values:
+            selection = (self.obs_descriptors[by] == v)
+            measurements = self.measurements[selection, :, :]
+            descriptors = self.descriptors
+            obs_descriptors = subset_descriptor(
+                self.obs_descriptors, selection)
+            channel_descriptors = self.channel_descriptors
+            time_descriptors = self.time_descriptors
+            dataset = DatasetTime(measurements=measurements,
+                                  descriptors=descriptors,
+                                  obs_descriptors=obs_descriptors,
+                                  channel_descriptors=channel_descriptors,
+                                  time_descriptors=time_descriptors)
+            dataset_list.append(dataset)
+        return dataset_list
+        
+    def split_channel(self, by):
+        """ Returns a list DatasetTime splited by channels
+
+        Args:
+            by(String): the descriptor by which the splitting is made
+
+        Returns:
+            list of DatasetTime,  splitted by the selected channel_descriptor
+        """
+        unique_values = get_unique_unsorted(self.channel_descriptors[by])
+        dataset_list = []
+        for v in unique_values:
+            selection = (self.channel_descriptors[by] == v)
+            measurements = self.measurements[:, selection]
+            descriptors = self.descriptors
+            descriptors[by] = v
+            obs_descriptors = self.obs_descriptors
+            channel_descriptors = subset_descriptor(
+                self.channel_descriptors, selection)
+            time_descriptors = self.time_descriptors
+            dataset = DatasetTime(measurements=measurements,
+                                  descriptors=descriptors,
+                                  obs_descriptors=obs_descriptors,
+                                  channel_descriptors=channel_descriptors,
+                                  time_descriptors=time_descriptors)
+            dataset_list.append(dataset)
+        return dataset_list    
+    
+    def split_time(self, by):
+        """ Returns a list DatasetTime splited by channels
+
+        Args:
+            by(String): the descriptor by which the splitting is made
+
+        Returns:
+            list of DatasetTime,  splitted by the selected channel_descriptor
+        """
+        raise NotImplementedError(
+            "split_time function not yet implemented in DatasetTime class!")
+        
+        
+    def subset_obs(self, by, value):
+        """ Returns a subsetted DatasetTime defined by certain obs value
+
+        Args:
+            by(String): the descriptor by which the subset selection
+                is made from obs dimension
+            value:      the value by which the subset selection is made
+                from obs dimension
+
+        Returns:
+            DatasetTime, with subset defined by the selected obs_descriptor
+
+        """
+        selection = bool_index(self.obs_descriptors[by], value)
+        measurements = self.measurements[selection, :, :]
+        descriptors = self.descriptors
+        obs_descriptors = subset_descriptor(
+            self.obs_descriptors, selection)
+        channel_descriptors = self.channel_descriptors
+        time_descriptors = self.time_descriptors
+        dataset = DatasetTime(measurements=measurements,
+                              descriptors=descriptors,
+                              obs_descriptors=obs_descriptors,
+                              channel_descriptors=channel_descriptors,
+                              time_descriptors=time_descriptors)
+        return dataset
+
+    def subset_channel(self, by, value):
+        """ Returns a subsetted DatasetTime defined by certain channel value
+
+        Args:
+            by(String): the descriptor by which the subset selection is
+                made from channel dimension
+            value:      the value by which the subset selection is made
+                from channel dimension
+
+        Returns:
+            DatasetTime, with subset defined by the selected channel_descriptor
+
+        """
+        selection = bool_index(self.channel_descriptors[by], value)
+        measurements = self.measurements[:, selection]
+        descriptors = self.descriptors
+        obs_descriptors = self.obs_descriptors
+        channel_descriptors = subset_descriptor(
+            self.channel_descriptors, selection)
+        time_descriptors = self.time_descriptors
+        dataset = DatasetTime(measurements=measurements,
+                              descriptors=descriptors,
+                              obs_descriptors=obs_descriptors,
+                              channel_descriptors=channel_descriptors,
+                              time_descriptors=time_descriptors)
+        return dataset
+    
+    def subset_time(self, by):
+        """ Returns a list DatasetTime splited by time
+
+        Args:
+            by(String): the descriptor by which the subset selection is
+                made from channel dimension
+            value:      the value by which the subset selection is made
+                from channel dimension
+                
+        Returns:
+            DatasetTime, with subset defined by the selected time_descriptor
+        """
+        raise NotImplementedError(
+            "subset_time function not yet implemented in DatasetTime class!")    
+    
+    def sort_by(self, by):
+        """ sorts the dataset by a given observation descriptor
+
+        Args:
+            by(String): the descriptor by which the dataset shall be sorted
+
+        Returns:
+            ---
+
+        """
+        desc = self.obs_descriptors[by]
+        order = np.argsort(desc)
+        self.measurements = self.measurements[order]
+        self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
 
 
 def load_dataset(filename, file_type=None):
@@ -326,7 +526,7 @@ def load_dataset(filename, file_type=None):
 def dataset_from_dict(data_dict):
     """ regenerates a Dataset object from the dictionary representation
 
-    Currently this function works for Dataset and DatasetBase objects
+    Currently this function works for Dataset, DatasetBase, and DatasetTime objects
 
     Args:
         data_dict(dict): the dictionary representation
@@ -336,16 +536,24 @@ def dataset_from_dict(data_dict):
 
     """
     if data_dict['type'] == 'Dataset':
-        data = Dataset(data_dict['measurements'],
-                       descriptors=data_dict['descriptors'],
-                       obs_descriptors=data_dict['obs_descriptors'],
-                       channel_descriptors=data_dict['channel_descriptors'])
+        data = Dataset(
+            data_dict['measurements'],
+            descriptors=data_dict['descriptors'],
+            obs_descriptors=data_dict['obs_descriptors'],
+            channel_descriptors=data_dict['channel_descriptors'])
     elif data_dict['type'] == 'DatasetBase':
         data = DatasetBase(
             data_dict['measurements'],
             descriptors=data_dict['descriptors'],
             obs_descriptors=data_dict['obs_descriptors'],
             channel_descriptors=data_dict['channel_descriptors'])
+    elif data_dict['type'] == 'DatasetTime':
+        data = DatasetTime(
+            data_dict['measurements'],
+            descriptors=data_dict['descriptors'],
+            obs_descriptors=data_dict['obs_descriptors'],
+            channel_descriptors=data_dict['channel_descriptors'],
+            time_descriptors=data_dict['time_descriptors'])        
     else:
         raise ValueError('type of Dataset not recognized')
     return data
