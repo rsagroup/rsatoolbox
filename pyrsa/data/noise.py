@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Functions for estimating the precision matrix based on the covariance of 
+Functions for estimating the precision matrix based on the covariance of
 either the residuals (temporal based precision matrix) or of the measurements
 (instance based precision matrix)
 
@@ -9,6 +9,7 @@ either the residuals (temporal based precision matrix) or of the measurements
 
 from collections.abc import Iterable
 import numpy as np
+
 
 def sample_covariance(matrix):
     """
@@ -57,16 +58,15 @@ def sample_covariance_3d(tensor):
     einsum_superset = []
     cov_superset = []
     for slice_num in range(tensor.shape[2]):
-        array_slice = tensor[:,:,slice_num]
+        array_slice = tensor[:, :, slice_num]
         s, xt_x = sample_covariance(array_slice)
         einsum_superset.append(xt_x)
         cov_superset.append(s)
-        
+
     # get expected value of the covariance matrix estimates
-    einsum_tensor = np.stack(einsum_superset, axis = 0)
-    xt_x_mean = np.mean(einsum_tensor, axis = 0)
+    einsum_tensor = np.stack(einsum_superset, axis=0)
+    xt_x_mean = np.mean(einsum_tensor, axis=0)
     s_mean = np.mean(xt_x_mean, axis=0)
-    
     return s_mean, xt_x_mean
 
 
@@ -154,8 +154,8 @@ def prec_from_residuals(residuals, dof=None):
 
     """
     cov = cov_from_residuals(residuals=residuals, dof=dof)
-    prec = np.zeros(cov.shape)
     if not isinstance(cov, np.ndarray) or len(cov.shape) > 2:
+        prec = [None] * len(cov)
         for i in range(len(cov)):
             prec[i] = np.linalg.inv(cov[i])
     else:
