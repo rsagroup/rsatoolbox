@@ -157,7 +157,7 @@ def flatten_list(lst):
     return lst_flattened
 
 
-def load_SPM_beta_images(run_dirs, stim_ids_dict):
+def load_SPM_beta_images(run_dirs, stim_ids_dict = None):
     """
     Collects 3d images of prespecified beta coefficients
     (typical SPM GLM results) and corresponding metadata
@@ -177,6 +177,13 @@ def load_SPM_beta_images(run_dirs, stim_ids_dict):
             corresponding descriptors
             e.g. ['cond_face_run_05', 'cond_house_run_30']
     """
+    
+    if stim_ids_dict == None:
+        n_conds = len(glob.glob(run_dirs[0] + os.sep + "beta*"))
+        keys = ["beta_" + str(cond_num).zfill(4) for cond_num in range(1, n_conds+1)]
+        values = [cond_num for cond_num in range(1, n_conds+1)]
+        stim_ids_dict = dict(zip(keys, values))
+        
     beta_array_superset = []
     dim4_descriptors = []
     run_counter = 0
