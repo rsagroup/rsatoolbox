@@ -85,29 +85,28 @@ def rdm_comparison_scatterplot(rdms,
     # To share x and y axes when using gridspec you need to specify which axis to use as references.
     # The reference axes will be those in the first column and those in the last row.
     reference_axis = None
-    # TODO: rename these vars
-    for ix, rx in enumerate(rdms_x):
-        is_leftmost_col = (ix == 0)
+    for scatter_col_idx, rdm_for_col in enumerate(rdms_x):
+        is_leftmost_col = (scatter_col_idx == 0)
         if show_marginal_distributions:
             # distributions show in the first column, so need to bump the column index
-            ix += 1
+            scatter_col_idx += 1
         # Since matplotlib ordering is left-to-right, top-to-bottom, we need to process the rows in reverse to get the
         # correct reference axis.
-        for iy in reversed(range(n_rdms_y)):
-            is_bottom_row = (iy == n_rdms_y - 1)
+        for scatter_row_idx in reversed(range(n_rdms_y)):
+            is_bottom_row = (scatter_row_idx == n_rdms_y - 1)
 
             # RDMs objects aren't iterators, so while we can do `for r in rdms`, we can't do `reversed(rdms)`.
             # Hence we have to pull the rdm out by its index.
-            ry = rdms_y[iy]
+            rdm_for_row = rdms_y[scatter_row_idx]
 
             # To do
             if reference_axis is None:
-                sub_axis: Axes = fig.add_subplot(gridspec[iy, ix])
+                sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx])
                 reference_axis = sub_axis
             else:
-                sub_axis: Axes = fig.add_subplot(gridspec[iy, ix], sharex=reference_axis, sharey=reference_axis)
+                sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx], sharex=reference_axis, sharey=reference_axis)
 
-            sub_axis.scatter(rx.get_vectors(), ry.get_vectors())
+            sub_axis.scatter(rdm_for_col.get_vectors(), rdm_for_row.get_vectors())
 
             # Hide the right and top spines
             sub_axis.spines['right'].set_visible(False)
@@ -130,13 +129,13 @@ def rdm_comparison_scatterplot(rdms,
     if show_marginal_distributions:
         # Add marginal distributions along the x axis
         reference_hist = None
-        for ix, rx in enumerate(rdms_x):
+        for col_idx, rdm_for_col in enumerate(rdms_x):
             if reference_hist is None:
-                hist_axis: Axes = fig.add_subplot(gridspec[-1, ix + 1], sharex=reference_axis)
+                hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis)
                 reference_hist = hist_axis
             else:
-                hist_axis: Axes = fig.add_subplot(gridspec[-1, ix + 1], sharex=reference_axis, sharey=reference_hist)
-            hist_axis.hist(rx.get_vectors().flatten(), histtype='step', fill=False, orientation='vertical',
+                hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis, sharey=reference_hist)
+            hist_axis.hist(rdm_for_col.get_vectors().flatten(), histtype='step', fill=False, orientation='vertical',
                            bins=HIST_BINS)
             hist_axis.xaxis.set_visible(False)
             hist_axis.yaxis.set_visible(False)
@@ -146,13 +145,13 @@ def rdm_comparison_scatterplot(rdms,
 
         # Add marginal distributions along the y axis
         reference_hist = None
-        for iy, ry in enumerate(rdms_y):
+        for row_idx, rdm_for_row in enumerate(rdms_y):
             if reference_hist is None:
-                hist_axis: Axes = fig.add_subplot(gridspec[iy, 0], sharey=reference_axis)
+                hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0], sharey=reference_axis)
                 reference_hist = hist_axis
             else:
-                hist_axis: Axes = fig.add_subplot(gridspec[iy, 0], sharey=reference_axis, sharex=reference_hist)
-            hist_axis.hist(ry.get_vectors().flatten(), histtype='step', fill=False, orientation='horizontal',
+                hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0], sharey=reference_axis, sharex=reference_hist)
+            hist_axis.hist(rdm_for_row.get_vectors().flatten(), histtype='step', fill=False, orientation='horizontal',
                            bins=HIST_BINS)
             hist_axis.xaxis.set_visible(False)
             hist_axis.yaxis.set_visible(False)
