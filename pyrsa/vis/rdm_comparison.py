@@ -5,7 +5,7 @@ Created on 2020-09-17
 
 @author: caiw
 """
-from typing import Tuple
+from typing import Tuple, List
 
 from matplotlib import pyplot
 from matplotlib.axes import Axes
@@ -17,6 +17,7 @@ from pyrsa.rdm import RDMs
 
 def rdm_comparison_scatterplot(rdms,
                                show_marginal_distributions: bool = True,
+                               show_identity_line: bool = True,
                                axlim: Tuple[float, float] = None,
                                **kwargs):
     """
@@ -85,6 +86,8 @@ def rdm_comparison_scatterplot(rdms,
     # To share x and y axes when using gridspec you need to specify which axis to use as references.
     # The reference axes will be those in the first column and those in the last row.
     reference_axis = None
+    # Remember axes for scatter plots now so we can draw to them all later
+    scatter_axes: List[Axes] = []
     for scatter_col_idx, rdm_for_col in enumerate(rdms_x):
         is_leftmost_col = (scatter_col_idx == 0)
         if show_marginal_distributions:
@@ -107,6 +110,7 @@ def rdm_comparison_scatterplot(rdms,
                 sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx], sharex=reference_axis, sharey=reference_axis)
 
             sub_axis.scatter(rdm_for_col.get_vectors(), rdm_for_row.get_vectors())
+            scatter_axes.append(sub_axis)
 
             # Hide the right and top spines
             sub_axis.spines['right'].set_visible(False)
@@ -158,5 +162,13 @@ def rdm_comparison_scatterplot(rdms,
             hist_axis.set_frame_on(False)
         # Flip to pointing leftwards
         reference_hist.set_xlim(hist_axis.get_xlim()[::-1])
+
+    # Add identity lines
+    if show_identity_line:
+        for ax in scatter_axes:
+            # Prevent autoscale, else plotting from the origin causes the axes to rescale
+            ax.autoscale(False)
+            ax.plot([reference_axis.get_xlim()[0], reference_axis.get_xlim()[1]],
+                    [reference_axis.get_ylim()[0], reference_axis.get_ylim()[1]])
 
     return fig
