@@ -335,6 +335,7 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
         cv_desc = _gen_default_cv_descriptor(dataset, descriptor)
         dataset.obs_descriptors['cv_desc'] = cv_desc
         cv_descriptor = 'cv_desc'
+
     dataset.sort_by(descriptor)
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     for i_fold in range(len(cv_folds)):
