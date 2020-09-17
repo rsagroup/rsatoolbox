@@ -8,6 +8,11 @@ import os
 import glob
 import numpy as np
 
+def flatten_list(lst):
+    assert isinstance(lst, list)
+    lst_flattened = [item for sublist in lst for item in sublist]
+    return lst_flattened
+
 class BidsDerivatives:
     def __init__(self, fmri_dir, subject_list = None, sessions = None,
                  run_dirs = None):
@@ -15,35 +20,39 @@ class BidsDerivatives:
         self.fmri_dir = fmri_dir
         
         # Level 1: Subjects
-        sub_dirs = glob.glob(self.fmri_dir + os.sep + "sub*")
         if isinstance(subject_list, list):
             self.subject_list = subject_list
+            sub_dirs = flatten_list([glob.glob(self.fmri_dir + os.sep + sub)
+                                     for sub in subject_list])
+
         else:
+            sub_dirs = glob.glob(self.fmri_dir + os.sep + "sub*")
             self.subject_list = [os.path.basename(sub) for sub in sub_dirs]
         self.subject_list.sort()
         self.n_subs = len(self.subject_list)
         
         # Level 2: Sessions
-        session_dirs = [glob.glob(sub_dir + os.sep + "ses*") 
-                             for sub_dir in sub_dirs]
-        session_dirs_flat = [item for sublist in session_dirs
-                             for item in sublist]
-        bases = [os.path.basename(sess_dir) for sess_dir in session_dirs_flat]
         if isinstance(sessions, list):
             self.sessions = sessions
         else:
-            self.sessions = np.unique(
-            [''.join([i for i in base if not i.isdigit()]) for base in bases])
+            session_dirs = flatten_list([glob.glob(sub_dir + os.sep + "ses*")
+                                         for sub_dir in sub_dirs])
+            bases = [os.path.basename(sess_dir) for sess_dir
+                     in session_dirs]
+            self.sessions = np.unique(bases)
+        
+        self.session_types = np.unique(
+            [''.join([i for i in base if not i.isdigit()])
+             for base in self.sessions])
         
         # Level 3: Runs
         if isinstance(run_dirs, list):
             self.run_dirs = run_dirs
         else:
-            run_dirs = [glob.glob(ses_dir + os.sep + "run*")
-                         for ses_dir in session_dirs_flat]
-            self.run_dirs = [item for sublist in run_dirs
-                                  for item in sublist]
+            self.run_dirs = flatten_list([glob.glob(ses_dir + os.sep + "run*")
+                                          for ses_dir in session_dirs])
         self.run_dirs.sort()
+        self.runs_total = len(self.run_dirs)
         
     
     def __repr__(self):
@@ -52,19 +61,29 @@ class BidsDerivatives:
         """
         return (f'pyrsa.data.{self.__class__.__name__}(\n\n'
                 f'fMRI directory = \n{self.fmri_dir}\n\n'
+                f'Subject list = {self.subject_list}\n\n'
                 f'Number of subjects = {self.n_subs}\n\n'
-                f'Session types = {self.sessions}\n\n'
+                f'Sessions = {self.sessions}\n\n'
+                f'Session types = {self.session_types}\n\n'
+                f'Total number of runs = {self.runs_total}\n'
                 )
     
     def subset_subject(self, sub):
-        assert isinstance(sub, int), "Subject number must be integer."
-        sub_name = "sub-"+str(sub).zfill(2)
-        assert sub_name in self.subject_list, \
-            "Subject with this ID does not exist"
+        
+        
+        assert isinstance(sub, int) or sub in self.subject_list, \
+            "Subject number must be integer or a string for an existing \
+                subject ID"
+        if isinstance(sub, int):
+            sub_name = "sub-"+str(sub).zfill(2)
+            assert sub_name in self.subject_list, \
+                "Subject with this ID does not exist"
+        else:
+            sub_name = sub
+            
         run_dirs_subset = [run for run in self.run_dirs if sub_name in run]
         subset = BidsDerivatives(self.fmri_dir,
                                  subject_list = [sub_name],
-                                 sessions = self.sessions,
                                  run_dirs = run_dirs_subset)
         return subset
     
@@ -77,6 +96,15 @@ class BidsDerivatives:
                                  sessions = [session_type],
                                  run_dirs = run_dirs_subset)
         return subset
+    
+    def get_subjects(self):
+        return self.subject_list.copy()
+    
+    def get_sessions(self):
+        return self.sessions.copy()
+    
+    def get_runs(self):
+        return self.run_dirs.copy() 
             
         
 
