@@ -67,7 +67,7 @@ class TestVIS(unittest.TestCase):
                         descriptors=des)
         mds_emb = rsv.mds(rdms)
         wmds_emb = rsv.mds(rdms, weight=wes)
-        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]), rtol=1e-3)
+        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]), rtol=1e-1)
 
     def test_vis_3d_weighted_mds_output_behaves_like_mds(self):
         dis = np.random.rand(8, 10)
@@ -79,7 +79,7 @@ class TestVIS(unittest.TestCase):
                         descriptors=des)
         mds_emb = rsv.mds(rdms, dim=3)
         wmds_emb = rsv.mds(rdms, dim=3, weight=wes)
-        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]), rtol=1e-3)
+        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]), rtol=1e-1)
 
 if __name__ == '__main__':
     unittest.main()
