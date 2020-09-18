@@ -108,7 +108,7 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
             if noise is None:
                 rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
                                      descriptor=descriptor))
-            elif isinstance(noise, np.ndarray) and noise.ndim == 3:
+            elif isinstance(noise, np.ndarray) and noise.ndim == 2:
                 rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
                                      descriptor=descriptor,
                                      noise=noise))
@@ -129,7 +129,7 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
             
         rdms = []
         for dat in splited_data:
-            dat.measurements = dat.measurements.squeeze()
+            #dat.measurements = dat.measurements.squeeze()
             rdms.append(calc_rdm(dat, method=method,
                                  descriptor=descriptor,noise=noise,
                                  cv_descriptor=cv_descriptor, prior_lambda=prior_lambda, 
@@ -464,6 +464,7 @@ def _gen_default_cv_descriptor(dataset, descriptor):
 
 
 def _calc_pairwise_differences(measurements):
+    measurements = measurements.squeeze()
     n, m = measurements.shape
     diff = np.zeros((int(n * (n - 1) / 2), m))
     k = 0
