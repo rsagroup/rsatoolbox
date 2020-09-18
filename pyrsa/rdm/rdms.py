@@ -108,6 +108,7 @@ class RDMs:
     def __getitem__(self, idx):
         """
         allows indexing with []
+        and iterating over RDMs with `for rdm in rdms:`
         """
         idx = np.array(idx)
         dissimilarities = self.dissimilarities[idx].reshape(
@@ -119,6 +120,13 @@ class RDMs:
                     rdm_descriptors=rdm_descriptors,
                     pattern_descriptors=self.pattern_descriptors)
         return rdms
+
+    def __len__(self) -> int:
+        """
+        The number of RDMs in this stack.
+        Together with __getitem__, allows `reversed(rdms)`.
+        """
+        return self.n_rdm
 
     def get_vectors(self):
         """ Returns RDMs as np.ndarray with each RDM as a vector
