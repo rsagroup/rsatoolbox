@@ -2,6 +2,8 @@
 # -*- coding: UTF-8 -*-
 """
 Definition of pyrsa's colors
+
+@author: iancharest
 """
 
 import numpy as np
