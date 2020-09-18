@@ -223,7 +223,7 @@ class Dataset(DatasetBase):
         for v in unique_values:
             selection = (self.channel_descriptors[by] == v)
             measurements = self.measurements[:, selection]
-            descriptors = self.descriptors
+            descriptors = self.descriptors.copy()
             descriptors[by] = v
             obs_descriptors = self.obs_descriptors
             channel_descriptors = subset_descriptor(
