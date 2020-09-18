@@ -33,6 +33,6 @@ setup(
     tests_require=requires+['parameterized',],
     test_suite="tests",
     entry_points = {
-        'console_scripts': ['rsa3=pyrsa.io.commandline:main'],
+        'console_scripts': ['rsa3=pyrsa.io.console:main'],
     }
 )
