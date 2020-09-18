@@ -314,7 +314,7 @@ class BidsDerivativesSubject(BidsDerivatives):
                 res_image = nifti1.load(res_image_path)
                 residual_array_superset.append(res_image.get_fdata())
                 dim4_descriptors.append("res_" + str(res).zfill(4)+ "_run_" +
-                                                    str(run_counter))
+                                                    str(run_counter).zfill(2))
         # Get affine matrix
         self.subject_affine = res_image.affine.copy()
         pooled_residual_array = np.stack(residual_array_superset, axis = 3)
