@@ -430,8 +430,7 @@ class DatasetTime(Dataset):
         for v in time:
             selection = (self.time_descriptors[by] == v)
             measurements = self.measurements[:, :, selection]
-            descriptors = self.descriptors.copy()
-            descriptors[by] = v
+            descriptors = self.descriptors
             obs_descriptors = self.obs_descriptors
             channel_descriptors = self.channel_descriptors
             time_descriptors = subset_descriptor(
