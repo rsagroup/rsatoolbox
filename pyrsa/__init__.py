@@ -3,7 +3,6 @@
 """ Top level package: Only imports and organisation
 """
 from . import data
-from . import fmri
 from . import inference
 from . import model
 from . import rdm

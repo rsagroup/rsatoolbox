@@ -108,9 +108,9 @@ class BidsDerivatives:
             sub_name = sub
             
         run_dirs_subset = [run for run in self.run_dirs if sub_name in run]
-        subset = SubjectData(self.fmri_dir,
-                             subject_list = [sub_name],
-                             run_dirs = run_dirs_subset)
+        subset = BidsDerivativesSubject(self.fmri_dir,
+                                        subject_list = [sub_name],
+                                        run_dirs = run_dirs_subset)
         return subset
     
     def subset_session_type(self, session_type):
@@ -180,11 +180,14 @@ class BidsDerivatives:
     def get_sessions(self):
         return self.sessions.copy()
     
+    def get_session_types(self):
+        return self.session_types.copy()
+    
     def get_runs(self):
         return self.run_dirs.copy() 
 
                 
-class SubjectData(BidsDerivatives):
+class BidsDerivativesSubject(BidsDerivatives):
     """
     SubjectData class is a standard version of BidsDerivative.
     It contains data for only one subject
@@ -216,11 +219,12 @@ class SubjectData(BidsDerivatives):
         assert session_type in self.sessions \
             or session_type in self.session_types, \
             "Session (type) does not exist"
-        run_dirs_subset = [run for run in self.run_dirs if session_type in run]
-        subset = SubjectData(self.fmri_dir,
-                             subject_list = self.subject_list,
-                             sessions = [session_type],
-                             run_dirs = run_dirs_subset)
+        run_dirs_subset = [run for run in self.get_runs() if session_type in run]
+        ses_subset = [ses for ses in self.get_sessions() if session_type in ses]
+        subset = BidsDerivativesSubject(self.fmri_dir,
+                                        subject_list = self.subject_list,
+                                        sessions = ses_subset,
+                                        run_dirs = run_dirs_subset)
         return subset
     
     def load_betas_SPM(self, stim_ids_dict = None):

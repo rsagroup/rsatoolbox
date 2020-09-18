@@ -6,4 +6,4 @@ from .computations import average_dataset_by
 from .noise import cov_from_residuals
 from .noise import prec_from_residuals
 from .fmri import BidsDerivatives
-from .fmri import SubjectData
+from .fmri import BidsDerivativesSubject
