@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Collection of helper methods for data module
+
+@author: baihan
 """
 
 import numpy as np
