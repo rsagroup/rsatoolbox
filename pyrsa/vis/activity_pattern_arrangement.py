@@ -126,7 +126,7 @@ def activity_pattern_arrangement(rdm, condition_icons, method, significance=None
     fig.savefig(method + str(condition_icons) + '.png', dpi=100)
 
 
-#
+
 images_folder = 'Stimuli Set'
 rdm = io.matlab.loadmat('RDM.mat')['RDM']
 pyrsa_rdm = pyrsa.rdm.RDMs(rdm)
