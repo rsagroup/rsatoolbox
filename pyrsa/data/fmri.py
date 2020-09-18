@@ -407,6 +407,65 @@ class BidsDerivativesSubject(BidsDerivatives):
         self.save2csv(descriptors, output_dir = output_dir,
                     data_type = data_type)
 
+class Nifti2Dataset:
+    def __init__(self, bids_dir, derivative, subject_list = None):
+        """
+        Parses BIDS structured data in fmri_dir
+        """
+        self.bids_dir = bids_dir
+        assert os.path.exists(self.bids_dir), \
+            "Specified dataset directory does not exist."
+        self.fmri_dir = os.path.join(
+            self.bids_dir, "derivatives", derivative)
+        assert os.path.exists(self.fmri_dir), \
+            "Specified derivatives directory does not exist."
+        
+        if isinstance(subject_list, list):
+            self.subject_list = subject_list
+            self.sub_dirs = flatten_list(
+                [glob.glob(self.fmri_dir + os.sep + sub)
+                 for sub in subject_list])
+
+        else:
+            self.sub_dirs = glob.glob(self.fmri_dir + os.sep + "sub*")
+            self.subject_list = [os.path.basename(sub)
+                                 for sub in self.sub_dirs]
+        self.subject_list.sort()
+        self.n_subs = len(self.subject_list)
+        self.niftis = flatten_list(
+            [glob.glob(sub_dir + os.sep + "*.nii.gz")
+             for sub_dir in self.sub_dirs])
+        self.n_niftis = len(self.niftis)
+        self.csvs = flatten_list(
+            [glob.glob(sub_dir + os.sep + "*.csv")
+             for sub_dir in self.sub_dirs])
+            
+    def __repr__(self):
+        """
+        Defines string which is printed for the object
+        """
+        return (f'pyrsa.data.{self.__class__.__name__}(\n\n'
+                f'fMRI directory = \n{self.fmri_dir}\n\n'
+                f'Number of subjects = {self.n_subs}\n\n'
+                f'Subject list = {self.subject_list}\n\n'
+                f'Number of NIfTi files = {self.n_niftis}\n\n\n'
+                )
+    
+    def set_output_dirs(self):
+        self.ds_output_dirs = [os.path.join(
+            self.bids_dir, "derivatives", "PyRSA", "datasets", sub)
+            for sub in self.subject_list]
+        for output_dir in self.ds_output_dirs:
+            if not os.path.isdir(output_dir):
+                os.makedirs(output_dir)
+        self.res_output_dirs = [os.path.join(
+            self.bids_dir, "derivatives", "PyRSA", "noise", sub)
+            for sub in self.subject_list]
+        for output_dir in self.res_output_dirs:
+            if not os.path.isdir(output_dir):
+                os.makedirs(output_dir)
+
+    
 
 def flatten_list(lst):
     """
