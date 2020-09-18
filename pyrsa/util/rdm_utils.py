@@ -5,7 +5,7 @@
 @author: baihan
 """
 
-from typing import Union, List, Tuple, Dict
+from typing import Union, List, Dict
 
 import numpy as np
 from scipy.spatial.distance import squareform
@@ -100,9 +100,9 @@ def add_pattern_index(rdms, pattern_descriptor):
     return pattern_descriptor, pattern_select
 
 
-def category_selector_to_names_and_idxs(rdms,
-                                        category_selector: Union[str, List[int]]
-                                        ) -> Tuple[List[str], Dict[str, List[int]]]:
+def category_condition_idxs(rdms,
+                            category_selector: Union[str, List[int]]
+                            ) -> Dict[str, List[int]]:
     """
 
 
@@ -114,14 +114,9 @@ def category_selector_to_names_and_idxs(rdms,
             Or: a list of ints specifying the category label for each condition in `rdms`.
 
     Returns:
-        a tuple of:
-            category_names (List[int]):
-                The names of the unique pattern descriptors within the descriptor specified by `category_selector`,
-                if it is a string. Otherwise generated to be "Category i" for integers i specified in
-                `category_selector`.
-            category_idxs (Dict[str, List[int]]):
-                A dictionary mapping the strings in `category_names` to lists of integer indices of categories within
-                the RDMs.
+        categories (Dict[str, List[int]]):
+            A dictionary mapping the strings in `category_names` to lists of integer indices of categories within
+            the RDMs.
 
     @author: caiw
     """
@@ -132,27 +127,24 @@ def category_selector_to_names_and_idxs(rdms,
     _msg_arg_category_selector = ("Argument category_selector must be a string specifying a pattern_descriptor or "
                                   "a list of ints indicating RDM conditions.")
 
-    # One unique name for each category
-    category_names: List[str]
     # Dictionary maps category names to lists of condition indices
-    condition_idxs: Dict[str, List[int]]
+    categories: Dict[str, List[int]]
 
     if isinstance(category_selector, str):
-        # Use a set to get unique category labels
-        category_names = sorted(set(rdms.pattern_descriptors[category_selector]))
-        condition_idxs = {
+        categories = {
             category_name: [
                 idx
                 for idx, cat in enumerate(rdms.pattern_descriptors[category_selector])
                 if cat == category_name
             ]
-            for category_name in category_names
+            # Use a set to get unique category labels
+            for category_name in sorted(set(rdms.pattern_descriptors[category_selector]))
         }
 
     elif isinstance(category_selector, list) and all(isinstance(i, int) for i in category_selector):
         if len(category_selector) != rdms.n_cond:
             raise ValueError(_msg_arg_category_selector)
-        condition_idxs = {
+        categories = {
             f"Category {category_i}": [
                 idx
                 for idx, cat in enumerate(category_selector)
@@ -160,9 +152,8 @@ def category_selector_to_names_and_idxs(rdms,
             ]
             for category_i in category_selector
         }
-        category_names = sorted(condition_idxs.keys())
 
     else:
         raise ValueError(_msg_arg_category_selector)
 
-    return category_names, condition_idxs
+    return categories

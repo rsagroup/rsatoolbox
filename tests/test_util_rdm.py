@@ -31,8 +31,8 @@ class TestRdmUtils(unittest.TestCase):
         assert n_rdm == 8
         assert n_cond == 5
 
-    def test_category_selector_to_names_and_idxs_2_categories_by_name(self):
-        from pyrsa.util.rdm_utils import category_selector_to_names_and_idxs
+    def test_category_condition_idxs_2_categories_by_name(self):
+        from pyrsa.util.rdm_utils import category_condition_idxs
         from pyrsa.rdm.rdms import RDMs
 
         n_rdm, n_cond = 4, 8
@@ -42,16 +42,15 @@ class TestRdmUtils(unittest.TestCase):
                     pattern_descriptors={'type': list('PPPPQQQQ')},
                     dissimilarity_measure='Euclidean',
                     descriptors={'subj': range(n_rdm)})
-        category_names, condition_idxs = category_selector_to_names_and_idxs(rdms, 'type')
+        categories = category_condition_idxs(rdms, 'type')
 
-        self.assertEqual(category_names, ['P', 'Q'])  # Names correct
-        self.assertEqual(condition_idxs, {  # Indices correct
+        self.assertEqual(categories, {
             'P': [0, 1, 2, 3],
             'Q': [4, 5, 6, 7],
         })
 
-    def test_category_selector_to_names_and_idxs_2_categories_by_ints(self):
-        from pyrsa.util.rdm_utils import category_selector_to_names_and_idxs
+    def test_category_condition_idxs_2_categories_by_ints(self):
+        from pyrsa.util.rdm_utils import category_condition_idxs
         from pyrsa.rdm.rdms import RDMs
 
         n_rdm, n_cond = 4, 8
@@ -59,10 +58,9 @@ class TestRdmUtils(unittest.TestCase):
         rdms = RDMs(dissimilarities=dis,
                     dissimilarity_measure='Euclidean',
                     descriptors={'subj': range(n_rdm)})
-        category_names, condition_idxs = category_selector_to_names_and_idxs(rdms, [1, 2, 1, 2, 1, 2, 1, 2])
+        categories = category_condition_idxs(rdms, [1, 2, 1, 2, 1, 2, 1, 2])
 
-        self.assertEqual(category_names, ['Category 1', 'Category 2'])  # Names correct
-        self.assertEqual(condition_idxs, {  # Indices correct
+        self.assertEqual(categories, {
             'Category 1': [0, 2, 4, 6],
             'Category 2': [1, 3, 5, 7],
         })
