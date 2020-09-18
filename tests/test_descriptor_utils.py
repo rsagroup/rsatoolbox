@@ -44,6 +44,12 @@ class TestDescriptorUtils(TestCase):
         descriptors = {'foo': ['bar']}
         assert check_descriptor_length(descriptors, 1)
 
+    def test_check_descriptor_length_0d(self):
+        """numpy casts str to 0d arrays (arrays with empty shape). This breaks things."""
+        from pyrsa.util.descriptor_utils import check_descriptor_length
+        descriptors = {'foo': 'bar'}
+        assert check_descriptor_length(descriptors, 1)
+
     def test_subset_descriptor(self):
         import numpy as np
         from pyrsa.util.descriptor_utils import subset_descriptor

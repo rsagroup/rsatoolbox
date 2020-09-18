@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Calculation of RDMs from datasets
-@author: heiko
 """
 
 from collections.abc import Iterable
