@@ -161,6 +161,53 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(rdms_sample.n_rdm, 3)
         assert_array_equal(rdms_sample.dissimilarities[0], dis[3])
 
+    def test_rdm_len(self):
+        n_rdm, n_cond = 7, 10
+        dis = np.zeros((n_rdm, n_cond, n_cond))
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        pattern_descriptors={'type': np.array(list(range(n_cond)))},
+                        dissimilarity_measure='Euclidean',
+                        descriptors={'subj': range(n_rdm)})
+        self.assertEqual(len(rdms), n_rdm)
+
+    def test_rdm_idx_len_is_1(self):
+        n_rdm, n_cond = 7, 10
+        dis = np.zeros((n_rdm, n_cond, n_cond))
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        pattern_descriptors={'type': np.array(list(range(n_cond)))},
+                        dissimilarity_measure='Euclidean',
+                        descriptors={'subj': range(n_rdm)})
+        self.assertEqual(len(rdms[0]), 1)
+
+    def test_rdm_subset_len(self):
+        subset_idxs = [0, 1, 2]
+        dis = np.zeros((8, 10))
+        mes = "Euclidean"
+        des = {'subj': 0}
+        rdm_des = {'session': np.array([0, 1, 2, 3, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        rdms_subset = rdms.subset('session', np.array(subset_idxs))
+        self.assertEqual(len(rdms_subset), len(subset_idxs))
+
+    def test_rdm_iter(self):
+        dis = np.zeros((8, 10))
+        mes = "Euclidean"
+        des = {'subj': 0}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        i = 0
+        for rdm in rdms:
+            self.assertIsInstance(rdm, rsr.RDMs)
+            self.assertEqual(len(rdm), 1)
+            i += 1
+        self.assertEqual(i, rdms.n_rdm)
+
     def test_rank_transform(self):
         from pyrsa.rdm import rank_transform
         dis = np.zeros((8, 10))
