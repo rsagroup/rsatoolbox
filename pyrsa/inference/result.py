@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb 19 14:42:47 2020
-
-@author: heiko
+Result object definition
 """
 
 import numpy as np
-import h5py
-import os
 import pyrsa.model
 from pyrsa.util.file_io import write_dict_hdf5
 from pyrsa.util.file_io import write_dict_pkl
 from pyrsa.util.file_io import read_dict_hdf5
 from pyrsa.util.file_io import read_dict_pkl
+
 
 class Result:
     """ Result class storing results for a set of models with the models,
@@ -39,6 +36,7 @@ class Result:
         as inputs
 
     """
+
     def __init__(self, models, evaluations, method, cv_method, noise_ceiling):
         if isinstance(models, pyrsa.model.Model):
             models = [models]
@@ -52,14 +50,14 @@ class Result:
         self.noise_ceiling = np.array(noise_ceiling)
 
     def save(self, filename, file_type='hdf5'):
-        """ saves the results into a file. 
-            
+        """ saves the results into a file.
+
         Args:
             filename(String): path to the file
                 [or opened file]
             file_type(String): Type of file to create:
                 hdf5: hdf5 file
-                pkl: pickle file 
+                pkl: pickle file
 
         """
         result_dict = self.to_dict()
@@ -112,7 +110,7 @@ def load_results(filename, file_type=None):
 
 def result_from_dict(result_dict):
     """ recreate Results object from dictionary
-    
+
     Args:
         result_dict(dict): dictionary to regenerate
 
