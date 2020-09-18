@@ -211,7 +211,6 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(splited_list[0].n_time, 1)
         self.assertEqual(splited_list[2].n_time, 1)        
         self.assertEqual(splited_list[1].time_descriptors['time'][0], tim_des['time'][1])        
-        self.assertEqual(splited_list[1].descriptors['time'], tim_des['time'][1])        
         
     def test_datasettime_bin_time(self):
         measurements = np.random.randn(10, 5, 15)
