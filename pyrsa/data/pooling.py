@@ -197,7 +197,9 @@ def load_SPM_beta_images(run_dirs, stim_ids_dict = None):
             beta_array_superset.append(beta_image.get_fdata())
             dim4_descriptors.append("cond_" + condition + "_run_" +
                                     str(run_counter).zfill(2))
-    return beta_array_superset, dim4_descriptors
+            
+    pooled_beta_array = np.stack(beta_array_superset, axis=3)
+    return pooled_beta_array, dim4_descriptors
 
 
 
