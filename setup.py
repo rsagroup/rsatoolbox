@@ -35,4 +35,7 @@ setup(
     install_requires=requires,
     tests_require=requires+['parameterized',],
     test_suite='tests',
+    entry_points = {
+        'console_scripts': ['rsa3=pyrsa.commandline:main'],
+    }
 )
