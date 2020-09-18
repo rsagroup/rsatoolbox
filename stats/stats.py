@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Mar 10 22:29:12 2019
-
-@author: heiko
 Functions to check the statistical integrity of the toolbox
 """
 
