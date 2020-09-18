@@ -40,7 +40,7 @@ def _get_searchlight_neighbors(mask, center, radius=3):
     data = np.vstack((X.ravel(), Y.ravel(), Z.ravel())).T
     distance = cdist(data, center.reshape(1, -1), 'euclidean').ravel()
 
-    return data[distance < radius].T.tolist()
+    return tuple(data[distance < radius].T.tolist())
 
 def get_volume_searchlight(mask, radius=2, threshold=1):
     """Searches through the non-zero voxels of the mask, selects centers where 
@@ -67,10 +67,11 @@ def get_volume_searchlight(mask, radius=2, threshold=1):
             good_centers.append(center)
             good_neighbors.append(neighbors)
 
+    good_centers = np.array(good_centers)
     assert good_centers.shape[0] == len(good_neighbors), "number of centers and sets of neighbors do not match"
     print(f'Found {len(good_neighbors)} searchlights')
 
-    return np.array(good_centers), good_neighbors
+    return good_centers, good_neighbors
 
 
 
@@ -81,3 +82,15 @@ if __name__ == '__main__':
     mask = mask_img.get_fdata()
 
     centers, neighbors = get_volume_searchlight(mask, radius=3, threshold=.7)
+
+    # turn the 3-dim coordinates to array coordinates
+    centers_raveled = np.ravel_multi_index(centers.T, mask.shape)
+    neighbors_raveled = [np.ravel_multi_index(n, mask.shape) for n in neighbors]
+
+    # make sure the new array coordinates correspond to the old 3-dim coordinates
+    mask2 = mask.copy()
+    mask2[centers[0][0], centers[0][1], centers[0][2]] = 10
+    assert mask2.ravel()[centers_raveled[0]] == 10
+
+
+
