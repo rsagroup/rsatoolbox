@@ -120,6 +120,8 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(data.n_obs, 10)
         self.assertEqual(data.n_channel, 5)
         self.assertEqual(data.n_time, 15)
+        self.assertEqual(len(data.time_descriptors['time']), 15)
+        self.assertEqual(data.time_descriptors['time'][0],0)
 
     def test_datasettime_full_init(self):
         measurements = np.zeros((10, 5, 15))
@@ -208,6 +210,27 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(splited_list[0].n_time, 1)
         self.assertEqual(splited_list[2].n_time, 1)        
         self.assertEqual(splited_list[1].channel_descriptors['time'][0], 0.)        
+        
+    def test_datasettime_bin_time(self):
+        measurements = np.random.randn(10, 5, 15)
+        des = {'session': 0, 'subj': 0}
+        obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5])}
+        chn_des = {'rois': np.array(['V1', 'V1', 'IT', 'IT', 'V4'])}
+        tim_des = {'time': np.linspace(0,1000,15)}
+        data = rsd.DatasetTime(measurements=measurements,
+                               descriptors=des,
+                               obs_descriptors=obs_des,
+                               channel_descriptors=chn_des,
+                               time_descriptors=tim_des
+                               )
+        bins = np.reshape(tim_des['time'], [5, 3])
+        binned_data = data.bin_time('time', bins)
+        self.assertEqual(binned_data.n_obs, 10)
+        self.assertEqual(binned_data.n_channel, 5)
+        self.assertEqual(binned_data.n_time, 5)        
+        self.assertEqual(binned_data.time_descriptors['time'][0], np.mean(bins[0]))          
+        self.assertEqual(binned_data.time_descriptors['bins'][0][0], bins[0][0])
+        self.assertEqual(binned_data.measurements[0,0,0], np.mean(measurements[0,0,:3]))
 
     def test_datasettime_subset_obs(self):
         measurements = np.zeros((10, 5, 15))
