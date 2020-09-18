@@ -250,7 +250,7 @@ class BidsDerivativesSubject(BidsDerivatives):
         assert len(self.session_types) == 1, \
             "You first need to subset to one type of sessions"
         
-        if stim_ids_dict == None:
+        if stim_ids_dict is None:
             n_conds = len(glob.glob(self.run_dirs[0] + os.sep + "beta*"))
             keys = [str(cond_num).zfill(4) for cond_num in range(1, n_conds+1)]
             values = [cond_num for cond_num in range(1, n_conds+1)]
@@ -342,7 +342,7 @@ class BidsDerivativesSubject(BidsDerivatives):
         assert isinstance(pooled_data_array, np.ndarray) \
             and len(pooled_data_array.shape) == 4, "Wrong type of data provided"
             
-        if output_dir == None:
+        if output_dir is None:
            self.output_dir = self.sub_dirs[0]
         else:
            assert isinstance(output_dir, str) and os.path.isdir(output_dir), \
@@ -359,7 +359,6 @@ class BidsDerivativesSubject(BidsDerivatives):
             self.session_types[0] + "_" + data_type + ".nii.gz")
         nifti1.save(pooled_data, self.nifti_filename)
         print("Saved as", self.nifti_filename)
-        return
     
     def save2csv(self, descriptors, output_dir = None,
                     data_type = "signal"):
@@ -381,7 +380,7 @@ class BidsDerivativesSubject(BidsDerivatives):
         assert isinstance(descriptors, list) \
             and isinstance(descriptors[0], str), "Wrong type of data provided"    
             
-        if output_dir == None:
+        if output_dir is None:
            self.output_dir = self.sub_dirs[0]
         else:
            assert isinstance(output_dir, str) and os.path.isdir(output_dir), \
@@ -408,7 +407,6 @@ class BidsDerivativesSubject(BidsDerivatives):
                     data_type = data_type)
         self.save2csv(descriptors, output_dir = output_dir,
                     data_type = data_type)
-        return
 
 
 def flatten_list(lst):
@@ -424,8 +422,3 @@ def flatten_list(lst):
     assert isinstance(lst, list)
     lst_flattened = [item for sublist in lst for item in sublist]
     return lst_flattened
-
-
-
-
-
