@@ -1,6 +1,6 @@
     """
-    
-
+        searchlighht tests
+        @author: Daniel Lindh
     """
 
 
@@ -16,9 +16,10 @@ class TestSearchlight(unittest.TestCase):
         mask = np.zeros((5, 5, 5))
         center = [2, 2, 2]
         mask[2, 2, 2] = 10
-        radius = 3
+        radius = 2
         # a radius of 2 will give us
         neighbors = _get_searchlight_neighbors(mask, center, radius=radius)
 
         assert np.array(neighbors).shape  == (3, 27)
+        assert np.mean(mask[tuple(neighbors)])  == 10/27
 

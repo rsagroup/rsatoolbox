@@ -74,6 +74,7 @@ def get_volume_searchlight(mask, radius=2, threshold=1):
     return good_centers, good_neighbors
 
 
+import pyrsa.data.dataset as ds
 
 if __name__ == '__main__':
     data = np.load('/Users/daniel/Dropbox/amster/github/fmri_data/singe_trial_betas.npy')
@@ -88,9 +89,34 @@ if __name__ == '__main__':
     neighbors_raveled = [np.ravel_multi_index(n, mask.shape) for n in neighbors]
 
     # make sure the new array coordinates correspond to the old 3-dim coordinates
-    mask2 = mask.copy()
-    mask2[centers[0][0], centers[0][1], centers[0][2]] = 10
-    assert mask2.ravel()[centers_raveled[0]] == 10
+    # mask2 = mask.copy()
+    # mask2[centers[0][0], centers[0][1], centers[0][2]] = 10
+    # assert mask2.reshape(-1, 1)[centers_raveled[0]] == 10
+
+    # flatten data
+    dims = data.shape
+    data_raveled = data.reshape(dims[0], -1)
+
+    # loop over centers, make datasets
+    from pyrsa.data.dataset import Dataset
+    c = 0
+    center = centers_raveled[c]
+    nb = neighbors_raveled[c]
+
+    ds = Dataset(data_raveled[:, nb], channel_descriptors={'voxel_number':nb}, descriptors={'center_voxel':center})
+
+    from pyrsa.rdm.calc import calc_rdm
+
+    calc_rdm(ds, method='correlation', descriptor={'voxel_number':nb})
+    
+    
+
+    
+    
+
+
+
+
 
 
 
