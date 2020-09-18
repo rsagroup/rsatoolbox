@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar 12 16:21:53 2020
-
-@author: heiko
+Plot showing an RDMs object
 """
 
 import numpy as np
