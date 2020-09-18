@@ -108,13 +108,17 @@ class Components:
 
         Decomposition performed using sklearn:
             sklearn.decomposition.FastICA
+            https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.FastICA.html
+            https://scikit-learn.org/stable/auto_examples/decomposition/plot_ica_blind_source_separation.html
 
         Args:
             measurements: [stimuli x channel] numpy array
             n_components: Optional; if specified, data is first
               reduced in dimensionality using PCA, and then rotated
               to maximize independence within this subspace.
-
+            method_params: Optional; dictionary with additional
+              parameters to pass to sklearn function. see:
+              https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.FastICA.html
         Returns:
             Objects with self.R and self.W given as above
         '''
@@ -123,6 +127,7 @@ class Components:
             method_params = {}
         ica = sklearn.decomposition.FastICA(
             n_components=n_components, **method_params)
+        ica.fit_transform(np.transpose(measurements))
         self.R = ica.mixing_
         self.W = np.matmul(np.linalg.pinv(self.R), measurements)
 
