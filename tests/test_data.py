@@ -205,11 +205,11 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(len(splited_list), 15)
         self.assertEqual(splited_list[0].n_obs, 10)
         self.assertEqual(splited_list[2].n_obs, 10)
-        self.assertEqual(splited_list[0].n_channel, 2)
-        self.assertEqual(splited_list[2].n_channel, 1)
+        self.assertEqual(splited_list[0].n_channel, 5)
+        self.assertEqual(splited_list[2].n_channel, 5)
         self.assertEqual(splited_list[0].n_time, 1)
         self.assertEqual(splited_list[2].n_time, 1)        
-        self.assertEqual(splited_list[1].channel_descriptors['time'][0], 0.)        
+        self.assertEqual(splited_list[1].time_descriptors['time'][0], tim_des['time'][1])        
         
     def test_datasettime_bin_time(self):
         measurements = np.random.randn(10, 5, 15)
@@ -291,17 +291,19 @@ class TestDataTime(unittest.TestCase):
                                channel_descriptors=chn_des,
                                time_descriptors=tim_des
                                )
-        subset = data.subset_time(by='time', value=tim_des['time'][2])
+        subset = data.subset_time(by='time', t_from=tim_des['time'][3], 
+                                  t_to=tim_des['time'][3])
         self.assertEqual(subset.n_obs, 10)
         self.assertEqual(subset.n_channel, 5)
         self.assertEqual(subset.n_time, 1)
-        self.assertEqual(subset.channel_descriptors['time'][0], tim_des[2])
-        subset = data.subset_time(by='time', value=tim_des['time'][2:3])
+        self.assertEqual(subset.time_descriptors['time'][0], tim_des['time'][3])
+        subset = data.subset_time(by='time', t_from=tim_des['time'][3], 
+                                  t_to=tim_des['time'][5])
         self.assertEqual(subset.n_obs, 10)
         self.assertEqual(subset.n_channel, 5)
-        self.assertEqual(subset.n_time, 2)
-        self.assertEqual(subset.channel_descriptors['time'][0], tim_des['time'][2])
-        self.assertEqual(subset.channel_descriptors['time'][-1], tim_des['time'][3])        
+        self.assertEqual(subset.n_time, 3)
+        self.assertEqual(subset.time_descriptors['time'][0], tim_des['time'][3])
+        self.assertEqual(subset.time_descriptors['time'][-1], tim_des['time'][5])        
 
 class TestDataComputations(unittest.TestCase):
     def setUp(self):
