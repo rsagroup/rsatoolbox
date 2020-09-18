@@ -401,7 +401,7 @@ class DatasetTime(Dataset):
         for v in unique_values:
             selection = (self.channel_descriptors[by] == v)
             measurements = self.measurements[:, selection, :]
-            descriptors = self.descriptors
+            descriptors = self.descriptors.copy()
             descriptors[by] = v
             obs_descriptors = self.obs_descriptors
             channel_descriptors = subset_descriptor(
@@ -430,7 +430,7 @@ class DatasetTime(Dataset):
         for v in time:
             selection = (self.time_descriptors[by] == v)
             measurements = self.measurements[:, :, selection]
-            descriptors = self.descriptors
+            descriptors = self.descriptors.copy()
             descriptors[by] = v
             obs_descriptors = self.obs_descriptors
             channel_descriptors = self.channel_descriptors
