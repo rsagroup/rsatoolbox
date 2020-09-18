@@ -316,8 +316,9 @@ class TestCalcRDM(unittest.TestCase):
 
     def test_calc_euclid_nconds(self):
         d = self.test_data
-        rdm = rsr.calc_rdm([d,d], descriptor='conds',
+        rdm = rsr.calc_rdm([d, d], descriptor='conds',
                            method='euclidean')
+        assert rdm.n_cond == 6
 
     def test_parse_input(self):
         from pyrsa.rdm.calc import _parse_input
