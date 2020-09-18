@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 Definition of RSA RDMs class and subclasses
+
 @author: baihan
 """
 
 import numpy as np
 from scipy.stats import rankdata
-import pickle
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -44,6 +44,7 @@ class RDMs:
         n_cond(int): number of patterns
 
     """
+
     def __init__(self, dissimilarities,
                  dissimilarity_measure=None,
                  descriptors=None,
@@ -107,10 +108,11 @@ class RDMs:
     def __getitem__(self, idx):
         """
         allows indexing with []
+        and iterating over RDMs with `for rdm in rdms:`
         """
         idx = np.array(idx)
-        dissimilarities = self.dissimilarities[idx].reshape(-1,
-                                self.dissimilarities.shape[1])
+        dissimilarities = self.dissimilarities[idx].reshape(
+            -1, self.dissimilarities.shape[1])
         rdm_descriptors = subset_descriptor(self.rdm_descriptors, idx)
         rdms = RDMs(dissimilarities,
                     dissimilarity_measure=self.dissimilarity_measure,
@@ -118,6 +120,13 @@ class RDMs:
                     rdm_descriptors=rdm_descriptors,
                     pattern_descriptors=self.pattern_descriptors)
         return rdms
+
+    def __len__(self) -> int:
+        """
+        The number of RDMs in this stack.
+        Together with __getitem__, allows `reversed(rdms)`.
+        """
+        return self.n_rdm
 
     def get_vectors(self):
         """ Returns RDMs as np.ndarray with each RDM as a vector
@@ -456,15 +465,15 @@ def get_categorical_rdm(category_vector, category_name='category'):
     n = len(category_vector)
     rdm_list = []
     for i_cat in range(n):
-        for j_cat in range(i_cat+1, n):
+        for j_cat in range(i_cat + 1, n):
             if isinstance(category_vector[i_cat], Iterable):
                 comparisons = [np.array(category_vector[i_cat][idx])
                                != np.array(category_vector[j_cat][idx])
                                for idx in range(len(category_vector[i_cat]))]
                 rdm_list.append(np.any(comparisons))
             else:
-                rdm_list.append(category_vector[i_cat]
-                                != category_vector[j_cat])
+                rdm_list.append(
+                    category_vector[i_cat] != category_vector[j_cat])
     rdm = RDMs(np.array(rdm_list, dtype=np.float),
                pattern_descriptors={category_name: np.array(category_vector)})
     return rdm

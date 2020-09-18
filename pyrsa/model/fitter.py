@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan 24 15:54:31 2020
-
-@author: heiko
+Parameter fitting methods for models
 """
 
 import numpy as np
@@ -11,7 +9,7 @@ import scipy.optimize as opt
 from pyrsa.rdm import compare
 
 
-def fit_mock(model, data, method='cosine', pattern_sample=None,
+def fit_mock(model, data, method='cosine', pattern_idx=None,
              pattern_descriptor=None):
     """ formally acceptable fitting method which always returns a vector of
     zeros
@@ -20,7 +18,7 @@ def fit_mock(model, data, method='cosine', pattern_sample=None,
         model(pyrsa.model.Model): model to be fit
         data(pyrsa.rdm.RDMs): Data to fit to
         method(String): Evaluation method
-        pattern_sample(numpy.ndarray): Which patterns are sampled
+        pattern_idx(numpy.ndarray): Which patterns are sampled
         pattern_descriptor(String): Which descriptor is used
 
     Returns:
@@ -30,7 +28,7 @@ def fit_mock(model, data, method='cosine', pattern_sample=None,
     return np.zeros(model.n_param)
 
 
-def fit_select(model, data, method='cosine', pattern_sample=None,
+def fit_select(model, data, method='cosine', pattern_idx=None,
                pattern_descriptor=None):
     """ fits selection models by evaluating each rdm and selcting the one
     with best performance. Works only for ModelSelect
@@ -39,7 +37,7 @@ def fit_select(model, data, method='cosine', pattern_sample=None,
         model(pyrsa.model.Model): model to be fit
         data(pyrsa.rdm.RDMs): Data to fit to
         method(String): Evaluation method
-        pattern_sample(numpy.ndarray): Which patterns are sampled
+        pattern_idx(numpy.ndarray): Which patterns are sampled
         pattern_descriptor(String): Which descriptor is used
 
     Returns:
@@ -49,14 +47,14 @@ def fit_select(model, data, method='cosine', pattern_sample=None,
     evaluations = np.zeros(model.n_rdm)
     for i_rdm in range(model.n_rdm):
         pred = model.predict_rdm(i_rdm)
-        if not (pattern_sample is None or pattern_descriptor is None):
-            pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
+        if not (pattern_idx is None or pattern_descriptor is None):
+            pred = pred.subsample_pattern(pattern_descriptor, pattern_idx)
         evaluations[i_rdm] = np.mean(compare(pred, data, method=method))
     theta = np.argmax(evaluations)
     return theta
 
 
-def fit_optimize(model, data, method='cosine', pattern_sample=None,
+def fit_optimize(model, data, method='cosine', pattern_idx=None,
                  pattern_descriptor=None):
     """
     fitting theta using optimization
@@ -66,7 +64,7 @@ def fit_optimize(model, data, method='cosine', pattern_sample=None,
         model(Model): the model to be fit
         data(pyrsa.rdm.RDMs): data to be fit
         method(String, optional): evaluation metric The default is 'cosine'.
-        pattern_sample(numpy.ndarray, optional)
+        pattern_idx(numpy.ndarray, optional)
             sampled patterns The default is None.
         pattern_descriptor (String, optional)
             descriptor used for fitting. The default is None.
@@ -77,14 +75,14 @@ def fit_optimize(model, data, method='cosine', pattern_sample=None,
     """
     def _loss_opt(theta):
         return _loss(theta, model, data, method=method,
-                     pattern_sample=pattern_sample,
+                     pattern_idx=pattern_idx,
                      pattern_descriptor=pattern_descriptor)
     theta0 = np.random.rand(model.n_param)
     theta = opt.minimize(_loss_opt, theta0)
     return theta.x
 
 
-def fit_interpolate(model, data, method='cosine', pattern_sample=None,
+def fit_interpolate(model, data, method='cosine', pattern_idx=None,
                     pattern_descriptor=None):
     """
     fitting theta using bisection optimization
@@ -94,7 +92,7 @@ def fit_interpolate(model, data, method='cosine', pattern_sample=None,
         model(Model): the model to be fit
         data(pyrsa.rdm.RDMs): data to be fit
         method(String, optional): evaluation metric The default is 'cosine'.
-        pattern_sample(numpy.ndarray, optional)
+        pattern_idx(numpy.ndarray, optional)
             sampled patterns The default is None.
         pattern_descriptor (String, optional)
             descriptor used for fitting. The default is None.
@@ -110,7 +108,7 @@ def fit_interpolate(model, data, method='cosine', pattern_sample=None,
             theta[i_pair] = w
             theta[i_pair+1] = 1-w
             return _loss(theta, model, data, method=method,
-                         pattern_sample=pattern_sample,
+                         pattern_idx=pattern_idx,
                          pattern_descriptor=pattern_descriptor)
         results.append(
             opt.minimize_scalar(loss_opt, np.array([.5]),
@@ -125,7 +123,7 @@ def fit_interpolate(model, data, method='cosine', pattern_sample=None,
 
 
 def _loss(theta, model, data, method='cosine', cov=None,
-          pattern_descriptor=None, pattern_sample=None):
+          pattern_descriptor=None, pattern_idx=None):
     """Method for calculating a loss for a model and parameter combination
 
     Args:
@@ -133,7 +131,7 @@ def _loss(theta, model, data, method='cosine', cov=None,
         model(Model): the model to be fit
         data(pyrsa.rdm.RDMs): data to be fit
         method(String, optional): evaluation metric The default is 'cosine'.
-        pattern_sample(numpy.ndarray, optional)
+        pattern_idx(numpy.ndarray, optional)
             sampled patterns The default is None.
         pattern_descriptor (String, optional)
             descriptor used for fitting. The default is None.
@@ -147,6 +145,6 @@ def _loss(theta, model, data, method='cosine', cov=None,
 
     """
     pred = model.predict_rdm(theta)
-    if not (pattern_sample is None or pattern_descriptor is None):
-        pred = pred.subsample_pattern(pattern_descriptor, pattern_sample)
+    if not (pattern_idx is None or pattern_descriptor is None):
+        pred = pred.subsample_pattern(pattern_descriptor, pattern_idx)
     return -np.mean(compare(pred, data, method=method))
