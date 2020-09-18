@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Definition of RSA RDMs class and subclasses
+
+@author: baihan
 """
 
 import numpy as np
