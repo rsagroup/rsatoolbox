@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Descriptor handling
-
-@author: heiko
 """
 
 import numpy as np
