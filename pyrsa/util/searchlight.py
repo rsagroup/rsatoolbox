@@ -47,17 +47,14 @@ def get_volume_searchlight(mask, radius=2, threshold=1):
         proportion of sphere voxels >= self.threshold.
 
     Args:
-        mask ([numpy array]): [description]
+        mask ([numpy array]): binary brain mask
         radius (int, optional): [description]. Defaults to 2.
         threshold (int, optional): [description]. Defaults to 1.
 
     Returns:
         [numpy array]: array of centers of size n_centers x 3
         [list]: list of lists with neighbors - the length of the list will correspond to:
-        
-                len(good_neighbors) = n_centers
-                len(good_neighbors[0]) = 3
-                len(good_neighbors[0][0]) = n_neighbors for first searchlight
+                n_centers x 3 x n_neighbors
     """
 
     centers = list(zip(*np.nonzero(mask)))
