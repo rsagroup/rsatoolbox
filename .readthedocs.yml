@@ -1,4 +1,3 @@
-# .readthedocs.yml
 # Read the Docs configuration file
 
 # Required
@@ -9,9 +8,7 @@ sphinx:
   configuration: docs/conf.py
 
 # Optionally build your docs in additional formats such as PDF
-formats:
-  - pdf
-  - epub
+formats: all
 
 # Optionally set the version of Python and requirements required to build your docs
 python:
@@ -19,3 +16,4 @@ python:
   install:
     - requirements: requirements.txt
     - method: pip
+      path: .
