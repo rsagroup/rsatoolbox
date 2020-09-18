@@ -11,6 +11,7 @@ import pyrsa.vis as rsv
 import pyrsa.rdm as rsr
 from scipy.spatial.distance import pdist
 
+
 class TestVIS(unittest.TestCase):
 
     def test_vis_mds_output_shape_corresponds_to_inputs(self):
@@ -67,7 +68,8 @@ class TestVIS(unittest.TestCase):
                         descriptors=des)
         mds_emb = rsv.mds(rdms)
         wmds_emb = rsv.mds(rdms, weight=wes)
-        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]), atol=3e-1)
+        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]),
+                                   atol=3e-1)
 
     def test_vis_3d_weighted_mds_output_behaves_like_mds(self):
         dis = np.random.rand(8, 10)
@@ -79,7 +81,9 @@ class TestVIS(unittest.TestCase):
                         descriptors=des)
         mds_emb = rsv.mds(rdms, dim=3)
         wmds_emb = rsv.mds(rdms, dim=3, weight=wes)
-        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]), atol=3e-1)
+        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]),
+                                   atol=3e-1)
+
 
 class Test_Icon(unittest.TestCase):
 
