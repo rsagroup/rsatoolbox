@@ -128,7 +128,14 @@ def append_descriptor(descriptor, desc_new):
     """
     for k, v in descriptor.items():
         assert k in desc_new.keys(), f'appended descriptors misses key {k}'
-        descriptor[k] = np.concatenate((v, desc_new[k]), axis=0)
+        d_new = np.array(desc_new[k])
+        v = np.array(v)
+        if not v.shape:
+            v = v.flatten()
+        if not d_new.shape:
+            descriptor[k] = np.concatenate((v, d_new.flatten()), axis=0)
+        else:
+            descriptor[k] = np.concatenate((v, d_new), axis=0)
     descriptor['index'] = np.arange(len(descriptor['index']))
     return descriptor
 
