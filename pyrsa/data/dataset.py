@@ -316,8 +316,9 @@ class DatasetTime(Dataset):
         time_descriptors (dict):      time descriptors (alls are 
             array-like with shape= (n_time,...))
         
-            time_descriptors needs to contain one entry 'time' that 
-            specifies the time-coordinate
+            time_descriptors needs to contain one key 'time' that 
+            specifies the time-coordinate. if None is provided, 'time' is
+            set as (0, 2, ..., n_time-1)
 
     Returns:
         dataset object
@@ -329,8 +330,19 @@ class DatasetTime(Dataset):
         if measurements.ndim != 3:
             raise AttributeError(
                 "measurements must be in dimension n_obs x n_channel x time")
+        
         self.measurements = measurements
         self.n_obs, self.n_channel, self.n_time = self.measurements.shape
+        
+                
+        if time_descriptors is None:
+            time_descriptors = {'time': np.arange(self.n_time)}
+        elif 'time' not in time_descriptors:
+            time_descriptors['time'] = np.arange(self.n_time)
+            raise Warning(
+                "there was no 'time' provided in dictionary time_descriptors\n"\
+                "'time' will be set to (0, 2, ..., n_time-1)")
+                    
         check_descriptor_length_error(obs_descriptors,
                                       "obs_descriptors",
                                       self.n_obs
@@ -403,18 +415,37 @@ class DatasetTime(Dataset):
             dataset_list.append(dataset)
         return dataset_list    
     
-    def split_time(self, by):
-        """ Returns a list DatasetTime splited by channels
+    def split_time(self, by, bins=None):
+        """ Returns a list DatasetTime splited by time
 
         Args:
             by(String): the descriptor by which the splitting is made
 
         Returns:
-            list of DatasetTime,  splitted by the selected channel_descriptor
+            list of DatasetTime,  splitted by the selected time_descriptor
         """
+        
+        #if bins is not None:
+        #    binned_data = self.bin_time(bins)
+        #    split_time = ...
+        #else:
+        #    split_time = ...
+        
         raise NotImplementedError(
             "split_time function not yet implemented in DatasetTime class!")
+
+    def bin_time(self, bins):
+        """ Returns an object DatasetTime with time-binned data
+
+        Args:
+            bins(????): the descriptor by which the binning is made
+
+        Returns:
+            a single DatasetTime object
+        """
         
+        raise NotImplementedError(
+            "bin_time function not yet implemented in DatasetTime class!")        
         
     def subset_obs(self, by, value):
         """ Returns a subsetted DatasetTime defined by certain obs value
@@ -470,14 +501,14 @@ class DatasetTime(Dataset):
                               time_descriptors=time_descriptors)
         return dataset
     
-    def subset_time(self, by, value):
+    def subset_time(self, by, t_from, t_to):
         """ Returns a list DatasetTime splited by time
 
         Args:
             by(String): the descriptor by which the subset selection is
                 made from channel dimension
-            value:      the value by which the subset selection is made
-                from channel dimension
+            t_from: time-point from which onwards data should be subsetted
+            t_to: time-point until which data should be subsetted
                 
         Returns:
             DatasetTime, with subset defined by the selected time_descriptor
