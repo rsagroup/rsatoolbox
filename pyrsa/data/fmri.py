@@ -396,7 +396,6 @@ class BidsDerivativesSubject(BidsDerivatives):
         df = pd.DataFrame({'descriptor': descriptors})
         df.to_csv(self.csv_filename, header=False)
         print("Saved", data_type, "descriptors csv to", self.csv_filename)
-        return
     
     def save2combo(self, pooled_data_array, descriptors, output_dir = None,
                     data_type = "signal"):
