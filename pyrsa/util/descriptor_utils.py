@@ -81,7 +81,10 @@ def check_descriptor_length(descriptor, n_element):
 
     """
     for k, v in descriptor.items():
-        v = np.array(v)
+        v = np.asarray(v)
+        if not v.shape:
+            # 0-d array happens e.g. when casting str to array
+            v = v.flatten()
         descriptor[k] = v
         if v.shape[0] != n_element:
             return False
