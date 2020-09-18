@@ -10,8 +10,8 @@ import unittest
 import numpy as np
 from pyrsa.data.components import Components
 
-class TestComponents(unittest.TestCase): 
-    
+class TestComponents(unittest.TestCase):
+
     def test_pca_reconstruction(self):
         X = np.random.randn(10, 100)
         components = Components()
@@ -25,7 +25,9 @@ class TestComponents(unittest.TestCase):
         pca_components.pca(X, n_components=3)
         fastica_components = Components()
         fastica_components.fastica(X, n_components=3)
-        assert np.allclose(pca_components.reconstruct(), fastica_components.reconstruct())
-        
+        assert np.allclose(pca_components.reconstruct(),
+                           fastica_components.reconstruct())
+
+
 if __name__ == '__main__':
     unittest.main()
