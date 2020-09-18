@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Descriptor handling
-
-@author: heiko
 """
 
 import numpy as np
@@ -70,22 +68,25 @@ def parse_input_descriptor(descriptors):
     return descriptors
 
 
-def check_descriptor_length(descriptor, n):
+def check_descriptor_length(descriptor, n_element):
     """
     Checks whether the entries of a descriptor dictionary have the right length
 
     Args:
         descriptor(dict): the descriptor dictionary
-        n: the correct length of the descriptors
+        n_element: the correct length of the descriptors
 
     Returns:
         bool
 
     """
     for k, v in descriptor.items():
-        v = np.array(v)
+        v = np.asarray(v)
+        if not v.shape:
+            # 0-d array happens e.g. when casting str to array
+            v = v.flatten()
         descriptor[k] = v
-        if v.shape[0] != n:
+        if v.shape[0] != n_element:
             return False
     return True
 
@@ -132,20 +133,20 @@ def append_descriptor(descriptor, desc_new):
     return descriptor
 
 
-def check_descriptor_length_error(descriptor, name, n):
+def check_descriptor_length_error(descriptor, name, n_element):
     """
     Raises an error if the given descriptor does not have the right length
 
     Args:
         descriptor(dict/None): the descriptor dictionary
         name(String): Descriptor name used for error message
-        n: the desired descriptor length
+        n_element: the desired descriptor length
 
     Returns:
         ---
 
     """
     if descriptor is not None:
-        if not check_descriptor_length(descriptor, n):
+        if not check_descriptor_length(descriptor, n_element):
             raise AttributeError(
                 name + " have mismatched dimension with measurements.")
