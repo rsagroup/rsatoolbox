@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Calculation of RDMs from datasets
-@author: heiko
+@author: heiko, benjamin
 """
 
 from collections.abc import Iterable
@@ -75,16 +75,30 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
 
 
 def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
-             cv_descriptor=None, prior_lambda=1, prior_weight=0.1, bins=None):
+             cv_descriptor=None, prior_lambda=1, prior_weight=0.1, 
+             time_descriptor = 'time', bins=None):
     """    
+    calculates an RDM movie from an input DatasetTime
+
     Args:
-        dataset : TYPE
-            DESCRIPTION.
-        descriptor : TYPE, optional
-            DESCRIPTION. The default is None.
+        dataset (pyrsa.data.dataset.DatasetBase):
+            The dataset the RDM is computed from
+        method (String):
+            a description of the dissimilarity measure (e.g. 'Euclidean')
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+        noise (numpy.ndarray):
+            dataset.n_channel x dataset.n_channel
+            precision matrix used to calculate the RDM
+            used only for Mahalanobis and Crossnobis estimators
+            defaults to an identity matrix, i.e. euclidean distance
+        time_descriptor (String): descriptor key that points to the time dimension in
+            dataset.time_descriptors. Defaults to 'time'.
+        bins (array-like): list of bins, with bins[i] containing the vector
+            of time-points for the i-th bin. Defaults to no binning.
 
     Returns:
-        prsa.rdm.rdms.RDMs: RDMs object with RDM movie
+        pyrsa.rdm.rdms.RDMs: RDMs object with RDM movie
     
     """
     
@@ -104,23 +118,27 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
                                      noise=noise[i_dat]))
         rdm = concat(rdms)
     else:
-            
-        if bins is None:
-            splited_data = dataset.split_time('time')
+        
+        if bins is not None:
+            binned_data = dataset.bin_time(time_descriptor, bins)       
+            splited_data = binned_data.split_time(time_descriptor)
+            time = binned_data.time_descriptors[time_descriptor]
         else:
-            splited_data = dataset.bin_time('time', bins)
+            splited_data = dataset.split_time(time_descriptor)
+            time = dataset.time_descriptors[time_descriptor]
             
         rdms = []
         for dat in splited_data:
+            dat.measurements = dat.measurements.squeeze()
             rdms.append(calc_rdm(dat, method=method,
                                  descriptor=descriptor,noise=noise,
                                  cv_descriptor=cv_descriptor, prior_lambda=prior_lambda, 
                                  prior_weight=prior_weight))  
         
         rdm = concat(rdms)
+        rdm.rdm_descriptors[time_descriptor] = time
     
     return rdm
-    
 
 def calc_rdm_euclid(dataset, descriptor=None):
     """
