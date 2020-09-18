@@ -205,6 +205,7 @@ class TestRDM(unittest.TestCase):
         for rdm in rdms:
             self.assertIsInstance(rdm, rsr.RDMs)
             self.assertEqual(len(rdm), 1)
+            assert_array_equal(rdm.dissimilarities, rdms[i].dissimilarities)
             i += 1
         self.assertEqual(i, rdms.n_rdm)
 
