@@ -1,0 +1,7 @@
+{
+    "path": "../../demos/exercise_all.ipynb",
+    "extra-media": [
+        "../../demos/92imageData",
+        "../../demos/rdms_inferring"
+    ]
+}

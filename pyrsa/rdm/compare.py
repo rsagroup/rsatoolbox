@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec  6 13:01:12 2019
-
-@author: heiko
+Comparison methods for comparing two RDMs objects
 """
 import numpy as np
 import scipy.stats
-import scipy.sparse.linalg as s_lin
 from scipy.stats._stats import _kendall_dis
 from pyrsa.util.matrix import pairwise_contrast_sparse
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
-from pyrsa.util.matrix import row_col_indicator_G
+from pyrsa.util.matrix import row_col_indicator_g
 
 
 def compare(rdm1, rdm2, method='cosine', sigma_k=None):
@@ -326,7 +323,7 @@ def _cov_weighting(vector):
     N, n_dist = vector.shape
     n_cond = _get_n_from_reduced_vectors(vector)
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
-    rowI, colI = row_col_indicator_G(n_cond)
+    rowI, colI = row_col_indicator_g(n_cond)
     sumI = rowI + colI
     m = vector_w @ sumI / n_cond  # Column and row means
     mm = np.sum(vector_w * 2, axis=1) / (n_cond * n_cond)  # Overall mean

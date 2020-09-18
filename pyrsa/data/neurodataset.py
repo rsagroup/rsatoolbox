@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Definition of RSA Dataset classes for neuroimaging or neural data
+
 @author: baihan
 """
 

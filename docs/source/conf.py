@@ -44,6 +44,8 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
+    'nbsphinx',
+    'nbsphinx_link'
 ]
 
 napoleon_google_docstring = True
@@ -184,3 +186,4 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+nbsphinx_allow_errors = True
