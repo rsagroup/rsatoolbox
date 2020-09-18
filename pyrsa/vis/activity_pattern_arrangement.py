@@ -43,6 +43,7 @@ def activity_pattern_arrangement(rdm, condition_icons, method, significance=None
 
     fig, ax = plt.subplots()
     fig.set_size_inches(20, 20)
+    fig.suptitle(method, fontsize=50)
 
     labels = np.array([int(k.split('.')[0]) - 1 for k in images.keys()])
 
@@ -78,7 +79,7 @@ def activity_pattern_arrangement(rdm, condition_icons, method, significance=None
                 imagebox.image.axes = ax
                 ab = AnnotationBbox(imagebox, transformed_rdm[i], frameon=False)
 
-                plt.autoscale(tight=True)
+                # plt.autoscale(tight=True)
 
                 ax.add_artist(ab)
 
@@ -94,7 +95,7 @@ def activity_pattern_arrangement(rdm, condition_icons, method, significance=None
             for i, target_name in zip([0, 1, 2, 3, 4], target_name):
                 plt.scatter(transformed_rdm[labels == i, 0],
                             transformed_rdm[labels == i, 1],
-                            label=target_name, s=50000, c=[colors[i]])
+                            label=target_name, s=25000, c=[colors[i]])
 
 
             plt.legend(loc='best', scatterpoints=1)
@@ -105,7 +106,7 @@ def activity_pattern_arrangement(rdm, condition_icons, method, significance=None
                 i = int(key.split('.')[0]) - 1
                 label = labels[i]
                 text = target_name[label]
-                offsetbox = TextArea(text, minimumdescent=False)
+                offsetbox = TextArea(text, minimumdescent=False, textprops=dict(color=colors[label]))
 
                 ab = AnnotationBbox(offsetbox, transformed_rdm[i], frameon=False)
 
@@ -117,11 +118,12 @@ def activity_pattern_arrangement(rdm, condition_icons, method, significance=None
 
     # fig, ax = plt.subplots()
     # fig.set_size_inches(20, 20)
-    ax.set_xlim(transformed_rdm.min(), transformed_rdm.max())
-    ax.set_ylim(transformed_rdm.min(), transformed_rdm.max())
+    ax.set_xlim(transformed_rdm.min() - 0.1, transformed_rdm.max() + 0.1)
+    ax.set_ylim(transformed_rdm.min() - 0.1, transformed_rdm.max() + 0.1)
 
     plt.axis('off')
     plt.show()
+    fig.savefig(method + str(condition_icons) + '.png', dpi=100)
 
 
 #
@@ -132,5 +134,10 @@ images = icons_from_folder(images_folder)
 
 # plot
 activity_pattern_arrangement(pyrsa_rdm, condition_icons=['image'], method='mds', significance=None)
-activity_pattern_arrangement(pyrsa_rdm, condition_icons=['text'], method='isomap', significance=None)
+activity_pattern_arrangement(pyrsa_rdm, condition_icons=['image', 'text', 'dots'], method='mds', significance=None)
+
+activity_pattern_arrangement(pyrsa_rdm, condition_icons=['image'], method='tsne', significance=None)
 activity_pattern_arrangement(pyrsa_rdm, condition_icons=['image', 'text', 'dots'], method='tsne', significance=None)
+
+activity_pattern_arrangement(pyrsa_rdm, condition_icons=['image'], method='isomap', significance=None)
+activity_pattern_arrangement(pyrsa_rdm, condition_icons=['text'], method='isomap', significance=None)
