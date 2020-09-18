@@ -3,7 +3,7 @@
 """
 Definition of RSA Dataset classes for neuroimaging or neural data
 
-@authors: baihan
+@author: baihan
 """
 
 
