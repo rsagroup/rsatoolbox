@@ -420,6 +420,8 @@ class DatasetTime(Dataset):
 
         Args:
             by(String): the descriptor by which the splitting is made
+            
+            bins(array)
 
         Returns:
             list of DatasetTime,  splitted by the selected time_descriptor
@@ -434,18 +436,41 @@ class DatasetTime(Dataset):
         raise NotImplementedError(
             "split_time function not yet implemented in DatasetTime class!")
 
-    def bin_time(self, bins):
-        """ Returns an object DatasetTime with time-binned data
+    def bin_time(self, by, bins):
+        """ Returns an object DatasetTime with time-binned data. 
+            Data is averaged within time-bins.
+            'time' descriptor is set to the average of the binned time-points.
 
         Args:
-            bins(????): the descriptor by which the binning is made
+            bins(array-like): list of bins, with bins[i] containing the vector
+                of time-points for the i-th bin
 
         Returns:
             a single DatasetTime object
         """
         
-        raise NotImplementedError(
-            "bin_time function not yet implemented in DatasetTime class!")        
+        time = self.time_descriptors[by]
+        n_bins = len(bins)
+        
+        binned_measurements = np.zeros((self.n_obs, self.n_channel, n_bins))
+        binned_time = np.zeros(n_bins)
+        
+        for t in range(n_bins):
+            t_idx = np.isin(time, bins[t])
+            binned_measurements[:,:,t] = np.mean(self.measurements[:,:,t_idx],axis=2)
+            binned_time[t] = np.mean(time[t_idx])
+        
+        time_descriptors = self.time_descriptors.copy()
+        time_descriptors[by] = binned_time
+        time_descriptors['bins'] = bins
+        
+        dataset = DatasetTime(measurements=binned_measurements,
+                              descriptors=self.descriptors,
+                              obs_descriptors=self.obs_descriptors,
+                              channel_descriptors=self.channel_descriptors,
+                              time_descriptors=time_descriptors)        
+        
+        return dataset
         
     def subset_obs(self, by, value):
         """ Returns a subsetted DatasetTime defined by certain obs value
