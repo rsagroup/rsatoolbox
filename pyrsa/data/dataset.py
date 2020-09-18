@@ -400,7 +400,7 @@ class DatasetTime(Dataset):
         dataset_list = []
         for v in unique_values:
             selection = (self.channel_descriptors[by] == v)
-            measurements = self.measurements[:, selection]
+            measurements = self.measurements[:, selection, :]
             descriptors = self.descriptors
             descriptors[by] = v
             obs_descriptors = self.obs_descriptors
@@ -415,31 +415,37 @@ class DatasetTime(Dataset):
             dataset_list.append(dataset)
         return dataset_list    
     
-    def split_time(self, by, bins=None):
+    def split_time(self, by):
         """ Returns a list DatasetTime splited by time
 
         Args:
             by(String): the descriptor by which the splitting is made
-            
-            bins(array)
 
         Returns:
             list of DatasetTime,  splitted by the selected time_descriptor
         """
         
-        #if bins is not None:
-        #    binned_data = self.bin_time(bins)
-        #    split_time = ...
-        #else:
-        #    split_time = ...
-        
-        raise NotImplementedError(
-            "split_time function not yet implemented in DatasetTime class!")
+        time = get_unique_unsorted(self.time_descriptors[by])
+        dataset_list = []
+        for v in time:
+            selection = (self.time_descriptors[by] == v)
+            measurements = self.measurements[:, :, selection]
+            descriptors = self.descriptors
+            descriptors[by] = v
+            obs_descriptors = self.obs_descriptors
+            channel_descriptors = self.channel_descriptors
+            time_descriptors = subset_descriptor(
+                self.time_descriptors, selection)
+            dataset = DatasetTime(measurements=measurements,
+                                  descriptors=descriptors,
+                                  obs_descriptors=obs_descriptors,
+                                  channel_descriptors=channel_descriptors,
+                                  time_descriptors=time_descriptors)
+            dataset_list.append(dataset)
+        return dataset_list
 
     def bin_time(self, by, bins):
         """ Returns an object DatasetTime with time-binned data. 
-            Data is averaged within time-bins.
-            'time' descriptor is set to the average of the binned time-points.
 
         Args:
             bins(array-like): list of bins, with bins[i] containing the vector
@@ -447,6 +453,9 @@ class DatasetTime(Dataset):
 
         Returns:
             a single DatasetTime object
+                Data is averaged within time-bins.
+                'time' descriptor is set to the average of the 
+                binned time-points.            
         """
         
         time = self.time_descriptors[by]
@@ -527,7 +536,7 @@ class DatasetTime(Dataset):
         return dataset
     
     def subset_time(self, by, t_from, t_to):
-        """ Returns a list DatasetTime splited by time
+        """ Returns a subsetted DatasetTime with time between t_from to t_to
 
         Args:
             by(String): the descriptor by which the subset selection is
@@ -538,8 +547,24 @@ class DatasetTime(Dataset):
         Returns:
             DatasetTime, with subset defined by the selected time_descriptor
         """
-        raise NotImplementedError(
-            "subset_time function not yet implemented in DatasetTime class!")    
+        
+        time = get_unique_unsorted(self.time_descriptors[by])
+        sel_time = [t for t in time if t <= t_to and t>=t_from]      
+        
+        selection = bool_index(self.time_descriptors[by], sel_time)        
+        measurements = self.measurements[:, :, selection]
+        descriptors = self.descriptors
+        obs_descriptors = self.obs_descriptors
+        channel_descriptors = self.channel_descriptors
+        time_descriptors = subset_descriptor(
+            self.time_descriptors, selection)
+        dataset = DatasetTime(measurements=measurements,
+                              descriptors=descriptors,
+                              obs_descriptors=obs_descriptors,
+                              channel_descriptors=channel_descriptors,
+                              time_descriptors=time_descriptors)
+        return dataset        
+        
     
     def sort_by(self, by):
         """ sorts the dataset by a given observation descriptor
