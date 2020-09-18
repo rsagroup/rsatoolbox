@@ -49,9 +49,17 @@ class ModelFamily():
                 count+=1
         return family_list, indices
 
-    def get_family_member(family_index):
+    def get_family_member(self,family_index):
         """
         """
-        member_indices = self.family_list[family_index]
-        family_member = self.models[member_indices]
+        member_indices = list(self.family_list[family_index])
+        family_member = [ self.models[i] for i in member_indices]
+
         return family_member
+
+random_list = [4,6,5,2]
+model_family = ModelFamily(random_list)
+print(model_family.family_list)
+print(model_family.model_indices)
+for i in range(model_family.num_family_members):
+    print(model_family.get_family_member(i))
