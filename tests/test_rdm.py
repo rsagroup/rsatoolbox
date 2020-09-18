@@ -313,6 +313,7 @@ class TestCalcRDM(unittest.TestCase):
             channel_descriptors=dict(feats=['v1', 'v2', 'v3'])
         )
 
+
     def test_calc_euclid_nconds(self):
         rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
                            method='euclidean')
@@ -446,7 +447,45 @@ class TestCalcRDM(unittest.TestCase):
                            cv_descriptor='fold',
                            method='poisson_cv')
         assert rdm.n_cond == 6
+        
+class TestCalcRDMMovie(unittest.TestCase):
+        
+    def setUp(self):
+        measurements_time = np.random.rand(20, 5, 15)
+        tim_des = {'time': np.linspace(0,200, 15)}
 
+        des = {'session': 0, 'subj': 0}
+        obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5,
+                                      0, 0, 1, 1, 2, 2, 2, 3, 4, 5])
+                   }
+
+        chn_des = {'rois': np.array(['sensor1', 'sensor2', 'sensor3', 'sensor5', 'sensor5'])}
+        
+
+        self.test_data_time = rsa.data.DatasetTime(measurements=measurements_time,
+                               descriptors=des,
+                               obs_descriptors=obs_des,
+                               channel_descriptors=chn_des,
+                               time_descriptors=tim_des
+                               )        
+        
+    def test_calc_rdm_movie(self):
+        rdm = rsr.calc_rdm_movie(self.test_data_time, descriptor='conds',
+                           method='mahalanobis', time_descriptor = 'time')
+        assert rdm.n_cond == 6
+        assert len([r for r in rdm]) == 15
+        assert rdm.rdm_descriptors['time'][0] == 0.0
+        
+    def test_calc_rdm_movie_binned(self):
+        time = self.test_data_time.time_descriptors['time']
+        bins = np.reshape(time, [5, 3])
+        rdm = rsr.calc_rdm_movie(self.test_data_time, descriptor='conds',
+                           method='mahalanobis', time_descriptor = 'time',
+                           bins=bins)        
+        assert rdm.n_cond == 6
+        assert len([r for r in rdm]) == 5
+        assert rdm.rdm_descriptors['time'][0] == np.mean(time[:3])
+        
 
 class TestCompareRDM(unittest.TestCase):
 
