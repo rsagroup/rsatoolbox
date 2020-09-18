@@ -6,6 +6,8 @@ Definition of RSA Model family
 
 import numpy as np
 import itertools
+from pyrsa.model import ModelWeighted
+from pyrsa.rdm import RDMs
 
 class ModelFamily():
     """
@@ -53,13 +55,26 @@ class ModelFamily():
         """
         """
         member_indices = list(self.family_list[family_index])
-        family_member = [ self.models[i] for i in member_indices]
+        family_member = [self.models[i] for i in member_indices]
 
         return family_member
+    
+    def get_all_family_members(self):
+        """
+        """
+        all_family_members = []
+        for family_index in range(self.num_family_members):
+            family_member = self.get_family_member(family_index)
+            member_rdms = []
+            member_name = ""
+            for model in family_member:
+                member_rdms.append(model.predict_rdm().get_vectors().ravel())
+                member_name = member_name + "_" + model.name
+            member_rdms = np.array(member_rdms)
+            member_rdms = RDMs(member_rdms)
+            
+            weighted_model = ModelWeighted(member_name,member_rdms)
+            all_family_members.append(weighted_model)
 
-random_list = [4,6,5,2]
-model_family = ModelFamily(random_list)
-print(model_family.family_list)
-print(model_family.model_indices)
-for i in range(model_family.num_family_members):
-    print(model_family.get_family_member(i))
+        return all_family_members
+
