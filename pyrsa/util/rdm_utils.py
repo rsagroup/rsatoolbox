@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 """Collection of helper methods for rdm module
 
-+ batch_to_vectors:  batch squareform() to vectors
-+ batch_to_matrices: batch squareform() to matrices
-+ add_pattern_index: adds index if pattern_descriptor is None
-
 @author: baihan
 """
 
