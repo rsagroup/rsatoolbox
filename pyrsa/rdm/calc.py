@@ -9,7 +9,7 @@ from collections.abc import Iterable
 import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
-from pyrsa.data import average_dataset_by
+from pyrsa.data import average_dataset_by, Dataset
 from pyrsa.util.matrix import pairwise_contrast_sparse
 
 
@@ -129,7 +129,12 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
             
         rdms = []
         for dat in splited_data:
-            rdms.append(calc_rdm(dat, method=method,
+            dat_single = Dataset(measurements=dat.measurements.squeeze(),
+                               descriptors=dat.descriptors,
+                               obs_descriptors=dat.obs_descriptors,
+                               channel_descriptors=dat.channel_descriptors
+                               )            
+            rdms.append(calc_rdm(dat_single, method=method,
                                  descriptor=descriptor,noise=noise,
                                  cv_descriptor=cv_descriptor, prior_lambda=prior_lambda, 
                                  prior_weight=prior_weight))  
@@ -463,7 +468,7 @@ def _gen_default_cv_descriptor(dataset, descriptor):
 
 
 def _calc_pairwise_differences(measurements):
-    measurements = measurements.squeeze()
+    measurements = measurements
     n, m = measurements.shape
     diff = np.zeros((int(n * (n - 1) / 2), m))
     k = 0
