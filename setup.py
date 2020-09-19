@@ -5,7 +5,7 @@ with open('requirements.txt') as reqfile:
     requires = reqfile.read().splitlines()
 
 test_requires = []
-with open('test/requirements.txt') as reqfile:
+with open('tests/requirements.txt') as reqfile:
     test_requires = reqfile.read().splitlines()
 
 with open('README.md', encoding='utf-8') as readmefile:
