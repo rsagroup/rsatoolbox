@@ -198,13 +198,13 @@ def square_category_binary_mask(category_idxs: List[int], size: int):
     Returns:
         A square binary numpy.array indicating within-category pairs.
     """
-    mask = np.zeros((size, size))
+    mask = np.zeros((size, size), dtype=bool)
     linear_index = np.ravel_multi_index(np.array([
         (i, j)
         for i in category_idxs
         for j in category_idxs
-    ]).T, mask.shape)
-    mask.ravel()[linear_index] = 1
+    ], dtype=int).T, mask.shape)
+    mask.ravel()[linear_index] = True
     return mask
 
 
@@ -229,7 +229,7 @@ def square_between_category_binary_mask(category_1_idxs, category_2_idxs, size):
     Returns:
         A square binary numpy.array indicating between-category links in an adjacency matrix.
     """
-    mask = np.zeros((size, size))
+    mask = np.zeros((size, size), dtype=bool)
     linear_index = np.ravel_multi_index(np.array(
         [
             (i, j)
@@ -239,7 +239,7 @@ def square_between_category_binary_mask(category_1_idxs, category_2_idxs, size):
             (i, j)
             for i in category_2_idxs
             for j in category_1_idxs
-        ]
-    ).T, mask.shape)
-    mask.ravel()[linear_index] = 1
+        ],
+        dtype=int).T, mask.shape)
+    mask.ravel()[linear_index] = True
     return mask

@@ -8,15 +8,20 @@ Created on 2020-09-17
 
 from typing import Tuple, List, Dict, Union
 
+from numpy import fill_diagonal, zeros_like
 from matplotlib import pyplot
 from matplotlib.axes import Axes
-from matplotlib.cm import get_cmap
-from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
+from scipy.spatial.distance import squareform
 
 from pyrsa.rdm import RDMs
+from pyrsa.util.matrix import square_category_binary_mask, square_between_category_binary_mask
 from pyrsa.util.rdm_utils import category_condition_idxs
+
+
+_default_colour = "xkcd:nice blue"
+_default_cmap   = None
 
 
 def rdm_comparison_scatterplot(rdms,
@@ -24,8 +29,11 @@ def rdm_comparison_scatterplot(rdms,
                                show_identity_line: bool = True,
                                highlight_category_selector: Union[str, List[int]] = None,
                                highlight_categories: List = None,
+                               colors: Dict = None,
+                               cmap = None,
                                axlim: Tuple[float, float] = None,
                                hist_bins: int = 30,
+                               **scatter_kwargs,
                                ):
     """
     Plot dissimilarities for 2 or more RDMs
@@ -47,6 +55,16 @@ def rdm_comparison_scatterplot(rdms,
             be None.
         highlight_categories (Optional. List):
             List of category labels to highlight. Must be compatible with `highlight_category_selector`.
+            Colours within each and between each pair of categories will be highlighted.
+        colors: (Optional. Dict):
+            Dict mapping category labels to RGB 3-tuples of floats (values range 0–1).  Between-category colours will be
+            interpolated midpoints between category colours.
+            If None (the default), default colours will be selected.
+            Only used if `highlight_categories` is not None.
+        cmap: (Optional. matplotlib colormap)
+            Specify matplotlib colormap for use in selecting category colours.
+            If None (the default), default cmap will be used.
+            Only used if `highlight_categories` is not None.
         axlim (Optional. Tuple[float, float]):
             Set the axis limits for the figure.
             If None or not supplied, axis limits will be automatically determined.
@@ -62,7 +80,7 @@ def rdm_comparison_scatterplot(rdms,
     rdms_y: RDMs  # RDM for the y-axis, or RDMs for facet rows
 
     # Handle rdms arg
-    _msg_arg_rdms = "Argument `rdms` must be an RDMs or low."
+    _msg_arg_rdms = "Argument `rdms` must be an RDMs or pair of RDMs objects."
     try:
         if isinstance(rdms, RDMs):
             # 1 supplied
@@ -71,6 +89,8 @@ def rdm_comparison_scatterplot(rdms,
             # Check that only 2 supplied
             assert len(rdms) == 2
             rdms_x, rdms_y = rdms[0], rdms[1]
+        assert len(rdms_x) > 0
+        assert len(rdms_y) > 0
     except TypeError:
         raise ValueError(_msg_arg_rdms)
     except AssertionError as exc:
@@ -81,11 +101,13 @@ def rdm_comparison_scatterplot(rdms,
     try:
         if highlight_category_selector is None:
             assert highlight_categories is None
+            # If we get here we'll never use this value, but we need to satisfy the static analyser that it's
+            # initialised under all code paths..
+            category_idxs = None
         else:
             assert highlight_categories is not None
             category_idxs = category_condition_idxs(rdms_x, highlight_category_selector)
-            category_names = category_idxs.keys()
-            assert all(c in category_names for c in highlight_categories)
+            assert all(c in category_idxs.keys() for c in highlight_categories)
     except AssertionError as exc:
         raise ValueError(_msg_arg_highlight) from exc
 
@@ -138,7 +160,78 @@ def rdm_comparison_scatterplot(rdms,
                 sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx],
                                                  sharex=reference_axis, sharey=reference_axis)
 
-            sub_axis.scatter(rdm_for_col.get_vectors(), rdm_for_row.get_vectors())
+            # Decide how to colour the scatter points
+
+            if highlight_category_selector is not None:
+
+                # Initialise some things
+
+                # List of ints. Each refers to a colour for the dissimilarity point in the scatter graph. So all dissims
+                # within category 1 get an int, all within category 2 get a different int, all between categories 1 and
+                # 2 get a third int, and so on for more categories. A final int (0) is reserved for remaining points.
+                scatter_colour = zeros_like(rdm_for_col.get_vectors().flatten(), dtype=int)
+                # Counter to be incremented and guarantee unique int for each kind of dissim
+                colour_indicator = 1
+                # Dictionary mapping colour_indicator values against categories for lookup against user-specified
+                # colours later
+                indicator_categories = dict()
+
+                # Within categories
+                for category_name in highlight_categories:
+                    square_mask = square_category_binary_mask(category_idxs=category_idxs[category_name], size=n_cond)
+                    # We don't use diagonal entries, but they must be 0 for squareform to work
+                    fill_diagonal(square_mask, False)
+                    # Get UTV binary mask for within-category dissims
+                    within_category_idxs = squareform(square_mask)
+                    scatter_colour[within_category_idxs] = colour_indicator
+                    # within-category indicators mark just their categories
+                    indicator_categories[colour_indicator] = [category_name]
+                    # Set to this category colour
+                    colour_indicator += 1
+
+                # Between categories
+                exhausted_categories = []
+                for category_1_name in highlight_categories:
+                    for category_2_name in highlight_categories:
+                        # Don't do between a category and itself
+                        if (category_1_name == category_2_name):
+                            continue
+                        # Don't double-count between-category dissims
+                        if category_2_name in exhausted_categories:
+                            continue
+                        between_category_idxs = squareform(
+                            square_between_category_binary_mask(category_1_idxs=category_idxs[category_1_name],
+                                                                category_2_idxs=category_idxs[category_2_name],
+                                                                size=n_cond))
+                        scatter_colour[between_category_idxs] = colour_indicator
+                        # between-category indicators mark category pairs
+                        indicator_categories[colour_indicator] = {category_1_name, category_2_name}
+                        colour_indicator += 1
+                    exhausted_categories.append(category_1_name)
+
+                if colors is not None:
+                    scatter_colour = [
+                        _blend_rgb_colours(*(
+                            # Find the user-specified colours by...
+                            colors[cat]
+                            # ...lookup of category or categories
+                            for cat in indicator_categories[indicator]
+                        ))
+                        for indicator in scatter_colour
+                    ]
+
+            elif 'c' in scatter_kwargs:
+                # passthrough
+                scatter_colour = scatter_kwargs['c']
+
+            else:
+                # Default colour
+                scatter_colour = _default_colour
+
+            sub_axis.scatter(x=rdm_for_col.get_vectors(),
+                             y=rdm_for_row.get_vectors(),
+                             c=scatter_colour,
+                             cmap=cmap if cmap is not None else _default_cmap)
             scatter_axes.append(sub_axis)
 
             # Hide the right and top spines
@@ -201,3 +294,14 @@ def rdm_comparison_scatterplot(rdms,
                     [reference_axis.get_ylim()[0], reference_axis.get_ylim()[1]])
 
     return fig
+
+
+def _blend_rgb_colours(c1, c2=None):
+    if c2 is None:
+        return c1
+    else:
+        return (
+            (c1[0]+c2[0])/2,  # R
+            (c1[1]+c2[1])/2,  # G
+            (c1[2]+c2[2])/2,  # B
+        )
