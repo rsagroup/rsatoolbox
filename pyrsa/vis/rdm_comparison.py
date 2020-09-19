@@ -5,60 +5,89 @@ Created on 2020-09-17
 
 @author: caiw
 """
-from typing import Tuple, List
+
+from typing import Tuple, List, Dict, Union
 
 from matplotlib import pyplot
 from matplotlib.axes import Axes
+from matplotlib.cm import get_cmap
+from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 
 from pyrsa.rdm import RDMs
+from pyrsa.util.rdm_utils import category_condition_idxs
 
 
 def rdm_comparison_scatterplot(rdms,
                                show_marginal_distributions: bool = True,
                                show_identity_line: bool = True,
+                               highlight_category_selector: Union[str, List[int]] = None,
+                               highlight_categories: List = None,
                                axlim: Tuple[float, float] = None,
-                               **kwargs):
+                               hist_bins: int = 30,
+                               ):
     """
+    Plot dissimilarities for 2 or more RDMs
 
     Args:
         rdms (RDMs object or list-like of 2 RDMs objects):
             If one RDMs object supplied, each RDM within is compared against each other
             If two RDMs objects supplied (as list, tuple, etc.), each RDM in the first is compared against each RDM in the second
         show_marginal_distributions (bool):
-            True (default): Show marginal distributions
-            False: Don't show marginal distributions
-
-        additional kwargs pass through to scatterplot
-
+            True (default): Show marginal distributions.
+            False: Don't.
+        show_identity_line (bool):
+            True (default): Show identity line in each graph.
+            False: Don't.
+        highlight_category_selector (Optional. str or List[int]):
+            EITHER: A RDMs.pattern_descriptor defining category labelling for conditions.
+                OR: A list of ints providing category labels for each condition.
+            If None or not supplied, no categories will be highlighted, in which case `highlight_categories` must also
+            be None.
+        highlight_categories (Optional. List):
+            List of category labels to highlight. Must be compatible with `highlight_category_selector`.
+        axlim (Optional. Tuple[float, float]):
+            Set the axis limits for the figure.
+            If None or not supplied, axis limits will be automatically determined.
+        hist_bins (int, default 30):
+            The number of bins to use in the histogram.
 
     Returns:
-        axes object of produced figure
+        matplotlib.pyplot.Figure containing the scatter plot (not shown).
 
     """
-
-    # TODO: make this a parameter
-    HIST_BINS = 30
-
-    _msg_arg_rdms = "Argument `rdms` must be an RDMs or low"
 
     rdms_x: RDMs  # RDM for the x-axis, or RDMs for facet columns
     rdms_y: RDMs  # RDM for the y-axis, or RDMs for facet rows
 
     # Handle rdms arg
-    if isinstance(rdms, RDMs):
-        # 1 supplied
-        rdms_x, rdms_y = rdms, rdms
-    else:
-        # Check that only 2 supplied
-        try:
+    _msg_arg_rdms = "Argument `rdms` must be an RDMs or low."
+    try:
+        if isinstance(rdms, RDMs):
+            # 1 supplied
+            rdms_x, rdms_y = rdms, rdms
+        else:
+            # Check that only 2 supplied
             assert len(rdms) == 2
-        except TypeError:
-            raise ValueError(_msg_arg_rdms)
-        except AssertionError:
-            raise ValueError(_msg_arg_rdms)
-        rdms_x, rdms_y = rdms[0], rdms[1]
+            rdms_x, rdms_y = rdms[0], rdms[1]
+    except TypeError:
+        raise ValueError(_msg_arg_rdms)
+    except AssertionError as exc:
+        raise ValueError(_msg_arg_rdms) from exc
+
+    # Handle category highlighting args
+    _msg_arg_highlight = "Arguments `highlight_category_selector` and `highlight_categories` must be compatible."
+    try:
+        if highlight_category_selector is None:
+            assert highlight_categories is None
+        else:
+            assert highlight_categories is not None
+            category_idxs = category_condition_idxs(rdms_x, highlight_category_selector)
+            category_names = category_idxs.keys()
+            assert all(c in category_names for c in highlight_categories)
+    except AssertionError as exc:
+        raise ValueError(_msg_arg_highlight) from exc
 
     n_rdms_x = rdms_x.n_rdm
     n_rdms_y = rdms_y.n_rdm
@@ -102,12 +131,12 @@ def rdm_comparison_scatterplot(rdms,
             # Hence we have to pull the rdm out by its index.
             rdm_for_row = rdms_y[scatter_row_idx]
 
-            # To do
             if reference_axis is None:
                 sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx])
                 reference_axis = sub_axis
             else:
-                sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx], sharex=reference_axis, sharey=reference_axis)
+                sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx],
+                                                 sharex=reference_axis, sharey=reference_axis)
 
             sub_axis.scatter(rdm_for_col.get_vectors(), rdm_for_row.get_vectors())
             scatter_axes.append(sub_axis)
@@ -140,7 +169,7 @@ def rdm_comparison_scatterplot(rdms,
             else:
                 hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis, sharey=reference_hist)
             hist_axis.hist(rdm_for_col.get_vectors().flatten(), histtype='step', fill=False, orientation='vertical',
-                           bins=HIST_BINS)
+                           bins=hist_bins)
             hist_axis.xaxis.set_visible(False)
             hist_axis.yaxis.set_visible(False)
             hist_axis.set_frame_on(False)
@@ -156,7 +185,7 @@ def rdm_comparison_scatterplot(rdms,
             else:
                 hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0], sharey=reference_axis, sharex=reference_hist)
             hist_axis.hist(rdm_for_row.get_vectors().flatten(), histtype='step', fill=False, orientation='horizontal',
-                           bins=HIST_BINS)
+                           bins=hist_bins)
             hist_axis.xaxis.set_visible(False)
             hist_axis.yaxis.set_visible(False)
             hist_axis.set_frame_on(False)

@@ -4,6 +4,8 @@
 Collection of different utility Matrices
 """
 
+from typing import List
+
 import numpy as np
 from scipy.sparse import coo_matrix
 
@@ -173,3 +175,71 @@ def _row_col_indicator(row_i, col_i, n_cond):
         row_i[j:j + n_cond - i - 1, i] = 1
         np.fill_diagonal(col_i[j:j + n_cond - i - 1, i + 1:], 1)
         j = j + (n_cond - i - 1)
+
+
+def square_category_binary_mask(category_idxs: List[int], size: int):
+    """
+    A square binary matrix indicating within-category links in an adjacency matrix.
+
+    Args:
+        category_idxs (List[int]): indices of category members in rows/columns.
+        size (int): total size of matrix.
+
+    Usage example:
+
+        >>> square_category_binary_mask(category_idxs=[1, 2, 4], size=5)
+        array([[0., 0., 0., 0., 0.],
+               [0., 1., 1., 0., 1.],
+               [0., 1., 1., 0., 1.],
+               [0., 0., 0., 0., 0.],
+               [0., 1., 1., 0., 1.]])
+
+
+    Returns:
+        A square binary numpy.array indicating within-category pairs.
+    """
+    mask = np.zeros((size, size))
+    linear_index = np.ravel_multi_index(np.array([
+        (i, j)
+        for i in category_idxs
+        for j in category_idxs
+    ]).T, mask.shape)
+    mask.ravel()[linear_index] = 1
+    return mask
+
+
+def square_between_category_binary_mask(category_1_idxs, category_2_idxs, size):
+    """
+    A square binary matrix indicating between-category links in an adjacency matrix.
+
+    Args:
+        category_1_idxs (List[int]): indices of category 1 members in rows/columns.
+        category_2_idxs (List[int]): indices of category 2 members in rows/columns.
+        size (int): total size of matrix
+
+    Usage example:
+
+        >>> square_between_category_binary_mask(category_1_idxs=[1, 2], category_2_idxs=[3, 4], size=5)
+        array([[0., 0., 0., 0., 0.],
+               [0., 0., 0., 1., 1.],
+               [0., 0., 0., 1., 1.],
+               [0., 1., 1., 0., 0.],
+               [0., 1., 1., 0., 0.]])
+
+    Returns:
+        A square binary numpy.array indicating between-category links in an adjacency matrix.
+    """
+    mask = np.zeros((size, size))
+    linear_index = np.ravel_multi_index(np.array(
+        [
+            (i, j)
+            for i in category_1_idxs
+            for j in category_2_idxs
+        ] + [
+            (i, j)
+            for i in category_2_idxs
+            for j in category_1_idxs
+        ]
+    ).T, mask.shape)
+    mask.ravel()[linear_index] = 1
+    return mask
