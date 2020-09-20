@@ -1,6 +1,7 @@
+.. _demos:
+
 Demos
 =====
-
 
 .. toctree::
    :maxdepth: 2
