@@ -76,63 +76,14 @@ def rdm_comparison_scatterplot(rdms,
 
     """
 
-    rdms_x: RDMs  # RDM for the x-axis, or RDMs for facet columns
-    rdms_y: RDMs  # RDM for the y-axis, or RDMs for facet rows
+    rdms_x, rdms_y = _handle_args_rdms(rdms)
+    category_idxs  = _handle_args_hilight_categories(highlight_category_selector, highlight_categories, rdms_x)
 
-    # Handle rdms arg
-    _msg_arg_rdms = "Argument `rdms` must be an RDMs or pair of RDMs objects."
-    try:
-        if isinstance(rdms, RDMs):
-            # 1 supplied
-            rdms_x, rdms_y = rdms, rdms
-        else:
-            # Check that only 2 supplied
-            assert len(rdms) == 2
-            rdms_x, rdms_y = rdms[0], rdms[1]
-        assert len(rdms_x) > 0
-        assert len(rdms_y) > 0
-    except TypeError:
-        raise ValueError(_msg_arg_rdms)
-    except AssertionError as exc:
-        raise ValueError(_msg_arg_rdms) from exc
+    n_rdms_x, n_rdms_y = len(rdms_x), len(rdms_y)
 
-    # Handle category highlighting args
-    _msg_arg_highlight = "Arguments `highlight_category_selector` and `highlight_categories` must be compatible."
-    try:
-        if highlight_category_selector is None:
-            assert highlight_categories is None
-            # If we get here we'll never use this value, but we need to satisfy the static analyser that it's
-            # initialised under all code paths..
-            category_idxs = None
-        else:
-            assert highlight_categories is not None
-            category_idxs = category_condition_idxs(rdms_x, highlight_category_selector)
-            assert all(c in category_idxs.keys() for c in highlight_categories)
-    except AssertionError as exc:
-        raise ValueError(_msg_arg_highlight) from exc
-
-    n_rdms_x = rdms_x.n_rdm
-    n_rdms_y = rdms_y.n_rdm
+    gridspec = _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions)
 
     fig: Figure = pyplot.figure(figsize=(8, 8))
-
-    # Set up gridspec
-    grid_n_rows = n_rdms_y
-    grid_n_cols = n_rdms_x
-    grid_width_ratios = tuple(6 for _ in range(grid_n_cols))
-    grid_height_ratios = tuple(6 for _ in range(grid_n_rows))
-    if show_marginal_distributions:
-        # Add extra row & col for marginal distributions
-        grid_n_rows += 1
-        grid_n_cols += 1
-        grid_width_ratios = (1, *grid_width_ratios)
-        grid_height_ratios = (*grid_height_ratios, 1)
-    gridspec = GridSpec(
-        nrows=grid_n_rows,
-        ncols=grid_n_cols,
-        width_ratios=grid_width_ratios,
-        height_ratios=grid_height_ratios,
-    )
 
     # To share x and y axes when using gridspec you need to specify which axis to use as references.
     # The reference axes will be those in the first column and those in the last row.
@@ -164,61 +115,7 @@ def rdm_comparison_scatterplot(rdms,
 
             if highlight_category_selector is not None:
 
-                # Initialise some things
-
-                # List of ints. Each refers to a colour for the dissimilarity point in the scatter graph. So all dissims
-                # within category 1 get an int, all within category 2 get a different int, all between categories 1 and
-                # 2 get a third int, and so on for more categories. A final int (0) is reserved for remaining points.
-                scatter_colour = zeros_like(rdm_for_col.get_vectors().flatten(), dtype=int)
-                # Counter to be incremented and guarantee unique int for each kind of dissim
-                colour_indicator = 1
-                # Dictionary mapping colour_indicator values against categories for lookup against user-specified
-                # colours later
-                indicator_categories = dict()
-
-                # Within categories
-                for category_name in highlight_categories:
-                    square_mask = square_category_binary_mask(category_idxs=category_idxs[category_name], size=n_cond)
-                    # We don't use diagonal entries, but they must be 0 for squareform to work
-                    fill_diagonal(square_mask, False)
-                    # Get UTV binary mask for within-category dissims
-                    within_category_idxs = squareform(square_mask)
-                    scatter_colour[within_category_idxs] = colour_indicator
-                    # within-category indicators mark just their categories
-                    indicator_categories[colour_indicator] = [category_name]
-                    # Set to this category colour
-                    colour_indicator += 1
-
-                # Between categories
-                exhausted_categories = []
-                for category_1_name in highlight_categories:
-                    for category_2_name in highlight_categories:
-                        # Don't do between a category and itself
-                        if (category_1_name == category_2_name):
-                            continue
-                        # Don't double-count between-category dissims
-                        if category_2_name in exhausted_categories:
-                            continue
-                        between_category_idxs = squareform(
-                            square_between_category_binary_mask(category_1_idxs=category_idxs[category_1_name],
-                                                                category_2_idxs=category_idxs[category_2_name],
-                                                                size=n_cond))
-                        scatter_colour[between_category_idxs] = colour_indicator
-                        # between-category indicators mark category pairs
-                        indicator_categories[colour_indicator] = {category_1_name, category_2_name}
-                        colour_indicator += 1
-                    exhausted_categories.append(category_1_name)
-
-                if colors is not None:
-                    scatter_colour = [
-                        _blend_rgb_colours(*(
-                            # Find the user-specified colours by...
-                            colors[cat]
-                            # ...lookup of category or categories
-                            for cat in indicator_categories[indicator]
-                        ))
-                        for indicator in scatter_colour
-                    ]
+                scatter_colour = _do_color_highlighted_categories(rdm_for_col, highlight_categories, category_idxs, colors)
 
             elif 'c' in scatter_kwargs:
                 # passthrough
@@ -247,53 +144,181 @@ def rdm_comparison_scatterplot(rdms,
             # Square axes
             sub_axis.set_aspect('equal', adjustable='box')
 
-    # Apply specified axlim to the reference axis:
     if axlim is not None:
-        reference_axis.set_xlim(axlim[0], axlim[1])
-        reference_axis.set_ylim(axlim[0], axlim[1])
+        _do_set_axes_limits(axlim, reference_axis)
 
     if show_marginal_distributions:
-        # Add marginal distributions along the x axis
-        reference_hist = None
-        for col_idx, rdm_for_col in enumerate(rdms_x):
-            if reference_hist is None:
-                hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis)
-                reference_hist = hist_axis
-            else:
-                hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis, sharey=reference_hist)
-            hist_axis.hist(rdm_for_col.get_vectors().flatten(), histtype='step', fill=False, orientation='vertical',
-                           bins=hist_bins)
-            hist_axis.xaxis.set_visible(False)
-            hist_axis.yaxis.set_visible(False)
-            hist_axis.set_frame_on(False)
-        # Flip to pointing downwards
-        reference_hist.set_ylim(hist_axis.get_ylim()[::-1])
+        _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins)
 
-        # Add marginal distributions along the y axis
-        reference_hist = None
-        for row_idx, rdm_for_row in enumerate(rdms_y):
-            if reference_hist is None:
-                hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0], sharey=reference_axis)
-                reference_hist = hist_axis
-            else:
-                hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0], sharey=reference_axis, sharex=reference_hist)
-            hist_axis.hist(rdm_for_row.get_vectors().flatten(), histtype='step', fill=False, orientation='horizontal',
-                           bins=hist_bins)
-            hist_axis.xaxis.set_visible(False)
-            hist_axis.yaxis.set_visible(False)
-            hist_axis.set_frame_on(False)
-        # Flip to pointing leftwards
-        reference_hist.set_xlim(hist_axis.get_xlim()[::-1])
-
-    # Add identity lines
     if show_identity_line:
-        for ax in scatter_axes:
-            # Prevent autoscale, else plotting from the origin causes the axes to rescale
-            ax.autoscale(False)
-            ax.plot([reference_axis.get_xlim()[0], reference_axis.get_xlim()[1]],
-                    [reference_axis.get_ylim()[0], reference_axis.get_ylim()[1]])
+        _do_show_identity_line(reference_axis, scatter_axes)
 
     return fig
+
+
+def _do_set_axes_limits(axlim, reference_axis):
+    reference_axis.set_xlim(axlim[0], axlim[1])
+    reference_axis.set_ylim(axlim[0], axlim[1])
+
+
+def _handle_args_hilight_categories(highlight_category_selector, highlight_categories, reference_rdms):
+    # Handle category highlighting args
+    _msg_arg_highlight = "Arguments `highlight_category_selector` and `highlight_categories` must be compatible."
+    try:
+        if highlight_category_selector is None:
+            assert highlight_categories is None
+            # If we get here we'll never use this value, but we need to satisfy the static analyser that it's
+            # initialised under all code paths..
+            category_idxs = None
+        else:
+            assert highlight_categories is not None
+            category_idxs = category_condition_idxs(reference_rdms, highlight_category_selector)
+            assert all(c in category_idxs.keys() for c in highlight_categories)
+    except AssertionError as exc:
+        raise ValueError(_msg_arg_highlight) from exc
+    return category_idxs
+
+
+def _handle_args_rdms(rdms):
+    _msg_arg_rdms = "Argument `rdms` must be an RDMs or pair of RDMs objects."
+
+    rdms_x: RDMs  # RDM for the x-axis, or RDMs for facet columns
+    rdms_y: RDMs  # RDM for the y-axis, or RDMs for facet rows
+    try:
+        if isinstance(rdms, RDMs):
+            # 1 supplied
+            rdms_x, rdms_y = rdms, rdms
+        else:
+            # Check that only 2 supplied
+            assert len(rdms) == 2
+            rdms_x, rdms_y = rdms[0], rdms[1]
+        assert len(rdms_x) > 0
+        assert len(rdms_y) > 0
+    except TypeError:
+        raise ValueError(_msg_arg_rdms)
+    except AssertionError as exc:
+        raise ValueError(_msg_arg_rdms) from exc
+    return rdms_x, rdms_y
+
+
+def _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions):
+    grid_n_rows = n_rdms_y
+    grid_n_cols = n_rdms_x
+    grid_width_ratios = tuple(6 for _ in range(grid_n_cols))
+    grid_height_ratios = tuple(6 for _ in range(grid_n_rows))
+    if show_marginal_distributions:
+        # Add extra row & col for marginal distributions
+        grid_n_rows += 1
+        grid_n_cols += 1
+        grid_width_ratios = (1, *grid_width_ratios)
+        grid_height_ratios = (*grid_height_ratios, 1)
+    gridspec = GridSpec(
+        nrows=grid_n_rows,
+        ncols=grid_n_cols,
+        width_ratios=grid_width_ratios,
+        height_ratios=grid_height_ratios,
+    )
+    return gridspec
+
+
+def _do_show_identity_line(reference_axis, scatter_axes):
+    for ax in scatter_axes:
+        # Prevent autoscale, else plotting from the origin causes the axes to rescale
+        ax.autoscale(False)
+        ax.plot([reference_axis.get_xlim()[0], reference_axis.get_xlim()[1]],
+                [reference_axis.get_ylim()[0], reference_axis.get_ylim()[1]])
+
+
+def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins):
+    # Add marginal distributions along the x axis
+    reference_hist = None
+    for col_idx, rdm_for_col in enumerate(rdms_x):
+        if reference_hist is None:
+            hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis)
+            reference_hist = hist_axis
+        else:
+            hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis, sharey=reference_hist)
+        hist_axis.hist(rdm_for_col.get_vectors().flatten(), histtype='step', fill=False, orientation='vertical',
+                       bins=hist_bins)
+        hist_axis.xaxis.set_visible(False)
+        hist_axis.yaxis.set_visible(False)
+        hist_axis.set_frame_on(False)
+    # Flip to pointing downwards
+    reference_hist.set_ylim(hist_axis.get_ylim()[::-1])
+
+    # Add marginal distributions along the y axis
+    reference_hist = None
+    for row_idx, rdm_for_row in enumerate(rdms_y):
+        if reference_hist is None:
+            hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0], sharey=reference_axis)
+            reference_hist = hist_axis
+        else:
+            hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0], sharey=reference_axis, sharex=reference_hist)
+        hist_axis.hist(rdm_for_row.get_vectors().flatten(), histtype='step', fill=False, orientation='horizontal',
+                       bins=hist_bins)
+        hist_axis.xaxis.set_visible(False)
+        hist_axis.yaxis.set_visible(False)
+        hist_axis.set_frame_on(False)
+    # Flip to pointing leftwards
+    reference_hist.set_xlim(hist_axis.get_xlim()[::-1])
+
+
+def _do_color_highlighted_categories(rdm, highlight_categories, category_idxs, colors):
+    # Initialise some things
+
+    # List of ints. Each refers to a colour for the dissimilarity point in the scatter graph. So all dissims
+    # within category 1 get an int, all within category 2 get a different int, all between categories 1 and
+    # 2 get a third int, and so on for more categories. A final int (0) is reserved for remaining points.
+    scatter_colour = zeros_like(rdm.get_vectors().flatten(), dtype=int)
+    # Counter to be incremented and guarantee unique int for each kind of dissim
+    colour_indicator = 1
+    # Dictionary mapping colour_indicator values against categories for lookup against user-specified
+    # colours later
+    indicator_categories = dict()
+
+    # Within categories
+    for category_name in highlight_categories:
+        square_mask = square_category_binary_mask(category_idxs=category_idxs[category_name], size=n_cond)
+        # We don't use diagonal entries, but they must be 0 for squareform to work
+        fill_diagonal(square_mask, False)
+        # Get UTV binary mask for within-category dissims
+        within_category_idxs = squareform(square_mask)
+        scatter_colour[within_category_idxs] = colour_indicator
+        # within-category indicators mark just their categories
+        indicator_categories[colour_indicator] = [category_name]
+        # Set to this category colour
+        colour_indicator += 1
+    # Between categories
+    exhausted_categories = []
+    for category_1_name in highlight_categories:
+        for category_2_name in highlight_categories:
+            # Don't do between a category and itself
+            if (category_1_name == category_2_name):
+                continue
+            # Don't double-count between-category dissims
+            if category_2_name in exhausted_categories:
+                continue
+            between_category_idxs = squareform(
+                square_between_category_binary_mask(category_1_idxs=category_idxs[category_1_name],
+                                                    category_2_idxs=category_idxs[category_2_name],
+                                                    size=n_cond))
+            scatter_colour[between_category_idxs] = colour_indicator
+            # between-category indicators mark category pairs
+            indicator_categories[colour_indicator] = {category_1_name, category_2_name}
+            colour_indicator += 1
+        exhausted_categories.append(category_1_name)
+
+    if colors is not None:
+        # Use colour selector to pick out user-specified colours
+        scatter_colour = [
+            _blend_rgb_colours(*(
+                colors[cat]
+                for cat in indicator_categories[indicator]
+            ))
+            for indicator in scatter_colour
+        ]
+
+    return scatter_colour
 
 
 def _blend_rgb_colours(c1, c2=None):
