@@ -111,18 +111,12 @@ def rdm_comparison_scatterplot(rdms,
                 sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx],
                                                  sharex=reference_axis, sharey=reference_axis)
 
-            # Decide how to colour the scatter points
-
+            # Decide how to colour scatter points
             if highlight_category_selector is not None:
-
                 scatter_colour = _do_color_highlighted_categories(rdm_for_col, highlight_categories, category_idxs, colors)
-
             elif 'c' in scatter_kwargs:
-                # passthrough
                 scatter_colour = scatter_kwargs['c']
-
             else:
-                # Default colour
                 scatter_colour = _default_colour
 
             sub_axis.scatter(x=rdm_for_col.get_vectors(),
@@ -131,21 +125,7 @@ def rdm_comparison_scatterplot(rdms,
                              cmap=cmap if cmap is not None else _default_cmap)
             scatter_axes.append(sub_axis)
 
-            # Hide the right and top spines
-            sub_axis.spines['right'].set_visible(False)
-            sub_axis.spines['top'].set_visible(False)
-
-            # Hide all but the outermost ticklabels
-            if not is_bottom_row:
-                pyplot.setp(sub_axis.get_xticklabels(), visible=False)
-            if not is_leftmost_col:
-                pyplot.setp(sub_axis.get_yticklabels(), visible=False)
-
-            # Square axes
-            sub_axis.set_aspect('equal', adjustable='box')
-
-    if axlim is not None:
-        _do_set_axes_limits(axlim, reference_axis)
+            _do_format_sub_axes(sub_axis, is_bottom_row, is_leftmost_col)
 
     if show_marginal_distributions:
         _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins)
@@ -153,12 +133,10 @@ def rdm_comparison_scatterplot(rdms,
     if show_identity_line:
         _do_show_identity_line(reference_axis, scatter_axes)
 
+    if axlim is not None:
+        _do_set_axes_limits(axlim, reference_axis)
+
     return fig
-
-
-def _do_set_axes_limits(axlim, reference_axis):
-    reference_axis.set_xlim(axlim[0], axlim[1])
-    reference_axis.set_ylim(axlim[0], axlim[1])
 
 
 def _handle_args_hilight_categories(highlight_category_selector, highlight_categories, reference_rdms):
@@ -199,6 +177,26 @@ def _handle_args_rdms(rdms):
     except AssertionError as exc:
         raise ValueError(_msg_arg_rdms) from exc
     return rdms_x, rdms_y
+
+
+def _do_format_sub_axes(sub_axis, is_bottom_row: bool, is_leftmost_col: bool):
+    # Square axes
+    # sub_axis.set_aspect('equal', adjustable='box')
+
+    # Hide the right and top spines
+    sub_axis.spines['right'].set_visible(False)
+    sub_axis.spines['top'].set_visible(False)
+
+    # Hide all but the outermost ticklabels
+    if not is_bottom_row:
+        pyplot.setp(sub_axis.get_xticklabels(), visible=False)
+    if not is_leftmost_col:
+        pyplot.setp(sub_axis.get_yticklabels(), visible=False)
+
+
+def _do_set_axes_limits(axlim, reference_axis):
+    reference_axis.set_xlim(axlim[0], axlim[1])
+    reference_axis.set_ylim(axlim[0], axlim[1])
 
 
 def _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions):
