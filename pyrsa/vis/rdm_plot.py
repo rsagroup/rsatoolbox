@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar 12 16:21:53 2020
-
-@author: heiko
+Plot showing an RDMs object
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 from pyrsa.rdm import rank_transform
 from pyrsa.vis.colors import rdm_colormap
+
 
 def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
              cmap=None, rdm_descriptor=None):
@@ -35,7 +34,7 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
     if do_rank_transform:
         rdm = rank_transform(rdm)
     rdm_mat = rdm.get_matrices()
-    if rdm.n_rdm  > 1:
+    if rdm.n_rdm > 1:
         m = np.ceil(np.sqrt(rdm.n_rdm+1))
         n = np.ceil((1 + rdm.n_rdm) / m)
         for idx in range(rdm.n_rdm):

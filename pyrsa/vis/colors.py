@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 """
 Definition of pyrsa's colors
+
 @author: iancharest
 """
 
@@ -77,7 +78,6 @@ def rdm_colormap(n_cols=256, monitor=None):
             plt.colorbar()
             plt.show()
 
-    @authors: Ian Charest and Jasper van den Bosch
     (ported from Niko Kriegeskorte's RDMcolormap.m)
     """
 
