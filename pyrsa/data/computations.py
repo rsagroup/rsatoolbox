@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Dataset computations
-@author: heiko
 """
 
 import numpy as np
