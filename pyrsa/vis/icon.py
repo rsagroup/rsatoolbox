@@ -174,7 +174,7 @@ class Icon:
         if self.image is None:
             self.final_image = None
             return
-        elif isinstance(self.image, np.ndarray):
+        if isinstance(self.image, np.ndarray):
             if self.image.dtype == np.float and np.any(self.image > 1):
                 im = self.image / 255
             else:
