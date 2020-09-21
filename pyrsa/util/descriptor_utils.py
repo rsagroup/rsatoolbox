@@ -161,11 +161,9 @@ def append_obs_descriptors(dict_orig, dict_addit):
     """
     assert list(dict_orig.keys()) == list(dict_addit.keys()), \
         "Provided observationdescriptors have different keys."
-    
     dict_merged = {}
     keys = list(dict_orig.keys())
     for k in keys:
         values = np.array(np.append(dict_orig[k], dict_addit[k]))
-        dict_merged.update({k:values})
+        dict_merged.update({k: values})
     return dict_merged
-
