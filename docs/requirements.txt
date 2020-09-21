@@ -1,1 +1,4 @@
 sphinx
+nbsphinx
+nbsphinx-link
+ipykernel
