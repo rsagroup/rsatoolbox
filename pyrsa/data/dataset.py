@@ -579,6 +579,53 @@ class TemporalDataset(Dataset):
         order = np.argsort(desc)
         self.measurements = self.measurements[order]
         self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
+        
+    def convert_to_dataset(self, by):
+        """ converts to Dataset long format. 
+            time dimension is absorbed into observation dimension
+
+        Args:
+            by(String): the descriptor which indicates the time dimension in
+                the time_descriptor
+
+        Returns:
+            Dataset
+
+        """        
+        time = get_unique_unsorted(self.time_descriptors[by])
+         
+        descriptors = self.descriptors
+        channel_descriptors = self.channel_descriptors.copy()
+        
+        measurements = np.empty([0, self.n_channel])
+        obs_descriptors = dict.fromkeys(self.obs_descriptors, [])
+        obs_descriptors[by] = np.array([])
+        
+        
+        for v in time:
+            selection = (self.time_descriptors[by] == v)
+            
+            measurements = np.concatenate((measurements, 
+                                           self.measurements[:, :, selection].squeeze()), 
+                                          axis=0)
+            
+            for key in self.obs_descriptors:
+                obs_descriptors[key] = np.concatenate((obs_descriptors[key],
+                                          self.obs_descriptors[key].copy()),
+                                          axis=0)
+            
+            for key in self.time_descriptors:
+                obs_descriptors[key] = np.concatenate((obs_descriptors[key],
+                                          np.repeat(self.time_descriptors[key][selection],
+                                                    self.n_obs)), axis=0)
+
+        dataset = Dataset(measurements=measurements,
+                          descriptors=descriptors,
+                          obs_descriptors=obs_descriptors,
+                          channel_descriptors=channel_descriptors)
+        return dataset
+        
+        
 
 
 def load_dataset(filename, file_type=None):
