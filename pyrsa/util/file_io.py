@@ -10,7 +10,6 @@ import numpy as np
 import os
 
 
-
 def write_dict_hdf5(file, dictionary):
     """ writes a nested dictionary containing strings & arrays as data into
     a hdf5 file
@@ -117,12 +116,14 @@ def read_dict_pkl(file):
     data = pickle.load(file)
     return data
 
+
 def remove_file(file):
     """ Deletes file from OS if it exists
-    
+
     Args:
         file (str, Path):
             a filename or opened readable file
+
     """
     from pathlib import Path
     if isinstance(file, (str, Path)) and os.path.exists(file):
