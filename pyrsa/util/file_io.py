@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Mar 25 17:59:29 2020
-
-@author: heiko
+saving to and reading from files
 """
 
 import h5py

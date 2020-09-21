@@ -22,6 +22,7 @@ Documentation
    inference.rst
    visualization.rst
    literature_cited.rst
+   demos
    pyrsa.rst
 
 Indices and tables
