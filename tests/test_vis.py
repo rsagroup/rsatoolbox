@@ -111,6 +111,8 @@ class Test_Icon(unittest.TestCase):
         ic4.x_tick_label(0.75, 0.15, offset=7)
         ic4.y_tick_label(0.75, 0.25, offset=17)
 
+        self.assertEqual(ic2.image, test_im)
+
 
 if __name__ == '__main__':
     unittest.main()
