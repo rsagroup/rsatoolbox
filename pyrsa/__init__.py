@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """ Top level package: Only imports and organisation
 """
-
 from . import data
 from . import inference
 from . import model
