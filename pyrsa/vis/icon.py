@@ -107,13 +107,9 @@ class Icon:
             assert circ_cut <= 1 and circ_cut >= 0, \
                 'a numeric circ_cut must be in [0,1]'
             self.circ_cut = circ_cut
-        self.set(image, string, col, marker, cmap, border_type)
+        self.recompute_final_image()
 
-    def set(self, image=None, string=None, col=None, marker=None,
-            cmap=None, border_type=None, border_width=None, make_square=None,
-            circ_cut=None, resolution=None, marker_front=None,
-            markeredgewidth=None, fontsize=None, fontname=None,
-            fontcolor=None):
+    def set_image(self, image=None):
         """ sets individual parameters of the object and recomputes the
         icon image
         """
@@ -123,10 +119,19 @@ class Icon:
             avg_rdm = pool_rdm(image)
             image = avg_rdm.get_matrices()[0]
             self.image = image / np.max(image)
-            if resolution is None:
-                resolution = 100
+            if self.resolution is None:
+                self.resolution = 100
         elif image is not None:
             self.image = image
+
+    def set(self, string=None, col=None, marker=None,
+            cmap=None, border_type=None, border_width=None, make_square=None,
+            circ_cut=None, resolution=None, marker_front=None,
+            markeredgewidth=None, fontsize=None, fontname=None,
+            fontcolor=None):
+        """ sets individual parameters of the object and recomputes the
+        icon image
+        """
         if string is not None:
             self.string = string
         if col is not None:
@@ -261,11 +266,10 @@ class Icon:
         """
         if ax is None:
             ax = plt.gca()
+        if size is None:
+            size = 1
         if self.final_image is not None:
-            if size is None:
-                imagebox = OffsetImage(self.final_image, zoom=1)
-            else:
-                imagebox = OffsetImage(self.final_image, zoom=size)
+            imagebox = OffsetImage(self.final_image, zoom=size)
             ab = AnnotationBbox(
                 imagebox, (x, y),  frameon=False,
                 pad=0)
