@@ -318,7 +318,7 @@ class TemporalDataset(Dataset):
         
             time_descriptors needs to contain one key 'time' that 
             specifies the time-coordinate. if None is provided, 'time' is
-            set as (0, 2, ..., n_time-1)
+            set as (0, 1, ..., n_time-1)
 
     Returns:
         dataset object
@@ -341,7 +341,7 @@ class TemporalDataset(Dataset):
             time_descriptors['time'] = np.arange(self.n_time)
             raise Warning(
                 "there was no 'time' provided in dictionary time_descriptors\n"\
-                "'time' will be set to (0, 2, ..., n_time-1)")
+                "'time' will be set to (0, 1, ..., n_time-1)")
                     
         check_descriptor_length_error(obs_descriptors,
                                       "obs_descriptors",
