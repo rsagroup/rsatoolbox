@@ -94,7 +94,6 @@ class Icon:
         self.cmap = cmap
         self.marker = marker
         self.col = col
-        self.image = image
         self.string = string
         self.fontcolor = fontcolor
         if circ_cut is None:
@@ -107,7 +106,7 @@ class Icon:
             assert circ_cut <= 1 and circ_cut >= 0, \
                 'a numeric circ_cut must be in [0,1]'
             self.circ_cut = circ_cut
-        self.set(image, string, col, marker, cmap, border_type)
+        self.recompute_final_image()
 
     def set(self, image=None, string=None, col=None, marker=None,
             cmap=None, border_type=None, border_width=None, make_square=None,
