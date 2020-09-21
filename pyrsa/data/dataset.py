@@ -490,7 +490,12 @@ class TemporalDataset(Dataset):
         
         time_descriptors = self.time_descriptors.copy()
         time_descriptors[by] = binned_time
-        time_descriptors['bins'] = bins
+        
+        # adding the bins as an additional descriptor currently 
+        # does not work because of check_descriptor_length which transforms 
+        # it into a numpy.array.
+        #time_descriptors['bins'] = [x for x in bins]
+        time_descriptors['bins'] = [np.array2string(x, precision=2, separator=',') for x in bins]
         
         dataset = TemporalDataset(measurements=binned_measurements,
                               descriptors=self.descriptors,

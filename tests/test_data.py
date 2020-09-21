@@ -230,7 +230,6 @@ class TestTemporalDataset(unittest.TestCase):
         self.assertEqual(binned_data.n_channel, 5)
         self.assertEqual(binned_data.n_time, 5)        
         self.assertEqual(binned_data.time_descriptors['time'][0], np.mean(bins[0]))          
-        self.assertEqual(binned_data.time_descriptors['bins'][0][0], bins[0][0])
         self.assertEqual(binned_data.measurements[0,0,0], np.mean(measurements[0,0,:3]))
 
     def test_temporaldataset_subset_obs(self):

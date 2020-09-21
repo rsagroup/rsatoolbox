@@ -129,11 +129,7 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
             
         rdms = []
         for dat in splited_data:
-            dat_single = Dataset(measurements=dat.measurements.squeeze(),
-                               descriptors=dat.descriptors,
-                               obs_descriptors=dat.obs_descriptors,
-                               channel_descriptors=dat.channel_descriptors
-                               )            
+            dat_single = dat.convert_to_dataset(time_descriptor)
             rdms.append(calc_rdm(dat_single, method=method,
                                  descriptor=descriptor,noise=noise,
                                  cv_descriptor=cv_descriptor, prior_lambda=prior_lambda, 
