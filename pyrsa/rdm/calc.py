@@ -78,10 +78,10 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
              cv_descriptor=None, prior_lambda=1, prior_weight=0.1, 
              time_descriptor = 'time', bins=None):
     """    
-    calculates an RDM movie from an input DatasetTime
+    calculates an RDM movie from an input TemporalDataset
 
     Args:
-        dataset (pyrsa.data.dataset.DatasetBase):
+        dataset (pyrsa.data.dataset.TemporalDataset):
             The dataset the RDM is computed from
         method (String):
             a description of the dissimilarity measure (e.g. 'Euclidean')

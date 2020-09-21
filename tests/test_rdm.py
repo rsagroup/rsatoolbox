@@ -468,13 +468,13 @@ class TestCalcRDMMovie(unittest.TestCase):
         chn_des = {'rois': np.array(['sensor1', 'sensor2', 'sensor3', 'sensor5', 'sensor5'])}
         
 
-        self.test_data_time = rsa.data.DatasetTime(measurements=measurements_time,
+        self.test_data_time = rsa.data.TemporalDataset(measurements=measurements_time,
                                descriptors=des,
                                obs_descriptors=obs_des,
                                channel_descriptors=chn_des,
                                time_descriptors=tim_des
                                )
-        self.test_data_time_balanced = rsa.data.DatasetTime(measurements=measurements_time,
+        self.test_data_time_balanced = rsa.data.TemporalDataset(measurements=measurements_time,
                                descriptors=des,
                                obs_descriptors=obs_balanced,
                                channel_descriptors=chn_des,

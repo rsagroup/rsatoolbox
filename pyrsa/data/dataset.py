@@ -301,9 +301,9 @@ class Dataset(DatasetBase):
         self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
         
 
-class DatasetTime(Dataset):
+class TemporalDataset(Dataset):
     """
-    DatasetTime for spatio-temporal datasets
+    TemporalDataset for spatio-temporal datasets
     
 
     Args:
@@ -361,13 +361,13 @@ class DatasetTime(Dataset):
         self.time_descriptors = parse_input_descriptor(time_descriptors)
 
     def split_obs(self, by):
-        """ Returns a list DatasetTime splited by obs
+        """ Returns a list TemporalDataset splited by obs
 
         Args:
             by(String): the descriptor by which the splitting is made
 
         Returns:
-            list of DatasetTime, splitted by the selected obs_descriptor
+            list of TemporalDataset, splitted by the selected obs_descriptor
         """
         unique_values = get_unique_unsorted(self.obs_descriptors[by])
         dataset_list = []
@@ -379,7 +379,7 @@ class DatasetTime(Dataset):
                 self.obs_descriptors, selection)
             channel_descriptors = self.channel_descriptors
             time_descriptors = self.time_descriptors
-            dataset = DatasetTime(measurements=measurements,
+            dataset = TemporalDataset(measurements=measurements,
                                   descriptors=descriptors,
                                   obs_descriptors=obs_descriptors,
                                   channel_descriptors=channel_descriptors,
@@ -388,13 +388,13 @@ class DatasetTime(Dataset):
         return dataset_list
         
     def split_channel(self, by):
-        """ Returns a list DatasetTime splited by channels
+        """ Returns a list TemporalDataset splited by channels
 
         Args:
             by(String): the descriptor by which the splitting is made
 
         Returns:
-            list of DatasetTime,  splitted by the selected channel_descriptor
+            list of TemporalDataset,  splitted by the selected channel_descriptor
         """
         unique_values = get_unique_unsorted(self.channel_descriptors[by])
         dataset_list = []
@@ -407,7 +407,7 @@ class DatasetTime(Dataset):
             channel_descriptors = subset_descriptor(
                 self.channel_descriptors, selection)
             time_descriptors = self.time_descriptors
-            dataset = DatasetTime(measurements=measurements,
+            dataset = TemporalDataset(measurements=measurements,
                                   descriptors=descriptors,
                                   obs_descriptors=obs_descriptors,
                                   channel_descriptors=channel_descriptors,
@@ -416,13 +416,13 @@ class DatasetTime(Dataset):
         return dataset_list    
     
     def split_time(self, by):
-        """ Returns a list DatasetTime splited by time
+        """ Returns a list TemporalDataset splited by time
 
         Args:
             by(String): the descriptor by which the splitting is made
 
         Returns:
-            list of DatasetTime,  splitted by the selected time_descriptor
+            list of TemporalDataset,  splitted by the selected time_descriptor
         """
         
         time = get_unique_unsorted(self.time_descriptors[by])
@@ -435,7 +435,7 @@ class DatasetTime(Dataset):
             channel_descriptors = self.channel_descriptors
             time_descriptors = subset_descriptor(
                 self.time_descriptors, selection)
-            dataset = DatasetTime(measurements=measurements,
+            dataset = TemporalDataset(measurements=measurements,
                                   descriptors=descriptors,
                                   obs_descriptors=obs_descriptors,
                                   channel_descriptors=channel_descriptors,
@@ -444,14 +444,14 @@ class DatasetTime(Dataset):
         return dataset_list
 
     def bin_time(self, by, bins):
-        """ Returns an object DatasetTime with time-binned data. 
+        """ Returns an object TemporalDataset with time-binned data. 
 
         Args:
             bins(array-like): list of bins, with bins[i] containing the vector
                 of time-points for the i-th bin
 
         Returns:
-            a single DatasetTime object
+            a single TemporalDataset object
                 Data is averaged within time-bins.
                 'time' descriptor is set to the average of the 
                 binned time-points.            
@@ -472,7 +472,7 @@ class DatasetTime(Dataset):
         time_descriptors[by] = binned_time
         time_descriptors['bins'] = bins
         
-        dataset = DatasetTime(measurements=binned_measurements,
+        dataset = TemporalDataset(measurements=binned_measurements,
                               descriptors=self.descriptors,
                               obs_descriptors=self.obs_descriptors,
                               channel_descriptors=self.channel_descriptors,
@@ -481,7 +481,7 @@ class DatasetTime(Dataset):
         return dataset
         
     def subset_obs(self, by, value):
-        """ Returns a subsetted DatasetTime defined by certain obs value
+        """ Returns a subsetted TemporalDataset defined by certain obs value
 
         Args:
             by(String): the descriptor by which the subset selection
@@ -490,7 +490,7 @@ class DatasetTime(Dataset):
                 from obs dimension
 
         Returns:
-            DatasetTime, with subset defined by the selected obs_descriptor
+            TemporalDataset, with subset defined by the selected obs_descriptor
 
         """
         selection = bool_index(self.obs_descriptors[by], value)
@@ -500,7 +500,7 @@ class DatasetTime(Dataset):
             self.obs_descriptors, selection)
         channel_descriptors = self.channel_descriptors
         time_descriptors = self.time_descriptors
-        dataset = DatasetTime(measurements=measurements,
+        dataset = TemporalDataset(measurements=measurements,
                               descriptors=descriptors,
                               obs_descriptors=obs_descriptors,
                               channel_descriptors=channel_descriptors,
@@ -508,7 +508,7 @@ class DatasetTime(Dataset):
         return dataset
 
     def subset_channel(self, by, value):
-        """ Returns a subsetted DatasetTime defined by certain channel value
+        """ Returns a subsetted TemporalDataset defined by certain channel value
 
         Args:
             by(String): the descriptor by which the subset selection is
@@ -517,7 +517,7 @@ class DatasetTime(Dataset):
                 from channel dimension
 
         Returns:
-            DatasetTime, with subset defined by the selected channel_descriptor
+            TemporalDataset, with subset defined by the selected channel_descriptor
 
         """
         selection = bool_index(self.channel_descriptors[by], value)
@@ -527,7 +527,7 @@ class DatasetTime(Dataset):
         channel_descriptors = subset_descriptor(
             self.channel_descriptors, selection)
         time_descriptors = self.time_descriptors
-        dataset = DatasetTime(measurements=measurements,
+        dataset = TemporalDataset(measurements=measurements,
                               descriptors=descriptors,
                               obs_descriptors=obs_descriptors,
                               channel_descriptors=channel_descriptors,
@@ -535,7 +535,7 @@ class DatasetTime(Dataset):
         return dataset
     
     def subset_time(self, by, t_from, t_to):
-        """ Returns a subsetted DatasetTime with time between t_from to t_to
+        """ Returns a subsetted TemporalDataset with time between t_from to t_to
 
         Args:
             by(String): the descriptor by which the subset selection is
@@ -544,7 +544,7 @@ class DatasetTime(Dataset):
             t_to: time-point until which data should be subsetted
                 
         Returns:
-            DatasetTime, with subset defined by the selected time_descriptor
+            TemporalDataset, with subset defined by the selected time_descriptor
         """
         
         time = get_unique_unsorted(self.time_descriptors[by])
@@ -557,7 +557,7 @@ class DatasetTime(Dataset):
         channel_descriptors = self.channel_descriptors
         time_descriptors = subset_descriptor(
             self.time_descriptors, selection)
-        dataset = DatasetTime(measurements=measurements,
+        dataset = TemporalDataset(measurements=measurements,
                               descriptors=descriptors,
                               obs_descriptors=obs_descriptors,
                               channel_descriptors=channel_descriptors,
@@ -606,7 +606,7 @@ def load_dataset(filename, file_type=None):
 def dataset_from_dict(data_dict):
     """ regenerates a Dataset object from the dictionary representation
 
-    Currently this function works for Dataset, DatasetBase, and DatasetTime objects
+    Currently this function works for Dataset, DatasetBase, and TemporalDataset objects
 
     Args:
         data_dict(dict): the dictionary representation
@@ -627,8 +627,8 @@ def dataset_from_dict(data_dict):
             descriptors=data_dict['descriptors'],
             obs_descriptors=data_dict['obs_descriptors'],
             channel_descriptors=data_dict['channel_descriptors'])
-    elif data_dict['type'] == 'DatasetTime':
-        data = DatasetTime(
+    elif data_dict['type'] == 'TemporalDataset':
+        data = TemporalDataset(
             data_dict['measurements'],
             descriptors=data_dict['descriptors'],
             obs_descriptors=data_dict['obs_descriptors'],

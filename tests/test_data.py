@@ -112,25 +112,25 @@ class TestData(unittest.TestCase):
         self.assertEqual(subset.channel_descriptors['rois'][-1], 'V4')
 
 
-class TestDataTime(unittest.TestCase):
+class TestTemporalDataset(unittest.TestCase):
 
-    def test_datasettime_simple_init(self):
+    def test_temporaldataset_simple_init(self):
         measurements = np.zeros((10, 5, 15))
-        data = rsd.DatasetTime(measurements)
+        data = rsd.TemporalDataset(measurements)
         self.assertEqual(data.n_obs, 10)
         self.assertEqual(data.n_channel, 5)
         self.assertEqual(data.n_time, 15)
         self.assertEqual(len(data.time_descriptors['time']), 15)
         self.assertEqual(data.time_descriptors['time'][0],0)
 
-    def test_datasettime_full_init(self):
+    def test_temporaldataset_full_init(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array(['cond_' + str(x)
                                       for x in np.arange(10)])}
         chn_des = {'rois': np.array(['roi_' + str(x) for x in np.arange(5)])}
         tim_des = {'time': np.linspace(0,1000,15)}
-        data = rsd.DatasetTime(measurements=measurements,
+        data = rsd.TemporalDataset(measurements=measurements,
                                descriptors=des,
                                obs_descriptors=obs_des,
                                channel_descriptors=chn_des,
@@ -144,13 +144,13 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(data.channel_descriptors, chn_des)
         self.assertEqual(data.time_descriptors, tim_des)
 
-    def test_datasettime_split_obs(self):
+    def test_temporaldataset_split_obs(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5])}
         chn_des = {'rois': np.array(['V1', 'V1', 'IT', 'IT', 'V4'])}
         tim_des = {'time': np.linspace(0,1000,15)}
-        data = rsd.DatasetTime(measurements=measurements,
+        data = rsd.TemporalDataset(measurements=measurements,
                                descriptors=des,
                                obs_descriptors=obs_des,
                                channel_descriptors=chn_des,
@@ -167,13 +167,13 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(splited_list[2].obs_descriptors['conds'][0], 2)
         
         
-    def test_datasettime_split_channel(self):
+    def test_temporaldataset_split_channel(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5])}
         chn_des = {'rois': np.array(['V1', 'V1', 'IT', 'IT', 'V4'])}
         tim_des = {'time': np.linspace(0,1000,15)}
-        data = rsd.DatasetTime(measurements=measurements,
+        data = rsd.TemporalDataset(measurements=measurements,
                                descriptors=des,
                                obs_descriptors=obs_des,
                                channel_descriptors=chn_des,
@@ -190,13 +190,13 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(splited_list[1].channel_descriptors['rois'][0], 'IT')
         self.assertEqual(splited_list[1].descriptors['rois'], 'IT')
 
-    def test_datasettime_split_time(self):
+    def test_temporaldataset_split_time(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5])}
         chn_des = {'rois': np.array(['V1', 'V1', 'IT', 'IT', 'V4'])}
         tim_des = {'time': np.linspace(0,1000,15)}
-        data = rsd.DatasetTime(measurements=measurements,
+        data = rsd.TemporalDataset(measurements=measurements,
                                descriptors=des,
                                obs_descriptors=obs_des,
                                channel_descriptors=chn_des,
@@ -212,13 +212,13 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(splited_list[2].n_time, 1)        
         self.assertEqual(splited_list[1].time_descriptors['time'][0], tim_des['time'][1])        
         
-    def test_datasettime_bin_time(self):
+    def test_temporaldataset_bin_time(self):
         measurements = np.random.randn(10, 5, 15)
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5])}
         chn_des = {'rois': np.array(['V1', 'V1', 'IT', 'IT', 'V4'])}
         tim_des = {'time': np.linspace(0,1000,15)}
-        data = rsd.DatasetTime(measurements=measurements,
+        data = rsd.TemporalDataset(measurements=measurements,
                                descriptors=des,
                                obs_descriptors=obs_des,
                                channel_descriptors=chn_des,
@@ -233,13 +233,13 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(binned_data.time_descriptors['bins'][0][0], bins[0][0])
         self.assertEqual(binned_data.measurements[0,0,0], np.mean(measurements[0,0,:3]))
 
-    def test_datasettime_subset_obs(self):
+    def test_temporaldataset_subset_obs(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5])}
         chn_des = {'rois': np.array(['V1', 'V1', 'IT', 'IT', 'V4'])}
         tim_des = {'time': np.linspace(0,1000,15)}
-        data = rsd.DatasetTime(measurements=measurements,
+        data = rsd.TemporalDataset(measurements=measurements,
                                descriptors=des,
                                obs_descriptors=obs_des,
                                channel_descriptors=chn_des,
@@ -256,13 +256,13 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(subset.n_time, 15)
         self.assertEqual(subset.obs_descriptors['conds'][0], 2)
 
-    def test_datasettime_subset_channel(self):
+    def test_temporaldataset_subset_channel(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5])}
         chn_des = {'rois': np.array(['V1', 'V1', 'IT', 'IT', 'V4'])}
         tim_des = {'time': np.linspace(0,1000,15)}
-        data = rsd.DatasetTime(measurements=measurements,
+        data = rsd.TemporalDataset(measurements=measurements,
                                descriptors=des,
                                obs_descriptors=obs_des,
                                channel_descriptors=chn_des,
@@ -280,13 +280,13 @@ class TestDataTime(unittest.TestCase):
         self.assertEqual(subset.channel_descriptors['rois'][0], 'IT')
         self.assertEqual(subset.channel_descriptors['rois'][-1], 'V4')
         
-    def test_datasettime_subset_time(self):
+    def test_temporaldataset_subset_time(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5])}
         chn_des = {'rois': np.array(['V1', 'V1', 'IT', 'IT', 'V4'])}
         tim_des = {'time': np.linspace(0,1000,15)}
-        data = rsd.DatasetTime(measurements=measurements,
+        data = rsd.TemporalDataset(measurements=measurements,
                                descriptors=des,
                                obs_descriptors=obs_des,
                                channel_descriptors=chn_des,
