@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Definition of RSA Model class and subclasses
-@author: jdiedrichsen, heiko
 """
 
 import numpy as np
@@ -11,6 +10,7 @@ from pyrsa.rdm import rdms_from_dict
 from pyrsa.util.rdm_utils import batch_to_vectors
 from .fitter import fit_mock, fit_optimize, fit_select, fit_interpolate
 
+
 class Model:
     """
     Abstract model class.
@@ -18,6 +18,7 @@ class Model:
     interesting behavior. Inherit from this class to define specific model
     types
     """
+
     def __init__(self, name):
         self.name = name
         self.n_param = 0
@@ -58,12 +59,12 @@ class Model:
             theta(numpy.ndarray): parameter vector (one dimensional)
         """
         return self.default_fitter(self, data, method='cosine',
-                                   pattern_sample=None,
+                                   pattern_idx=None,
                                    pattern_descriptor=None)
 
     def to_dict(self):
         """ Converts the model into a dictionary, which can be used for saving
-        
+
         Returns:
             model_dict(dict): A dictionary containting all data needed to
                 recreate the object
@@ -145,6 +146,7 @@ class ModelSelect(Model):
     This model has a set of RDMs and selects one of them as its prediction.
     theta should here be an integer index
     """
+
     # Model Constructor
     def __init__(self, name, rdm):
         Model.__init__(self, name)
@@ -196,9 +198,10 @@ class ModelSelect(Model):
 
 class ModelWeighted(Model):
     """
-    weighted Model 
+    weighted Model
     models the RDM as a weighted sum of a set of RDMs
     """
+
     # Model Constructor
     def __init__(self, name, rdm):
         Model.__init__(self, name)
@@ -253,18 +256,20 @@ class ModelWeighted(Model):
         theta = np.maximum(theta, 0)
         theta = np.array(theta)
         dissimilarities = np.matmul(self.rdm.T, theta.reshape(-1))
-        rdms = RDMs(dissimilarities.reshape(1,-1),
-                 dissimilarity_measure=self.rdm_obj.dissimilarity_measure,
-                 descriptors=self.rdm_obj.descriptors,
-                 pattern_descriptors=self.rdm_obj.pattern_descriptors)
+        rdms = RDMs(
+            dissimilarities.reshape(1, -1),
+            dissimilarity_measure=self.rdm_obj.dissimilarity_measure,
+            descriptors=self.rdm_obj.descriptors,
+            pattern_descriptors=self.rdm_obj.pattern_descriptors)
         return rdms
 
 
 class ModelInterpolate(Model):
     """
-    inpterpolation Model 
+    inpterpolation Model
     models the RDM as an interpolation between 2 neigboring rdms
     """
+
     # Model Constructor
     def __init__(self, name, rdm):
         Model.__init__(self, name)

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Definition of RSA RDMs class and subclasses
+
 @author: baihan
 """
 
@@ -108,6 +109,7 @@ class RDMs:
     def __getitem__(self, idx):
         """
         allows indexing with []
+        and iterating over RDMs with `for rdm in rdms:`
         """
         idx = np.array(idx)
         dissimilarities = self.dissimilarities[idx].reshape(
@@ -119,6 +121,13 @@ class RDMs:
                     rdm_descriptors=rdm_descriptors,
                     pattern_descriptors=self.pattern_descriptors)
         return rdms
+
+    def __len__(self) -> int:
+        """
+        The number of RDMs in this stack.
+        Together with __getitem__, allows `reversed(rdms)`.
+        """
+        return self.n_rdm
 
     def get_vectors(self):
         """ Returns RDMs as np.ndarray with each RDM as a vector
@@ -352,7 +361,7 @@ class RDMs:
         """Reorder the patterns by sorting a descriptor
 
         Pass keyword arguments that correspond to descriptors,
-        with value 'alpha'. 
+        with value 'alpha'.
 
         Example:
             Sorts the condition descriptor alphabetically:
@@ -460,7 +469,7 @@ def get_categorical_rdm(category_vector, category_name='category'):
     n = len(category_vector)
     rdm_list = []
     for i_cat in range(n):
-        for j_cat in range(i_cat+1, n):
+        for j_cat in range(i_cat + 1, n):
             if isinstance(category_vector[i_cat], Iterable):
                 comparisons = [np.array(category_vector[i_cat][idx])
                                != np.array(category_vector[j_cat][idx])

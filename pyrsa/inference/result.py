@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb 19 14:42:47 2020
-
-@author: heiko
+Result object definition
 """
 
 import os
