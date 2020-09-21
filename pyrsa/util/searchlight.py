@@ -74,9 +74,8 @@ def get_volume_searchlight(mask, radius=2, threshold=1):
     return good_centers, good_neighbors
 
 
-import pyrsa.data.dataset as ds
-
 if __name__ == '__main__':
+    verbose = True
     data = np.load('/Users/daniel/Dropbox/amster/github/fmri_data/singe_trial_betas.npy')
     events = np.load('/Users/daniel/Dropbox/amster/github/fmri_data/singe_trial_events.npy')
     mask_img = nib.load('/Users/daniel/Dropbox/amster/github/fmri_data/sub-01_ses-01_task-WM_run-1_bold_space-MNI152NLin2009cAsym_brainmask.nii.gz')
@@ -99,16 +98,35 @@ if __name__ == '__main__':
 
     # loop over centers, make datasets
     from pyrsa.data.dataset import Dataset
-    c = 0
-    center = centers_raveled[c]
-    nb = neighbors_raveled[c]
-
-    ds = Dataset(data_raveled[:, nb], channel_descriptors={'voxel_number':nb}, descriptors={'center_voxel':center})
-
     from pyrsa.rdm.calc import calc_rdm
-
-    calc_rdm(ds, method='correlation', descriptor={'voxel_number':nb})
     
+    # we can't run all centers at once, that will take too much memory
+    # so lets to some chunking
+    n_centers = centers_raveled.shape[0]
+    chunked_center = np.split(np.arange(n_centers),
+                              np.linspace(0, n_centers,
+                              100, dtype=int)[1:-1])
+    
+    if verbose:
+        print(f'\nDivided data into {len(chunked_center)} chunks!\n')
+    
+    n_conds = len(np.unique(events))
+    RDM = np.zeros((n_centers, n_conds * (n_conds-1) // 2))
+    for chunk in tqdm(chunked_center, desc='Calculating RDMs...'):
+        center_data = []
+        for c in chunk:
+
+            center = centers_raveled[c]
+            nb = neighbors_raveled[c]
+
+            ds = Dataset(data_raveled[:, nb],
+                        descriptors={'center': c},
+                        obs_descriptors={'events':events},
+                        channel_descriptors={'voxels': nb})
+            center_data.append(ds)
+
+        RDM_corr = calc_rdm(center_data,method='correlation', descriptor='events')
+        RDM[chunk, :] = RDM_corr.dissimilarities
     
 
     
