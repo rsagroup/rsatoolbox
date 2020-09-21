@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Feb 13 14:04:52 2020
+Barplot for model comparison based on a results file
 """
 
 import numpy as np
