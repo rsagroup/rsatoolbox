@@ -599,8 +599,9 @@ class TemporalDataset(Dataset):
         
         measurements = np.empty([0, self.n_channel])
         obs_descriptors = dict.fromkeys(self.obs_descriptors, [])
-        obs_descriptors[by] = np.array([])
         
+        for key in self.time_descriptors:
+            obs_descriptors[key] = np.array([])        
         
         for v in time:
             selection = (self.time_descriptors[by] == v)
