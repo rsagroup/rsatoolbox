@@ -313,7 +313,7 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
         evaluations = np.mean(evaluations, axis=-1)
     var = np.diag(variances)
     p = np.empty(len(evaluations))
-    for i in range(len(evaluations)):
+    for i, eval_i in enumerate(evaluations):
         if noise_ceil_var is None:
             var_i = var[i]
         elif (isinstance(noise_ceil_var, np.ndarray)
@@ -321,7 +321,7 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
             var_i = var[i] - 2 * noise_ceil_var[i] + noise_ceil_var[-1]
         else:  # hope that noise_ceil_var is a scalar
             var_i = var[i] + noise_ceil_var
-        t = (evaluations[i] - noise_ceil) / np.sqrt(var_i)
+        t = (eval_i - noise_ceil) / np.sqrt(var_i)
         p[i] = 2 * (1 - stats.t.cdf(np.abs(t), dof))
     return p
 
