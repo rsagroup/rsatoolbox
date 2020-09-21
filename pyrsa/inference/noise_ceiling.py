@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Feb 18 10:05:47 2020
-
-@author: heiko
+calculation of noise ceilings
 """
 
 import numpy as np
@@ -23,9 +21,9 @@ def cv_noise_ceiling(rdms, ceil_set, test_set, method='cosine',
     Args:
         rdms(pyrsa.rdm.RDMs): complete data
         ceil_set(list): a list of the training RDMs with 2-tuple entries:
-            (RDMs, pattern_sample)
+            (RDMs, pattern_idx)
         test_set(list): a list of the test RDMs with 2-tuple entries:
-            (RDMs, pattern_sample)
+            (RDMs, pattern_idx)
         method(string): comparison method to use
         pattern_descriptor(string): descriptor to group patterns
 
