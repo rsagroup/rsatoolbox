@@ -5,6 +5,7 @@ from joblib import Parallel, delayed
 import nibabel as nib
 from pyrsa.data.dataset import Dataset
 from pyrsa.rdm.calc import calc_rdm
+from pyrsa.rdm import RDMs
 
 """
 This class was initially inspired by the following :
@@ -59,6 +60,9 @@ def get_volume_searchlight(mask, radius=2, threshold=1):
                 n_centers x 3 x n_neighbors
     """
 
+    mask = np.array(mask)
+    assert mask.ndim == 3, "Mask needs to be a 3-dimensional numpy array"
+
     centers = list(zip(*np.nonzero(mask)))
     good_centers = []
     good_neighbors = []
@@ -73,9 +77,13 @@ def get_volume_searchlight(mask, radius=2, threshold=1):
     assert good_centers.shape[0] == len(good_neighbors), "number of centers and sets of neighbors do not match"
     print(f'Found {len(good_neighbors)} searchlights')
 
-    return good_centers, good_neighbors
+    # turn the 3-dim coordinates to array coordinates
+    centers_raveled = np.ravel_multi_index(good_centers.T, mask.shape)
+    neighbors_raveled = [np.ravel_multi_index(n, mask.shape) for n in good_neighbors]
 
-def get_searchlight_RDMs(centers_raveled, neighbors_raveled, events,
+    return centers_raveled, neighbors_raveled
+
+def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, events,
                         method='correlation', verbose=True):
 
     # we can't run all centers at once, that will take too much memory
@@ -83,7 +91,7 @@ def get_searchlight_RDMs(centers_raveled, neighbors_raveled, events,
     n_centers = centers_raveled.shape[0]
     chunked_center = np.split(np.arange(n_centers),
                               np.linspace(0, n_centers,
-                              2000, dtype=int)[1:-1])
+                              100, dtype=int)[1:-1])
     
     if verbose:
         print(f'\nDivided data into {len(chunked_center)} chunks!\n')
@@ -105,7 +113,14 @@ def get_searchlight_RDMs(centers_raveled, neighbors_raveled, events,
         RDM_corr = calc_rdm(center_data, method=method, descriptor='events')
         RDM[chunk, :] = RDM_corr.dissimilarities
     
-    return RDM
+
+
+    model_rdms = RDMs(RDM,
+                      rdm_descriptors={'voxel_index':centers_raveled},
+                      dissimilarity_measure=method)
+
+
+    return model_rdms
 
 
 
@@ -116,13 +131,24 @@ if __name__ == '__main__':
     mask_img = nib.load('/Users/daniel/Dropbox/amster/github/fmri_data/sub-01_ses-01_task-WM_run-1_bold_space-MNI152NLin2009cAsym_brainmask.nii.gz')
     mask = mask_img.get_fdata()
 
-    centers, neighbors = get_volume_searchlight(mask, radius=3, threshold=.7)
+    centers_raveled, neighbors_raveled = get_volume_searchlight(mask, radius=3, threshold=.7)
 
-    # turn the 3-dim coordinates to array coordinates
-    centers_raveled = np.ravel_multi_index(centers.T, mask.shape)
-    neighbors_raveled = [np.ravel_multi_index(n, mask.shape) for n in neighbors]
+    # flatten data
+    data_raveled = data.reshape([data.shape[0], -1])
 
-    RDM = get_searchlight_RDMs(centers_raveled, neighbors_raveled, events)
+    RDM = get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, events)
+
+    best_rdms = RDM.subset('voxel_index', centers_raveled[36309])
+
+    plt.figure(figsize=(10,10))
+    pyrsa.vis.show_rdm(best_rdms, do_rank_transform=True)
+
+    x, y, z = mask.shape
+    n_conds = len(np.unique(events))
+    n_comparisons = n_conds * (n_conds-1) // 2
+    RDM_brain = np.zeros([x*y*z, n_comparisons])
+    RDM_brain[list(centers_raveled), :] = RDM.dissimilarities
+    RDM_brain = RDM_brain.reshape([x, y, z, n_comparisons])
 
     # make sure the new array coordinates correspond to the old 3-dim coordinates
     # mask2 = mask.copy()
