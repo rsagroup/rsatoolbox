@@ -70,103 +70,129 @@ class Icon:
                  make_square=False, circ_cut=None, resolution=None,
                  marker_front=True, markeredgewidth=2,
                  fontsize=None, fontname=None, fontcolor=None):
-        if isinstance(image, Icon):
-            self.image = image.image
-        elif isinstance(image, RDMs):
-            avg_rdm = pool_rdm(image)
-            image = avg_rdm.get_matrices()[0]
-            self.image = image / np.max(image)
-            if resolution is None:
-                resolution = 100
-        else:
-            self.image = image
         self.fontsize = fontsize
         self.fontname = fontname
-        self.marker_front = marker_front
-        if resolution is not None:
-            self.resolution = np.array(resolution)
-        else:
-            self.resolution = None
-        self.markeredgewidth = markeredgewidth
-        self.make_square = make_square
-        self.border_width = border_width
-        self.border_type = border_type
-        self.cmap = cmap
-        self.marker = marker
-        self.col = col
-        self.image = image
         self.string = string
         self.fontcolor = fontcolor
-        if circ_cut is None:
-            self.circ_cut = None
-        elif circ_cut == 'cut':
-            self.circ_cut = 1
-        elif circ_cut == 'cosine':
-            self.circ_cut = 0
-        else:
-            assert circ_cut <= 1 and circ_cut >= 0, \
-                'a numeric circ_cut must be in [0,1]'
-            self.circ_cut = circ_cut
-        self.recompute_final_image()
+        self.marker = marker
+        self.marker_front = marker_front
+        self.markeredgewidth = markeredgewidth
+        self._make_square = make_square
+        self._border_width = border_width
+        self._border_type = border_type
+        self._cmap = cmap
+        self._col = col
+        self._circ_cut = None
+        self._resolution = None
+        self.image = image
+        self.resolution = resolution
+        self.circ_cut = circ_cut
 
-    def set_image(self, image=None):
-        """ sets individual parameters of the object and recomputes the
-        icon image
-        """
+    @property
+    def image(self):
+        return self._image
+
+    @image.setter
+    def image(self, image):
+        """ interprets image/converts it into an image"""
         if isinstance(image, Icon):
-            self.image = image.image
+            self._image = image.image
         elif isinstance(image, RDMs):
             avg_rdm = pool_rdm(image)
             image = avg_rdm.get_matrices()[0]
-            self.image = image / np.max(image)
+            self._image = image / np.max(image)
             if self.resolution is None:
-                self.resolution = 100
+                self._resolution = np.array(100)
         elif image is not None:
-            self.image = image
+            self._image = image
+        else:
+            self._image = None
+        self.recompute_final_image()
 
-    def set(self, string=None, col=None, marker=None,
-            cmap=None, border_type=None, border_width=None, make_square=None,
-            circ_cut=None, resolution=None, marker_front=None,
-            markeredgewidth=None, fontsize=None, fontname=None,
-            fontcolor=None):
-        """ sets individual parameters of the object and recomputes the
-        icon image
-        """
-        if string is not None:
-            self.string = string
-        if col is not None:
-            self.col = col
-        if marker is not None:
-            self.marker = marker
-        if cmap is not None:
-            self.cmap = cmap
-        if border_type is not None:
-            self.border_type = border_type
-        if border_width is not None:
-            self.border_width = border_width
-        if make_square is not None:
-            self.make_square = make_square
+    @property
+    def string(self):
+        return self._string
+
+    @string.setter
+    def string(self, string):
+        if string is None or isinstance(string, str):
+            self._string = string
+        else:
+            raise ValueError('String must be a string')
+
+    @property
+    def col(self):
+        return self._col
+
+    @col.setter
+    def col(self, col):
+        self._col = col
+        self.recompute_final_image()
+
+    @property
+    def cmap(self):
+        return self._cmap
+
+    @cmap.setter
+    def cmap(self, cmap):
+        self._cmap = cmap
+        self.recompute_final_image()
+
+    @property
+    def make_square(self):
+        return self._make_square
+
+    @make_square.setter
+    def make_square(self, make_square):
+        self._make_square = make_square
+        self.recompute_final_image()
+
+    @property
+    def border_width(self):
+        return self._border_width
+
+    @border_width.setter
+    def border_width(self, border_width):
+        self._border_width = border_width
+        self.recompute_final_image()
+
+    @property
+    def border_type(self):
+        return self._border_type
+
+    @border_type.setter
+    def border_type(self, border_type):
+        self._border_type = border_type
+        self.recompute_final_image()
+
+    @property
+    def resolution(self):
+        return self._resolution
+
+    @resolution.setter
+    def resolution(self, resolution):
         if resolution is not None:
-            self.resolution = np.array(resolution)
-        if circ_cut is not None:
-            if circ_cut == 'cut':
-                self.circ_cut = 1
-            elif circ_cut == 'cosine':
-                self.circ_cut = 0
-            else:
-                assert circ_cut <= 1 and circ_cut >= 0, \
-                    'a numeric circ_cut must be in [0,1]'
-                self.circ_cut = circ_cut
-        if marker_front is not None:
-            self.marker_front = marker_front
-        if markeredgewidth is not None:
-            self.markeredgewidth = markeredgewidth
-        if fontname is not None:
-            self.fontname = fontname
-        if fontsize is not None:
-            self.fontsize = fontsize
-        if fontcolor is not None:
-            self.fontcolor = fontcolor
+            self._resolution = np.array(resolution)
+        else:
+            self._resolution = None
+        self.recompute_final_image()
+
+    @property
+    def circ_cut(self):
+        return self._circ_cut
+
+    @circ_cut.setter
+    def circ_cut(self, circ_cut):
+        if circ_cut is None:
+            self._circ_cut = None
+        elif circ_cut == 'cut':
+            self._circ_cut = 1
+        elif circ_cut == 'cosine':
+            self._circ_cut = 0
+        elif circ_cut <= 1 and circ_cut >= 0:
+            self._circ_cut = circ_cut
+        else:
+            raise ValueError('circ_cut must be in [0,1]')
         self.recompute_final_image()
 
     def recompute_final_image(self):
@@ -176,19 +202,19 @@ class Icon:
         again if any properties are changed. If you use set to change
         properties this is automatically run.
         """
-        if self.image is None:
+        if self._image is None:
             self.final_image = None
             return
-        if isinstance(self.image, np.ndarray):
-            if self.image.dtype == np.float and np.any(self.image > 1):
-                im = self.image / 255
+        if isinstance(self._image, np.ndarray):
+            if self._image.dtype == np.float and np.any(self._image > 1):
+                im = self._image / 255
             else:
-                im = self.image
+                im = self._image
             if self.cmap is not None:
                 im = cm.get_cmap(self.cmap)(im)
             im = PIL.Image.fromarray((im * 255).astype(np.uint8))
         else:  # we hope it is a PIL image or equivalent
-            im = self.image
+            im = self._image
         im = im.convert('RGBA')
         if self.make_square:
             new_size = max(im.width, im.height)
