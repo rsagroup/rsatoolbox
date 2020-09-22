@@ -2,7 +2,6 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
 from joblib import Parallel, delayed
-import nibabel as nib
 from pyrsa.data.dataset import Dataset
 from pyrsa.rdm.calc import calc_rdm
 from pyrsa.rdm import RDMs
@@ -95,7 +94,7 @@ def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, event
         data_raveled (2D numpy array): brain data, shape n_observations x n_channels (i.e. voxels/vertices)
         centers_raveled (1D numpy array): center indices for all searchlights as provided 
                                         by pyrsa.util.searchlight.get_volume_searchlight
-        neighbors_raveled (list of lists): list of neighbor voxel indices for all searchlights 
+        neighbors_raveled (list): list of lists with neighbor voxel indices for all searchlights 
                                         as provided by pyrsa.util.searchlight.get_volume_searchlight
         events (1D numpy array): 1D array of length n_observations
         method (str, optional): distance metric, see pyrsa.rdm.calc for options. Defaults to 'correlation'.
@@ -136,27 +135,87 @@ def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, event
     
 
 
-    model_rdms = RDMs(RDM,
+    SL_rdms = RDMs(RDM,
                       rdm_descriptors={'voxel_index':centers_raveled},
                       dissimilarity_measure=method)
 
-    return model_rdms
+    return SL_rdms
 
+def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', n_jobs=1):
+    """evaluates each searchlighth with the given model/models
+
+    Args:
+        sl_RDM ([pyrsa.rdm.RDMs]): RDMs object as computed by pyrsa.util.searchlight.get_searchlight_RDMs
+        models ([pyrsa.model]: models to evaluate - can also be list of models
+        eval_function (pyrsa.inference evaluation-function): [description]
+        method (str, optional): see pyrsa.rdm.compare for specifics. Defaults to 'corr'.
+        n_jobs (int, optional): how many jobs to run. Defaults to 1.
+
+    Returns:
+        [list]: list of with the model evaluate for each searchlight center
+    """
+
+    results = Parallel(n_jobs=n_jobs)(
+                    delayed(eval_function)(
+                        models, x) for x in tqdm(sl_RDM, desc='Evaluating models for each searchlight'))
+
+    return results
 
 
 if __name__ == '__main__':
+    def upper_tri_indexing(RDM):
+        """upper_tri_indexing returns the upper triangular index of an RDM
+        
+        Args:
+            RDM 2Darray: squareform RDM
+        
+        Returns:
+            1D array: upper triangular vector of the RDM
+        """
+        # returns the upper triangle
+        m = RDM.shape[0]
+        r, c = np.triu_indices(m, 1)
+        return RDM[r, c]
+
+    # Load data
     data = np.load('/Users/daniel/Dropbox/amster/github/fmri_data/singe_trial_betas.npy')
     events = np.load('/Users/daniel/Dropbox/amster/github/fmri_data/singe_trial_events.npy')
     mask_img = nib.load('/Users/daniel/Dropbox/amster/github/fmri_data/sub-01_ses-01_task-WM_run-1_bold_space-MNI152NLin2009cAsym_brainmask.nii.gz')
     mask = mask_img.get_fdata()
 
+    # Get searchlights
     centers_raveled, neighbors_raveled = get_volume_searchlight(mask, radius=3, threshold=.7)
 
-    # flatten data
+    # reshape data so we have n_observastions x n_voxels
     data_raveled = data.reshape([data.shape[0], -1])
-
+    # Get RDMs
     RDM = get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, events)
 
+    # Evaluate our AlexNet layer 7 model
+    from pyrsa.inference import eval_fixed
+    from pyrsa.model import ModelFixed
+
+    fc7_units = np.load('/Users/daniel/Dropbox/amster/github/fmri_data/unit_activations_fc7.npy')
+    fc7 = RDMs(upper_tri_indexing(1-np.corrcoef(fc7_units)))
+    fc7m = ModelFixed('fc7', fc7)
+
+    fc8_units = np.load('/Users/daniel/Dropbox/amster/github/fmri_data/unit_activations_fc8.npy')
+    fc8 = RDMs(upper_tri_indexing(1-np.corrcoef(fc8_units)))
+    fc8m = ModelFixed('fc8', fc8)
+
+    models = [fc7m, fc8m]
+
+    eval_results = evaluate_models_searchlight(RDM, fc7m, eval_fixed, method='corr', n_jobs=2)
+    # get the evaulation score for each voxel
+    eval_score = [float(eval_results[c].evaluations) for c in range(len(centers_raveled))]
+
+    x, y, z = mask.shape
+    RDM_brain = np.zeros([x*y*z])
+    RDM_brain[list(RDM.rdm_descriptors['voxel_index'])] = eval_score
+    RDM_brain = RDM_brain.reshape([x, y, z])
+
+
+    # we can also save the upper triangle RDM for each voxel as a nifti
     x, y, z = mask.shape
     n_conds = len(np.unique(events))
     n_comparisons = n_conds * (n_conds-1) // 2
