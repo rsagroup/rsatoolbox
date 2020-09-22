@@ -85,7 +85,8 @@ class Icon:
         self._circ_cut = None
         self._resolution = None
         self.image = image
-        self.resolution = resolution
+        if resolution is not None:
+            self.resolution = resolution
         self.circ_cut = circ_cut
 
     @property
