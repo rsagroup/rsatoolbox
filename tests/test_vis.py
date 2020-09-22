@@ -68,8 +68,8 @@ class TestVIS(unittest.TestCase):
                         descriptors=des)
         mds_emb = rsv.mds(rdms)
         wmds_emb = rsv.mds(rdms, weight=wes)
-        np.testing.assert_allclose(pdist(mds_emb[0]),
-                                   pdist(wmds_emb[0]), atol=3e-1)
+        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]),
+                                   atol=3e-1)
 
     def test_vis_3d_weighted_mds_output_behaves_like_mds(self):
         dis = np.random.rand(8, 10)
@@ -81,8 +81,8 @@ class TestVIS(unittest.TestCase):
                         descriptors=des)
         mds_emb = rsv.mds(rdms, dim=3)
         wmds_emb = rsv.mds(rdms, dim=3, weight=wes)
-        np.testing.assert_allclose(pdist(mds_emb[0]),
-                                   pdist(wmds_emb[0]), atol=3e-1)
+        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]),
+                                   atol=3e-1)
 
 
 class Test_Icon(unittest.TestCase):
@@ -110,6 +110,7 @@ class Test_Icon(unittest.TestCase):
         ic4.plot(0.2, 0.8, size=0.4)
         ic4.x_tick_label(0.75, 0.15, offset=7)
         ic4.y_tick_label(0.75, 0.25, offset=17)
+        self.assertEqual(ic2.image, test_im)
 
     def test_Icon_from_rdm(self):
         from pyrsa.vis import Icon
