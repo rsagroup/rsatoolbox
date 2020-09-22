@@ -8,10 +8,11 @@ from pyrsa.rdm.calc import calc_rdm
 from pyrsa.rdm import RDMs
 
 """
-This class was initially inspired by the following :
+Author: Daniel Lindh
+
+This code was initially inspired by the following :
 https://github.com/machow/pysearchlight
 """
-
 
 
 def _get_searchlight_neighbors(mask, center, radius=3):
@@ -45,14 +46,17 @@ def _get_searchlight_neighbors(mask, center, radius=3):
 
     return tuple(data[distance < radius].T.tolist())
 
-def get_volume_searchlight(mask, radius=2, threshold=1):
+def get_volume_searchlight(mask, radius=2, threshold=1.0):
     """Searches through the non-zero voxels of the mask, selects centers where 
         proportion of sphere voxels >= self.threshold.
 
     Args:
         mask ([numpy array]): binary brain mask
-        radius (int, optional): [description]. Defaults to 2.
-        threshold (int, optional): [description]. Defaults to 1.
+        radius (int, optional): the radius of each searchlight, defined in voxels. Defaults to 2.
+        threshold (float, optional): Threshold of the proportion of voxels that need to be inside the brain mask
+                                     in order for it to be considered a good searchlight center.
+                                     Values go between 0.0 - 1.0 where 1.0 means that 100% of the voxels need to be inside
+                                     the brain mask. Defaults to 1.0.
 
     Returns:
         [numpy array]: array of centers of size n_centers x 3
@@ -85,6 +89,22 @@ def get_volume_searchlight(mask, radius=2, threshold=1):
 
 def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, events,
                         method='correlation', verbose=True):
+    """Iterates over all the searchlight centers and calculates the RDM 
+
+    Args:
+        data_raveled (2D numpy array): brain data, shape n_observations x n_channels (i.e. voxels/vertices)
+        centers_raveled (1D numpy array): center indices for all searchlights as provided 
+                                        by pyrsa.util.searchlight.get_volume_searchlight
+        neighbors_raveled (list of lists): list of neighbor voxel indices for all searchlights 
+                                        as provided by pyrsa.util.searchlight.get_volume_searchlight
+        events (1D numpy array): 1D array of length n_observations
+        method (str, optional): distance metric, see pyrsa.rdm.calc for options. Defaults to 'correlation'.
+        verbose (bool, optional): Defaults to True.
+
+    Returns:
+        RDM [pyrsa.rdm.RDMs]: RDMs object with the RDM for each searchlight, the RDM.rdm_descriptors['voxel_index']
+                              describes the center voxel index each RDM is associated with
+    """
 
     # we can't run all centers at once, that will take too much memory
     # so lets to some chunking
@@ -96,6 +116,7 @@ def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, event
     if verbose:
         print(f'\nDivided data into {len(chunked_center)} chunks!\n')
     
+    # loop over chunks
     n_conds = len(np.unique(events))
     RDM = np.zeros((n_centers, n_conds * (n_conds-1) // 2))
     for chunk in tqdm(chunked_center, desc='Calculating RDMs...'):
@@ -119,13 +140,11 @@ def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, event
                       rdm_descriptors={'voxel_index':centers_raveled},
                       dissimilarity_measure=method)
 
-
     return model_rdms
 
 
 
 if __name__ == '__main__':
-    verbose = True
     data = np.load('/Users/daniel/Dropbox/amster/github/fmri_data/singe_trial_betas.npy')
     events = np.load('/Users/daniel/Dropbox/amster/github/fmri_data/singe_trial_events.npy')
     mask_img = nib.load('/Users/daniel/Dropbox/amster/github/fmri_data/sub-01_ses-01_task-WM_run-1_bold_space-MNI152NLin2009cAsym_brainmask.nii.gz')
@@ -138,56 +157,12 @@ if __name__ == '__main__':
 
     RDM = get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, events)
 
-    best_rdms = RDM.subset('voxel_index', centers_raveled[36309])
-
-    plt.figure(figsize=(10,10))
-    pyrsa.vis.show_rdm(best_rdms, do_rank_transform=True)
-
     x, y, z = mask.shape
     n_conds = len(np.unique(events))
     n_comparisons = n_conds * (n_conds-1) // 2
     RDM_brain = np.zeros([x*y*z, n_comparisons])
-    RDM_brain[list(centers_raveled), :] = RDM.dissimilarities
-    RDM_brain = RDM_brain.reshape([x, y, z, n_comparisons])
-
-    # make sure the new array coordinates correspond to the old 3-dim coordinates
-    # mask2 = mask.copy()
-    # mask2[centers[0][0], centers[0][1], centers[0][2]] = 10
-    # assert mask2.reshape(-1, 1)[centers_raveled[0]] == 10
-
-    # flatten data
-    dims = data.shape
-    data_raveled = data.reshape(dims[0], -1)
-
-    # loop over centers, make datasets
-    
-    
-    # we can't run all centers at once, that will take too much memory
-    # so lets to some chunking
-    n_centers = centers_raveled.shape[0]
-    chunked_center = np.split(np.arange(n_centers),
-                              np.linspace(0, n_centers,
-                              100, dtype=int)[1:-1])
-    
-    if verbose:
-        print(f'\nDivided data into {len(chunked_center)} chunks!\n')
-    
-    n_conds = len(np.unique(events))
-    RDM = np.zeros((n_centers, n_conds * (n_conds-1) // 2))
-    for chunk in tqdm(chunked_center, desc='Calculating RDMs...'):
-        center_data = []
-        for c in chunk:
-            center = centers_raveled[c]
-            nb = neighbors_raveled[c]
-
-            ds = Dataset(data_raveled[:, nb],
-                        descriptors={'center': c},
-                        obs_descriptors={'events':events},
-                        channel_descriptors={'voxels': nb})
-            center_data.append(ds)
-
-        RDM_corr = calc_rdm(center_data,method='correlation', descriptor='events')
-        RDM[chunk, :] = RDM_corr.dissimilarities
+    RDM_brain[list(RDM.rdm_descriptors['voxel_index']), :] = RDM.dissimilarities
+    RDM_brain = RDM_brain.reshape([x, y, z, n_comparisons]
     
 
     
