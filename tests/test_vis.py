@@ -117,7 +117,7 @@ class Test_Icon(unittest.TestCase):
         from pyrsa.rdm import RDMs
         rdm = RDMs(np.random.rand(1, 190))
         ic = Icon(rdm)
-        assert ic.final_image.size[0] == 100
+        self.assertEqual(ic.final_image.size[0], 100)
 
 
 if __name__ == '__main__':
