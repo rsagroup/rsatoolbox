@@ -651,6 +651,23 @@ class TemporalDataset(Dataset):
                           channel_descriptors=channel_descriptors)
         return dataset
         
+    def to_dict(self):
+        """ Generates a dictionary which contains the information to
+        recreate the TemporalDataset object. Used for saving to disc
+
+        Returns:
+            data_dict(dict): dictionary with TemporalDataset information
+
+        """
+        data_dict = {}
+        data_dict['measurements'] = self.measurements
+        data_dict['descriptors'] = self.descriptors
+        data_dict['obs_descriptors'] = self.obs_descriptors
+        data_dict['channel_descriptors'] = self.channel_descriptors
+        data_dict['time_descriptors'] = self.channel_descriptors
+        data_dict['type'] = type(self).__name__
+        return data_dict
+    
         
 
 
