@@ -1,6 +1,3 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
 import pickle
 
 import mne
@@ -16,10 +13,6 @@ event_id = {'Auditory/Left': 1, 'Auditory/Right': 2,
             
 raw = mne.io.read_raw_fif(raw_fname, preload=True)
 
-# The subsequent decoding analyses only capture evoked responses, so we can
-# low-pass the MEG data. Usually a value more like 40 Hz would be used,
-# but here low-pass at 20 so we can more heavily decimate, and allow
-# the examlpe to run faster. The 2 Hz high-pass helps improve CSP.
 raw.filter(1, 20)
 events = mne.find_events(raw, 'STI 014')
 
@@ -35,7 +28,7 @@ epochs.pick_types(meg=True, exclude='bads')  # remove stim and EOG
 epochs.apply_baseline((-.2,.0))
 
 X = epochs.get_data()  # MEG signals: n_epochs, n_meg_channels, n_times
-y = epochs.events[:, 2]  # target: Audio left or right
+y = epochs.events[:, 2]
 
 pickle.dump({'data': X[:,:,:], 
              'times': epochs.times[:], 
