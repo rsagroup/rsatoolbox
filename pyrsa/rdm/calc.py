@@ -9,7 +9,7 @@ from collections.abc import Iterable
 import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
-from pyrsa.data import average_dataset_by, Dataset
+from pyrsa.data import average_dataset_by
 from pyrsa.util.matrix import pairwise_contrast_sparse
 
 
@@ -75,9 +75,9 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
 
 
 def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
-             cv_descriptor=None, prior_lambda=1, prior_weight=0.1, 
+             cv_descriptor=None, prior_lambda=1, prior_weight=0.1,
              time_descriptor = 'time', bins=None):
-    """    
+    """
     calculates an RDM movie from an input TemporalDataset
 
     Args:
@@ -99,12 +99,11 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
 
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with RDM movie
-    
     """
-    
+
     if isinstance(dataset, Iterable):
         rdms = []
-        for i_dat in range(len(dataset)):
+        for i_dat, _ in enumerate(dataset):
             if noise is None:
                 rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
                                      descriptor=descriptor))
@@ -118,27 +117,26 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
                                      noise=noise[i_dat]))
         rdm = concat(rdms)
     else:
-        
         if bins is not None:
-            binned_data = dataset.bin_time(time_descriptor, bins)       
+            binned_data = dataset.bin_time(time_descriptor, bins)
             splited_data = binned_data.split_time(time_descriptor)
             time = binned_data.time_descriptors[time_descriptor]
         else:
             splited_data = dataset.split_time(time_descriptor)
             time = dataset.time_descriptors[time_descriptor]
-            
+
         rdms = []
         for dat in splited_data:
             dat_single = dat.convert_to_dataset(time_descriptor)
             rdms.append(calc_rdm(dat_single, method=method,
                                  descriptor=descriptor,noise=noise,
-                                 cv_descriptor=cv_descriptor, prior_lambda=prior_lambda, 
-                                 prior_weight=prior_weight))  
-        
+                                 cv_descriptor=cv_descriptor, prior_lambda=prior_lambda,
+                                 prior_weight=prior_weight))
+
         rdm = concat(rdms)
         rdm.rdm_descriptors[time_descriptor] = time
-    
     return rdm
+
 
 def calc_rdm_euclid(dataset, descriptor=None):
     """
