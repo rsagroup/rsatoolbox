@@ -8,7 +8,6 @@ Definition of RSA Dataset class and subclasses
 
 
 import numpy as np
-import pickle
 from pyrsa.util.data_utils import get_unique_unsorted
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import subset_descriptor
@@ -374,7 +373,6 @@ class Dataset(DatasetBase):
 class TemporalDataset(Dataset):
     """
     TemporalDataset for spatio-temporal datasets
-    
 
     Args:
         measurements (numpy.ndarray): n_obs x n_channel x time 3d-array,
@@ -383,10 +381,10 @@ class TemporalDataset(Dataset):
             are array-like with shape = (n_obs,...))
         channel_descriptors (dict):   channel descriptors (all are
             array-like with shape = (n_channel,...))
-        time_descriptors (dict):      time descriptors (alls are 
+        time_descriptors (dict):      time descriptors (alls are
             array-like with shape= (n_time,...))
-        
-            time_descriptors needs to contain one key 'time' that 
+
+            time_descriptors needs to contain one key 'time' that
             specifies the time-coordinate. if None is provided, 'time' is
             set as (0, 1, ..., n_time-1)
 
@@ -396,15 +394,14 @@ class TemporalDataset(Dataset):
     def __init__(self, measurements, descriptors=None,
                  obs_descriptors=None, channel_descriptors=None,
                  time_descriptors=None):
-        
+
         if measurements.ndim != 3:
             raise AttributeError(
                 "measurements must be in dimension n_obs x n_channel x time")
-        
+
         self.measurements = measurements
         self.n_obs, self.n_channel, self.n_time = self.measurements.shape
-        
-                
+
         if time_descriptors is None:
             time_descriptors = {'time': np.arange(self.n_time)}
         elif 'time' not in time_descriptors:
@@ -412,7 +409,7 @@ class TemporalDataset(Dataset):
             raise Warning(
                 "there was no 'time' provided in dictionary time_descriptors\n"\
                 "'time' will be set to (0, 1, ..., n_time-1)")
-                    
+
         check_descriptor_length_error(obs_descriptors,
                                       "obs_descriptors",
                                       self.n_obs
@@ -424,7 +421,7 @@ class TemporalDataset(Dataset):
         check_descriptor_length_error(time_descriptors,
                                       "time_descriptors",
                                       self.n_time
-                                      )        
+                                      )
         self.descriptors = parse_input_descriptor(descriptors)
         self.obs_descriptors = parse_input_descriptor(obs_descriptors)
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
@@ -476,7 +473,7 @@ class TemporalDataset(Dataset):
                                   time_descriptors=time_descriptors)
             dataset_list.append(dataset)
         return dataset_list
-        
+
     def split_channel(self, by):
         """ Returns a list TemporalDataset splited by channels
 
@@ -503,8 +500,8 @@ class TemporalDataset(Dataset):
                                   channel_descriptors=channel_descriptors,
                                   time_descriptors=time_descriptors)
             dataset_list.append(dataset)
-        return dataset_list    
-    
+        return dataset_list
+
     def split_time(self, by):
         """ Returns a list TemporalDataset splited by time
 
@@ -514,7 +511,7 @@ class TemporalDataset(Dataset):
         Returns:
             list of TemporalDataset,  splitted by the selected time_descriptor
         """
-        
+
         time = get_unique_unsorted(self.time_descriptors[by])
         dataset_list = []
         for v in time:
@@ -534,7 +531,7 @@ class TemporalDataset(Dataset):
         return dataset_list
 
     def bin_time(self, by, bins):
-        """ Returns an object TemporalDataset with time-binned data. 
+        """ Returns an object TemporalDataset with time-binned data.
 
         Args:
             bins(array-like): list of bins, with bins[i] containing the vector
@@ -543,38 +540,37 @@ class TemporalDataset(Dataset):
         Returns:
             a single TemporalDataset object
                 Data is averaged within time-bins.
-                'time' descriptor is set to the average of the 
-                binned time-points.            
+                'time' descriptor is set to the average of the
+                binned time-points.
         """
-        
+
         time = self.time_descriptors[by]
         n_bins = len(bins)
-        
+
         binned_measurements = np.zeros((self.n_obs, self.n_channel, n_bins))
         binned_time = np.zeros(n_bins)
-        
+
         for t in range(n_bins):
             t_idx = np.isin(time, bins[t])
             binned_measurements[:,:,t] = np.mean(self.measurements[:,:,t_idx],axis=2)
             binned_time[t] = np.mean(time[t_idx])
-        
+
         time_descriptors = self.time_descriptors.copy()
         time_descriptors[by] = binned_time
-        
-        # adding the bins as an additional descriptor currently 
-        # does not work because of check_descriptor_length which transforms 
+
+        # adding the bins as an additional descriptor currently
+        # does not work because of check_descriptor_length which transforms
         # it into a numpy.array.
         #time_descriptors['bins'] = [x for x in bins]
         time_descriptors['bins'] = [np.array2string(x, precision=2, separator=',') for x in bins]
-        
+
         dataset = TemporalDataset(measurements=binned_measurements,
                               descriptors=self.descriptors,
                               obs_descriptors=self.obs_descriptors,
                               channel_descriptors=self.channel_descriptors,
-                              time_descriptors=time_descriptors)        
-        
+                              time_descriptors=time_descriptors)
         return dataset
-        
+
     def subset_obs(self, by, value):
         """ Returns a subsetted TemporalDataset defined by certain obs value
 
@@ -628,7 +624,7 @@ class TemporalDataset(Dataset):
                               channel_descriptors=channel_descriptors,
                               time_descriptors=time_descriptors)
         return dataset
-    
+
     def subset_time(self, by, t_from, t_to):
         """ Returns a subsetted TemporalDataset with time between t_from to t_to
 
@@ -637,15 +633,15 @@ class TemporalDataset(Dataset):
                 made from channel dimension
             t_from: time-point from which onwards data should be subsetted
             t_to: time-point until which data should be subsetted
-                
+
         Returns:
             TemporalDataset, with subset defined by the selected time_descriptor
         """
-        
+
         time = get_unique_unsorted(self.time_descriptors[by])
-        sel_time = [t for t in time if t <= t_to and t>=t_from]      
-        
-        selection = bool_index(self.time_descriptors[by], sel_time)        
+        sel_time = [t for t in time if t <= t_to and t>=t_from]
+
+        selection = bool_index(self.time_descriptors[by], sel_time)
         measurements = self.measurements[:, :, selection]
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors
@@ -657,9 +653,8 @@ class TemporalDataset(Dataset):
                               obs_descriptors=obs_descriptors,
                               channel_descriptors=channel_descriptors,
                               time_descriptors=time_descriptors)
-        return dataset        
-        
-    
+        return dataset
+
     def sort_by(self, by):
         """ sorts the dataset by a given observation descriptor
 
@@ -674,9 +669,9 @@ class TemporalDataset(Dataset):
         order = np.argsort(desc)
         self.measurements = self.measurements[order]
         self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
-        
+
     def convert_to_dataset(self, by):
-        """ converts to Dataset long format. 
+        """ converts to Dataset long format.
             time dimension is absorbed into observation dimension
 
         Args:
@@ -686,30 +681,30 @@ class TemporalDataset(Dataset):
         Returns:
             Dataset
 
-        """        
+        """
         time = get_unique_unsorted(self.time_descriptors[by])
-         
+
         descriptors = self.descriptors
         channel_descriptors = self.channel_descriptors.copy()
-        
+
         measurements = np.empty([0, self.n_channel])
         obs_descriptors = dict.fromkeys(self.obs_descriptors, [])
-        
+
         for key in self.time_descriptors:
-            obs_descriptors[key] = np.array([])        
-        
+            obs_descriptors[key] = np.array([])
+
         for v in time:
             selection = (self.time_descriptors[by] == v)
-            
-            measurements = np.concatenate((measurements, 
-                                           self.measurements[:, :, selection].squeeze()), 
+
+            measurements = np.concatenate((measurements,
+                                           self.measurements[:, :, selection].squeeze()),
                                           axis=0)
-            
+
             for key in self.obs_descriptors:
                 obs_descriptors[key] = np.concatenate((obs_descriptors[key],
                                           self.obs_descriptors[key].copy()),
                                           axis=0)
-            
+
             for key in self.time_descriptors:
                 obs_descriptors[key] = np.concatenate((obs_descriptors[key],
                                           np.repeat(self.time_descriptors[key][selection],
@@ -720,7 +715,7 @@ class TemporalDataset(Dataset):
                           obs_descriptors=obs_descriptors,
                           channel_descriptors=channel_descriptors)
         return dataset
-        
+
     def to_dict(self):
         """ Generates a dictionary which contains the information to
         recreate the TemporalDataset object. Used for saving to disc
@@ -737,8 +732,6 @@ class TemporalDataset(Dataset):
         data_dict['time_descriptors'] = self.channel_descriptors
         data_dict['type'] = type(self).__name__
         return data_dict
-    
-        
 
 
 def load_dataset(filename, file_type=None):
@@ -793,7 +786,7 @@ def dataset_from_dict(data_dict):
             descriptors=data_dict['descriptors'],
             obs_descriptors=data_dict['obs_descriptors'],
             channel_descriptors=data_dict['channel_descriptors'],
-            time_descriptors=data_dict['time_descriptors'])        
+            time_descriptors=data_dict['time_descriptors'])
     else:
         raise ValueError('type of Dataset not recognized')
     return data
