@@ -165,8 +165,7 @@ class TestTemporalDataset(unittest.TestCase):
         self.assertEqual(splited_list[0].n_time, 15)
         self.assertEqual(splited_list[2].n_time, 15)
         self.assertEqual(splited_list[2].obs_descriptors['conds'][0], 2)
-        
-        
+
     def test_temporaldataset_split_channel(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
@@ -186,7 +185,7 @@ class TestTemporalDataset(unittest.TestCase):
         self.assertEqual(splited_list[0].n_channel, 2)
         self.assertEqual(splited_list[2].n_channel, 1)
         self.assertEqual(splited_list[0].n_time, 15)
-        self.assertEqual(splited_list[2].n_time, 15)        
+        self.assertEqual(splited_list[2].n_time, 15)
         self.assertEqual(splited_list[1].channel_descriptors['rois'][0], 'IT')
         self.assertEqual(splited_list[1].descriptors['rois'], 'IT')
 
@@ -209,9 +208,9 @@ class TestTemporalDataset(unittest.TestCase):
         self.assertEqual(splited_list[0].n_channel, 5)
         self.assertEqual(splited_list[2].n_channel, 5)
         self.assertEqual(splited_list[0].n_time, 1)
-        self.assertEqual(splited_list[2].n_time, 1)        
-        self.assertEqual(splited_list[1].time_descriptors['time'][0], tim_des['time'][1])        
-        
+        self.assertEqual(splited_list[2].n_time, 1)
+        self.assertEqual(splited_list[1].time_descriptors['time'][0], tim_des['time'][1])
+
     def test_temporaldataset_bin_time(self):
         measurements = np.random.randn(10, 5, 15)
         des = {'session': 0, 'subj': 0}
@@ -228,8 +227,8 @@ class TestTemporalDataset(unittest.TestCase):
         binned_data = data.bin_time('time', bins)
         self.assertEqual(binned_data.n_obs, 10)
         self.assertEqual(binned_data.n_channel, 5)
-        self.assertEqual(binned_data.n_time, 5)        
-        self.assertEqual(binned_data.time_descriptors['time'][0], np.mean(bins[0]))          
+        self.assertEqual(binned_data.n_time, 5)
+        self.assertEqual(binned_data.time_descriptors['time'][0], np.mean(bins[0]))
         self.assertEqual(binned_data.measurements[0,0,0], np.mean(measurements[0,0,:3]))
 
     def test_temporaldataset_subset_obs(self):
@@ -278,7 +277,7 @@ class TestTemporalDataset(unittest.TestCase):
         self.assertEqual(subset.n_time, 15)
         self.assertEqual(subset.channel_descriptors['rois'][0], 'IT')
         self.assertEqual(subset.channel_descriptors['rois'][-1], 'V4')
-        
+
     def test_temporaldataset_subset_time(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
@@ -291,29 +290,28 @@ class TestTemporalDataset(unittest.TestCase):
                                channel_descriptors=chn_des,
                                time_descriptors=tim_des
                                )
-        subset = data.subset_time(by='time', t_from=tim_des['time'][3], 
+        subset = data.subset_time(by='time', t_from=tim_des['time'][3],
                                   t_to=tim_des['time'][3])
         self.assertEqual(subset.n_obs, 10)
         self.assertEqual(subset.n_channel, 5)
         self.assertEqual(subset.n_time, 1)
         self.assertEqual(subset.time_descriptors['time'][0], tim_des['time'][3])
-        subset = data.subset_time(by='time', t_from=tim_des['time'][3], 
+        subset = data.subset_time(by='time', t_from=tim_des['time'][3],
                                   t_to=tim_des['time'][5])
         self.assertEqual(subset.n_obs, 10)
         self.assertEqual(subset.n_channel, 5)
         self.assertEqual(subset.n_time, 3)
         self.assertEqual(subset.time_descriptors['time'][0], tim_des['time'][3])
-        self.assertEqual(subset.time_descriptors['time'][-1], tim_des['time'][5])   
-        
-        
+        self.assertEqual(subset.time_descriptors['time'][-1], tim_des['time'][5])
+
     def test_temporaldataset_convert_to_dataset(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5])}
         chn_des = {'rois': np.array(['V1', 'V1', 'IT', 'IT', 'V4'])}
-        tim_des = {'time': np.linspace(0,1000,15), 
+        tim_des = {'time': np.linspace(0,1000,15),
                    'time_formatted': ['%0.0f ms' % (x) for x in np.linspace(0,1000,15)]}
-        
+
         data_temporal = rsd.TemporalDataset(measurements=measurements,
                                descriptors=des,
                                obs_descriptors=obs_des,
