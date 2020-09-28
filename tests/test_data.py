@@ -238,7 +238,7 @@ class TestMerge(unittest.TestCase):
 
 
 class TestOESplit(unittest.TestCase):
-    def setUp(self):
+    def test_oe_split(self):
         measurements = np.random.rand(4, 10)
         des = {'session': 0, 'subj': 0}
         chn_des = {'rois': np.array([chr(l) for l in range(65, 75)])}
@@ -264,8 +264,6 @@ class TestOESplit(unittest.TestCase):
                 'conds': np.array([str(i) for i in range(2, 5, 2)])},
             channel_descriptors=chn_des
             )
-
-    def test_odd_even_split(self):
         self.odd_split, self.even_split = \
             self.full_data.odd_even_split('conds')
         np.testing.assert_array_equal(
@@ -291,9 +289,7 @@ class TestOESplit(unittest.TestCase):
             self.even_data.channel_descriptors['rois'],
             self.even_split.channel_descriptors['rois'])
 
-
-class TestNestedOESplit(unittest.TestCase):
-    def setUp(self):
+    def test_odd_even_split_nested(self):
         measurements = np.random.rand(16, 10)
         des = {'session': 0, 'subj': 0}
         chn_des = {'rois': np.array([chr(l) for l in range(65, 75)])}
@@ -322,8 +318,6 @@ class TestNestedOESplit(unittest.TestCase):
                              'runs': np.repeat(runs[1::2], 4)},
             channel_descriptors=chn_des
             )
-
-    def test_odd_even_split(self):
         self.odd_split, self.even_split = self.full_data.nested_odd_even_split(
             'conds', 'runs')
         self.odd_split.sort_by('runs')
