@@ -11,6 +11,7 @@ import pyrsa.vis as rsv
 import pyrsa.rdm as rsr
 from scipy.spatial.distance import pdist
 
+
 class TestVIS(unittest.TestCase):
 
     def test_vis_mds_output_shape_corresponds_to_inputs(self):
@@ -67,7 +68,8 @@ class TestVIS(unittest.TestCase):
                         descriptors=des)
         mds_emb = rsv.mds(rdms)
         wmds_emb = rsv.mds(rdms, weight=wes)
-        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]), atol=3e-1)
+        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]),
+                                   atol=3e-1)
 
     def test_vis_3d_weighted_mds_output_behaves_like_mds(self):
         dis = np.random.rand(8, 10)
@@ -79,7 +81,38 @@ class TestVIS(unittest.TestCase):
                         descriptors=des)
         mds_emb = rsv.mds(rdms, dim=3)
         wmds_emb = rsv.mds(rdms, dim=3, weight=wes)
-        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]), atol=3e-1)
+        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]),
+                                   atol=3e-1)
+
+
+class Test_Icon(unittest.TestCase):
+
+    def test_Icon_no_error(self):
+        import PIL
+        from pyrsa.vis import Icon
+        import matplotlib.pyplot as plt
+        test_im = PIL.Image.fromarray(255 * np.random.rand(50, 100))
+        ic5 = Icon(image=test_im, col='red', border_width=5,
+                   make_square=True, resolution=20)
+        ic5.plot(0.8, 0.8)
+        ic = Icon(image=255 * np.random.rand(50, 100), cmap='Blues')
+        ax = plt.axes(label='test')
+        ic.plot(0.5, 0.5, ax=ax)
+        ic2 = Icon(image=test_im, col='black', border_width=15,
+                   string='test')
+        ic2.plot(0.8, 0.2, ax=ax, size=0.4)
+        ic2.x_tick_label(0.5, 0.15, offset=7)
+        ic2.y_tick_label(0.5, 0.25, offset=7)
+        ic3 = Icon(image=test_im, col='red', border_width=5,
+                   make_square=True)
+        ic3.plot(0.2, 0.2, size=0.4)
+        ic4 = Icon(string='test')
+        ic4.plot(0.2, 0.8, size=0.4)
+        ic4.x_tick_label(0.75, 0.15, offset=7)
+        ic4.y_tick_label(0.75, 0.25, offset=17)
+
+        self.assertEqual(ic2.image, test_im)
+
 
 if __name__ == '__main__':
     unittest.main()
