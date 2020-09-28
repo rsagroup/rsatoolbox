@@ -29,13 +29,14 @@ class TestBootstrap(unittest.TestCase):
         mes = "Euclidean"
         des = {'subj': 0}
         rdm_des = {'session': np.array([1, 1, 2, 2, 4, 5, 6, 7, 7, 7, 7])}
-        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        pattern_des = {'type': np.array([0, 1, 2, 3, 4])}
         rdms = RDMs(dissimilarities=dis,
                     rdm_descriptors=rdm_des,
                     pattern_descriptors=pattern_des,
                     dissimilarity_measure=mes,
                     descriptors=des)
         rdm_sample = bootstrap_sample(rdms, 'session', 'type')
+        assert rdm_sample[0].n_cond == 5
 
     def test_bootstrap_sample_rdm(self):
         from pyrsa.inference import bootstrap_sample_rdm
@@ -59,6 +60,7 @@ class TestBootstrap(unittest.TestCase):
                     dissimilarity_measure=mes,
                     descriptors=des)
         rdm_sample = bootstrap_sample_rdm(rdms, 'session')
+        assert rdm_sample[0].n_cond == 5
 
     def test_bootstrap_sample_pattern(self):
         from pyrsa.inference import bootstrap_sample_pattern
@@ -82,6 +84,8 @@ class TestBootstrap(unittest.TestCase):
                     dissimilarity_measure=mes,
                     descriptors=des)
         rdm_sample = bootstrap_sample_pattern(rdms, 'type')
+        rdm_sample = bootstrap_sample_pattern(rdms)
+        assert rdm_sample[0].n_cond == 5
 
 
 class TestEvaluation(unittest.TestCase):
@@ -136,7 +140,8 @@ class TestEvaluation(unittest.TestCase):
         from pyrsa.model import ModelFixed
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
-        evaluations, n_cond = bootstrap_testset_pattern(m, rdms,
+        evaluations, n_cond = bootstrap_testset_pattern(
+            m, rdms,
             method='cosine', fitter=None, N=100, pattern_descriptor=None)
 
     def test_bootstrap_testset_rdm(self):
@@ -145,13 +150,15 @@ class TestEvaluation(unittest.TestCase):
         from pyrsa.model import ModelFixed
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
-        evaluations, n_rdms = bootstrap_testset_rdm(m, rdms,
+        evaluations, n_rdms = bootstrap_testset_rdm(
+            m, rdms,
             method='cosine', fitter=None, N=100, rdm_descriptor=None)
 
 
 class TestEvaluationLists(unittest.TestCase):
     """ evaluation tests
     """
+
     def test_eval_fixed(self):
         from pyrsa.inference import eval_fixed
         from pyrsa.rdm import RDMs
@@ -343,7 +350,7 @@ class TestsPairTests(unittest.TestCase):
         ps = t_tests(value.evaluations, value.variances, dof=value.dof)
         scipy_t = scipy.stats.ttest_rel(value.evaluations[0, 0],
                                         value.evaluations[0, 1])
-        self.assertAlmostEqual(scipy_t.pvalue, ps[0,1])
+        self.assertAlmostEqual(scipy_t.pvalue, ps[0, 1])
 
     def test_t_test_0(self):
         from pyrsa.util.inference_util import t_test_0
@@ -352,7 +359,7 @@ class TestsPairTests(unittest.TestCase):
         assert np.all(ps <= 1)
         assert np.all(ps >= 0)
 
-    def test_t_test_0(self):
+    def test_t_test_nc(self):
         from pyrsa.util.inference_util import t_test_nc
         variances = np.eye(5)
         ps = t_test_nc(self.evaluations, variances, 0.3)

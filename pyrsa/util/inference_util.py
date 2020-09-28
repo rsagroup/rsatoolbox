@@ -54,9 +54,11 @@ def input_check_model(model, theta=None, fitter=None, N=1):
             theta = [None] * len(model)
         if fitter is None:
             fitter = [None] * len(model)
-        else:
+        elif isinstance(fitter, Iterable):
             assert len(fitter) == len(model), 'if fitters are passed ' \
                 + 'there should be as many as models'
+        else:
+            fitter = [fitter] * len(model)
         for k in range(len(model)):
             if fitter[k] is None:
                 fitter[k] = model[k].default_fitter
@@ -188,7 +190,7 @@ def pair_tests(evaluations):
             proportions[j_model, i_model] = proportions[i_model, j_model]
     proportions = np.minimum(proportions, 1 - proportions) * 2
     proportions = (len(evaluations) - 1) / len(evaluations) * proportions \
-         + 1 / len(evaluations)
+        + 1 / len(evaluations)
     np.fill_diagonal(proportions, 1)
     return proportions
 
@@ -313,7 +315,7 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
         evaluations = np.mean(evaluations, axis=-1)
     var = np.diag(variances)
     p = np.empty(len(evaluations))
-    for i in range(len(evaluations)):
+    for i, eval_i in enumerate(evaluations):
         if noise_ceil_var is None:
             var_i = var[i]
         elif (isinstance(noise_ceil_var, np.ndarray)
@@ -321,7 +323,7 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
             var_i = var[i] - 2 * noise_ceil_var[i] + noise_ceil_var[-1]
         else:  # hope that noise_ceil_var is a scalar
             var_i = var[i] + noise_ceil_var
-        t = (evaluations[i] - noise_ceil) / np.sqrt(var_i)
+        t = (eval_i - noise_ceil) / np.sqrt(var_i)
         p[i] = 2 * (1 - stats.t.cdf(np.abs(t), dof))
     return p
 
