@@ -8,6 +8,7 @@ Definition of RSA RDMs class and subclasses
 
 import numpy as np
 from scipy.stats import rankdata
+from scipy.spatial.distance import squareform
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -391,7 +392,33 @@ class RDMs:
             RDMs: Object containing all input rdms on the larger scale,
                 with missing values where required
         """
-        return concat(list_of_rdms)
+
+        def pdescs(rdms, descriptor):
+            return list(rdms.pattern_descriptors.get(descriptor, []))
+
+        if all_patterns is None:
+            all_patterns = []
+            for rdms in list_of_rdms:
+                all_patterns += pdescs(rdms, descriptor)
+            all_patterns = list(set(all_patterns))
+
+        n_rdms = sum([rdms.n_rdm for rdms in list_of_rdms])
+        n_patterns = len(all_patterns)
+        vector_len = int(n_patterns * (n_patterns-1) / 2)
+        vectors = np.full((n_rdms, vector_len), np.nan)
+        rdm_id = 0
+        for rdms in list_of_rdms:
+            pidx = [all_patterns.index(i) for i in pdescs(rdms, descriptor)]
+            for utv in rdms.dissimilarities:
+                rdm = np.full((len(all_patterns), len(all_patterns)), np.nan)
+                rdm[np.ix_(pidx, pidx)] = squareform(utv, checks=False)
+                vectors[rdm_id, :] = squareform(rdm, checks=False)
+                rdm_id += 1
+
+        return RDMs(
+            dissimilarities=vectors,
+            pattern_descriptors=dict([(descriptor, all_patterns)])
+        )
 
 
 def rdms_from_dict(rdm_dict):
