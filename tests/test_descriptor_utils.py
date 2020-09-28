@@ -84,10 +84,10 @@ class TestDescriptorUtils(unittest.TestCase):
         descriptors_1 = {'foo': ['bar1', 'bar2'], 'boo': ['far1']}
         descriptors_2 = {'foo': ['bar3', 'bar4'], 'boo': ['far2']}
         desc_appended = append_obs_descriptors(descriptors_1, descriptors_2)
-        assert np.all((desc_appended['foo']
-                       == ['bar%d' % i for i in range(1, 5)]))
-        assert np.all((desc_appended['boo']
-                       == ['far%d' % i for i in range(1, 3)]))
+        self.assertSequenceEqual(list(desc_appended['foo']),
+                                 ['bar%d' % i for i in range(1, 5)])
+        self.assertSequenceEqual(list(desc_appended['boo']),
+                                 ['far%d' % i for i in range(1, 3)])
 
 
 if __name__ == '__main__':
