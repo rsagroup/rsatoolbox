@@ -2,7 +2,7 @@
 """
 #pylint: disable=import-outside-toplevel
 from unittest import TestCase
-import numpy
+from numpy import array, nan
 from numpy.testing import assert_array_equal
 
 
@@ -16,14 +16,14 @@ class RdmsExpandTests(TestCase):
         """
         from pyrsa.rdm.rdms import RDMs
         rdms1 = RDMs(
-            dissimilarities='',
+            dissimilarities=array([[1, 2, 3]]),
             dissimilarity_measure='shared_measure',
             descriptors=dict(shared_desc='shared_val', diff_desc='one'),
             rdm_descriptors=dict(rdesc=['foo1']),
             pattern_descriptors=dict(cond=['a', 'b', 'c']),
         )
         rdms23 = RDMs(
-            dissimilarities='',
+            dissimilarities=array([[4, 5, 6], [7, 8, 9]]),
             dissimilarity_measure='shared_measure',
             descriptors=dict(shared_desc='shared_val', diff_desc='two-three'),
             rdm_descriptors=dict(rdesc=['foo2', 'foo3']),
@@ -31,7 +31,7 @@ class RdmsExpandTests(TestCase):
         )
         rdms = RDMs.expand([rdms1, rdms23])
         self.assertEqual(rdms.n_rdm, 3)
-        self.assertEqual(rdms.n_cond, 9)
+        self.assertEqual(rdms.n_cond, 4)
         self.assertEqual(rdms.dissimilarity_measure, 'shared_measure')
         self.assertEqual(rdms.descriptors.get('shared_desc'), 'shared_val')
         assert_array_equal(
@@ -48,5 +48,9 @@ class RdmsExpandTests(TestCase):
         )
         assert_array_equal(
             rdms.dissimilarities,
-            numpy.array()
+            array([
+                [  1,   2, nan,   3, nan, nan],
+                [nan, nan, nan,   3,   4,   5],
+                [nan, nan, nan,   6,   7,   8]
+            ])
         )
