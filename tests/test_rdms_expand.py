@@ -12,7 +12,7 @@ class RdmsExpandTests(TestCase):
 
     def test_expand_based_on_list_of_rdms_objects(self):
         """In this case the complete list of conditions is determined
-        from the RDMs passed
+        from the RDMs passed.
         """
         from pyrsa.rdm.rdms import RDMs
         rdms1 = RDMs(
@@ -52,5 +52,31 @@ class RdmsExpandTests(TestCase):
                 [  1,   2, nan,   3, nan, nan],
                 [nan, nan, nan,   3,   4,   5],
                 [nan, nan, nan,   6,   7,   8]
+            ])
+        )
+
+    def test_expand_with_list_of_pattern_descriptors(self):
+        """Where the user explicitly chooses the patterns
+
+        We pass a list with a single RDMs object containing one RDM,
+        then specify one additional pattern not covered in the RDM.
+        """
+        from pyrsa.rdm.rdms import RDMs
+        rdms1 = RDMs(
+            dissimilarities=array([[1, 2, 3]]),
+            dissimilarity_measure='measure',
+            pattern_descriptors=dict(cond=['b', 'c', 'd']),
+        )
+        rdms = RDMs.expand([rdms1], all_patterns=['a', 'b', 'c', 'd'])
+        self.assertEqual(rdms.n_rdm, 1)
+        self.assertEqual(rdms.n_cond, 4)
+        assert_array_equal(
+            rdms.pattern_descriptors.get('cond'),
+            ['a', 'b', 'c', 'd']
+        )
+        assert_array_equal(
+            rdms.dissimilarities,
+            array([
+                [nan, nan, nan,   1,   2,   3],
             ])
         )
