@@ -1,6 +1,8 @@
 """ Script to preprocess MEG sample data for Temporal RSA demo notebook
+
+Use of pickle is not recommended in multi-user environments
 """
-import pickle
+import pickle #nosec - ignoring pickle security warning
 import mne
 from mne.datasets import sample
 
