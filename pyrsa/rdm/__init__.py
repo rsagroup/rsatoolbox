@@ -5,6 +5,7 @@ from .rdms import rank_transform
 from .rdms import load_rdm
 from .rdms import rdms_from_dict
 from .calc import calc_rdm
+from .calc import calc_rdm_movie
 from .calc import calc_rdm_euclid
 from .calc import calc_rdm_mahalanobis
 from .calc import calc_rdm_crossnobis
