@@ -464,7 +464,6 @@ def _gen_default_cv_descriptor(dataset, descriptor):
 
 
 def _calc_pairwise_differences(measurements):
-    measurements = measurements
     n, m = measurements.shape
     diff = np.zeros((int(n * (n - 1) / 2), m))
     k = 0
