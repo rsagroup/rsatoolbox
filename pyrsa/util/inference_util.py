@@ -54,9 +54,11 @@ def input_check_model(model, theta=None, fitter=None, N=1):
             theta = [None] * len(model)
         if fitter is None:
             fitter = [None] * len(model)
-        else:
+        elif isinstance(fitter, Iterable):
             assert len(fitter) == len(model), 'if fitters are passed ' \
                 + 'there should be as many as models'
+        else:
+            fitter = [fitter] * len(model)
         for k in range(len(model)):
             if fitter[k] is None:
                 fitter[k] = model[k].default_fitter
