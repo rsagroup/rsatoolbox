@@ -437,14 +437,6 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         numpy.ndarray: matrix of evaluations (N x k)
 
     """
-    if rdm_descriptor is None:
-        rdm_select = np.arange(data.n_rdm)
-        data.rdm_descriptors['index'] = rdm_select
-        rdm_descriptor = 'index'
-    if pattern_descriptor is None:
-        pattern_select = np.arange(data.n_cond)
-        data.pattern_descriptors['index'] = pattern_select
-        pattern_descriptor = 'index'
     if k_pattern is None:
         n_pattern = len(np.unique(data.pattern_descriptors[
             pattern_descriptor]))
