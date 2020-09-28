@@ -374,6 +374,25 @@ class RDMs:
             else:
                 raise ValueError(f'Unknown sorting method: {method}')
 
+    @classmethod
+    def expand(cls, list_of_rdms, all_patterns=None, descriptor='cond'):
+        """Make larger RDMs with missing values where needed
+
+        Args:
+            list_of_rdms (list): List of RDMs objects
+            all_patterns (list, optional): The full list of pattern
+                descriptors. Defaults to None, in which case the full
+                list is the union of al input rdms' values for the
+                pattern descriptor chosen.
+            descriptor (str, optional): The pattern descriptor on the basis
+                of which to expand. Defaults to 'cond'.
+
+        Returns:
+            RDMs: Object containing all input rdms on the larger scale,
+                with missing values where required
+        """
+        return concat(list_of_rdms)
+
 
 def rdms_from_dict(rdm_dict):
     """ creates a RDMs object from a dictionary
