@@ -446,9 +446,8 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
             rdm_descriptor]))
         k_rdm = default_k_rdm((1 - 1 / np.exp(1)) * n_rdm)
     if isinstance(models, Model):
-        evaluations = np.zeros((N, 1, k_pattern * k_rdm))
-    elif isinstance(models, Iterable):
-        evaluations = np.zeros((N, len(models), k_pattern * k_rdm))
+        models = [models]
+    evaluations = np.zeros((N, len(models), k_pattern * k_rdm))
     noise_ceil = np.zeros((2, N))
     for i_sample in tqdm.trange(N):
         if boot_type == 'both':
@@ -486,16 +485,10 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
                 train_set, test_set,
                 method=method, fitter=fitter,
                 pattern_descriptor=pattern_descriptor)
-            if isinstance(models, Model):
-                evaluations[i_sample, 0, :] = cv_result.evaluations[0, 0]
-            elif isinstance(models, Iterable):
-                evaluations[i_sample, :, :] = cv_result.evaluations[0]
+            evaluations[i_sample, :, :] = cv_result.evaluations[0]
             noise_ceil[:, i_sample] = np.mean(cv_result.noise_ceiling, axis=-1)
         else:  # sample does not allow desired crossvalidation
-            if isinstance(models, Model):
-                evaluations[i_sample, 0, :] = np.nan
-            elif isinstance(models, Iterable):
-                evaluations[i_sample, :, :] = np.nan
+            evaluations[i_sample, :, :] = np.nan
             noise_ceil[:, i_sample] = np.nan
     if boot_type == 'both':
         cv_method = 'bootstrap_crossval'
