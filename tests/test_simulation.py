@@ -8,16 +8,18 @@ import pyrsa
 import pyrsa.model as model
 import numpy as np
 from scipy.spatial.distance import squareform
-import pyrsa.simulation.sim as sim
+
 
 class TestSimulation(unittest.TestCase):
     def test_make_design(self):
+        import pyrsa.simulation.sim as sim
         # Test for make_design
-        cond_vec,part_vec = sim.make_design(4, 8)
-        self.assertEqual(cond_vec.size,32)
+        cond_vec, part_vec = sim.make_design(4, 8)
+        self.assertEqual(cond_vec.size, 32)
 
     def test_make_signal(self):
         # Test make signal
+        import pyrsa.simulation.sim as sim
         M = model.ModelFixed("test", np.array([2, 2, 2, 1, 1, 1]))
         RDM = M.predict(None)
         D = squareform(RDM)
@@ -25,7 +27,7 @@ class TestSimulation(unittest.TestCase):
         G = -0.5 * (H @ D @ H)
         S = sim.make_signal(G, 40, make_exact=True)
         Diff = S@S.T/40 - G
-        self.assertTrue(np.all(np.abs(Diff)<1e-7))
+        self.assertTrue(np.all(np.abs(Diff) < 1e-7))
 
     def test_make_data(self):
         # Test for make_data
