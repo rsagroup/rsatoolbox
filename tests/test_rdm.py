@@ -361,6 +361,7 @@ class TestCalcRDM(unittest.TestCase):
             channel_descriptors=dict(feats=['v1', 'v2', 'v3'])
         )
 
+
     def test_calc_euclid_nconds(self):
         rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
                            method='euclidean')
@@ -501,6 +502,101 @@ class TestCalcRDM(unittest.TestCase):
                            cv_descriptor='fold',
                            method='poisson_cv')
         assert rdm.n_cond == 6
+
+
+class TestCalcRDMMovie(unittest.TestCase):
+
+    def setUp(self):
+        measurements_time = np.random.rand(20, 5, 15)
+        tim_des = {'time': np.linspace(0,200, 15)}
+
+        des = {'session': 0, 'subj': 0}
+        obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5,
+                                      0, 0, 1, 1, 2, 2, 2, 3, 4, 5]),
+                   'fold': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+                   }
+        obs_balanced = {'conds': np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4,
+                                           0, 0, 1, 1, 2, 2, 3, 3, 4, 4]),
+                        'fold': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                          1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+                        }
+        chn_des = {'rois': np.array(['sensor1', 'sensor2', 'sensor3', 'sensor5', 'sensor5'])}
+
+
+        self.test_data_time = rsa.data.TemporalDataset(measurements=measurements_time,
+                               descriptors=des,
+                               obs_descriptors=obs_des,
+                               channel_descriptors=chn_des,
+                               time_descriptors=tim_des
+                               )
+        self.test_data_time_balanced = rsa.data.TemporalDataset(measurements=measurements_time,
+                               descriptors=des,
+                               obs_descriptors=obs_balanced,
+                               channel_descriptors=chn_des,
+                               time_descriptors=tim_des
+                               )
+
+    def test_calc_rdm_movie_mahalanobis(self):
+        rdm = rsr.calc_rdm_movie(self.test_data_time, descriptor='conds',
+                           method='mahalanobis', time_descriptor = 'time')
+        assert rdm.n_cond == 6
+        assert len([r for r in rdm]) == 15
+        assert rdm.rdm_descriptors['time'][0] == 0.0
+
+    def test_calc_rdm_movie_euclidean(self):
+        rdm = rsr.calc_rdm_movie(self.test_data_time, descriptor='conds',
+                           method='euclidean', time_descriptor = 'time')
+        assert rdm.n_cond == 6
+        assert len([r for r in rdm]) == 15
+        assert rdm.rdm_descriptors['time'][0] == 0.0
+
+    def test_calc_rdm_movie_correlation(self):
+        rdm = rsr.calc_rdm_movie(self.test_data_time, descriptor='conds',
+                           method='correlation', time_descriptor = 'time')
+        assert rdm.n_cond == 6
+        assert len([r for r in rdm]) == 15
+        assert rdm.rdm_descriptors['time'][0] == 0.0
+
+    def test_calc_rdm_movie_crossnobis(self):
+        rdm = rsr.calc_rdm_movie(self.test_data_time, descriptor='conds',
+                           method='crossnobis', time_descriptor = 'time',
+                                      cv_descriptor='fold')
+        assert rdm.n_cond == 6
+        assert len([r for r in rdm]) == 15
+        assert rdm.rdm_descriptors['time'][0] == 0.0
+
+    def test_calc_rdm_movie_crossnobis_no_descriptors(self):
+        rdm = rsr.calc_rdm_crossnobis(self.test_data_time_balanced,
+                                      descriptor='conds')
+        assert rdm.n_cond == 5
+
+    def test_calc_rdm_movie_crossnobis_noise(self):
+        noise = np.random.randn(10, 5)
+        noise = np.matmul(noise.T, noise)
+        rdm = rsr.calc_rdm_crossnobis(self.test_data_time_balanced,
+                                      descriptor='conds',
+                                      noise=noise)
+        assert rdm.n_cond == 5
+
+    def test_calc_rdm_movie_rdm_movie_poisson(self):
+        noise = np.random.randn(10, 5)
+        noise = np.matmul(noise.T, noise)
+        rdm = rsr.calc_rdm_movie(self.test_data_time_balanced,
+                                      method='poisson',
+                                      descriptor='conds',
+                                      noise=noise)
+        assert rdm.n_cond == 5
+
+    def test_calc_rdm_movie_binned(self):
+        time = self.test_data_time.time_descriptors['time']
+        bins = np.reshape(time, [5, 3])
+        rdm = rsr.calc_rdm_movie(self.test_data_time, descriptor='conds',
+                           method='mahalanobis', time_descriptor = 'time',
+                           bins=bins)
+        assert rdm.n_cond == 6
+        assert len([r for r in rdm]) == 5
+        assert rdm.rdm_descriptors['time'][0] == np.mean(time[:3])
 
 
 class TestCompareRDM(unittest.TestCase):
