@@ -5,6 +5,7 @@ Barplot for model comparison based on a results file
 """
 
 import numpy as np
+import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.path import Path
@@ -12,7 +13,7 @@ import matplotlib.transforms as transforms
 from matplotlib import cm
 import networkx as nx
 from networkx.algorithms.clique import find_cliques as maximal_cliques
-from pyrsa.util.inference_util import pair_tests
+from pyrsa.util.inference_util import pair_tests, t_test_0, t_test_nc, t_tests
 from pyrsa.util.rdm_utils import batch_to_vectors
 
 
@@ -21,7 +22,8 @@ def plot_model_comparison(result, sort=False, colors=None,
                           multiple_pair_testing='fdr',
                           test_above_0=True,
                           test_below_noise_ceil=True,
-                          error_bars='sem'):
+                          error_bars='sem',
+                          test_type='t-test'):
     """ Plots the results of RSA inference on a set of models as a bar graph
     with one bar for each model indicating its predictive performance. The
     function also shows the noise ceiling whose upper edge is an upper bound
@@ -109,10 +111,18 @@ def plot_model_comparison(result, sort=False, colors=None,
             False or None: do not plot error bars
             True (default) or 'SEM': plot the standard error of the mean
             'CI': plot 95%-confidence intervals (exluding 2.5% on each side)
-            'CI[x]': plot x%-confidence intervals (exluding 2.5% on each side)
+            'CI[x]': plot x%-confidence intervals
+                    (exluding (100-x)/2% on each side)
+                    i.e. 'CI' has the same effect as 'CI95'
             Confidence intervals are based on the bootstrap procedure,
             reflecting variability of the estimate across subjects and/or
             experimental conditions.
+        test_type (string):
+            which tests to perform:
+                't-test' : performs a t-test based on the variance estimates
+                    in the result structs
+                'bootstrap' : performs a bootstrap test, i.e. checks based
+                    on the number of samples defying H0
 
     Returns:
         ---
@@ -124,6 +134,9 @@ def plot_model_comparison(result, sort=False, colors=None,
     models = result.models
     noise_ceiling = result.noise_ceiling
     method = result.method
+    variances = result.variances
+    noise_ceil_var = result.noise_ceil_var
+    dof = result.dof
 
     while len(evaluations.shape) > 2:
         evaluations = np.nanmean(evaluations, axis=-1)
@@ -141,12 +154,19 @@ def plot_model_comparison(result, sort=False, colors=None,
             idx = np.flip(idx)
         perf = perf[idx]
         evaluations = evaluations[:, idx]
+        variances = variances[idx, :][:, idx]
+        noise_ceil_var = noise_ceil_var[np.concatenate((idx, (-2, -1))), :]
         models = [models[i] for i in idx]
         if not ('descend' in sort.lower() or
                 'ascend' in sort.lower()):
             raise Exception('plot_model_comparison: Argument ' +
                             'sort is incorrectly defined as '
                             + sort + '.')
+
+    # t-test preparations
+    if test_type == 't-test':
+        tdist = scipy.stats.t
+        std_eval = np.sqrt(np.diag(variances))
 
     # Prepare axes for bars and pairwise comparisons
     fs, fs2 = 18, 14  # axis label font sizes
@@ -205,30 +225,38 @@ def plot_model_comparison(result, sort=False, colors=None,
     if error_bars is True:
         error_bars = 'sem'
     if error_bars.lower() == 'sem':
-        errorbar_low = np.std(evaluations, axis=0)
-        errorbar_high = np.std(evaluations, axis=0)
+        errorbar_low = np.sqrt(np.diag(variances))
+        errorbar_high = np.sqrt(np.diag(variances))
     elif error_bars[0:2].lower() == 'ci':
         if len(error_bars) == 2:
-            CI_percent = 95
+            CI_percent = 95.0
         else:
-            CI_percent = int(error_bars[2:])
-        prop_cut = (1-CI_percent/100) / 2
-        framed_evals = np.concatenate(
-            (np.tile(np.array((-np.inf, np.inf)).reshape(2, 1), (1, n_models)),
-             evaluations), axis=0)
-        errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
-                         - perf)
-        errorbar_high = (np.quantile(framed_evals, 1 - prop_cut, axis=0)
-                         - perf)
-        limits = np.concatenate((errorbar_low, errorbar_high))
-        if np.isnan(limits).any() or (abs(limits) == np.inf).any():
-            raise Exception(
-                'plot_model_comparison: Too few bootstrap samples for the ' +
-                'requested confidence interval: ' + error_bars + '.')
+            CI_percent = float(error_bars[2:])
+        prop_cut = (1 - CI_percent / 100) / 2
+        if test_type == 'bootstrap':
+            framed_evals = np.concatenate(
+                (np.tile(np.array((-np.inf, np.inf)).reshape(2, 1),
+                         (1, n_models)),
+                 evaluations),
+                axis=0)
+            errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
+                             - perf)
+            errorbar_high = (np.quantile(framed_evals, 1 - prop_cut, axis=0)
+                             - perf)
+        elif test_type == 't-test':
+            errorbar_low = std_eval \
+                * tdist.ppf(prop_cut, dof)
+            errorbar_high = std_eval \
+                * tdist.ppf(prop_cut, dof)
     elif error_bars:
         raise Exception('plot_model_comparison: Argument ' +
                         'error_bars is incorrectly defined as '
                         + error_bars + '.')
+    limits = np.concatenate((errorbar_low, errorbar_high))
+    if np.isnan(limits).any() or (abs(limits) == np.inf).any():
+        raise Exception(
+            'plot_model_comparison: Too few bootstrap samples for the ' +
+            'requested confidence interval: ' + error_bars + '.')
     if error_bars:
         ax.errorbar(np.arange(evaluations.shape[1]), perf,
                     yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
@@ -238,7 +266,10 @@ def plot_model_comparison(result, sort=False, colors=None,
     if test_above_0 is True:
         test_above_0 = 'dewdrops'
     if test_above_0:
-        p = ((evaluations < 0).sum(axis=0) + 1) / n_bootstraps
+        if test_type == 'bootstrap':
+            p = ((evaluations < 0).sum(axis=0) + 1) / n_bootstraps
+        elif test_type == 't-test':
+            p = t_test_0(evaluations, variances, dof)
         model_significant = p < alpha / n_models
         half_sym_size = 9
         if test_above_0.lower() == 'dewdrops':
@@ -277,8 +308,13 @@ def plot_model_comparison(result, sort=False, colors=None,
             noise_lower_bs.shape = (noise_lower_bs.shape[0], 1)
         else:
             noise_lower_bs = noise_ceiling[0].reshape(1, 1)
-        diffs = noise_lower_bs - evaluations  # positive if below lower bound
-        p = ((diffs < 0).sum(axis=0) + 1) / n_bootstraps
+        if test_type == 'bootstrap':
+            # positive if below lower bound
+            diffs = noise_lower_bs - evaluations
+            p = ((diffs < 0).sum(axis=0) + 1) / n_bootstraps
+        elif test_type == 't-test':
+            p = t_test_nc(evaluations, variances, np.mean(noise_ceiling[0]),
+                          noise_ceil_var[:, 0], dof)
         model_below_lower_bound = p < alpha / n_models
 
         if test_below_noise_ceil.lower() == 'dewdrops':
@@ -304,9 +340,13 @@ def plot_model_comparison(result, sort=False, colors=None,
 
     # Pairwise model comparisons
     if test_pair_comparisons:
-        model_comp_descr = 'Model comparisons: two-tailed, '
-        p_values = pair_tests(evaluations)
-        n_tests = int((n_models**2-n_models)/2)
+        if test_type == 'bootstrap':
+            model_comp_descr = 'Model comparisons: two-tailed bootstrap, '
+            p_values = pair_tests(evaluations)
+        elif test_type == 't-test':
+            model_comp_descr = 'Model comparisons: two-tailed t-test, '
+            p_values = t_tests(evaluations, variances, dof)
+        n_tests = int((n_models ** 2 - n_models) / 2)
         if multiple_pair_testing is None:
             multiple_pair_testing = 'uncorrected'
         if multiple_pair_testing.lower() == 'bonferroni' or \

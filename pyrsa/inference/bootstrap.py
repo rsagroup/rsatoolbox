@@ -81,7 +81,7 @@ def bootstrap_sample_rdm(rdms, rdm_descriptor='index'):
 
     """
     rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
-    rdm_sample = np.random.randint(0, len(rdm_select) - 1,
+    rdm_sample = np.random.randint(0, len(rdm_select),
                                    size=len(rdm_select))
     rdm_idx = rdm_select[rdm_sample]
     rdms = rdms.subsample(rdm_descriptor, rdm_sample)

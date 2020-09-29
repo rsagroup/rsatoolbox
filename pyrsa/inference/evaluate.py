@@ -118,10 +118,12 @@ def eval_fixed(models, data, theta=None, method='cosine'):
         data, method=method, rdm_descriptor='index')
     variances = np.cov(evaluations[0], ddof=1) \
         / evaluations.shape[-1]
+    noise_ceil_var = np.zeros((evaluations.shape[1] + 2, 2))
     dof = evaluations.shape[-1] - 1
     result = Result(models, evaluations, method=method,
                     cv_method='fixed', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof,
+                    noise_ceil_var=noise_ceil_var)
     return result
 
 
@@ -436,14 +438,6 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         numpy.ndarray: matrix of evaluations (N x k)
 
     """
-    if rdm_descriptor is None:
-        rdm_select = np.arange(data.n_rdm)
-        data.rdm_descriptors['index'] = rdm_select
-        rdm_descriptor = 'index'
-    if pattern_descriptor is None:
-        pattern_select = np.arange(data.n_cond)
-        data.pattern_descriptors['index'] = pattern_select
-        pattern_descriptor = 'index'
     if k_pattern is None:
         n_pattern = len(np.unique(data.pattern_descriptors[
             pattern_descriptor]))
@@ -453,9 +447,8 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
             rdm_descriptor]))
         k_rdm = default_k_rdm((1 - 1 / np.exp(1)) * n_rdm)
     if isinstance(models, Model):
-        evaluations = np.zeros((N, 1, k_pattern * k_rdm))
-    elif isinstance(models, Iterable):
-        evaluations = np.zeros((N, len(models), k_pattern * k_rdm))
+        models = [models]
+    evaluations = np.zeros((N, len(models), k_pattern * k_rdm))
     noise_ceil = np.zeros((2, N))
     for i_sample in tqdm.trange(N):
         if boot_type == 'both':
@@ -505,16 +498,10 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
                 method=method, fitter=fitter,
                 pattern_descriptor=pattern_descriptor,
                 calc_noise_ceil=False)
-            if isinstance(models, Model):
-                evaluations[i_sample, 0, :] = cv_result.evaluations[0, 0]
-            elif isinstance(models, Iterable):
-                evaluations[i_sample, :, :] = cv_result.evaluations[0]
+            evaluations[i_sample, :, :] = cv_result.evaluations[0]
             noise_ceil[:, i_sample] = np.mean(cv_result.noise_ceiling, axis=-1)
         else:  # sample does not allow desired crossvalidation
-            if isinstance(models, Model):
-                evaluations[i_sample, 0, :] = np.nan
-            elif isinstance(models, Iterable):
-                evaluations[i_sample, :, :] = np.nan
+            evaluations[i_sample, :, :] = np.nan
             noise_ceil[:, i_sample] = np.nan
     if boot_type == 'both':
         cv_method = 'bootstrap_crossval'
