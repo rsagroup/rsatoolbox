@@ -400,7 +400,7 @@ class RDMs:
             all_patterns = []
             for rdms in list_of_rdms:
                 all_patterns += pdescs(rdms, descriptor)
-            all_patterns = list(set(all_patterns))
+            all_patterns = list(dict.fromkeys(all_patterns).keys())
 
         n_rdm_objs = len(list_of_rdms)
         n_rdms = sum([rdms.n_rdm for rdms in list_of_rdms])
@@ -430,7 +430,6 @@ class RDMs:
             for rdm_local_id, utv in enumerate(rdms.dissimilarities):
                 rdm = np.full((len(all_patterns), len(all_patterns)), np.nan)
                 rdm[np.ix_(pidx, pidx)] = squareform(utv, checks=False)
-                ##TODO: add zeros
                 vectors[rdm_id, :] = squareform(rdm, checks=False)
                 for name in rdm_descriptors.keys():
                     if name in rdms.rdm_descriptors:
