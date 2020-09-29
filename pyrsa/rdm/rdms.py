@@ -379,6 +379,9 @@ class RDMs:
     def expand(cls, list_of_rdms, all_patterns=None, descriptor='cond'):
         """Make larger RDMs with missing values where needed
 
+        Any RDMs object-level descriptors will be turned into rdm_descriptors
+        if they do not match across objects.
+
         Args:
             list_of_rdms (list): List of RDMs objects
             all_patterns (list, optional): The full list of pattern
