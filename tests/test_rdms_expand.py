@@ -50,8 +50,8 @@ class RdmsExpandTests(TestCase):
             rdms.dissimilarities,
             array([
                 [  1,   2, nan,   3, nan, nan],
-                [nan, nan, nan,   3,   4,   5],
-                [nan, nan, nan,   6,   7,   8]
+                [nan, nan, nan,   4,   5,   6],
+                [nan, nan, nan,   7,   8,   9]
             ])
         )
 
