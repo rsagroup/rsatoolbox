@@ -110,7 +110,7 @@ def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, event
     n_centers = centers_raveled.shape[0]
     chunked_center = np.split(np.arange(n_centers),
                               np.linspace(0, n_centers,
-                              100, dtype=int)[1:-1])
+                              101, dtype=int)[1:-1])
     
     if verbose:
         print(f'\nDivided data into {len(chunked_center)} chunks!\n')
