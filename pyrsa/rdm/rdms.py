@@ -5,7 +5,7 @@ Definition of RSA RDMs class and subclasses
 
 @author: baihan
 """
-
+from collections import Counter
 import numpy as np
 from scipy.stats import rankdata
 from scipy.spatial.distance import squareform
@@ -402,21 +402,49 @@ class RDMs:
                 all_patterns += pdescs(rdms, descriptor)
             all_patterns = list(set(all_patterns))
 
+        n_rdm_objs = len(list_of_rdms)
         n_rdms = sum([rdms.n_rdm for rdms in list_of_rdms])
         n_patterns = len(all_patterns)
+
+        desc_tuples = []
+        rdm_desc_names = []
+        for rdms in list_of_rdms:
+            desc_tuples += list(rdms.descriptors.items())
+            rdm_desc_names += list(rdms.rdm_descriptors.keys())
+        descriptors = dict(
+            [d for d, c in Counter(desc_tuples).items() if c == n_rdm_objs]
+        )
+        desc_diff_names = set(
+            [d[0] for d, c in Counter(desc_tuples).items() if c != n_rdm_objs]
+        )
+        rdm_desc_names = set(rdm_desc_names + list(desc_diff_names))
+        rdm_descriptors = dict([(n, [None]*n_rdms) for n in rdm_desc_names])
+
+        measure = None
         vector_len = int(n_patterns * (n_patterns-1) / 2)
         vectors = np.full((n_rdms, vector_len), np.nan)
         rdm_id = 0
         for rdms in list_of_rdms:
+            measure = rdms.dissimilarity_measure
             pidx = [all_patterns.index(i) for i in pdescs(rdms, descriptor)]
-            for utv in rdms.dissimilarities:
+            for rdm_local_id, utv in enumerate(rdms.dissimilarities):
                 rdm = np.full((len(all_patterns), len(all_patterns)), np.nan)
                 rdm[np.ix_(pidx, pidx)] = squareform(utv, checks=False)
+                ##TODO: add zeros
                 vectors[rdm_id, :] = squareform(rdm, checks=False)
+                for name in rdm_descriptors.keys():
+                    if name in rdms.rdm_descriptors:
+                        val = rdms.rdm_descriptors[name][rdm_local_id]
+                        rdm_descriptors[name][rdm_id] = val
+                    elif name in rdms.descriptors:
+                        rdm_descriptors[name][rdm_id] = rdms.descriptors[name]
                 rdm_id += 1
 
         return RDMs(
             dissimilarities=vectors,
+            dissimilarity_measure=measure,
+            descriptors=descriptors,
+            rdm_descriptors=rdm_descriptors,
             pattern_descriptors=dict([(descriptor, all_patterns)])
         )
 
