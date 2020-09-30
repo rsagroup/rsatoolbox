@@ -55,8 +55,8 @@ class RdmsAlignTests(TestCase):
             ])
         )
         assert_almost_equal(
-            partial_rdms.mean(weights=False).dissimilarities,
-            array([ 1.5,  1.5, nan, 3.5, 5, 6])
+            partial_rdms.mean(weights=None).dissimilarities,
+            array([[ 1.5,  1.5, nan, 3.5, 5, 6]])
         )
 
     def test_weighted_mean(self):
@@ -75,10 +75,12 @@ class RdmsAlignTests(TestCase):
         ])
         assert_almost_equal(
             partial_rdms.mean(weights=weights).dissimilarities,
-            array([1.6667, 1.3333, nan, 3.6667, 5.0000, 6.0000])
+            array([[1.6667, 1.3333, nan, 3.6667, 5.0000, 6.0000]]),
+            decimal=3
         )
         partial_rdms.rdm_descriptors['weights'] = weights
         assert_almost_equal(
             partial_rdms.mean(weights='stored').dissimilarities,
-            array([  1,   2, nan,   3.5, 5, 6])
+            array([[1.6667, 1.3333, nan, 3.6667, 5.0000, 6.0000]]),
+            decimal=3
         )

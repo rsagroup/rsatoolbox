@@ -6,9 +6,11 @@ Definition of RSA RDMs class and subclasses
 @author: baihan
 """
 from collections import Counter
+from copy import deepcopy
 import numpy as np
 from scipy.stats import rankdata
 from scipy.spatial.distance import squareform
+from pyrsa.rdm.align import _mean
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -448,6 +450,33 @@ class RDMs:
             descriptors=descriptors,
             rdm_descriptors=rdm_descriptors,
             pattern_descriptors=dict([(descriptor, all_patterns)])
+        )
+
+    def align(self):
+        return self
+
+    def mean(self, weights='stored'):
+        """Average rdm of all rdms contained
+
+        Args:
+            weights (str or ndarray, optional): One of:
+                'stored': Use the weights contained in `rdm_descriptor` "weights"
+                ndarray: Weights array of the shape of RDMs.dissimilarities
+                None: No weighting applied
+
+        Returns:
+            `pyrsa.rdm.rdms.RDMs`: New RDMs object with one vector
+        """
+        if weights == 'stored':
+            weights = self.rdm_descriptors.get('weights')
+        new_descriptors = dict(
+            [(k, v) for (k, v) in self.descriptors.items() if k != 'weighted']
+        )
+        return RDMs(
+            dissimilarities=np.array([_mean(self.dissimilarities, weights)]),
+            dissimilarity_measure=self.dissimilarity_measure,
+            descriptors=new_descriptors,
+            pattern_descriptors=deepcopy(self.pattern_descriptors)
         )
 
 
