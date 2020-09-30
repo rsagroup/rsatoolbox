@@ -27,8 +27,8 @@ class RdmsAlignTests(TestCase):
         partial_rdms = RDMs(
             dissimilarities=partial
         )
-        partial_rdms.align()
-        aligned = partial_rdms.dissimilarities
+        aligned_rdms = partial_rdms.align()
+        aligned = aligned_rdms.dissimilarities
         assert_almost_equal(aligned[0, 3], aligned[1, 3], decimal=4)
         assert_almost_equal(pearsonr(non_nan(partial), non_nan(aligned))[0], 1)
         matlab_aligned = array([
@@ -42,6 +42,26 @@ class RdmsAlignTests(TestCase):
                 [  1,   4, nan,    9,  nan,  nan],
                 [nan, nan, nan,   16,   25,   36],
             ])
+        )
+
+    def test_align_setsize(self):
+        """The align method bring the RDMs as close together as possible
+        """
+        from pyrsa.rdm.rdms import RDMs
+        partial_rdms = RDMs(
+            dissimilarities=array([
+                [  1,   2, nan,   3, nan, nan],
+                [nan, nan, nan,   4,   5, nan],
+            ])
+        )
+        aligned_rdms = partial_rdms.align(method='setsize')
+        assert_almost_equal(
+            aligned_rdms.rdm_descriptors.get('weights'),
+            array([
+                [0.3333, 0.3333, nan, 0.3333,  nan,  nan],
+                [   nan,    nan, nan,    0.5,   0.5, nan],
+            ]),
+            decimal=4
         )
 
     def test_mean_no_weights(self):

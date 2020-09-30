@@ -10,7 +10,7 @@ from copy import deepcopy
 import numpy as np
 from scipy.stats import rankdata
 from scipy.spatial.distance import squareform
-from pyrsa.rdm.align import _mean
+from pyrsa.rdm.align import _mean, _align
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -452,8 +452,26 @@ class RDMs:
             pattern_descriptors=dict([(descriptor, all_patterns)])
         )
 
-    def align(self):
-        return self
+    def align(self, method='evidence'):
+        """[summary]
+
+        Args:
+            method (str, optional): [description]. Defaults to 'evidence'.
+
+        Returns:
+            RDMs: [description]
+        """
+        aligned, weights = _align(self.dissimilarities, method)
+        rdm_descriptors = deepcopy(self.rdm_descriptors)
+        if weights is not None:
+            rdm_descriptors['weights'] = weights
+        return RDMs(
+            dissimilarities=aligned,
+            dissimilarity_measure=self.dissimilarity_measure,
+            descriptors=deepcopy(self.descriptors),
+            rdm_descriptors=rdm_descriptors,
+            pattern_descriptors=deepcopy(self.pattern_descriptors)
+        )
 
     def mean(self, weights='stored'):
         """Average rdm of all rdms contained
@@ -469,8 +487,11 @@ class RDMs:
         """
         if weights == 'stored':
             weights = self.rdm_descriptors.get('weights')
+        if weights is None:
+            weights = np.ones(self.dissimilarities.shape)
+            weights[np.isnan(self.dissimilarities)] = np.nan
         new_descriptors = dict(
-            [(k, v) for (k, v) in self.descriptors.items() if k != 'weighted']
+            [(k, v) for (k, v) in self.descriptors.items() if k != 'weights']
         )
         return RDMs(
             dissimilarities=np.array([_mean(self.dissimilarities, weights)]),
