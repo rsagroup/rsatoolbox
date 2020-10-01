@@ -33,11 +33,11 @@ with the :meth:`~pyrsa.rdm.rdms.RDMs.expand` method:
     from pyrsa.rdm.rdms import RDMs
     rdms1 = RDMs(
         array(1, 2, 3),
-        pattern_descriptors={'cond': ['a', 'b', 'c']}
+        pattern_descriptors={'conds': ['a', 'b', 'c']}
     )
     rdms2 = RDMs(
         array(6, 7, 8),
-        pattern_descriptors={'cond': ['b', 'c', 'd']}
+        pattern_descriptors={'conds': ['b', 'c', 'd']}
     )
     partial_rdms = RDMs.expand()
     partial_rdms.n_conds  ## this is now 4
