@@ -487,9 +487,6 @@ class RDMs:
         """
         if weights == 'stored':
             weights = self.rdm_descriptors.get('weights')
-        if weights is None:
-            weights = np.ones(self.dissimilarities.shape)
-            weights[np.isnan(self.dissimilarities)] = np.nan
         new_descriptors = dict(
             [(k, v) for (k, v) in self.descriptors.items() if k != 'weights']
         )

@@ -1,6 +1,6 @@
 """Unit tests for aligning and averaging partial RDMs
 """
-#pylint: disable=import-outside-toplevel
+#pylint: disable=import-outside-toplevel, no-self-use
 from unittest import TestCase
 from numpy import array, nan, isnan
 from numpy.testing import assert_almost_equal, assert_array_equal
@@ -30,14 +30,18 @@ class RdmsAlignTests(TestCase):
         aligned_rdms = partial_rdms.align()
         aligned = aligned_rdms.dissimilarities
         assert_almost_equal(aligned[0, 3], aligned[1, 3], decimal=4)
-        assert_almost_equal(pearsonr(non_nan(partial), non_nan(aligned))[0], 1)
-        matlab_aligned = array([
+        assert_almost_equal(
+            pearsonr(non_nan(partial), non_nan(aligned))[0],
+            1,
+            decimal=7
+        )
+        actual_aligned = array([
             [0.1438, 0.2877, nan, 0.4315,    nan,    nan],
             [   nan,    nan, nan, 0.4316, 0.5395, 0.6474]
         ])
-        assert_almost_equal(aligned, matlab_aligned)
+        assert_almost_equal(aligned, actual_aligned, decimal=4)
         assert_array_equal(
-            partial_rdms.descriptors.get('weights'),
+            aligned_rdms.rdm_descriptors.get('weights'),
             array([
                 [  1,   4, nan,    9,  nan,  nan],
                 [nan, nan, nan,   16,   25,   36],
