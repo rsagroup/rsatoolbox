@@ -24,15 +24,43 @@ def _mean(vectors, weights=None):
 
 
 def _ss(vectors):
+    """Sum of squares on the last dimension
+
+    Args:
+        vectors (ndarray): 1- or 2-dimensional data
+
+    Returns:
+        ndarray: the sum of squares, with an extra empty dimension
+    """
     summed_squares = np.nansum(vectors ** 2, axis=vectors.ndim-1)
     return np.expand_dims(summed_squares, axis=vectors.ndim-1)
 
 
 def _scale(vectors):
+    """Divide by the root sum of squares
+
+    Args:
+        vectors (ndarray): 1- or 2-dimensional data
+
+    Returns:
+        ndarray: input scaled
+    """
     return vectors / sqrt(_ss(vectors))
 
 
 def _align(dissim, method):
+    """Align RDM vectors
+
+    See :meth:`pyrsa.rdm.rdms.RDMs.align`
+
+    Args:
+        dissim (ndarray): dissimilarity vectors, shape = (rdms, conds)
+        method (str): one of 'evidence', 'setsize' or 'simple'.
+
+    Returns:
+        (ndarray, ndarray): Tuple of the aligned dissimilarity vectors
+            and the weights used
+    """
     n_rdms, n_conds = dissim.shape
     if method == 'evidence':
         weights = (dissim ** 2).clip(0.2)

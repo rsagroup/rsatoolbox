@@ -453,13 +453,17 @@ class RDMs:
         )
 
     def align(self, method='evidence'):
-        """[summary]
+        """Bring RDMs closer together
+
+        Iteratively scales RDMs based on pairs in-common.
+        Also adds an RDM descriptor with the weights used.
 
         Args:
-            method (str, optional): [description]. Defaults to 'evidence'.
+            method (str, optional): One of 'evidence', 'setsize' or
+                'simple'. Defaults to 'evidence'.
 
         Returns:
-            RDMs: [description]
+            RDMs: RDMs object with the aligned RDMs
         """
         aligned, weights = _align(self.dissimilarities, method)
         rdm_descriptors = deepcopy(self.rdm_descriptors)
