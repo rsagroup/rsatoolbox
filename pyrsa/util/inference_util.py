@@ -14,7 +14,7 @@ from .rdm_utils import batch_to_matrices
 from collections.abc import Iterable
 
 
-def input_check_model(model, theta=None, fitter=None, N=1):
+def input_check_model(models, theta=None, fitter=None, N=1):
     """ Checks whether model related inputs to evaluations are valid and
     generates an evaluation-matrix of fitting size.
 
@@ -38,37 +38,36 @@ def input_check_model(model, theta=None, fitter=None, N=1):
             checked and processed fitter functions
 
     """
-    if isinstance(model, Model):
-        evaluations = np.zeros(N)
-    elif isinstance(model, Iterable):
-        if N > 1:
-            evaluations = np.zeros((N, len(model)))
-        else:
-            evaluations = np.zeros(len(model))
-        if theta is not None:
-            assert isinstance(theta, Iterable), 'If a list of models is' \
-                + ' passed theta must be a list of parameters'
-            assert len(model) == len(theta), 'there should equally many' \
-                + ' models as parameters'
-        else:
-            theta = [None] * len(model)
-        if fitter is None:
-            fitter = [None] * len(model)
-        elif isinstance(fitter, Iterable):
-            assert len(fitter) == len(model), 'if fitters are passed ' \
-                + 'there should be as many as models'
-        else:
-            fitter = [fitter] * len(model)
-        for k in range(len(model)):
-            if fitter[k] is None:
-                fitter[k] = model[k].default_fitter
-    else:
+    if isinstance(models, Model):
+        models = [models]
+    elif not isinstance(models, Iterable):
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
-    return evaluations, theta, fitter
+    if N > 1:
+        evaluations = np.zeros((N, len(models)))
+    else:
+        evaluations = np.zeros(len(models))
+    if theta is not None:
+        assert isinstance(theta, Iterable), 'If a list of models is' \
+            + ' passed theta must be a list of parameters'
+        assert len(models) == len(theta), 'there should equally many' \
+            + ' models as parameters'
+    else:
+        theta = [None] * len(models)
+    if fitter is None:
+        fitter = [None] * len(models)
+    elif isinstance(fitter, Iterable):
+        assert len(fitter) == len(models), 'if fitters are passed ' \
+            + 'there should be as many as models'
+    else:
+        fitter = [fitter] * len(models)
+    for k, model in enumerate(models):
+        if fitter[k] is None:
+            fitter[k] = model.default_fitter
+    return models, evaluations, theta, fitter
 
 
-def pool_rdm(rdms, method='cosine', sigma_k=None):
+def pool_rdm(rdms, method='cosine'):
     """pools multiple RDMs into the one with maximal performance under a given
     evaluation metric
     rdm_descriptors of the generated rdms are empty
@@ -208,9 +207,6 @@ def t_tests(evaluations, variances, dof=1):
         variances (numpy.ndarray):
             vector of model evaluation variances
             or covariance matrix of the model evaluations
-            defaults to taking the variance over the third dimension
-            of evaluations and setting dof based on the length of this
-            dimension.
         dof (integer):
             degrees of freedom used for the test (default=1)
             this input is overwritten if no variances are passed
@@ -247,9 +243,6 @@ def t_test_0(evaluations, variances, dof=1):
         variances (numpy.ndarray):
             vector of model evaluation variances
             or covariance matrix of the model evaluations
-            defaults to taking the variance over the third dimension
-            of evaluations and setting dof based on the length of this
-            dimension.
         dof (integer):
             degrees of freedom used for the test (default=1)
             this input is overwritten if no variances are passed
@@ -301,13 +294,16 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
             this input is overwritten if no variances are passed
 
     Returns:
-        numpy.ndarray: p-values for the raw t-test of each model against 0.
+        numpy.ndarray: p-values for the raw t-test of each model against
+        the noise ceiling.
 
     """
     if variances is None:
         raise ValueError('No variance estimates provided for t_test!')
     if noise_ceil_var is not None:
         noise_ceil_var = np.array(noise_ceil_var)
+        while noise_ceil_var.ndim > 1:
+            noise_ceil_var = noise_ceil_var[:, 0]
     evaluations = np.mean(evaluations, 0)
     if len(variances.shape) == 1:
         variances = np.diag(variances)
