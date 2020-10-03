@@ -208,9 +208,6 @@ def t_tests(evaluations, variances, dof=1):
         variances (numpy.ndarray):
             vector of model evaluation variances
             or covariance matrix of the model evaluations
-            defaults to taking the variance over the third dimension
-            of evaluations and setting dof based on the length of this
-            dimension.
         dof (integer):
             degrees of freedom used for the test (default=1)
             this input is overwritten if no variances are passed
@@ -247,9 +244,6 @@ def t_test_0(evaluations, variances, dof=1):
         variances (numpy.ndarray):
             vector of model evaluation variances
             or covariance matrix of the model evaluations
-            defaults to taking the variance over the third dimension
-            of evaluations and setting dof based on the length of this
-            dimension.
         dof (integer):
             degrees of freedom used for the test (default=1)
             this input is overwritten if no variances are passed
