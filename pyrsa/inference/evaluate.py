@@ -499,7 +499,6 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
                 pattern_descriptor=pattern_descriptor,
                 calc_noise_ceil=False)
             evaluations[i_sample, :, :] = cv_result.evaluations[0]
-            noise_ceil[:, i_sample] = np.mean(cv_result.noise_ceiling, axis=-1)
         else:  # sample does not allow desired crossvalidation
             evaluations[i_sample, :, :] = np.nan
             noise_ceil[:, i_sample] = np.nan
