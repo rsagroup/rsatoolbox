@@ -155,7 +155,8 @@ def plot_model_comparison(result, sort=False, colors=None,
         perf = perf[idx]
         evaluations = evaluations[:, idx]
         variances = variances[idx, :][:, idx]
-        noise_ceil_var = noise_ceil_var[np.concatenate((idx, (-2, -1))), :]
+        if noise_ceil_var:
+            noise_ceil_var = noise_ceil_var[np.concatenate((idx, (-2, -1))), :]
         models = [models[i] for i in idx]
         if not ('descend' in sort.lower() or
                 'ascend' in sort.lower()):
@@ -314,7 +315,7 @@ def plot_model_comparison(result, sort=False, colors=None,
             p = ((diffs < 0).sum(axis=0) + 1) / n_bootstraps
         elif test_type == 't-test':
             p = t_test_nc(evaluations, variances, np.mean(noise_ceiling[0]),
-                          noise_ceil_var[:, 0], dof)
+                          noise_ceil_var, dof)
         model_below_lower_bound = p < alpha / n_models
 
         if test_below_noise_ceil.lower() == 'dewdrops':

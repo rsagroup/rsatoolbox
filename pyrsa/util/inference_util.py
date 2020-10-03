@@ -300,13 +300,16 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
             this input is overwritten if no variances are passed
 
     Returns:
-        numpy.ndarray: p-values for the raw t-test of each model against 0.
+        numpy.ndarray: p-values for the raw t-test of each model against
+        the noise ceiling.
 
     """
     if variances is None:
         raise ValueError('No variance estimates provided for t_test!')
     if noise_ceil_var is not None:
         noise_ceil_var = np.array(noise_ceil_var)
+        while noise_ceil_var.ndim > 1:
+            noise_ceil_var = noise_ceil_var[:, 0]
     evaluations = np.mean(evaluations, 0)
     if len(variances.shape) == 1:
         variances = np.diag(variances)
