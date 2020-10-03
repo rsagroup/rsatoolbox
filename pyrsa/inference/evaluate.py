@@ -191,7 +191,7 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
         variances = np.cov(evaluations.T)
-        noise_ceil_var = None
+        noise_ceil_var = np.zeros((evaluations.shape[1] + 2, 2))
     dof = min(data.n_rdm, data.n_cond) - 1
     result = Result(models, evaluations, method=method,
                     cv_method='bootstrap', noise_ceiling=noise_ceil,
@@ -264,7 +264,7 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
         variances = np.cov(evaluations.T)
-        noise_ceil_var = None
+        noise_ceil_var = np.zeros((evaluations.shape[1] + 2, 2))
     dof = data.n_cond - 1
     result = Result(models, evaluations, method=method,
                     cv_method='bootstrap_pattern', noise_ceiling=noise_ceil,
@@ -321,7 +321,7 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
         variances = np.cov(evaluations.T)
-        noise_ceil_var = None
+        noise_ceil_var = np.zeros((evaluations.shape[1] + 2, 2))
     dof = data.n_rdm - 1
     variances = np.cov(evaluations.T)
     result = Result(models, evaluations, method=method,
