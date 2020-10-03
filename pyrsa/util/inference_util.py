@@ -61,9 +61,9 @@ def input_check_model(models, theta=None, fitter=None, N=1):
             + 'there should be as many as models'
     else:
         fitter = [fitter] * len(models)
-    for k in range(len(models)):
+    for k, model in enumerate(models):
         if fitter[k] is None:
-            fitter[k] = models[k].default_fitter
+            fitter[k] = model.default_fitter
     return models, evaluations, theta, fitter
 
 

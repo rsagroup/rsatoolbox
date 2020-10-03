@@ -146,7 +146,7 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
         numpy.ndarray: vector of evaluations
 
     """
-    models, evaluations, theta, fitter = \
+    models, evaluations, theta, _ = \
         input_check_model(models, theta, None, N)
     noise_min = []
     noise_max = []
