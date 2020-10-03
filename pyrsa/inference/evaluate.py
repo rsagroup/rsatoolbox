@@ -101,19 +101,12 @@ def eval_fixed(models, data, theta=None, method='cosine'):
 
     """
     models, evaluations, theta, _ = input_check_model(models, theta, None, 1)
-    if isinstance(models, Model):
-        rdm_pred = models.predict_rdm(theta=theta)
-        evaluations = np.array([[compare(rdm_pred, data, method)[0]]])
-    elif isinstance(models, Iterable):
-        evaluations = np.repeat(np.expand_dims(evaluations, -1),
-                                data.n_rdm, -1)
-        for k in range(len(models)):
-            rdm_pred = models[k].predict_rdm(theta=theta[k])
-            evaluations[k] = compare(rdm_pred, data, method)
-        evaluations = evaluations.reshape((1, len(models), data.n_rdm))
-    else:
-        raise ValueError('models should be a pyrsa.model.Model or a list of'
-                         + ' such objects')
+    evaluations = np.repeat(np.expand_dims(evaluations, -1),
+                            data.n_rdm, -1)
+    for k in range(len(models)):
+        rdm_pred = models[k].predict_rdm(theta=theta[k])
+        evaluations[k] = compare(rdm_pred, data, method)
+    evaluations = evaluations.reshape((1, len(models), data.n_rdm))
     noise_ceil = boot_noise_ceiling(
         data, method=method, rdm_descriptor='index')
     variances = np.cov(evaluations[0], ddof=1) \
@@ -155,34 +148,21 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
             bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
                              pattern_descriptor=pattern_descriptor)
         if len(np.unique(pattern_idx)) >= 3:
-            if isinstance(models, Model):
-                rdm_pred = models.predict_rdm(theta=theta)
+            for j, mod in enumerate(models):
+                rdm_pred = mod.predict_rdm(theta=theta[j])
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_idx)
-                evaluations[i] = np.mean(compare(rdm_pred, sample, method))
-            elif isinstance(models, Iterable):
-                j = 0
-                for mod in models:
-                    rdm_pred = mod.predict_rdm(theta=theta[j])
-                    rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                                          pattern_idx)
-                    evaluations[i, j] = np.mean(compare(rdm_pred, sample,
-                                                        method))
-                    j += 1
+                evaluations[i, j] = np.mean(compare(rdm_pred, sample,
+                                                    method))
             if boot_noise_ceil:
                 noise_min_sample, noise_max_sample = boot_noise_ceiling(
                     sample, method=method, rdm_descriptor=rdm_descriptor)
                 noise_min.append(noise_min_sample)
                 noise_max.append(noise_max_sample)
         else:
-            if isinstance(models, Model):
-                evaluations[i] = np.nan
-            elif isinstance(models, Iterable):
-                evaluations[i, :] = np.nan
+            evaluations[i, :] = np.nan
             noise_min.append(np.nan)
             noise_max.append(np.nan)
-    if isinstance(models, Model):
-        evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
         var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
@@ -221,7 +201,7 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
         numpy.ndarray: vector of evaluations
 
     """
-    models, evaluations, theta, fitter = \
+    models, evaluations, theta, _ = \
         input_check_model(models, theta, None, N)
     noise_min = []
     noise_max = []
@@ -229,34 +209,21 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
         sample, pattern_idx = \
             bootstrap_sample_pattern(data, pattern_descriptor)
         if len(np.unique(pattern_idx)) >= 3:
-            if isinstance(models, Model):
-                rdm_pred = models.predict_rdm(theta=theta)
+            for j, mod in enumerate(models):
+                rdm_pred = mod.predict_rdm(theta=theta[j])
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_idx)
-                evaluations[i] = np.mean(compare(rdm_pred, sample, method))
-            elif isinstance(models, Iterable):
-                j = 0
-                for mod in models:
-                    rdm_pred = mod.predict_rdm(theta=theta[j])
-                    rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
-                                                          pattern_idx)
-                    evaluations[i, j] = np.mean(compare(rdm_pred, sample,
-                                                        method))
-                    j += 1
+                evaluations[i, j] = np.mean(compare(rdm_pred, sample,
+                                                    method))
             if boot_noise_ceil:
                 noise_min_sample, noise_max_sample = boot_noise_ceiling(
                     sample, method=method, rdm_descriptor=rdm_descriptor)
                 noise_min.append(noise_min_sample)
                 noise_max.append(noise_max_sample)
         else:
-            if isinstance(models, Model):
-                evaluations[i] = np.nan
-            elif isinstance(models, Iterable):
-                evaluations[i, :] = np.nan
+            evaluations[i, :] = np.nan
             noise_min.append(np.nan)
             noise_max.append(np.nan)
-    if isinstance(models, Model):
-        evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
         var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
@@ -297,23 +264,15 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
     noise_max = []
     for i in tqdm.trange(N):
         sample, rdm_idx = bootstrap_sample_rdm(data, rdm_descriptor)
-        if isinstance(models, Model):
-            rdm_pred = models.predict_rdm(theta=theta)
-            evaluations[i] = np.mean(compare(rdm_pred, sample, method))
-        elif isinstance(models, Iterable):
-            j = 0
-            for mod in models:
-                rdm_pred = mod.predict_rdm(theta=theta[j])
-                evaluations[i, j] = np.mean(compare(rdm_pred, sample,
-                                                    method))
-                j += 1
+        for j, mod in enumerate(models):
+            rdm_pred = mod.predict_rdm(theta=theta[j])
+            evaluations[i, j] = np.mean(compare(rdm_pred, sample,
+                                                method))
         if boot_noise_ceil:
             noise_min_sample, noise_max_sample = boot_noise_ceiling(
                 sample, method=method, rdm_descriptor=rdm_descriptor)
             noise_min.append(noise_min_sample)
             noise_max.append(noise_max_sample)
-    if isinstance(models, Model):
-        evaluations = evaluations.reshape((N, 1))
     if boot_noise_ceil:
         noise_ceil = np.array([noise_min, noise_max])
         var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
@@ -356,6 +315,8 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
     if ceil_set is not None:
         assert len(ceil_set) == len(test_set), \
             'ceil_set and test_set must have the same length'
+    if isinstance(models, Model):
+        models = [models]
     evaluations = []
     noise_ceil = []
     for i in range(len(train_set)):
@@ -363,40 +324,24 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
         test = test_set[i]
         if (train[0].n_rdm == 0 or test[0].n_rdm == 0 or
                 train[0].n_cond <= 2 or test[0].n_cond <= 2):
-            if isinstance(models, Model):
-                evals = np.nan
-            elif isinstance(models, Iterable):
-                evals = np.empty(len(models)) * np.nan
+            evals = np.empty(len(models)) * np.nan
         else:
-            if isinstance(models, Model):
-                if fitter is None:
-                    fitter = models.default_fitter
-                theta = fitter(models, train[0], method=method,
-                               pattern_idx=train[1],
-                               pattern_descriptor=pattern_descriptor)
-                pred = models.predict_rdm(theta)
+            models, evals, _, fitter = \
+                input_check_model(models, None, fitter)
+            for j, model in enumerate(models):
+                theta = fitter[j](model, train[0], method=method,
+                                  pattern_idx=train[1],
+                                  pattern_descriptor=pattern_descriptor)
+                pred = model.predict_rdm(theta)
                 pred = pred.subsample_pattern(by=pattern_descriptor,
                                               value=test[1])
-                evals = np.mean(compare(pred, test[0], method))
-            elif isinstance(models, Iterable):
-                models, evals, _, fitter = \
-                    input_check_model(models, None, fitter)
-                for j in range(len(models)):
-                    theta = fitter[j](models[j], train[0], method=method,
-                                      pattern_idx=train[1],
-                                      pattern_descriptor=pattern_descriptor)
-                    pred = models[j].predict_rdm(theta)
-                    pred = pred.subsample_pattern(by=pattern_descriptor,
-                                                  value=test[1])
-                    evals[j] = np.mean(compare(pred, test[0], method))
+                evals[j] = np.mean(compare(pred, test[0], method))
             if ceil_set is None and calc_noise_ceil:
                 noise_ceil.append(boot_noise_ceiling(
                     rdms.subsample_pattern(by=pattern_descriptor,
                                            value=test[1]),
                     method=method))
         evaluations.append(evals)
-    if isinstance(models, Model):
-        models = [models]
     evaluations = np.array(evaluations).T  # .T to switch models/set order
     evaluations = evaluations.reshape((1, len(models), len(train_set)))
     if ceil_set is not None and calc_noise_ceil:
