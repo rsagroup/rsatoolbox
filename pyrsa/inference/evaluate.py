@@ -22,7 +22,7 @@ from .noise_ceiling import cv_noise_ceiling
 
 def eval_fancy(models, data, method='cosine', fitter=None,
                k_pattern=None, k_rdm=None, N=1000, boot_noise_ceil=False,
-               pattern_descriptor=None, rdm_descriptor=None):
+               pattern_descriptor='index', rdm_descriptor='index'):
     """evaluates a model by k-fold crossvalidation within a bootstrap
     Then uses the correction formula to get an estimate of the variance
     of the mean.
