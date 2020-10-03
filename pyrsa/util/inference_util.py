@@ -259,7 +259,8 @@ def t_test_0(evaluations, variances, dof=1):
         variances = np.diag(variances)
     while evaluations.ndim > 1:
         evaluations = np.mean(evaluations, axis=-1)
-    t = evaluations / np.sqrt(variances)
+    var = np.diag(variances)
+    t = evaluations / np.sqrt(var)
     p = 1 - stats.t.cdf(t, dof)
     return p
 
