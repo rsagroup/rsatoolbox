@@ -18,7 +18,7 @@ import PIL
 import numpy as np
 from scipy.ndimage import gaussian_filter as gaussian_filter
 import scipy.signal as signal
-from hrf import spm_hrf
+from .hrf import spm_hrf
 import pyrsa
 
 # initial transormation expected by all torchvision models

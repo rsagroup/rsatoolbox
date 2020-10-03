@@ -15,16 +15,16 @@ import pandas as pd
 import sys
 import glob
 import pyrsa
-import nn_simulations as dnn
-from hrf import spm_hrf
-from helpers import get_fname_base
-from helpers import get_resname
-from helpers import get_stimuli_ecoset
-from helpers import run_inference
-from helpers import parse_fmri
-from helpers import parse_pars
-from helpers import parse_results
-from models import get_models
+from . import nn_simulations as dnn
+from .hrf import spm_hrf
+from .helpers import get_fname_base
+from .helpers import get_resname
+from .helpers import get_stimuli_ecoset
+from .helpers import run_inference
+from .helpers import parse_fmri
+from .helpers import parse_pars
+from .helpers import parse_results
+from .models import get_models
 
 
 def estimate_betas(design, timecourse, hrf=None, resolution=2):
@@ -655,7 +655,7 @@ def run_eco(idx, ecoset_path=None, start_idx=0):
                    n_stim=n_stim[i_stim],
                    n_sim=100, n_voxel=n_vox[i_vox],
                    noise_type=noise_type,
-                   sigma_noise=5, start_idx=start_idx)
+                   sigma_noise=1, start_idx=start_idx)
     else:
         sim_ecoset(variation=variation[i_var],
                    layer=layer[i_layer],
@@ -667,7 +667,7 @@ def run_eco(idx, ecoset_path=None, start_idx=0):
                    n_stim=n_stim[i_stim],
                    n_sim=100, n_voxel=n_vox[i_vox],
                    noise_type=noise_type,
-                   sigma_noise=5, start_idx=start_idx)
+                   sigma_noise=1, start_idx=start_idx)
 
 
 def summarize_eco(simulation_folder='sim_eco'):
