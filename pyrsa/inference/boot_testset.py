@@ -14,7 +14,7 @@ from .bootstrap import bootstrap_sample_pattern
 from .evaluate import crossval
 
 
-def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
+def bootstrap_testset(models, data, method='cosine', fitter=None, N=1000,
                       pattern_descriptor=None, rdm_descriptor=None):
     """takes a bootstrap sample and evaluates on the rdms and patterns not
     sampled
@@ -22,7 +22,7 @@ def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
     or selection if this is desired.
 
     Args:
-        model(pyrsa.model.Model): Model to be evaluated
+        models(pyrsa.model.Model): Models to be evaluated
         data(pyrsa.rdm.RDMs): RDM data to use
         method(string): comparison method to use
         fitter(function): fitting function
@@ -35,7 +35,7 @@ def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
         numpy.ndarray: n_pattern for each test_set
 
     """
-    evaluations, _, fitter = input_check_model(model, None, fitter, N)
+    models, evaluations, _, fitter = input_check_model(models, None, fitter, N)
     n_rdm = np.zeros(N, dtype=np.int)
     n_pattern = np.zeros(N, dtype=np.int)
     if pattern_descriptor is None:
@@ -60,7 +60,7 @@ def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
             rdms_test = rdms_test.subsample(rdm_descriptor, rdm_idx_test)
             test_set = [[rdms_test, pattern_idx_test]]
             evaluations[i_sample] = crossval(
-                model, data, train_set, test_set,
+                models, data, train_set, test_set,
                 method=method, fitter=fitter,
                 pattern_descriptor=pattern_descriptor).evaluations[:, 0]
         else:
@@ -70,7 +70,7 @@ def bootstrap_testset(model, data, method='cosine', fitter=None, N=1000,
     return evaluations, n_rdm, n_pattern
 
 
-def bootstrap_testset_pattern(model, data, method='cosine', fitter=None,
+def bootstrap_testset_pattern(models, data, method='cosine', fitter=None,
                               N=1000, pattern_descriptor=None):
     """takes a bootstrap sample and evaluates on the patterns not
     sampled
@@ -78,7 +78,7 @@ def bootstrap_testset_pattern(model, data, method='cosine', fitter=None,
     or selection if this is desired.
 
     Args:
-        model(pyrsa.model.Model): Model to be evaluated
+        models(pyrsa.model.Model): Model to be evaluated
         datat(pyrsa.rdm.RDMs): RDM data to use
         method(string): comparison method to use
         fitter(function): fitting function for the model
@@ -89,7 +89,7 @@ def bootstrap_testset_pattern(model, data, method='cosine', fitter=None,
         numpy.ndarray: n_pattern for each test_set
 
     """
-    evaluations, _, fitter = input_check_model(model, None, fitter, N)
+    models, evaluations, _, fitter = input_check_model(models, None, fitter, N)
     n_pattern = np.zeros(N, dtype=np.int)
     if pattern_descriptor is None:
         data.pattern_descriptors['index'] = np.arange(data.n_cond)
@@ -105,7 +105,7 @@ def bootstrap_testset_pattern(model, data, method='cosine', fitter=None,
                                                pattern_idx_test)
             test_set = [[rdms_test, pattern_idx_test]]
             evaluations[i_sample] = crossval(
-                model, data, train_set, test_set,
+                models, data, train_set, test_set,
                 method=method, fitter=fitter,
                 pattern_descriptor=pattern_descriptor).evaluations[:, 0]
         else:
@@ -114,7 +114,7 @@ def bootstrap_testset_pattern(model, data, method='cosine', fitter=None,
     return evaluations, n_pattern
 
 
-def bootstrap_testset_rdm(model, data, method='cosine', fitter=None, N=1000,
+def bootstrap_testset_rdm(models, data, method='cosine', fitter=None, N=1000,
                           rdm_descriptor=None):
     """takes a bootstrap sample and evaluates on the patterns not
     sampled
@@ -133,7 +133,7 @@ def bootstrap_testset_rdm(model, data, method='cosine', fitter=None, N=1000,
         numpy.ndarray: n_pattern for each test_set
 
     """
-    evaluations, _, fitter = input_check_model(model, None, fitter, N)
+    models, evaluations, _, fitter = input_check_model(models, None, fitter, N)
     n_rdm = np.zeros(N, dtype=np.int)
     if rdm_descriptor is None:
         data.rdm_descriptors['index'] = np.arange(data.n_rdm)
@@ -151,7 +151,7 @@ def bootstrap_testset_rdm(model, data, method='cosine', fitter=None, N=1000,
             rdms_test = data.subsample(rdm_descriptor, rdm_idx_test)
             test_set = [[rdms_test, pattern_idx]]
             evaluations[i_sample] = crossval(
-                model, data, train_set, test_set,
+                models, data, train_set, test_set,
                 method=method, fitter=fitter,
                 pattern_descriptor=pattern_descriptor).evaluations[:, 0]
         else:

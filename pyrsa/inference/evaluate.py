@@ -100,7 +100,7 @@ def eval_fixed(models, data, theta=None, method='cosine'):
         float: evaluation
 
     """
-    evaluations, theta, _ = input_check_model(models, theta, None, 1)
+    models, evaluations, theta, _ = input_check_model(models, theta, None, 1)
     if isinstance(models, Model):
         rdm_pred = models.predict_rdm(theta=theta)
         evaluations = np.array([[compare(rdm_pred, data, method)[0]]])
@@ -146,7 +146,8 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
         numpy.ndarray: vector of evaluations
 
     """
-    evaluations, theta, fitter = input_check_model(models, theta, None, N)
+    models, evaluations, theta, fitter = \
+        input_check_model(models, theta, None, N)
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
@@ -220,7 +221,8 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
         numpy.ndarray: vector of evaluations
 
     """
-    evaluations, theta, fitter = input_check_model(models, theta, None, N)
+    models, evaluations, theta, fitter = \
+        input_check_model(models, theta, None, N)
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
@@ -290,7 +292,7 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
         numpy.ndarray: vector of evaluations
 
     """
-    evaluations, theta, _ = input_check_model(models, theta, None, N)
+    models, evaluations, theta, _ = input_check_model(models, theta, None, N)
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
@@ -377,7 +379,8 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
                                               value=test[1])
                 evals = np.mean(compare(pred, test[0], method))
             elif isinstance(models, Iterable):
-                evals, _, fitter = input_check_model(models, None, fitter)
+                models, evals, _, fitter = \
+                    input_check_model(models, None, fitter)
                 for j in range(len(models)):
                     theta = fitter[j](models[j], train[0], method=method,
                                       pattern_idx=train[1],

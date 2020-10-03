@@ -14,7 +14,7 @@ from .rdm_utils import batch_to_matrices
 from collections.abc import Iterable
 
 
-def input_check_model(model, theta=None, fitter=None, N=1):
+def input_check_model(models, theta=None, fitter=None, N=1):
     """ Checks whether model related inputs to evaluations are valid and
     generates an evaluation-matrix of fitting size.
 
@@ -38,34 +38,33 @@ def input_check_model(model, theta=None, fitter=None, N=1):
             checked and processed fitter functions
 
     """
-    if isinstance(model, Model):
-        evaluations = np.zeros(N)
-    elif isinstance(model, Iterable):
-        if N > 1:
-            evaluations = np.zeros((N, len(model)))
-        else:
-            evaluations = np.zeros(len(model))
-        if theta is not None:
-            assert isinstance(theta, Iterable), 'If a list of models is' \
-                + ' passed theta must be a list of parameters'
-            assert len(model) == len(theta), 'there should equally many' \
-                + ' models as parameters'
-        else:
-            theta = [None] * len(model)
-        if fitter is None:
-            fitter = [None] * len(model)
-        elif isinstance(fitter, Iterable):
-            assert len(fitter) == len(model), 'if fitters are passed ' \
-                + 'there should be as many as models'
-        else:
-            fitter = [fitter] * len(model)
-        for k in range(len(model)):
-            if fitter[k] is None:
-                fitter[k] = model[k].default_fitter
-    else:
+    if isinstance(models, Model):
+        models = [models]
+    elif not isinstance(models, Iterable):
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
-    return evaluations, theta, fitter
+    if N > 1:
+        evaluations = np.zeros((N, len(models)))
+    else:
+        evaluations = np.zeros(len(models))
+    if theta is not None:
+        assert isinstance(theta, Iterable), 'If a list of models is' \
+            + ' passed theta must be a list of parameters'
+        assert len(models) == len(theta), 'there should equally many' \
+            + ' models as parameters'
+    else:
+        theta = [None] * len(models)
+    if fitter is None:
+        fitter = [None] * len(models)
+    elif isinstance(fitter, Iterable):
+        assert len(fitter) == len(models), 'if fitters are passed ' \
+            + 'there should be as many as models'
+    else:
+        fitter = [fitter] * len(models)
+    for k in range(len(models)):
+        if fitter[k] is None:
+            fitter[k] = models[k].default_fitter
+    return models, evaluations, theta, fitter
 
 
 def pool_rdm(rdms, method='cosine'):
