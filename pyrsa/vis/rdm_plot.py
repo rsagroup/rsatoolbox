@@ -22,7 +22,7 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
         whether we should do a rank transform before plotting
     pattern_descriptor : String
         name of a pattern descriptor which will be used as an axis label
-    pattern_descriptor : String
+    rdm_descriptor : String
         name of a rdm descriptor which will be used as a title per RDM
     cmap : color map
         colormap or identifier for a colormap to be used
