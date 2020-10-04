@@ -52,6 +52,8 @@ def get_node_position(index, num_models):
     """
     family_bounds = []
     num_members_at_level = []
+    index = index+2
+
     for i in range(num_models+1):
         if i == 0:
             family_bounds.append(ncr(num_models, i))
@@ -62,7 +64,8 @@ def get_node_position(index, num_models):
     x_range = np.linspace(-num_members_at_level[y]//2, num_members_at_level[y]//2\
                           , num=num_members_at_level[y])
     x = x_range[index-family_bounds[y]-1]
-    return x, y
+    pos = x,y
+    return pos
 
 def show_family_graph(model_family, results, node_property="color"):
     """visualizes the model family results in a graph
@@ -86,15 +89,23 @@ def show_family_graph(model_family, results, node_property="color"):
     pos = {}
     node_sizes = []
     node_colors = []
+    num_models = len(model_family.models)
+
+    #some plotting utility numbers
+    min_node_area = 10
+    min_edge_width = 0.05
+    node_area_multiplier = 1000
+    edge_width_multiiplier = 4
+
+    num_family_members = len(model_family.family_list)
     for index, family_member_id in enumerate(model_family.family_list):
         node_id = ''.join(map(str, family_member_id))
-        node_area = 10 + 1000*(scores_model_family[index]/scores_model_family.max())
+        node_area = min_node_area + node_area_multiplier*(scores_model_family[index]/scores_model_family.max())
         node_color = scores_model_family[index]
         node_sizes.append(node_area)
         node_colors.append(node_color)
         G.add_node(node_id)
-        x,y = get_node_position(index+2, len(model_family.models), len(model_family.family_list))
-        pos[node_id] = x, y
+        pos[node_id] = get_node_position(index, num_models)
 
     for fi1, family_member_id1 in enumerate(model_family.family_list):
         id1 = ''.join(map(str, family_member_id1))
@@ -104,12 +115,11 @@ def show_family_graph(model_family, results, node_property="color"):
                 len(family_member_id1) == len(family_member_id2)+1:
                 diff = scores_model_family[fi1]-scores_model_family[fi2]
                 weight = abs(diff/(scores_model_family.max()-scores_model_family.min()))
+                color = 'gray'
                 if diff > 0:
-                    color = 'gray'
-                    G.add_edge(id2, id1, weight=0.05+4*weight, color=color)
+                    G.add_edge(id2, id1, weight=min_edge_width+edge_width_multiiplier*weight, color=color)
                 else:
-                    color = 'gray'
-                    G.add_edge(id1, id2, weight=0.05+4*weight, color=color)
+                    G.add_edge(id1, id2, weight=min_edge_width+edge_width_multiiplier*weight, color=color)
 
     edges = G.edges()
     colors = [G[u][v]['color'] for u, v in edges]
