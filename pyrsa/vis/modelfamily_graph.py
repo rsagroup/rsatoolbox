@@ -97,7 +97,6 @@ def show_family_graph(model_family, results, node_property="color"):
     node_area_multiplier = 1000
     edge_width_multiiplier = 4
 
-    num_family_members = len(model_family.family_list)
     for index, family_member_id in enumerate(model_family.family_list):
         node_id = ''.join(map(str, family_member_id))
         node_area = min_node_area + node_area_multiplier*(scores_model_family[index]/scores_model_family.max())
