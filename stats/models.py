@@ -8,7 +8,7 @@ Created on Fri May 15 07:57:55 2020
 
 import numpy as np
 import tqdm
-from . import nn_simulations as dnn
+import nn_simulations as dnn
 import pyrsa
 
 

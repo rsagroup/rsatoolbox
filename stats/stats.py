@@ -15,16 +15,16 @@ import pandas as pd
 import sys
 import glob
 import pyrsa
-from . import nn_simulations as dnn
-from .hrf import spm_hrf
-from .helpers import get_fname_base
-from .helpers import get_resname
-from .helpers import get_stimuli_ecoset
-from .helpers import run_inference
-from .helpers import parse_fmri
-from .helpers import parse_pars
-from .helpers import parse_results
-from .models import get_models
+import nn_simulations as dnn
+from hrf import spm_hrf
+from helpers import get_fname_base
+from helpers import get_resname
+from helpers import get_stimuli_ecoset
+from helpers import run_inference
+from helpers import parse_fmri
+from helpers import parse_pars
+from helpers import parse_results
+from models import get_models
 
 
 def estimate_betas(design, timecourse, hrf=None, resolution=2):
