@@ -803,7 +803,7 @@ def check_eco(simulation_folder='sim_eco', N=100):
 def fix_eco(
         simulation_folder='sim_eco', n_sim=100,
         duration=1, pause=1, endzeros=25, resolution=2,
-        sigma_noise=5, ar_coeff=0.5, ecoset_path='~/ecoset/val/',
+        sigma_noise=1, ar_coeff=0.5, ecoset_path='~/ecoset/val/',
         model_type='fixed_average',
         rdm_comparison='corr', n_layer=12, k_pattern=None,
         k_rdm=None, rdm_type='crossnobis',
