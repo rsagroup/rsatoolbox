@@ -35,4 +35,4 @@ def average_dataset_by(dataset, by):
     descriptor = [d.obs_descriptors[by][0] for d in datasets]
     average = [average_dataset(d) for d in datasets]
     n_obs = [d.n_obs for d in datasets]
-    return np.array(average), descriptor, n_obs
+    return np.array(average), np.array(descriptor), np.array(n_obs)
