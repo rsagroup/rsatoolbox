@@ -351,7 +351,7 @@ class RDMs:
         matrices = matrices[(slice(None),) + np.ix_(new_order, new_order)]
         self.dissimilarities = batch_to_vectors(matrices)[0]
         for dname, descriptors in self.pattern_descriptors.items():
-            self.pattern_descriptors[dname] = descriptors[new_order]
+            self.pattern_descriptors[dname] = [descriptors[idx] for idx in new_order]
 
     def sort_by(self, **kwargs):
         """Reorder the patterns by sorting a descriptor
