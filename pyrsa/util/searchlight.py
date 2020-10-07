@@ -92,7 +92,7 @@ def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, event
 
     Args:
         data_raveled (2D numpy array): brain data, shape n_observations x n_channels (i.e. voxels/vertices)
-        centers_raveled (1D numpy array): center indices for all searchlights as provided 
+        centers_raveled (2D numpy array): center indices for all searchlights as provided 
                                         by pyrsa.util.searchlight.get_volume_searchlight
         neighbors_raveled (list): list of lists with neighbor voxel indices for all searchlights 
                                         as provided by pyrsa.util.searchlight.get_volume_searchlight
@@ -111,9 +111,6 @@ def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, event
     chunked_center = np.split(np.arange(n_centers),
                               np.linspace(0, n_centers,
                               101, dtype=int)[1:-1])
-    
-    if verbose:
-        print(f'\nDivided data into {len(chunked_center)} chunks!\n')
     
     # loop over chunks
     n_conds = len(np.unique(events))
@@ -152,7 +149,7 @@ def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', n_
         n_jobs (int, optional): how many jobs to run. Defaults to 1.
 
     Returns:
-        [list]: list of with the model evaluate for each searchlight center
+        [list]: list of with the model evaluation for each searchlight center
     """
 
     results = Parallel(n_jobs=n_jobs)(
