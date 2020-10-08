@@ -81,20 +81,20 @@ def get_volume_searchlight(mask, radius=2, threshold=1.0):
     print(f'Found {len(good_neighbors)} searchlights')
 
     # turn the 3-dim coordinates to array coordinates
-    centers_raveled = np.ravel_multi_index(good_centers.T, mask.shape)
-    neighbors_raveled = [np.ravel_multi_index(n, mask.shape) for n in good_neighbors]
+    centers = np.ravel_multi_index(good_centers.T, mask.shape)
+    neighbors = [np.ravel_multi_index(n, mask.shape) for n in good_neighbors]
 
-    return centers_raveled, neighbors_raveled
+    return centers, neighbors
 
-def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, events,
+def get_searchlight_RDMs(data_2d, centers, neighbors, events,
                         method='correlation', verbose=True):
     """Iterates over all the searchlight centers and calculates the RDM 
 
     Args:
-        data_raveled (2D numpy array): brain data, shape n_observations x n_channels (i.e. voxels/vertices)
-        centers_raveled (2D numpy array): center indices for all searchlights as provided 
+        data_2d (2D numpy array): brain data, shape n_observations x n_channels (i.e. voxels/vertices)
+        centers (2D numpy array): center indices for all searchlights as provided 
                                         by pyrsa.util.searchlight.get_volume_searchlight
-        neighbors_raveled (list): list of lists with neighbor voxel indices for all searchlights 
+        neighbors (list): list of lists with neighbor voxel indices for all searchlights 
                                         as provided by pyrsa.util.searchlight.get_volume_searchlight
         events (1D numpy array): 1D array of length n_observations
         method (str, optional): distance metric, see pyrsa.rdm.calc for options. Defaults to 'correlation'.
@@ -107,7 +107,7 @@ def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, event
 
     # we can't run all centers at once, that will take too much memory
     # so lets to some chunking
-    n_centers = centers_raveled.shape[0]
+    n_centers = centers.shape[0]
     chunked_center = np.split(np.arange(n_centers),
                               np.linspace(0, n_centers,
                               101, dtype=int)[1:-1])
@@ -118,10 +118,10 @@ def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, event
     for chunk in tqdm(chunked_center, desc='Calculating RDMs...'):
         center_data = []
         for c in chunk:
-            center = centers_raveled[c]
-            nb = neighbors_raveled[c]
+            center = centers[c]
+            nb = neighbors[c]
 
-            ds = Dataset(data_raveled[:, nb],
+            ds = Dataset(data_2d[:, nb],
                         descriptors={'center': c},
                         obs_descriptors={'events':events},
                         channel_descriptors={'voxels': nb})
@@ -133,12 +133,12 @@ def get_searchlight_RDMs(data_raveled, centers_raveled, neighbors_raveled, event
 
 
     SL_rdms = RDMs(RDM,
-                      rdm_descriptors={'voxel_index':centers_raveled},
+                      rdm_descriptors={'voxel_index':centers},
                       dissimilarity_measure=method)
 
     return SL_rdms
 
-def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', n_jobs=1):
+def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', theta=None, n_jobs=1):
     """evaluates each searchlighth with the given model/models
 
     Args:
@@ -154,6 +154,6 @@ def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', n_
 
     results = Parallel(n_jobs=n_jobs)(
                     delayed(eval_function)(
-                        models, x) for x in tqdm(sl_RDM, desc='Evaluating models for each searchlight'))
+                        models, x, method=method, theta=theta) for x in tqdm(sl_RDM, desc='Evaluating models for each searchlight'))
 
     return results
