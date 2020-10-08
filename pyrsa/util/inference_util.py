@@ -5,7 +5,7 @@ Inference module utilities
 """
 
 import numpy as np
-from scipy.stats import rankdata
+from scipy.stats import rankdata, ranksums
 from pyrsa.model import Model
 from pyrsa.rdm import RDMs
 from collections.abc import Iterable
@@ -158,6 +158,23 @@ def _nan_rank_data(rdm_vector):
     return ranks
 
 
+def ranksum_test(evaluations):
+    """pairwise tests between models using the ranksums test from scipy
+
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be compared
+
+    Returns:
+        numpy.ndarray: matrix of proportions of opposit conclusions, i.e.
+            p-values for the test
+
+    """
+    pvalues = None
+    return pvalues
+
+
 def pair_tests(evaluations):
     """pairwise bootstrapping significance tests for a difference in model
     performance.
@@ -166,11 +183,11 @@ def pair_tests(evaluations):
 
     Args:
         evaluations (numpy.ndarray):
-            RDMs to be pooled
+            model evaluations to be compared
 
     Returns:
         numpy.ndarray: matrix of proportions of opposit conclusions, i.e.
-        p-values for the bootstrap test
+            p-values for the bootstrap test
     """
     proportions = np.zeros((evaluations.shape[1], evaluations.shape[1]))
     while len(evaluations.shape) > 2:
@@ -184,6 +201,6 @@ def pair_tests(evaluations):
             proportions[j_model, i_model] = proportions[i_model, j_model]
     proportions = np.minimum(proportions, 1 - proportions) * 2
     proportions = (len(evaluations) - 1) / len(evaluations) * proportions \
-         + 1 / len(evaluations)
+        + 1 / len(evaluations)
     np.fill_diagonal(proportions, 1)
     return proportions
