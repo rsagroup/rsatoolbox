@@ -92,7 +92,7 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
 
     Args:
         data_2d (2D numpy array): brain data, shape n_observations x n_channels (i.e. voxels/vertices)
-        centers (2D numpy array): center indices for all searchlights as provided 
+        centers (1D numpy array): center indices for all searchlights as provided 
                                         by pyrsa.util.searchlight.get_volume_searchlight
         neighbors (list): list of lists with neighbor voxel indices for all searchlights 
                                         as provided by pyrsa.util.searchlight.get_volume_searchlight
@@ -105,30 +105,49 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
                               describes the center voxel index each RDM is associated with
     """
 
-    # we can't run all centers at once, that will take too much memory
-    # so lets to some chunking
+    data_2d, centers = np.array(data_2d), np.array(centers)
     n_centers = centers.shape[0]
-    chunked_center = np.split(np.arange(n_centers),
-                              np.linspace(0, n_centers,
-                              101, dtype=int)[1:-1])
-    
-    # loop over chunks
-    n_conds = len(np.unique(events))
-    RDM = np.zeros((n_centers, n_conds * (n_conds-1) // 2))
-    for chunk in tqdm(chunked_center, desc='Calculating RDMs...'):
+
+    # For memory reasons, we chunk the data if we have more than 1000 RDMs
+    if n_centers > 1000:
+        # we can't run all centers at once, that will take too much memory
+        # so lets to some chunking
+        chunked_center = np.split(np.arange(n_centers),
+                                np.linspace(0, n_centers,
+                                101, dtype=int)[1:-1])
+        
+        # loop over chunks
+        n_conds = len(np.unique(events))
+        RDM = np.zeros((n_centers, n_conds * (n_conds-1) // 2))
+        for chunk in tqdm(chunked_center, desc='Calculating RDMs...'):
+            center_data = []
+            for c in chunk:
+                # grab this center and neighbors
+                center = centers[c]
+                nb = neighbors[c]
+                # create a database object with this data
+                ds = Dataset(data_2d[:, nb],
+                            descriptors={'center': c},
+                            obs_descriptors={'events':events},
+                            channel_descriptors={'voxels': nb})
+                center_data.append(ds)
+
+            RDM_corr = calc_rdm(center_data, method=method, descriptor='events')
+        RDM[chunk, :] = RDM_corr.dissimilarities
+    else:
         center_data = []
-        for c in chunk:
+        for c in range(n_centers):
+            # grab this center and neighbors
             center = centers[c]
             nb = neighbors[c]
-
+            # create a database object with this data
             ds = Dataset(data_2d[:, nb],
                         descriptors={'center': c},
                         obs_descriptors={'events':events},
                         channel_descriptors={'voxels': nb})
             center_data.append(ds)
-
-        RDM_corr = calc_rdm(center_data, method=method, descriptor='events')
-        RDM[chunk, :] = RDM_corr.dissimilarities
+        # calculate RDMs for each database object
+        RDM = calc_rdm(center_data, method=method, descriptor='events').dissimilarities
     
 
 
