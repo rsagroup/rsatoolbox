@@ -5,13 +5,16 @@ Inference module utilities
 """
 
 import numpy as np
+import scipy.stats as stats
 from scipy.stats import rankdata, ranksums
 from pyrsa.model import Model
 from pyrsa.rdm import RDMs
+from .matrix import pairwise_contrast
+from .rdm_utils import batch_to_matrices
 from collections.abc import Iterable
 
 
-def input_check_model(model, theta=None, fitter=None, N=1):
+def input_check_model(models, theta=None, fitter=None, N=1):
     """ Checks whether model related inputs to evaluations are valid and
     generates an evaluation-matrix of fitting size.
 
@@ -35,35 +38,36 @@ def input_check_model(model, theta=None, fitter=None, N=1):
             checked and processed fitter functions
 
     """
-    if isinstance(model, Model):
-        evaluations = np.zeros(N)
-    elif isinstance(model, Iterable):
-        if N > 1:
-            evaluations = np.zeros((N, len(model)))
-        else:
-            evaluations = np.zeros(len(model))
-        if theta is not None:
-            assert isinstance(theta, Iterable), 'If a list of models is' \
-                + ' passed theta must be a list of parameters'
-            assert len(model) == len(theta), 'there should equally many' \
-                + ' models as parameters'
-        else:
-            theta = [None] * len(model)
-        if fitter is None:
-            fitter = [None] * len(model)
-        else:
-            assert len(fitter) == len(model), 'if fitters are passed ' \
-                + 'there should be as many as models'
-        for k in range(len(model)):
-            if fitter[k] is None:
-                fitter[k] = model[k].default_fitter
-    else:
+    if isinstance(models, Model):
+        models = [models]
+    elif not isinstance(models, Iterable):
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
-    return evaluations, theta, fitter
+    if N > 1:
+        evaluations = np.zeros((N, len(models)))
+    else:
+        evaluations = np.zeros(len(models))
+    if theta is not None:
+        assert isinstance(theta, Iterable), 'If a list of models is' \
+            + ' passed theta must be a list of parameters'
+        assert len(models) == len(theta), 'there should equally many' \
+            + ' models as parameters'
+    else:
+        theta = [None] * len(models)
+    if fitter is None:
+        fitter = [None] * len(models)
+    elif isinstance(fitter, Iterable):
+        assert len(fitter) == len(models), 'if fitters are passed ' \
+            + 'there should be as many as models'
+    else:
+        fitter = [fitter] * len(models)
+    for k, model in enumerate(models):
+        if fitter[k] is None:
+            fitter[k] = model.default_fitter
+    return models, evaluations, theta, fitter
 
 
-def pool_rdm(rdms, method='cosine', sigma_k=None):
+def pool_rdm(rdms, method='cosine'):
     """pools multiple RDMs into the one with maximal performance under a given
     evaluation metric
     rdm_descriptors of the generated rdms are empty
@@ -204,3 +208,176 @@ def pair_tests(evaluations):
         + 1 / len(evaluations)
     np.fill_diagonal(proportions, 1)
     return proportions
+
+
+def t_tests(evaluations, variances, dof=1):
+    """pairwise t_test based significant tests for a difference in model
+    performance
+
+    Take special care here preparing variances! This should be the covariance
+    matrix for the model evaluations.
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be tested, typically from a results object
+        variances (numpy.ndarray):
+            vector of model evaluation variances
+            or covariance matrix of the model evaluations
+        dof (integer):
+            degrees of freedom used for the test (default=1)
+            this input is overwritten if no variances are passed
+
+    Returns:
+        numpy.ndarray: matrix of proportions of opposit conclusions, i.e.
+        p-values for the bootstrap test
+
+    """
+    if variances is None:
+        raise ValueError('No variance estimates provided for t_test!')
+    n_model = evaluations.shape[1]
+    evaluations = np.mean(evaluations, 0)
+    if len(variances.shape) == 1:
+        variances = np.diag(variances)
+    while evaluations.ndim > 1:
+        evaluations = np.mean(evaluations, axis=-1)
+    C = pairwise_contrast(np.arange(n_model))
+    diffs = C @ evaluations
+    var = np.diag(C @ variances @ C.T)
+    t = diffs / np.sqrt(var)
+    t = batch_to_matrices(np.array([t]))[0][0]
+    p = 2 * (1 - stats.t.cdf(np.abs(t), dof))
+    return p
+
+
+def t_test_0(evaluations, variances, dof=1):
+    """
+    t-tests against 0 performance.
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be tested, typically from a results object
+        variances (numpy.ndarray):
+            vector of model evaluation variances
+            or covariance matrix of the model evaluations
+        dof (integer):
+            degrees of freedom used for the test (default=1)
+            this input is overwritten if no variances are passed
+
+    Returns:
+        numpy.ndarray: p-values for the raw t-test of each model against 0.
+
+    """
+    if variances is None:
+        raise ValueError('No variance estimates provided for t_test!')
+    evaluations = np.mean(evaluations, 0)
+    if len(variances.shape) == 1:
+        variances = np.diag(variances)
+    while evaluations.ndim > 1:
+        evaluations = np.mean(evaluations, axis=-1)
+    var = np.diag(variances)
+    t = evaluations / np.sqrt(var)
+    p = 1 - stats.t.cdf(t, dof)
+    return p
+
+
+def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
+    """
+    t-tests against lower noise_ceiling.
+    Technically this can be used to test evaluations against any fixed
+    number.
+
+    If noise_ceil_var is the covariance matrix of the model evaluations
+    and the noise ceilings a normal t-test is performed.
+    If noise_ceil_var is a single number or vector an indpendent t-test is
+    performed
+    If noise_ceil_var is None the noise_ceiling is treated as a fixed number
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be tested, typically from a results object
+        variances (numpy.ndarray):
+            vector of model evaluation variances
+            or covariance matrix of the model evaluations
+            defaults to taking the variance over the third dimension
+            of evaluations and setting dof based on the length of this
+            dimension.
+        noise_ceil (float):
+            the average noise ceiling to test against.
+        noise_ceil_var (numpy.ndarray):
+            variance or covariance of the noise ceiling
+        dof (integer):
+            degrees of freedom used for the test (default=1)
+            this input is overwritten if no variances are passed
+
+    Returns:
+        numpy.ndarray: p-values for the raw t-test of each model against
+        the noise ceiling.
+
+    """
+    if variances is None:
+        raise ValueError('No variance estimates provided for t_test!')
+    if noise_ceil_var is not None:
+        noise_ceil_var = np.array(noise_ceil_var)
+        while noise_ceil_var.ndim > 1:
+            noise_ceil_var = noise_ceil_var[:, 0]
+    evaluations = np.mean(evaluations, 0)
+    if len(variances.shape) == 1:
+        variances = np.diag(variances)
+    while evaluations.ndim > 1:
+        evaluations = np.mean(evaluations, axis=-1)
+    var = np.diag(variances)
+    p = np.empty(len(evaluations))
+    for i, eval_i in enumerate(evaluations):
+        if noise_ceil_var is None:
+            var_i = var[i]
+        elif (isinstance(noise_ceil_var, np.ndarray)
+              and noise_ceil_var.size > 1):
+            var_i = var[i] - 2 * noise_ceil_var[i] + noise_ceil_var[-1]
+        else:  # hope that noise_ceil_var is a scalar
+            var_i = var[i] + noise_ceil_var
+        t = (eval_i - noise_ceil) / np.sqrt(var_i)
+        p[i] = 2 * (1 - stats.t.cdf(np.abs(t), dof))
+    return p
+
+
+def default_k_pattern(n_pattern):
+    """ the default number of pattern divisions for crossvalidation
+    minimum number of patterns is 3*k_pattern. Thus for n_pattern <=9 this
+    returns 2. From there it grows gradually until 5 groups are made for 40
+    patterns. From this point onwards the number of groups is kept at 5.
+
+    bootstrapped crossvalidation also uses this function to set k, but scales
+    n_rdm to the expected proportion of samples retained when bootstrapping
+    (1-np.exp(-1))
+    """
+    if n_pattern < 12:
+        k_pattern = 2
+    elif n_pattern < 24:
+        k_pattern = 3
+    elif n_pattern < 40:
+        k_pattern = 4
+    else:
+        k_pattern = 5
+    return k_pattern
+
+
+def default_k_rdm(n_rdm):
+    """ the default number of rdm groupsfor crossvalidation
+    minimum number of subjects is k_rdm. We switch to more groups whenever
+    the groups all contain more rdms, e.g. we make 3 groups of 2 instead of
+    2 groups of 3. We follow this scheme until we reach 5 groups of 4.
+    From there on this function returns 5 groups forever.
+
+    bootstrapped crossvalidation also uses this function to set k, but scales
+    n_rdm to the expected proportion of samples retained when bootstrapping
+    (1-np.exp(-1))
+    """
+    if n_rdm < 6:
+        k_rdm = 2
+    elif n_rdm < 12:
+        k_rdm = 3
+    elif n_rdm < 20:
+        k_rdm = 4
+    else:
+        k_rdm = 5
+    return k_rdm

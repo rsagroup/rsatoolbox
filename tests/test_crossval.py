@@ -13,21 +13,29 @@ class TestCrossval(unittest.TestCase):
     """ crossvalidation tests
     """
 
-    def test_crossval(self):
-        from pyrsa.inference import crossval
+    def setUp(self):
         from pyrsa.rdm import RDMs
         from pyrsa.model import ModelFixed
-        dis = np.random.rand(11, 10)  # 11 5x5 rdms
+        dis = np.random.rand(11, 190)  # 11 20x20 rdms
         mes = "Euclidean"
         des = {'subj': 0}
         rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7, 7, 7, 7])}
-        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4, 5, 5, 5, 6, 7,
+                                         10, 11, 12, 12, 14, 15, 15, 15,
+                                         16, 17])}
         rdms = RDMs(dissimilarities=dis,
                     rdm_descriptors=rdm_des,
                     pattern_descriptors=pattern_des,
                     dissimilarity_measure=mes,
                     descriptors=des)
         m = ModelFixed('test', rdms[0])
+        self.rdms = rdms
+        self.m = m
+
+    def test_crossval(self):
+        from pyrsa.inference import crossval
+        rdms = self.rdms
+        m = self.m
         train_set = [(rdms.subset_pattern('type', [0, 1]), np.array([0, 1])),
                      (rdms.subset_pattern('type', [0, 4]), np.array([0, 4])),
                      ]
@@ -40,40 +48,61 @@ class TestCrossval(unittest.TestCase):
         crossval(m, rdms, train_set, test_set, ceil_set,
                  pattern_descriptor='type')
 
+    def test_eval_fancy(self):
+        from pyrsa.inference import eval_fancy
+        eval_fancy(self.m, self.rdms, N=10, k_rdm=2, k_pattern=2,
+                   pattern_descriptor='type',
+                   rdm_descriptor='session')
+
     def test_bootstrap_crossval(self):
         from pyrsa.inference import bootstrap_crossval
         from pyrsa.rdm import RDMs
         from pyrsa.model import ModelFixed
-        dis = np.random.rand(11, 45)  # 11 10x10 rdms
+        dis = np.random.rand(11, 190)  # 11 10x10 rdms
         mes = "Euclidean"
         des = {'subj': 0}
         rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7, 7, 7, 7])}
-        pattern_des = {'type': np.array([0, 1, 2, 2, 4, 5, 5, 5, 6, 7])}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4, 5, 5, 5, 6, 7,
+                                         10, 11, 12, 12, 14, 15, 15, 15,
+                                         16, 17])}
         rdms = RDMs(dissimilarities=dis,
                     rdm_descriptors=rdm_des,
                     pattern_descriptors=pattern_des,
                     dissimilarity_measure=mes,
                     descriptors=des)
         m = ModelFixed('test', rdms[0])
-        res = bootstrap_crossval(m, rdms, N=10, k_rdm=2, k_pattern=2,
-                                 pattern_descriptor='type',
-                                 rdm_descriptor='session')
+        bootstrap_crossval(m, rdms, N=10, k_rdm=2, k_pattern=2,
+                           pattern_descriptor='type',
+                           rdm_descriptor='session')
+
+    def test_bootstrap_crossval_pattern(self):
+        from pyrsa.inference import bootstrap_crossval
+        rdms = self.rdms
+        m = self.m
+        bootstrap_crossval(m, rdms, N=10, k_rdm=2, k_pattern=2,
+                           pattern_descriptor='type',
+                           rdm_descriptor='session',
+                           boot_type='pattern')
+        bootstrap_crossval(m, rdms, N=10, k_rdm=2, k_pattern=2,
+                           pattern_descriptor='type',
+                           boot_type='pattern')
+
+    def test_bootstrap_crossval_rdm(self):
+        from pyrsa.inference import bootstrap_crossval
+        rdms = self.rdms
+        m = self.m
+        bootstrap_crossval(m, rdms, N=10, k_rdm=2, k_pattern=2,
+                           pattern_descriptor='type',
+                           rdm_descriptor='session',
+                           boot_type='rdm')
+        bootstrap_crossval(m, rdms, N=10, k_rdm=2, k_pattern=2,
+                           rdm_descriptor='session',
+                           boot_type='rdm')
 
     def test_bootstrap_crossval_k1(self):
         from pyrsa.inference import bootstrap_crossval
-        from pyrsa.rdm import RDMs
-        from pyrsa.model import ModelFixed
-        dis = np.random.rand(11, 45)  # 11 10x10 rdms
-        mes = "Euclidean"
-        des = {'subj': 0}
-        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7, 7, 7, 7])}
-        pattern_des = {'type': np.array([0, 1, 2, 2, 4, 5, 5, 5, 6, 7])}
-        rdms = RDMs(dissimilarities=dis,
-                    rdm_descriptors=rdm_des,
-                    pattern_descriptors=pattern_des,
-                    dissimilarity_measure=mes,
-                    descriptors=des)
-        m = ModelFixed('test', rdms[0])
+        rdms = self.rdms
+        m = self.m
         bootstrap_crossval(m, rdms, N=10, k_rdm=1, k_pattern=2,
                            pattern_descriptor='type',
                            rdm_descriptor='session')
@@ -83,18 +112,8 @@ class TestCrossval(unittest.TestCase):
 
     def test_bootstrap_crossval_list(self):
         from pyrsa.inference import bootstrap_crossval
-        from pyrsa.rdm import RDMs
         from pyrsa.model import ModelFixed
-        dis = np.random.rand(11, 45)  # 11 10x10 rdms
-        mes = "Euclidean"
-        des = {'subj': 0}
-        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7, 7, 7, 7])}
-        pattern_des = {'type': np.array([0, 1, 2, 2, 4, 5, 5, 5, 6, 7])}
-        rdms = RDMs(dissimilarities=dis,
-                    rdm_descriptors=rdm_des,
-                    pattern_descriptors=pattern_des,
-                    dissimilarity_measure=mes,
-                    descriptors=des)
+        rdms = self.rdms
         m = ModelFixed('test', rdms[0])
         m2 = ModelFixed('test2', rdms[1])
         bootstrap_crossval([m, m2], rdms, N=10, k_rdm=2, k_pattern=2,
