@@ -1,12 +1,10 @@
-    """
-        searchlight tests
-        @author: Daniel Lindh
-    """
-
-
+"""
+    searchlight tests
+    @author: Daniel Lindh
+"""
+#pylint: disable=import-outside-toplevel, no-self-use
 import unittest
 import numpy as np
-from parameterized import parameterized
 
 
 class TestSearchlight(unittest.TestCase):
@@ -21,7 +19,8 @@ class TestSearchlight(unittest.TestCase):
         neighbors = _get_searchlight_neighbors(mask, center, radius=radius)
 
         assert np.array(neighbors).shape  == (3, 27)
-        assert np.mean(mask[tuple(neighbors)])  == 10/27
+        assert np.mean(mask[tuple(neighbors)]) == 10/27
+
     def test_get_volume_searchlight(self):
         from pyrsa.util.searchlight import get_volume_searchlight
 
@@ -42,7 +41,7 @@ class TestSearchlight(unittest.TestCase):
         assert len(centers) == 7
         assert len(neighbors) == 7
 
-    def test_get_volume_searchlight(self):
+    def test_get_searchlight_RDMs(self):
         from pyrsa.util.searchlight import get_searchlight_RDMs
 
         n_observations = 5
@@ -55,9 +54,3 @@ class TestSearchlight(unittest.TestCase):
         sl_RDMs = get_searchlight_RDMs(data_2d, centers, neighbors, events)
 
         assert sl_RDMs.dissimilarities.shape == (2, 10)
-
-
-
-
-
-
