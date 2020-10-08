@@ -1,3 +1,9 @@
+"""
+Author: Daniel Lindh
+
+This code was initially inspired by the following :
+https://github.com/machow/pysearchlight
+"""
 import numpy as np
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
@@ -6,21 +12,14 @@ from pyrsa.data.dataset import Dataset
 from pyrsa.rdm.calc import calc_rdm
 from pyrsa.rdm import RDMs
 
-"""
-Author: Daniel Lindh
-
-This code was initially inspired by the following :
-https://github.com/machow/pysearchlight
-"""
-
 
 def _get_searchlight_neighbors(mask, center, radius=3):
     """Return indices for searchlight where distance 
         between a voxel and their center < radius (in voxels)
-    
+
     Args:
         center (index):  point around which to make searchlight sphere
-    
+
     Returns:
         list: the list of volume indices that respect the 
                 searchlight radius for the input center.  
@@ -44,6 +43,7 @@ def _get_searchlight_neighbors(mask, center, radius=3):
     distance = cdist(data, center.reshape(1, -1), 'euclidean').ravel()
 
     return tuple(data[distance < radius].T.tolist())
+
 
 def get_volume_searchlight(mask, radius=2, threshold=1.0):
     """Searches through the non-zero voxels of the mask, selects centers where 
@@ -86,8 +86,9 @@ def get_volume_searchlight(mask, radius=2, threshold=1.0):
 
     return centers, neighbors
 
+
 def get_searchlight_RDMs(data_2d, centers, neighbors, events,
-                        method='correlation', verbose=True):
+        method='correlation', verbose=True):
     """Iterates over all the searchlight centers and calculates the RDM 
 
     Args:
@@ -148,14 +149,13 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
             center_data.append(ds)
         # calculate RDMs for each database object
         RDM = calc_rdm(center_data, method=method, descriptor='events').dissimilarities
-    
-
 
     SL_rdms = RDMs(RDM,
                       rdm_descriptors={'voxel_index':centers},
                       dissimilarity_measure=method)
 
     return SL_rdms
+
 
 def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', theta=None, n_jobs=1):
     """evaluates each searchlighth with the given model/models
