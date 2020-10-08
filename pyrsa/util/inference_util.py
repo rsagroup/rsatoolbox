@@ -169,13 +169,26 @@ def ranksum_test(evaluations):
     Args:
         evaluations (numpy.ndarray):
             model evaluations to be compared
+            (at least 3D: bootstrap x models x subjects or repeats)
 
     Returns:
         numpy.ndarray: matrix of proportions of opposit conclusions, i.e.
             p-values for the test
 
     """
-    pvalues = None
+    # check that the dimensionality is correct
+    assert evaluations.ndim == 3, \
+        'provided evaluations array has wrong dimensionality'
+    n_model = evaluations.shape[1]
+    # ignore bootstraps
+    evaluations = np.nanmean(evaluations, 0)
+    pvalues = np.empty((n_model, n_model))
+    for i_model in range(n_model - 1):
+        for j_model in range(i_model + 1, n_model):
+            pvalues[i_model, j_model] = ranksums(
+                evaluations[i_model], evaluations[j_model]).pvalue
+            pvalues[j_model, i_model] = pvalues[i_model, j_model]
+    np.fill_diagonal(pvalues, 1)
     return pvalues
 
 
