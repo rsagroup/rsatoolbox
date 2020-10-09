@@ -373,3 +373,21 @@ class TestsPairTests(unittest.TestCase):
                        noise_ceil_var=noise_ceil_var)
         assert np.all(ps <= 1)
         assert np.all(ps >= 0)
+
+    def test_ranksum_test(self):
+        from pyrsa.util.inference_util import ranksum_test
+        ps = ranksum_test(self.evaluations)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+
+    def test_sign_test_0(self):
+        from pyrsa.util.inference_util import sign_test
+        ps = sign_test(self.evaluations)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+
+    def test_sign_test_value(self):
+        from pyrsa.util.inference_util import sign_test
+        ps = sign_test(self.evaluations, 0.3)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)

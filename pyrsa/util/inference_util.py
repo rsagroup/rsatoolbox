@@ -216,7 +216,7 @@ def sign_test(evaluations, comp_value=0):
     pvalues = np.empty(n_model)
     for i_model in range(n_model):
         pvalues[i_model] = wilcoxon(
-                evaluations[i_model] - comp_value).pvalue
+            evaluations[i_model] - comp_value).pvalue
     return pvalues
 
 
