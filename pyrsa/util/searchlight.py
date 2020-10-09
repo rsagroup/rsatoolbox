@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+This code was initially inspired by the following :
+https://github.com/machow/pysearchlight
+
+@author: Daniel Lindh
+"""
 import numpy as np
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
@@ -5,13 +13,6 @@ from joblib import Parallel, delayed
 from pyrsa.data.dataset import Dataset
 from pyrsa.rdm.calc import calc_rdm
 from pyrsa.rdm import RDMs
-
-"""
-@author: Daniel Lindh
-This code was initially inspired by the following :
-https://github.com/machow/pysearchlight
-"""
-
 
 def _get_searchlight_neighbors(mask, center, radius=3):
     """Return indices for searchlight where distance
