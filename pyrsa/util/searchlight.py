@@ -7,8 +7,7 @@ from pyrsa.rdm.calc import calc_rdm
 from pyrsa.rdm import RDMs
 
 """
-Author: Daniel Lindh
-
+@author: Daniel Lindh
 This code was initially inspired by the following :
 https://github.com/machow/pysearchlight
 """
@@ -134,9 +133,9 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
                 center_neighbors = neighbors[c]
                 # create a database object with this data
                 ds = Dataset(data_2d[:, center_neighbors],
-                             descriptors={'center': c},
+                             descriptors={'center': center},
                              obs_descriptors={'events': events},
-                             channel_descriptors={'voxels': nb})
+                             channel_descriptors={'voxels': center_neighbors})
                 center_data.append(ds)
 
             RDM_corr = calc_rdm(center_data, method=method,
