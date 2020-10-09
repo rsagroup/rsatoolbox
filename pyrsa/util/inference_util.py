@@ -6,7 +6,7 @@ Inference module utilities
 
 import numpy as np
 import scipy.stats as stats
-from scipy.stats import rankdata, ranksums
+from scipy.stats import rankdata, wilcoxon
 from pyrsa.model import Model
 from pyrsa.rdm import RDMs
 from .matrix import pairwise_contrast
@@ -169,7 +169,7 @@ def ranksum_test(evaluations):
     Args:
         evaluations (numpy.ndarray):
             model evaluations to be compared
-            (at least 3D: bootstrap x models x subjects or repeats)
+            (should be 3D: bootstrap x models x subjects or repeats)
 
     Returns:
         numpy.ndarray: matrix of proportions of opposit conclusions, i.e.
@@ -185,10 +185,38 @@ def ranksum_test(evaluations):
     pvalues = np.empty((n_model, n_model))
     for i_model in range(n_model - 1):
         for j_model in range(i_model + 1, n_model):
-            pvalues[i_model, j_model] = ranksums(
+            pvalues[i_model, j_model] = wilcoxon(
                 evaluations[i_model], evaluations[j_model]).pvalue
             pvalues[j_model, i_model] = pvalues[i_model, j_model]
     np.fill_diagonal(pvalues, 1)
+    return pvalues
+
+
+def sign_test(evaluations, comp_value=0):
+    """nonparametric sign-test against a fixed value
+
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be compared
+            (should be 3D: bootstrap x models x subjects or repeats)
+        comp_value(float):
+            value to compare against
+
+    Returns:
+        float: p-value
+
+    """
+    # check that the dimensionality is correct
+    assert evaluations.ndim == 3, \
+        'provided evaluations array has wrong dimensionality'
+    n_model = evaluations.shape[1]
+    # ignore bootstraps
+    evaluations = np.nanmean(evaluations, 0)
+    pvalues = np.empty(n_model)
+    for i_model in range(n_model):
+        pvalues[i_model] = wilcoxon(
+                evaluations[i_model] - comp_value).pvalue
     return pvalues
 
 
