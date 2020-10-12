@@ -162,8 +162,55 @@ def _nan_rank_data(rdm_vector):
     return ranks
 
 
-def ranksum_test(evaluations):
-    """pairwise tests between models using the ranksums test from scipy
+def all_tests(evaluations, noise_ceil, test_type='t-test',
+              variances=None, noise_ceil_var=None, dof=1):
+    """wrapper running all tests necessary for the model plot
+    -> pairwise tests, tests against 0 and against noise ceiling
+
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be compared
+            (should be 3D: bootstrap x models x subjects or repeats)
+        noise_ceil (numpy.ndarray):
+            noise_ceiling estimate(s) to compare against
+        test_type(Strinng):
+            't-test' : t-test bases tests using variances
+            'bootstrap' : Direct bootstrap sample based tests
+            'ranksum' : Wilcoxon signed rank-sum tests
+
+    Returns:
+        numpy.ndarrays: p_pairwise, p_zero, p_noise
+
+    """
+    if test_type == 't-test':
+        p_pairwise = t_tests(evaluations, variances, dof=dof)
+        p_zero = t_test_0(evaluations, variances, dof=dof)
+        p_noise = t_test_nc(evaluations, variances, np.mean(noise_ceil[0]),
+                            noise_ceil_var, dof)
+    elif test_type == 'bootstrap':
+        if len(noise_ceil.shape) > 1:
+            noise_lower_bs = noise_ceil[0]
+            noise_lower_bs.shape = (noise_ceil.shape[0], 1)
+        else:
+            noise_lower_bs = noise_ceil[0].reshape(1, 1)
+        p_pairwise = pair_tests(evaluations)
+        p_zero = ((evaluations < 0).sum(axis=0) + 1) / evaluations.shape[0]
+        diffs = noise_lower_bs - evaluations
+        p_noise = ((diffs < 0).sum(axis=0) + 1) / evaluations.shape[0]
+    elif test_type == 'ranksum':
+        noise_c = np.mean(noise_ceil[0])
+        p_pairwise = ranksum_pair_test(evaluations)
+        p_zero = ranksum_value_test(evaluations, 0)
+        p_noise = ranksum_value_test(evaluations, noise_c)
+    else:
+        raise ValueError('test_type not recognized.\n'
+                         + 'Options are: t-test, bootstrap, ranksum')
+    return p_pairwise, p_zero, p_noise
+
+
+def ranksum_pair_test(evaluations):
+    """pairwise tests between models using the wilcoxon signed rank test
 
 
     Args:
@@ -192,8 +239,8 @@ def ranksum_test(evaluations):
     return pvalues
 
 
-def sign_test(evaluations, comp_value=0):
-    """nonparametric sign-test against a fixed value
+def ranksum_value_test(evaluations, comp_value=0):
+    """nonparametric wilcoxon signed rank test against a fixed value
 
 
     Args:

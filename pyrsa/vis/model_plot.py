@@ -13,7 +13,7 @@ import matplotlib.transforms as transforms
 from matplotlib import cm
 import networkx as nx
 from networkx.algorithms.clique import find_cliques as maximal_cliques
-from pyrsa.util.inference_util import pair_tests, t_test_0, t_test_nc, t_tests
+from pyrsa.util.inference_util import all_tests
 from pyrsa.util.rdm_utils import batch_to_vectors
 
 
@@ -123,6 +123,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                     in the result structs
                 'bootstrap' : performs a bootstrap test, i.e. checks based
                     on the number of samples defying H0
+                'ranksum' : performs wilcoxon signed rank sum tests
 
     Returns:
         ---
@@ -137,10 +138,10 @@ def plot_model_comparison(result, sort=False, colors=None,
     variances = result.variances
     noise_ceil_var = result.noise_ceil_var
     dof = result.dof
-
-    while len(evaluations.shape) > 2:
-        evaluations = np.nanmean(evaluations, axis=-1)
-    evaluations = evaluations[~np.isnan(evaluations[:, 0])]
+    if not (result.cv_method == 'fixed'):
+        while (len(evaluations.shape) > 2):
+            evaluations = np.nanmean(evaluations, axis=-1)
+        evaluations = evaluations[~np.isnan(evaluations[:, 0])]
     noise_ceiling = np.array(noise_ceiling)
     perf = np.mean(evaluations, axis=0)
     n_bootstraps, n_models = evaluations.shape
@@ -164,10 +165,9 @@ def plot_model_comparison(result, sort=False, colors=None,
                             'sort is incorrectly defined as '
                             + sort + '.')
 
-    # t-test preparations
-    if test_type == 't-test':
-        tdist = scipy.stats.t
-        std_eval = np.sqrt(np.diag(variances))
+    # run tests
+    p_pairwise, p_zero, p_noise = all_tests(
+        evaluations, noise_ceiling, test_type, variances, noise_ceil_var, dof)
 
     # Prepare axes for bars and pairwise comparisons
     fs, fs2 = 18, 14  # axis label font sizes
@@ -244,7 +244,9 @@ def plot_model_comparison(result, sort=False, colors=None,
                              - perf)
             errorbar_high = (np.quantile(framed_evals, 1 - prop_cut, axis=0)
                              - perf)
-        elif test_type == 't-test':
+        else:
+            tdist = scipy.stats.t
+            std_eval = np.sqrt(np.diag(variances))
             errorbar_low = std_eval \
                 * tdist.ppf(prop_cut, dof)
             errorbar_high = std_eval \
@@ -267,11 +269,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     if test_above_0 is True:
         test_above_0 = 'dewdrops'
     if test_above_0:
-        if test_type == 'bootstrap':
-            p = ((evaluations < 0).sum(axis=0) + 1) / n_bootstraps
-        elif test_type == 't-test':
-            p = t_test_0(evaluations, variances, dof)
-        model_significant = p < alpha / n_models
+        model_significant = p_zero < alpha / n_models
         half_sym_size = 9
         if test_above_0.lower() == 'dewdrops':
             halfmoonup = Path.wedge(0, 180)
@@ -304,19 +302,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     if test_below_noise_ceil is True:
         test_below_noise_ceil = 'dewdrops'
     if test_below_noise_ceil:
-        if len(noise_ceiling.shape) > 1:
-            noise_lower_bs = noise_ceiling[0]
-            noise_lower_bs.shape = (noise_lower_bs.shape[0], 1)
-        else:
-            noise_lower_bs = noise_ceiling[0].reshape(1, 1)
-        if test_type == 'bootstrap':
-            # positive if below lower bound
-            diffs = noise_lower_bs - evaluations
-            p = ((diffs < 0).sum(axis=0) + 1) / n_bootstraps
-        elif test_type == 't-test':
-            p = t_test_nc(evaluations, variances, np.mean(noise_ceiling[0]),
-                          noise_ceil_var, dof)
-        model_below_lower_bound = p < alpha / n_models
+        model_below_lower_bound = p_noise < alpha / n_models
 
         if test_below_noise_ceil.lower() == 'dewdrops':
             halfmoondown = Path.wedge(180, 360)
@@ -343,23 +329,21 @@ def plot_model_comparison(result, sort=False, colors=None,
     if test_pair_comparisons:
         if test_type == 'bootstrap':
             model_comp_descr = 'Model comparisons: two-tailed bootstrap, '
-            p_values = pair_tests(evaluations)
         elif test_type == 't-test':
             model_comp_descr = 'Model comparisons: two-tailed t-test, '
-            p_values = t_tests(evaluations, variances, dof)
         n_tests = int((n_models ** 2 - n_models) / 2)
         if multiple_pair_testing is None:
             multiple_pair_testing = 'uncorrected'
         if multiple_pair_testing.lower() == 'bonferroni' or \
            multiple_pair_testing.lower() == 'fwer':
-            significant = p_values < (alpha / n_tests)
+            significant = p_pairwise < (alpha / n_tests)
             model_comp_descr = (model_comp_descr
                                 + 'p < {:<.5g}'.format(alpha)
                                 + ', Bonferroni-corrected for '
                                 + str(n_tests)
                                 + ' model-pair comparisons')
         elif multiple_pair_testing.lower() == 'fdr':
-            ps = batch_to_vectors(np.array([p_values]))[0][0]
+            ps = batch_to_vectors(np.array([p_pairwise]))[0][0]
             ps = np.sort(ps)
             criterion = alpha * (np.arange(ps.shape[0]) + 1) / ps.shape[0]
             k_ok = ps < criterion
@@ -368,7 +352,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                 crit = criterion[k_max]
             else:
                 crit = 0
-            significant = p_values < crit
+            significant = p_pairwise < crit
             model_comp_descr = (model_comp_descr +
                                 'FDR q < {:<.5g}'.format(alpha) +
                                 ' (' + str(n_tests) +
@@ -379,7 +363,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                     'plot_model_comparison: Argument ' +
                     'multiple_pair_testing is incorrectly defined as ' +
                     multiple_pair_testing + '.')
-            significant = p_values < alpha
+            significant = p_pairwise < alpha
             model_comp_descr = (model_comp_descr +
                                 'p < {:<.5g}'.format(alpha) +
                                 ', uncorrected (' + str(n_tests) +
