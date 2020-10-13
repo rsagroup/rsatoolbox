@@ -373,3 +373,38 @@ class TestsPairTests(unittest.TestCase):
                        noise_ceil_var=noise_ceil_var)
         assert np.all(ps <= 1)
         assert np.all(ps >= 0)
+
+    def test_ranksum_test(self):
+        from pyrsa.util.inference_util import ranksum_pair_test
+        ps = ranksum_pair_test(self.evaluations)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+
+    def test_sign_test_0(self):
+        from pyrsa.util.inference_util import ranksum_value_test
+        ps = ranksum_value_test(self.evaluations)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+
+    def test_sign_test_value(self):
+        from pyrsa.util.inference_util import ranksum_value_test
+        ps = ranksum_value_test(self.evaluations, 0.3)
+        assert np.all(ps <= 1)
+        assert np.all(ps >= 0)
+
+
+class TestsDefaultK(unittest.TestCase):
+
+    def test_default_k_rdm(self):
+        from pyrsa.util.inference_util import default_k_rdm
+        self.assertEqual(default_k_rdm(5), 2)
+        self.assertEqual(default_k_rdm(11), 3)
+        self.assertEqual(default_k_rdm(19), 4)
+        self.assertEqual(default_k_rdm(100), 5)
+
+    def test_default_k_pattern(self):
+        from pyrsa.util.inference_util import default_k_pattern
+        self.assertEqual(default_k_pattern(10), 2)
+        self.assertEqual(default_k_pattern(20), 3)
+        self.assertEqual(default_k_pattern(30), 4)
+        self.assertEqual(default_k_pattern(100), 5)
