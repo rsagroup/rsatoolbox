@@ -397,14 +397,14 @@ class TestsDefaultK(unittest.TestCase):
 
     def test_default_k_rdm(self):
         from pyrsa.util.inference_util import default_k_rdm
-        assert default_k_rdm(5) == 2
-        assert default_k_rdm(11) == 3
-        assert default_k_rdm(19) == 4
-        assert default_k_rdm(100) == 5
+        self.assertEqual(default_k_rdm(5), 2)
+        self.assertEqual(default_k_rdm(11), 3)
+        self.assertEqual(default_k_rdm(19), 4)
+        self.assertEqual(default_k_rdm(100), 5)
 
     def test_default_k_pattern(self):
         from pyrsa.util.inference_util import default_k_pattern
-        assert default_k_pattern(10) == 2
-        assert default_k_pattern(20) == 3
-        assert default_k_pattern(30) == 4
-        assert default_k_pattern(100) == 5
+        self.assertEqual(default_k_pattern(10), 2)
+        self.assertEqual(default_k_pattern(20), 3)
+        self.assertEqual(default_k_pattern(30), 4)
+        self.assertEqual(default_k_pattern(100), 5)
