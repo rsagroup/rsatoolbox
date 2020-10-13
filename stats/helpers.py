@@ -8,7 +8,72 @@ Created on Fri May 15 08:01:30 2020
 
 import os
 import PIL
+import pathlib
+import numpy as np
 import pyrsa
+
+
+def load_comp(folder):
+    """ this function loads all comparison results from a folder and puts
+    them into a long style matrix, i.e. one p-value per row with the
+    metainfo added into the other rows. The final table has the format:
+        p_value | method | bootstrap-type | number of subjects |
+        number of patterns | number of voxels | boot_noise_ceil|
+        sigma_noise | idx
+    methods:
+        'corr' = 0
+        'cosine' = 1
+        'spearman' = 2
+        'rho_a' = 3
+        ''
+    bootstrap-type:
+        'both' = 0
+        'rdm' = 1
+        'pattern' = 2
+
+    """
+    table = []
+    for p in pathlib.Path(folder).glob('p_*'):
+        ps = np.load(p)
+        split = p.name.split('_')
+        if split[1] == 'corr':
+            method = 0
+        elif split[1] == 'cosine':
+            method = 1
+        elif split[1] == 'spearman':
+            method = 2
+        elif split[1] == 'rho_a':
+            method = 3
+        if split[2] == 'boot':
+            boot = 0
+        elif split[2] == 'rdm':
+            boot = 1
+        elif split[2] == 'pattern':
+            boot = 2
+        elif split[2] == 'fancy':
+            boot = 3
+        if split[3] == 't':
+            test_type = 1
+        else:
+            test_type = 0
+        if split[3] == 'True' or split[4] == 'True':
+            boot_noise_ceil = True
+        else:
+            boot_noise_ceil = False
+        if folder == 'comp_noise':
+            ps = ps[0]
+        n_cond = int(split[-5])
+        n_subj = int(split[-4])
+        n_voxel = int(split[-3])
+        sigma_noise = float(split[-2])
+        idx = int(split[-1][:-4])
+        desc = np.array([[method, boot, test_type, n_subj, n_cond, n_voxel,
+                          boot_noise_ceil, sigma_noise, idx]])
+        desc = np.repeat(desc, len(ps), axis=0)
+        new_ps = np.concatenate((np.array([ps]).T, desc), axis=1)
+        table.append(new_ps)
+    table = np.concatenate(table, axis=0)
+    return table
 
 
 def get_fname_base(simulation_folder, n_voxel, n_subj, n_repeat, sd,
@@ -113,45 +178,17 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
             model, rdms,
             boot_noise_ceil=boot_noise_ceil, method=method)
     elif bootstrap == 'crossval':
-        if k_pattern is None and k_rdm is None:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method)
-        elif k_pattern is None:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_rdm=k_rdm)
-        elif k_rdm is None:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_pattern=k_pattern)
-        else:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
+        results = pyrsa.inference.bootstrap_crossval(
+            model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
     elif bootstrap == 'crossval_pattern':
-        if k_pattern is None:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_rdm=1)
-        else:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_rdm=1, k_pattern=k_pattern)
+        results = pyrsa.inference.bootstrap_crossval(
+            model, rdms, method=method, k_rdm=1, k_pattern=k_pattern)
     elif bootstrap == 'crossval_rdms':
-        if k_rdm is None:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_pattern=1)
-        else:
-            results = pyrsa.inference.bootstrap_crossval(
-                model, rdms, method=method, k_pattern=1, k_rdm=k_rdm)
+        results = pyrsa.inference.bootstrap_crossval(
+            model, rdms, method=method, k_pattern=1, k_rdm=k_rdm)
     elif bootstrap == 'fancy':
-        if k_pattern is None and k_rdm is None:
-            results = pyrsa.inference.eval_fancy(
-                model, rdms, method=method)
-        elif k_pattern is None:
-            results = pyrsa.inference.eval_fancy(
-                model, rdms, method=method, k_rdm=k_rdm)
-        elif k_rdm is None:
-            results = pyrsa.inference.eval_fancy(
-                model, rdms, method=method, k_pattern=k_pattern)
-        else:
-            results = pyrsa.inference.eval_fancy(
-                model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
+        results = pyrsa.inference.eval_fancy(
+            model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
     elif bootstrap == 'fancyboot':
         results = pyrsa.inference.eval_fancy(
             model, rdms, method=method, k_pattern=1, k_rdm=1)
