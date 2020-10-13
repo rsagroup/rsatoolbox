@@ -142,9 +142,13 @@ def plot_model_comparison(result, sort=False, colors=None,
         while (len(evaluations.shape) > 2):
             evaluations = np.nanmean(evaluations, axis=-1)
         evaluations = evaluations[~np.isnan(evaluations[:, 0])]
+        n_bootstraps, n_models = evaluations.shape
+        perf = np.mean(evaluations, axis=0)
+    else:
+        n_bootstraps, n_models, _ = evaluations.shape
+        perf = np.mean(evaluations, axis=0)
+        perf = np.nanmean(perf, axis=-1)
     noise_ceiling = np.array(noise_ceiling)
-    perf = np.mean(evaluations, axis=0)
-    n_bootstraps, n_models = evaluations.shape
     if sort is True:
         sort = 'descending'  # descending by default if sort is True
     elif sort is False:
@@ -359,7 +363,7 @@ def plot_model_comparison(result, sort=False, colors=None,
             significant = p_pairwise < alpha
         model_comp_descr = _get_model_comp_descr(
             test_type, n_models, multiple_pair_testing, alpha,
-            n_bootstraps, result.cv_method, error_bars, CI_percent,
+            n_bootstraps, result.cv_method, error_bars,
             test_above_0, test_below_noise_ceil)
         fig.suptitle(model_comp_descr, fontsize=fs2/2)
         axbar.set_xlim(ax.get_xlim())
@@ -773,7 +777,7 @@ def plot_cliques(axbar, significant):
 
 
 def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
-                          n_bootstraps, cv_method, error_bars, CI_percent,
+                          n_bootstraps, cv_method, error_bars,
                           test_above_0, test_below_noise_ceil):
     """constructs the statistics description from the parts
 
@@ -785,7 +789,6 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
         n_bootstraps : integer
         cv_method : String
         error_bars : String
-        CI_percent : float
         test_above_0 : Bool
         test_below_noise_ceil : Bool
 
@@ -838,6 +841,10 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
             'subjects and experimental conditions. '
     model_comp_descr = model_comp_descr + 'Error bars indicate the'
     if error_bars[0:2].lower() == 'ci':
+        if len(error_bars) == 2:
+            CI_percent = 95.0
+        else:
+            CI_percent = float(error_bars[2:])
         model_comp_descr = (model_comp_descr + ' ' +
                             str(CI_percent) + '% confidence interval.')
     elif error_bars.lower() == 'sem':
