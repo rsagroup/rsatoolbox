@@ -331,17 +331,14 @@ def plot_model_comparison(result, sort=False, colors=None,
             model_comp_descr = 'Model comparisons: two-tailed bootstrap, '
         elif test_type == 't-test':
             model_comp_descr = 'Model comparisons: two-tailed t-test, '
+        elif test_type == 'ranksum':
+            model_comp_descr = 'Model comparisons: two-tailed Wilcoxon-test, '
         n_tests = int((n_models ** 2 - n_models) / 2)
         if multiple_pair_testing is None:
             multiple_pair_testing = 'uncorrected'
         if multiple_pair_testing.lower() == 'bonferroni' or \
            multiple_pair_testing.lower() == 'fwer':
             significant = p_pairwise < (alpha / n_tests)
-            model_comp_descr = (model_comp_descr
-                                + 'p < {:<.5g}'.format(alpha)
-                                + ', Bonferroni-corrected for '
-                                + str(n_tests)
-                                + ' model-pair comparisons')
         elif multiple_pair_testing.lower() == 'fdr':
             ps = batch_to_vectors(np.array([p_pairwise]))[0][0]
             ps = np.sort(ps)
@@ -353,10 +350,6 @@ def plot_model_comparison(result, sort=False, colors=None,
             else:
                 crit = 0
             significant = p_pairwise < crit
-            model_comp_descr = (model_comp_descr +
-                                'FDR q < {:<.5g}'.format(alpha) +
-                                ' (' + str(n_tests) +
-                                ' model-pair comparisons)')
         else:
             if 'uncorrected' not in multiple_pair_testing.lower():
                 raise Exception(
@@ -364,46 +357,10 @@ def plot_model_comparison(result, sort=False, colors=None,
                     'multiple_pair_testing is incorrectly defined as ' +
                     multiple_pair_testing + '.')
             significant = p_pairwise < alpha
-            model_comp_descr = (model_comp_descr +
-                                'p < {:<.5g}'.format(alpha) +
-                                ', uncorrected (' + str(n_tests) +
-                                ' model-pair comparisons)')
-        if result.cv_method in ['bootstrap_rdm', 'bootstrap_pattern',
-                                'bootstrap_crossval']:
-            model_comp_descr = model_comp_descr + \
-                '\nInference by bootstrap resampling ' + \
-                '({:<,.0f}'.format(n_bootstraps) + ' bootstrap samples) of '
-        if result.cv_method == 'bootstrap_rdm':
-            model_comp_descr = model_comp_descr + 'subjects. '
-        elif result.cv_method == 'bootstrap_pattern':
-            model_comp_descr = model_comp_descr + 'experimental conditions. '
-        elif result.cv_method in ['bootstrap', 'bootstrap_crossval']:
-            model_comp_descr = model_comp_descr + \
-                'subjects and experimental conditions. '
-        model_comp_descr = model_comp_descr + 'Error bars indicate the'
-        if error_bars[0:2].lower() == 'ci':
-            model_comp_descr = (model_comp_descr + ' ' +
-                                str(CI_percent) + '% confidence interval.')
-        elif error_bars.lower() == 'sem':
-            model_comp_descr = (model_comp_descr +
-                                ' standard error of the mean.')
-        if test_above_0 or test_below_noise_ceil:
-            model_comp_descr = (
-                model_comp_descr +
-                '\nOne-sided comparisons of each model performance ')
-        if test_above_0:
-            model_comp_descr = model_comp_descr + 'against 0 '
-        if test_above_0 and test_below_noise_ceil:
-            model_comp_descr = model_comp_descr + 'and '
-        if test_below_noise_ceil:
-            model_comp_descr = (
-                model_comp_descr +
-                'against the lower-bound estimate of the noise ceiling ')
-        if test_above_0 or test_below_noise_ceil:
-            model_comp_descr = (model_comp_descr +
-                                'are Bonferroni-corrected for ' +
-                                str(n_models) + ' models.')
-
+        model_comp_descr = _get_model_comp_descr(
+            test_type, n_models, multiple_pair_testing, alpha,
+            n_bootstraps, result.cv_method, error_bars, CI_percent,
+            test_above_0, test_below_noise_ceil)
         fig.suptitle(model_comp_descr, fontsize=fs2/2)
         axbar.set_xlim(ax.get_xlim())
         digits = [d for d in list(test_pair_comparisons) if d.isdigit()]
@@ -440,6 +397,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     plt.rc('ytick', labelsize=fs2)
 
     # Axis labels
+    y_label_string = _get_y_label(method)
     ylabel_fig_x, ysublabel_fig_x = 0.07, 0.095
     trans = transforms.blended_transform_factory(fig.transFigure,
                                                  ax.get_yaxis_transform())
@@ -447,34 +405,11 @@ def plot_model_comparison(result, sort=False, colors=None,
             horizontalalignment='center', verticalalignment='center',
             rotation='vertical', fontsize=fs, fontweight='bold',
             transform=trans)
-    if method.lower() == 'cosine':
-        ax.set_ylabel('[across-subject mean of cosine similarity]',
-                      fontsize=fs2)
-    if method.lower() in ['cosine_cov', 'whitened cosine']:
-        ax.set_ylabel('[across-subject mean of whitened-RDM cosine]',
-                      fontsize=fs2)
-    elif method.lower() == 'spearman':
-        ax.set_ylabel('[across-subject mean of Spearman r rank correlation]',
-                      fontsize=fs2)
-    elif method.lower() in ['corr', 'pearson']:
-        ax.text(ysublabel_fig_x, ytoptick/2,
-                '[across-subject mean of Pearson r correlation]',
-                horizontalalignment='center', verticalalignment='center',
-                rotation='vertical', fontsize=fs2, fontweight='normal',
-                transform=trans)
-        # ax.set_ylabel('[across-subject mean of Pearson r correlation]',
-        #               fontsize=fs2)
-    elif method.lower() in ['whitened pearson', 'corr_cov']:
-        ax.set_ylabel('[across-subject mean of whitened-RDM Pearson r '
-                      + 'correlation]',
-                      fontsize=fs2)
-    elif method.lower() in ['kendall', 'tau-b']:
-        ax.set_ylabel('[across-subject mean of Kendall tau-b rank '
-                      + 'correlation]',
-                      fontsize=fs2)
-    elif method.lower() == 'tau-a':
-        ax.set_ylabel('[across-subject mean of '
-                      + 'Kendall tau-a rank correlation]', fontsize=fs2)
+    ax.text(ysublabel_fig_x, ytoptick/2,
+            y_label_string,
+            horizontalalignment='center', verticalalignment='center',
+            rotation='vertical', fontsize=fs2, fontweight='normal',
+            transform=trans)
     if models is not None:
         ax.set_xticklabels([m.name for m in models], fontsize=fs2,
                            rotation=45)
@@ -835,3 +770,122 @@ def plot_cliques(axbar, significant):
                            markeredgecolor=ns_col, markerfacecolor='w')
     h = occupied.sum(axis=1).nonzero()[0].max()+1
     axbar.set_ylim((0, max(expected_n_lines, h)))
+
+
+def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
+                          n_bootstraps, cv_method, error_bars, CI_percent,
+                          test_above_0, test_below_noise_ceil):
+    """constructs the statistics description from the parts
+
+    Args:
+        test_type : String
+        n_models : integer
+        multiple_pair_testing : String
+        alpha : float
+        n_bootstraps : integer
+        cv_method : String
+        error_bars : String
+        CI_percent : float
+        test_above_0 : Bool
+        test_below_noise_ceil : Bool
+
+    Returns:
+        model
+
+    """
+    if test_type == 'bootstrap':
+        model_comp_descr = 'Model comparisons: two-tailed bootstrap, '
+    elif test_type == 't-test':
+        model_comp_descr = 'Model comparisons: two-tailed t-test, '
+    elif test_type == 'ranksum':
+        model_comp_descr = 'Model comparisons: two-tailed Wilcoxon-test, '
+    n_tests = int((n_models ** 2 - n_models) / 2)
+    if multiple_pair_testing is None:
+        multiple_pair_testing = 'uncorrected'
+    if multiple_pair_testing.lower() == 'bonferroni' or \
+       multiple_pair_testing.lower() == 'fwer':
+        model_comp_descr = (model_comp_descr
+                            + 'p < {:<.5g}'.format(alpha)
+                            + ', Bonferroni-corrected for '
+                            + str(n_tests)
+                            + ' model-pair comparisons')
+    elif multiple_pair_testing.lower() == 'fdr':
+        model_comp_descr = (model_comp_descr +
+                            'FDR q < {:<.5g}'.format(alpha) +
+                            ' (' + str(n_tests) +
+                            ' model-pair comparisons)')
+    else:
+        if 'uncorrected' not in multiple_pair_testing.lower():
+            raise Exception(
+                'plot_model_comparison: Argument ' +
+                'multiple_pair_testing is incorrectly defined as ' +
+                multiple_pair_testing + '.')
+        model_comp_descr = (model_comp_descr +
+                            'p < {:<.5g}'.format(alpha) +
+                            ', uncorrected (' + str(n_tests) +
+                            ' model-pair comparisons)')
+    if cv_method in ['bootstrap_rdm', 'bootstrap_pattern',
+                     'bootstrap_crossval']:
+        model_comp_descr = model_comp_descr + \
+            '\nInference by bootstrap resampling ' + \
+            '({:<,.0f}'.format(n_bootstraps) + ' bootstrap samples) of '
+    if cv_method == 'bootstrap_rdm':
+        model_comp_descr = model_comp_descr + 'subjects. '
+    elif cv_method == 'bootstrap_pattern':
+        model_comp_descr = model_comp_descr + 'experimental conditions. '
+    elif cv_method in ['bootstrap', 'bootstrap_crossval']:
+        model_comp_descr = model_comp_descr + \
+            'subjects and experimental conditions. '
+    model_comp_descr = model_comp_descr + 'Error bars indicate the'
+    if error_bars[0:2].lower() == 'ci':
+        model_comp_descr = (model_comp_descr + ' ' +
+                            str(CI_percent) + '% confidence interval.')
+    elif error_bars.lower() == 'sem':
+        model_comp_descr = (model_comp_descr +
+                            ' standard error of the mean.')
+    if test_above_0 or test_below_noise_ceil:
+        model_comp_descr = (
+            model_comp_descr +
+            '\nOne-sided comparisons of each model performance ')
+    if test_above_0:
+        model_comp_descr = model_comp_descr + 'against 0 '
+    if test_above_0 and test_below_noise_ceil:
+        model_comp_descr = model_comp_descr + 'and '
+    if test_below_noise_ceil:
+        model_comp_descr = (
+            model_comp_descr +
+            'against the lower-bound estimate of the noise ceiling ')
+    if test_above_0 or test_below_noise_ceil:
+        model_comp_descr = (model_comp_descr +
+                            'are Bonferroni-corrected for ' +
+                            str(n_models) + ' models.')
+    return model_comp_descr
+
+
+def _get_y_label(method):
+    """ generates y-label string
+
+    Args:
+        method : String
+            Method for model evaluation used
+
+    Returns:
+        y_label : String
+
+    """
+    if method.lower() == 'cosine':
+        y_label = '[across-subject mean of cosine similarity]'
+    if method.lower() in ['cosine_cov', 'whitened cosine']:
+        y_label = '[across-subject mean of whitened-RDM cosine]'
+    elif method.lower() == 'spearman':
+        y_label = '[across-subject mean of Spearman r rank correlation]'
+    elif method.lower() in ['corr', 'pearson']:
+        y_label = '[across-subject mean of Pearson r correlation]'
+    elif method.lower() in ['whitened pearson', 'corr_cov']:
+        y_label = '[across-subject mean of whitened-RDM Pearson r correlation]'
+    elif method.lower() in ['kendall', 'tau-b']:
+        y_label = '[across-subject mean of Kendall tau-b rank correlation]'
+    elif method.lower() == 'tau-a':
+        y_label = '[across-subject mean of ' \
+            + 'Kendall tau-a rank correlation]'
+    return y_label
