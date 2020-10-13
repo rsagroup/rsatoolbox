@@ -119,14 +119,14 @@ class Test_model_plot(unittest.TestCase):
     def test_y_label(self):
         from pyrsa.vis.model_plot import _get_y_label
         y_label = _get_y_label('corr')
-        assert isinstance(y_label, str)
+        self.assertIsInstance(y_label, str)
 
     def test_descr(self):
         from pyrsa.vis.model_plot import _get_model_comp_descr
         descr = _get_model_comp_descr(
             't-test', 5, 'fwer', 0.05, 1000,
             'boostrap_rdm', 'ci56', 'droplets', 'icicles')
-        assert isinstance(descr, str)
+        self.assertIsInstance(descr, str)
 
 
 if __name__ == '__main__':
