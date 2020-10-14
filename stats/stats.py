@@ -24,6 +24,7 @@ from helpers import run_inference
 from helpers import parse_fmri
 from helpers import parse_pars
 from helpers import parse_results
+from helpers import load_comp
 from models import get_models
 
 
@@ -97,6 +98,9 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
             p[i_sim] = pyrsa.util.inference_util.t_test_0(
                 results.evaluations,
                 results.variances)
+        elif test_type == 'ranksum':
+            p[i_sim] = pyrsa.util.inference_util.ranksum_value_test(
+                results.evaluations)
     return p
 
 
@@ -175,7 +179,10 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
                         / np.sum(idx_valid))
         elif test_type == 't':
             p[i_sim] = pyrsa.util.inference_util.t_tests(
-                results.evaluations, results.variances, results.dof)
+                results.evaluations, results.variances, results.dof)[0, 1]
+        elif test_type == 'ranksum':
+            p[i_sim] = pyrsa.util.inference_util.ranksum_pair_test(
+                results.evaluations)[0, 1]
     return p
 
 
@@ -262,14 +269,31 @@ def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
                                          results.noise_ceiling[0])
                                   / np.sum(idx_valid))
         elif test_type == 't':
-            p_upper[i_sim] = pyrsa.util.inference_util.t_test_nc(
-                results.evaluations, results.variances,
-                results.noise_ceiling[1], results.noise_ceil_var[1, :-2],
-                results.dof)
-            p_lower[i_sim] = pyrsa.util.inference_util.t_test_nc(
-                results.evaluations, results.variances,
-                results.noise_ceiling[0], results.noise_ceil_var[0, :-1],
-                results.dof)
+            if results.noise_ceil_var is None:
+                p_upper[i_sim] = pyrsa.util.inference_util.t_test_nc(
+                    results.evaluations, results.variances,
+                    results.noise_ceiling[1], None,
+                    results.dof)
+                p_lower[i_sim] = pyrsa.util.inference_util.t_test_nc(
+                    results.evaluations, results.variances,
+                    results.noise_ceiling[0], None,
+                    results.dof)
+            else:
+                p_upper[i_sim] = pyrsa.util.inference_util.t_test_nc(
+                    results.evaluations, results.variances,
+                    results.noise_ceiling[1], results.noise_ceil_var[1, :-2],
+                    results.dof)
+                p_lower[i_sim] = pyrsa.util.inference_util.t_test_nc(
+                    results.evaluations, results.variances,
+                    results.noise_ceiling[0], results.noise_ceil_var[0, :-1],
+                    results.dof)
+        elif test_type == 'ranksum':
+            p_upper[i_sim] = pyrsa.util.inference_util.ranksum_value_test(
+                results.evaluations,
+                comp_value=np.mean(results.noise_ceiling[1]))
+            p_lower[i_sim] = pyrsa.util.inference_util.ranksum_value_test(
+                results.evaluations,
+                comp_value=np.mean(results.noise_ceiling[0]))
     return np.array([p_lower, p_upper])
 
 
@@ -291,71 +315,9 @@ def save_noise_ceiling(idx, n_voxel=100, n_subj=10, n_cond=5,
     model = pyrsa.model.ModelFixed('test1', model_rdm)
     p = check_noise_ceiling(model, n_voxel=n_voxel, n_subj=n_subj,
                             method=method, bootstrap=bootstrap,
-                            boot_noise_ceil=boot_noise_ceil)
+                            boot_noise_ceil=boot_noise_ceil,
+                            test_type=test_type)
     np.save(fname, p)
-
-
-def load_comp(folder):
-    """ this function loads all comparison results from a folder and puts
-    them into a long style matrix, i.e. one p-value per row with the
-    metainfo added into the other rows. The final table has the format:
-        p_value | method | bootstrap-type | number of subjects |
-        number of patterns | number of voxels | boot_noise_ceil|
-        sigma_noise | idx
-    methods:
-        'corr' = 0
-        'cosine' = 1
-        'spearman' = 2
-        'rho_a' = 3
-        ''
-    bootstrap-type:
-        'both' = 0
-        'rdm' = 1
-        'pattern' = 2
-
-    """
-    table = []
-    for p in pathlib.Path(folder).glob('p_*'):
-        ps = np.load(p)
-        split = p.name.split('_')
-        if split[1] == 'corr':
-            method = 0
-        elif split[1] == 'cosine':
-            method = 1
-        elif split[1] == 'spearman':
-            method = 2
-        elif split[1] == 'rho_a':
-            method = 3
-        if split[2] == 'boot':
-            boot = 0
-        elif split[2] == 'rdm':
-            boot = 1
-        elif split[2] == 'pattern':
-            boot = 2
-        elif split[2] == 'fancy':
-            boot = 3
-        if split[3] == 't':
-            test_type = 1
-        else:
-            test_type = 0
-        if split[3] == 'True' or split[4] == 'True':
-            boot_noise_ceil = True
-        else:
-            boot_noise_ceil = False
-        if folder == 'comp_noise':
-            ps = ps[0]
-        n_cond = int(split[-5])
-        n_subj = int(split[-4])
-        n_voxel = int(split[-3])
-        sigma_noise = float(split[-2])
-        idx = int(split[-1][:-4])
-        desc = np.array([[method, boot, test_type, n_subj, n_cond, n_voxel,
-                          boot_noise_ceil, sigma_noise, idx]])
-        desc = np.repeat(desc, len(ps), axis=0)
-        new_ps = np.concatenate((np.array([ps]).T, desc), axis=1)
-        table.append(new_ps)
-    table = np.concatenate(table, axis=0)
-    return table
 
 
 def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
@@ -596,12 +558,20 @@ def run_comp(idx):
     """
     n_subj = [5, 10, 20, 40]
     n_cond = [5, 20, 80, 160]
-    boot_type = ['boot', 'pattern', 'rdm']
+    boot_type = [['both', 'perc'],
+                 ['pattern', 'perc'],
+                 ['rdm', 'perc'],
+                 ['fix', 'ranksum'],
+                 ['both', 't'],
+                 ['pattern', 't'],
+                 ['rdm', 't'],
+                 ['fix', 't'],
+                 ['fancyboot', 't']]
     comp_type = ['noise', 'noise_boot', 'model', 'zero']
     n_rep = 5
-    (i_rep, i_sub, i_cond, i_boot, i_comp) = np.unravel_index(
+    (i_boot, i_rep, i_sub, i_cond, i_comp) = np.unravel_index(
         idx,
-        [n_rep, len(n_subj), len(n_cond), len(boot_type), len(comp_type)])
+        [len(boot_type), n_rep, len(n_subj), len(n_cond), len(comp_type)])
     print('starting simulation:')
     print('%d subjects' % n_subj[i_sub])
     print('%d conditions' % n_cond[i_cond])
@@ -609,17 +579,23 @@ def run_comp(idx):
     print(comp_type[i_comp])
     if i_comp == 0:
         save_noise_ceiling(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
-                           bootstrap=boot_type[i_boot], boot_noise_ceil=False)
+                           bootstrap=boot_type[i_boot][0],
+                           test_type=boot_type[i_boot][1],
+                           boot_noise_ceil=False)
     elif i_comp == 1:
         save_noise_ceiling(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
-                           bootstrap=boot_type[i_boot], boot_noise_ceil=True)
+                           bootstrap=boot_type[i_boot][0],
+                           test_type=boot_type[i_boot][1],
+                           boot_noise_ceil=True)
     elif i_comp == 2:
         save_compare_models(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
-                            bootstrap=boot_type[i_boot])
+                            bootstrap=boot_type[i_boot][0],
+                            test_type=boot_type[i_boot][1])
     elif i_comp == 3:
         save_compare_to_zero(i_rep, n_subj=n_subj[i_sub],
                              n_cond=n_cond[i_cond],
-                             bootstrap=boot_type[i_boot])
+                             bootstrap=boot_type[i_boot][0],
+                             test_type=boot_type[i_boot][1])
 
 
 def run_eco(idx, ecoset_path=None, start_idx=0):
@@ -856,7 +832,8 @@ def fix_eco(
 
 
 def _resolve_idx(idx):
-    """ helper to convert linear index into simulation parameters.
+    """ helper to convert linear index into simulation parameters
+    (of eco simulations)
 
     """
     # combined with all

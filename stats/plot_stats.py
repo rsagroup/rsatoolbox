@@ -151,12 +151,12 @@ def plot_comp(data, alpha=0.05):
     """
     # methods = np.unique(data[:, 1])
     boots = np.unique(data[:, 2])
-    n_subj = np.unique(data[:, 3])
-    n_cond = np.unique(data[:, 4])
-    n_voxel = np.unique(data[:, 5])
+    n_subj = np.unique(data[:, 4])
+    n_cond = np.unique(data[:, 5])
+    n_voxel = np.unique(data[:, 6])
     # boot_noise = np.unique(data[:, 6])
     # sigmas = np.unique(data[:, 7])
-    idx = np.unique(data[:, 8])
+    idx = np.unique(data[:, 9])
     props = np.nan * np.empty((len(boots), len(n_subj), len(n_cond),
                                len(n_voxel), len(idx)))
     for i_boot, boot in enumerate(boots):
@@ -165,10 +165,10 @@ def plot_comp(data, alpha=0.05):
                 for i_vox, vox in enumerate(n_voxel):
                     for i, _ in enumerate(idx):
                         dat = data[data[:, 2] == boot, :]
-                        dat = dat[dat[:, 3] == n_sub, :]
-                        dat = dat[dat[:, 4] == cond, :]
-                        dat = dat[dat[:, 5] == vox, :]
-                        dat = dat[dat[:, 8] == idx[i], :]
+                        dat = dat[dat[:, 4] == n_sub, :]
+                        dat = dat[dat[:, 5] == cond, :]
+                        dat = dat[dat[:, 6] == vox, :]
+                        dat = dat[dat[:, 9] == idx[i], :]
                         if len(dat) > 0:
                             prop = (np.sum(dat[:, 0] > (1 - alpha))
                                     / len(dat))
