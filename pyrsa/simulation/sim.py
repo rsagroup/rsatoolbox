@@ -151,6 +151,11 @@ def make_signal(G, n_channel, make_exact=False, chol_channel=None):
     """
     Generates signal exactly with a specified second-moment matrix (G)
 
+    To avoid errors: If the number of channels is smaller than the
+    number of patterns we generate a representation with the minimal
+    number of dimnensions and then delete dimensions to yield the desired
+    number of dimensions.
+
     Args:
         G(np.array)        : desired second moment matrix (ncond x ncond)
         n_channel (int)    : Number of channels
@@ -164,6 +169,11 @@ def make_signal(G, n_channel, make_exact=False, chol_channel=None):
     """
     # Generate the true patterns with exactly correct second moment matrix
     n_cond = G.shape[0]
+    if n_cond > n_channel:
+        n_channel_final = n_channel
+        n_channel = n_cond
+    else:
+        n_channel_final = None
     # We use two-step procedure allow for different distributions later on
     true_U = np.random.uniform(0, 1, size=(n_cond, n_channel))
     true_U = ss.norm.ppf(true_U)
@@ -184,4 +194,6 @@ def make_signal(G, n_channel, make_exact=False, chol_channel=None):
     D = np.sqrt(D)
     chol_G = L @ D
     true_U = (chol_G @ true_U)
+    if n_channel_final:
+        true_U = true_U[:, :n_channel_final]
     return true_U
