@@ -115,15 +115,16 @@ def save_compare_to_zero(idx, n_voxel=100, n_subj=10, n_cond=5,
     fname = folder + os.path.sep + 'p_%s_%s_%s_%d_%d_%d_%.2f_%03d.npy' % (
         method, bootstrap, test_type,
         n_cond, n_subj, n_voxel, sigma_noise, idx)
-    model_u = np.random.randn(n_cond, n_voxel)
-    model_dat = pyrsa.data.Dataset(model_u)
-    model_rdm = pyrsa.rdm.calc_rdm(model_dat)
-    model = pyrsa.model.ModelFixed('test', model_rdm)
-    p = check_compare_to_zero(model, n_voxel=n_voxel, n_subj=n_subj,
-                              method=method, bootstrap=bootstrap,
-                              sigma_noise=sigma_noise,
-                              test_type=test_type)
-    np.save(fname, p)
+    if not os.path.isfile(fname):
+        model_u = np.random.randn(n_cond, n_voxel)
+        model_dat = pyrsa.data.Dataset(model_u)
+        model_rdm = pyrsa.rdm.calc_rdm(model_dat)
+        model = pyrsa.model.ModelFixed('test', model_rdm)
+        p = check_compare_to_zero(model, n_voxel=n_voxel, n_subj=n_subj,
+                                  method=method, bootstrap=bootstrap,
+                                  sigma_noise=sigma_noise,
+                                  test_type=test_type)
+        np.save(fname, p)
 
 
 def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
@@ -156,7 +157,7 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
     target_rdm = target_rdm - np.min(target_rdm)
     # the following guarantees the triangle inequality
     # without this the generation fails
-    target_rdm = target_rdm + np.max(target_rdm)
+    target_rdm = target_rdm + np.max(target_rdm) + 0.01
     D = squareform(target_rdm)
     H = pyrsa.util.matrix.centering(D.shape[0])
     G = -0.5 * (H @ D @ H)
@@ -197,18 +198,20 @@ def save_compare_models(idx, n_voxel=100, n_subj=10, n_cond=5,
     fname = folder + os.path.sep + 'p_%s_%s_%s_%d_%d_%d_%.2f_%03d.npy' % (
         method, bootstrap, test_type,
         n_cond, n_subj, n_voxel, sigma_noise, idx)
-    model1_u = np.random.randn(n_cond, n_voxel)
-    model1_dat = pyrsa.data.Dataset(model1_u)
-    model1_rdm = pyrsa.rdm.calc_rdm(model1_dat)
-    model1 = pyrsa.model.ModelFixed('test1', model1_rdm)
-    model2_u = np.random.randn(n_cond, n_voxel)
-    model2_dat = pyrsa.data.Dataset(model2_u)
-    model2_rdm = pyrsa.rdm.calc_rdm(model2_dat)
-    model2 = pyrsa.model.ModelFixed('test2', model2_rdm)
-    p = check_compare_models(model1, model2, n_voxel=n_voxel, n_subj=n_subj,
-                             method=method, bootstrap=bootstrap,
-                             sigma_noise=sigma_noise)
-    np.save(fname, p)
+    if not os.path.isfile(fname):
+        model1_u = np.random.randn(n_cond, n_voxel)
+        model1_dat = pyrsa.data.Dataset(model1_u)
+        model1_rdm = pyrsa.rdm.calc_rdm(model1_dat)
+        model1 = pyrsa.model.ModelFixed('test1', model1_rdm)
+        model2_u = np.random.randn(n_cond, n_voxel)
+        model2_dat = pyrsa.data.Dataset(model2_u)
+        model2_rdm = pyrsa.rdm.calc_rdm(model2_dat)
+        model2 = pyrsa.model.ModelFixed('test2', model2_rdm)
+        p = check_compare_models(model1, model2, n_voxel=n_voxel,
+                                 n_subj=n_subj,
+                                 method=method, bootstrap=bootstrap,
+                                 sigma_noise=sigma_noise)
+        np.save(fname, p)
 
 
 def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
@@ -309,15 +312,16 @@ def save_noise_ceiling(idx, n_voxel=100, n_subj=10, n_cond=5,
              % (method, bootstrap, test_type, boot_noise_ceil,
                 n_cond, n_subj, n_voxel,
                 sigma_noise, idx))
-    model_u = np.random.randn(n_cond, n_voxel)
-    model_dat = pyrsa.data.Dataset(model_u)
-    model_rdm = pyrsa.rdm.calc_rdm(model_dat)
-    model = pyrsa.model.ModelFixed('test1', model_rdm)
-    p = check_noise_ceiling(model, n_voxel=n_voxel, n_subj=n_subj,
-                            method=method, bootstrap=bootstrap,
-                            boot_noise_ceil=boot_noise_ceil,
-                            test_type=test_type)
-    np.save(fname, p)
+    if not os.path.isfile(fname):
+        model_u = np.random.randn(n_cond, n_voxel)
+        model_dat = pyrsa.data.Dataset(model_u)
+        model_rdm = pyrsa.rdm.calc_rdm(model_dat)
+        model = pyrsa.model.ModelFixed('test1', model_rdm)
+        p = check_noise_ceiling(model, n_voxel=n_voxel, n_subj=n_subj,
+                                method=method, bootstrap=bootstrap,
+                                boot_noise_ceil=boot_noise_ceil,
+                                test_type=test_type)
+        np.save(fname, p)
 
 
 def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
@@ -572,6 +576,7 @@ def run_comp(idx):
     (i_boot, i_rep, i_sub, i_cond, i_comp) = np.unravel_index(
         idx,
         [len(boot_type), n_rep, len(n_subj), len(n_cond), len(comp_type)])
+    print(idx)
     print('starting simulation:')
     print('%d subjects' % n_subj[i_sub])
     print('%d conditions' % n_cond[i_cond])
