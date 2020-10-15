@@ -2,19 +2,20 @@
 # -*- coding: utf-8 -*-
 """Tests for the simulation subpackage
 """
-
+#pylint: disable=import-outside-toplevel, no-self-use
 import unittest
-import pyrsa
-import pyrsa.model as model
 import numpy as np
 from scipy.spatial.distance import squareform
+import pyrsa
+import pyrsa.model as model
 
 
 class TestSimulation(unittest.TestCase):
+
     def test_make_design(self):
         import pyrsa.simulation.sim as sim
         # Test for make_design
-        cond_vec, part_vec = sim.make_design(4, 8)
+        cond_vec, _ = sim.make_design(4, 8)
         self.assertEqual(cond_vec.size, 32)
 
     def test_make_signal(self):
@@ -32,7 +33,7 @@ class TestSimulation(unittest.TestCase):
     def test_make_data(self):
         # Test for make_data
         import pyrsa.simulation.sim as sim
-        cond_vec, part_vec = sim.make_design(4, 8)
+        cond_vec, _ = sim.make_design(4, 8)
         M = model.ModelFixed("test", np.array([2, 3, 4, 1, 1.1, 0.9]))
         D = sim.make_dataset(M, None, cond_vec, n_channel=40)
         self.assertEqual(D[0].n_obs, 32)
