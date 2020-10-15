@@ -6,12 +6,11 @@ Functions for data simulation a specific RSA-model
     make_dataset: creates a data set based on an RDM model
 @author: jdiedrichsen
 """
-
-import pyrsa
 import numpy as np
 import scipy.stats as ss
 import scipy.linalg as sl
 from scipy.spatial.distance import squareform
+import pyrsa
 
 
 def make_design(n_cond, n_part):
@@ -32,7 +31,7 @@ def make_design(n_cond, n_part):
     c = np.array(range(0, n_cond))
     cond_vec = np.kron(np.ones((n_part,)), c)   # Condition Vector
     part_vec = np.kron(p, np.ones((n_cond,)))    # Partition vector
-    return(cond_vec, part_vec)
+    return (cond_vec, part_vec)
 
 
 def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
@@ -77,43 +76,43 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     G = -0.5 * (H @ D @ H)
 
     # Make design matrix
-    if (cond_vec.ndim == 1):
+    if cond_vec.ndim == 1:
         Zcond = pyrsa.util.matrix.indicator(cond_vec)
-    elif (cond_vec.ndim == 2):
+    elif cond_vec.ndim == 2:
         Zcond = cond_vec
     else:
-        raise(NameError("cond_vec needs to be either vector or design matrix"))
-    n_obs, n_cond = Zcond.shape
+        raise NameError("cond_vec needs to be either vector or design matrix")
+    n_obs, _ = Zcond.shape
 
     # If signal_cov_channel is given, precalculate the cholesky decomp
     if signal_cov_channel is None:
         signal_chol_channel = None
     else:
-        if (signal_cov_channel.shape is not (n_channel, n_channel)):
-            raise(NameError("Signal covariance for channels needs to be \
-                             n_channel x n_channel array"))
+        if signal_cov_channel.shape is not (n_channel, n_channel):
+            raise NameError("Signal covariance for channels needs to be \
+                             n_channel x n_channel array")
         signal_chol_channel = np.linalg.cholesky(signal_cov_channel)
 
     # If noise_cov_channel is given, precalculate the cholinsky decomp
     if noise_cov_channel is None:
         noise_chol_channel = None
     else:
-        if (noise_cov_channel.shape is not (n_channel, n_channel)):
-            raise(NameError("noise covariance for channels needs to be \
-                             n_channel x n_channel array"))
+        if noise_cov_channel.shape is not (n_channel, n_channel):
+            raise NameError("noise covariance for channels needs to be \
+                             n_channel x n_channel array")
         noise_chol_channel = np.linalg.cholesky(noise_cov_channel)
 
     # If noise_cov_trial is given, precalculate the cholinsky decomp
     if noise_cov_trial is None:
         noise_chol_trial = None
     else:
-        if (noise_cov_trial.shape is not (n_channel, n_channel)):
-            raise(NameError("noise covariance for trials needs to be \
-                             n_obs x n_obs array"))
+        if noise_cov_trial.shape is not (n_channel, n_channel):
+            raise NameError("noise covariance for trials needs to be \
+                             n_obs x n_obs array")
         noise_chol_trial = np.linalg.cholesky(noise_cov_trial)
 
     # Generate the signal - here same for all simulations
-    if (use_same_signal):
+    if use_same_signal:
         true_U = make_signal(G, n_channel, use_exact_signal,
                              signal_chol_channel)
 
@@ -124,7 +123,7 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     des = {"signal": signal, "noise": noise,
            "model": model.name, "theta": theta}
     dataset_list = []
-    for i in range(0, n_sim):
+    for _ in range(0, n_sim):
         # If necessary - make a new signal
         if not use_same_signal:
             true_U = make_signal(G, n_channel, use_exact_signal,
@@ -134,9 +133,9 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         epsilon = np.random.uniform(0, 1, size=(n_obs, n_channel))
         epsilon = ss.norm.ppf(epsilon) * np.sqrt(noise)
         # Now add spatial and temporal covariance structure as required
-        if (noise_chol_channel is not None):
+        if noise_chol_channel is not None:
             epsilon = epsilon @ noise_chol_channel
-        if (noise_chol_trial is not None):
+        if noise_chol_trial is not None:
             epsilon = noise_chol_trial @ epsilon
         # Assemble the data set
         data = Zcond @ true_U * np.sqrt(signal) + epsilon
@@ -179,17 +178,17 @@ def make_signal(G, n_channel, make_exact=False, chol_channel=None):
     true_U = ss.norm.ppf(true_U)
     true_U = true_U - np.mean(true_U, axis=1, keepdims=True)
     # Make orthonormal row vectors
-    if (make_exact):
+    if make_exact:
         E = true_U @ true_U.transpose()
         E_chol = np.linalg.cholesky(E)
         true_U = np.linalg.solve(E_chol, true_U) * np.sqrt(n_channel)
     # Impose spatial covariance matrix
-    if (chol_channel is not None):
+    if chol_channel is not None:
         true_U = true_U @ chol_channel
     # Now produce data with the known second-moment matrix
     # Use positive eigenvectors only
     # (cholesky does not work with rank-deficient matrices)
-    L, D, perm = sl.ldl(G)
+    L, D, _ = sl.ldl(G)
     D[D < 1e-15] = 0
     D = np.sqrt(D)
     chol_G = L @ D
