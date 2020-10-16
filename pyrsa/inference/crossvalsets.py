@@ -84,7 +84,7 @@ def sets_leave_one_out_rdm(rdms, rdm_descriptor='index'):
 
 
 def sets_k_fold(rdms, k_rdm=5, k_pattern=5, random=True,
-                pattern_descriptor=None, rdm_descriptor='index'):
+                pattern_descriptor='index', rdm_descriptor='index'):
     """ generates training and test set combinations by splitting into k
     similar sized groups. This version splits both over rdms and over patterns
     resulting in k_rdm * k_pattern (training, test) pairs.
