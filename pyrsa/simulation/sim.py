@@ -180,7 +180,10 @@ def make_signal(G, n_channel, make_exact=False, chol_channel=None):
     # Make orthonormal row vectors
     if make_exact:
         E = true_U @ true_U.transpose()
-        E_chol = np.linalg.cholesky(E)
+        L_E, D_E, _ = sl.ldl(E)
+        D_E[D_E < 1e-15] = 1e-15  # we need an invertible solution!
+        D_E = np.sqrt(D_E)
+        E_chol = L_E @ D_E
         true_U = np.linalg.solve(E_chol, true_U) * np.sqrt(n_channel)
     # Impose spatial covariance matrix
     if chol_channel is not None:
