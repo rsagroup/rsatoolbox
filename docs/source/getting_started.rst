@@ -18,5 +18,7 @@ To use pyrsa:
     rdms = pyrsa.rdm.calc_rdm(data)
     pyrsa.vis.show_rdm(rdms)
 
+Also make sure your setup meets the requirements to run the toolbox with the relevant toolboxes installed (see requirements.txt). 
+
 As in introduction, we recommend having a look at the Jupyter notebooks in ``demos``.
 
