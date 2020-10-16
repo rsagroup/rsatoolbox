@@ -7,6 +7,7 @@ Parameter fitting methods for models
 import numpy as np
 import scipy.optimize as opt
 from pyrsa.rdm import compare
+from .model import ModelWeighted
 
 
 def fit_mock(model, data, method='cosine', pattern_idx=None,
@@ -106,7 +107,7 @@ def fit_interpolate(model, data, method='cosine', pattern_idx=None,
         def loss_opt(w):
             theta = np.zeros(model.n_param)
             theta[i_pair] = w
-            theta[i_pair+1] = 1-w
+            theta[i_pair + 1] = 1 - w
             return _loss(theta, model, data, method=method,
                          pattern_idx=pattern_idx,
                          pattern_descriptor=pattern_descriptor)
@@ -118,7 +119,60 @@ def fit_interpolate(model, data, method='cosine', pattern_idx=None,
     result = results[i_pair]
     theta = np.zeros(model.n_rdm)
     theta[i_pair] = result.x
-    theta[i_pair+1] = 1-result.x
+    theta[i_pair + 1] = 1 - result.x
+    return theta
+
+
+def fit_regress(model, data, method='cosine', pattern_idx=None,
+                pattern_descriptor=None, ridge_weight=0):
+    """
+    fitting theta using linear algebra solutions to the OLS problem
+    allowed for ModelWeighted only
+    This method first normalizes the data and model RDMs appropriately
+    for the measure to be optimized. For 'cosine' similarity this is a
+    normalization of the data-RDMs to vector length 1. For correlation
+    the mean is removed from both model and data rdms additionally.
+    Then the parameters are estimated using ordinary least squares.
+
+    Args:
+        model(Model): the model to be fit
+        data(pyrsa.rdm.RDMs): data to be fit
+        method(String, optional): evaluation metric The default is 'cosine'.
+        pattern_idx(numpy.ndarray, optional)
+            sampled patterns The default is None.
+        pattern_descriptor (String, optional)
+            descriptor used for fitting. The default is None.
+        ridge_weight (float, default=0)
+            weight for the ridge-regularisation of the regression
+            weight is in comparison to the final regression problem on
+            the appropriately normalized regressors
+
+    Returns:
+        numpy.ndarray: theta, parameter vector for the model
+
+    """
+    assert isinstance(model, ModelWeighted), \
+        'regression fit only works for WeightedModel'
+    if not (pattern_idx is None or pattern_descriptor is None):
+        pred = model.rdm_obj.subsample_pattern(pattern_descriptor, pattern_idx)
+    else:
+        pred = model.rdm_obj
+    vectors = pred.get_vectors()
+    data_vectors = data.get_vectors()
+    # Normalizations
+    if method == 'cosine':
+        data_scales = np.mean(data_vectors ** 2, 1, keepdims=True)
+        data_vectors = data_vectors / data_scales
+    elif method == 'corr':
+        vectors = vectors - np.mean(vectors, 1, keepdims=True)
+        data_vectors = data_vectors - np.mean(data_vectors, 1, keepdims=True)
+        data_scales = np.mean(data_vectors ** 2, 1, keepdims=True)
+        data_vectors = data_vectors / data_scales
+    else:
+        raise ValueError('method argument invalid')
+    y = np.mean(data_vectors, 0)
+    X = vectors @ vectors.T + ridge_weight * np.eye(vectors.shape[0])
+    theta = np.linalg.solve(X, vectors @ y)
     return theta
 
 
