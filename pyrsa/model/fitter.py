@@ -7,7 +7,6 @@ Parameter fitting methods for models
 import numpy as np
 import scipy.optimize as opt
 from pyrsa.rdm import compare
-from .model import ModelWeighted
 
 
 def fit_mock(model, data, method='cosine', pattern_idx=None,
@@ -151,8 +150,6 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
         numpy.ndarray: theta, parameter vector for the model
 
     """
-    assert isinstance(model, ModelWeighted), \
-        'regression fit only works for WeightedModel'
     if not (pattern_idx is None or pattern_descriptor is None):
         pred = model.rdm_obj.subsample_pattern(pattern_descriptor, pattern_idx)
     else:
