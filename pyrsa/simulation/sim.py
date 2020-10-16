@@ -81,7 +81,7 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     elif cond_vec.ndim == 2:
         Zcond = cond_vec
     else:
-        raise NameError("cond_vec needs to be either vector or design matrix")
+        raise ValueError("cond_vec needs to be either vector or design matrix")
     n_obs, _ = Zcond.shape
 
     # If signal_cov_channel is given, precalculate the cholesky decomp
@@ -89,8 +89,8 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         signal_chol_channel = None
     else:
         if signal_cov_channel.shape is not (n_channel, n_channel):
-            raise NameError("Signal covariance for channels needs to be \
-                             n_channel x n_channel array")
+            raise ValueError("Signal covariance for channels needs to be \
+                              n_channel x n_channel array")
         signal_chol_channel = np.linalg.cholesky(signal_cov_channel)
 
     # If noise_cov_channel is given, precalculate the cholinsky decomp
@@ -98,8 +98,8 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         noise_chol_channel = None
     else:
         if noise_cov_channel.shape is not (n_channel, n_channel):
-            raise NameError("noise covariance for channels needs to be \
-                             n_channel x n_channel array")
+            raise ValueError("noise covariance for channels needs to be \
+                              n_channel x n_channel array")
         noise_chol_channel = np.linalg.cholesky(noise_cov_channel)
 
     # If noise_cov_trial is given, precalculate the cholinsky decomp
@@ -107,8 +107,8 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
         noise_chol_trial = None
     else:
         if noise_cov_trial.shape is not (n_channel, n_channel):
-            raise NameError("noise covariance for trials needs to be \
-                             n_obs x n_obs array")
+            raise ValueError("noise covariance for trials needs to be \
+                              n_obs x n_obs array")
         noise_chol_trial = np.linalg.cholesky(noise_cov_trial)
 
     # Generate the signal - here same for all simulations
@@ -181,10 +181,10 @@ def make_signal(G, n_channel, make_exact=False, chol_channel=None):
     if make_exact:
         E = true_U @ true_U.transpose()
         L_E, D_E, _ = sl.ldl(E)
-        D_E[D_E < 1e-15] = 1e-15 # we need an invertible solution!
+        D_E[D_E < 1e-15] = 1e-15  # we need an invertible solution!
         D_E = np.sqrt(D_E)
-        chol_E = L_E @ D_E
-        true_U = np.linalg.solve(chol_E, true_U) * np.sqrt(n_channel)
+        E_chol = L_E @ D_E
+        true_U = np.linalg.solve(E_chol, true_U) * np.sqrt(n_channel)
     # Impose spatial covariance matrix
     if chol_channel is not None:
         true_U = true_U @ chol_channel
