@@ -181,7 +181,7 @@ def make_signal(G, n_channel, make_exact=False, chol_channel=None):
     if make_exact:
         E = true_U @ true_U.transpose()
         L_E, D_E, _ = sl.ldl(E)
-        D_E[D_E < 1e-15] = 0
+        D_E[D_E < 1e-15] = 1e-15 # we need an invertible solution!
         D_E = np.sqrt(D_E)
         chol_E = L_E @ D_E
         true_U = np.linalg.solve(chol_E, true_U) * np.sqrt(n_channel)
