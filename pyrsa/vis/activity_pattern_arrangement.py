@@ -8,7 +8,7 @@ from sklearn.manifold import TSNE
 
 def activity_pattern_arrangement(rdm, condition_icons, method=None):
     """ visualize the relationships among a set of experimental conditions
-    (activity patterns) as captured by an RDM by arranging the conditions 
+    (activity patterns) as captured by an RDM by arranging the conditions
     with MDS, isomap, or t-SNE
     
     Args:
