@@ -18,12 +18,10 @@ def activity_pattern_arrangement(rdm, condition_icons, method=None):
     Returns:
         None
     """
-    
     if len(condition_icons) != rdm.n_cond:
         raise TypeError("The number of conditions in RDM does not match the number of condition icons")
     
     rdmm = rdm.get_matrices()
-    
     
     if method == 'mds' or method is None:
         emb = MDS(n_components=2, dissimilarity='precomputed')
@@ -34,7 +32,6 @@ def activity_pattern_arrangement(rdm, condition_icons, method=None):
     else:
         raise TypeError("Incorrect method")
         
-    
     for i in np.arange(rdms.n_rdm):
         drs = emb.fit_transform(rdmm[i, :, :])
         
