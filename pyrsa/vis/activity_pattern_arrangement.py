@@ -10,7 +10,6 @@ def activity_pattern_arrangement(rdm, condition_icons, method=None):
     """ visualize the relationships among a set of experimental conditions
     (activity patterns) as captured by an RDM by arranging the conditions
     with MDS, isomap, or t-SNE
-    
     Args:
         rdm(pyrsa.rdm.RDMs): an RDMs class object
         condition_icons(dictionary): a dictionary of Icons for all images
