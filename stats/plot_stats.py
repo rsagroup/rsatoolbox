@@ -15,6 +15,9 @@ import pandas as pd
 from helpers import get_fname_base
 import pyrsa
 import pathlib
+from matplotlib import rcParams
+
+rcParams.update({'figure.autolayout': True})
 
 
 def plot_saved_dnn_average(layer=2, sd=3,
@@ -146,7 +149,7 @@ def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
     plt.ylim(bottom=0)
 
 
-def plot_comp(data, alpha=0.05):
+def plot_comp(data, alpha=0.05, save_file=None):
     """ plots comp check data
     """
     # methods = np.unique(data[:, 1])
@@ -183,76 +186,113 @@ def plot_comp(data, alpha=0.05):
         plt.plot(np.repeat(i, props[i].size)
                  + 0.1 * np.random.randn(props[i].size),
                  props[i].flatten(), 'k.')
-    plt.plot([-0.5, 2.5], [alpha, alpha], 'k--')
-    plt.xticks([0, 1, 2], ['both', 'rdm', 'pattern'])
-    plt.ylabel('Proportion significant')
-    plt.xlabel('bootstrap method')
+    plt.plot([-0.5, len(boots) - 0.5], [alpha, alpha], 'k--')
+    plt.xticks([0, 1, 2, 3],
+               ['Bootstrap\nboth', 'Bootstrap\nrdm', 'Bootstrap\npattern',
+                'Wilcoxon'])
+    plt.ylabel('Proportion significant', fontsize=18)
+    plt.xlabel('Test type', fontsize=18)
+    if save_file:
+        fname = save_file + '_bars.pdf'
+        plt.savefig(fname)
     # Second plot: plot against n_subj
     p_max = np.nanmax(props)
-    plt.figure(figsize=(12, 5))
+    plt.figure(figsize=(3 * len(boots), 5))
     for i in range(len(boots)):
-        ax = plt.subplot(1, 3, i+1)
-        h0 = plt.plot(np.arange(len(n_subj)), props[i, :, 0, 0, :], '.',
-                      color=[0.5, 0, 0])
-        h1 = plt.plot(np.arange(len(n_subj)), props[i, :, 1, 0, :], '.',
-                      color=[0.5, 0.2, 0.3])
-        h2 = plt.plot(np.arange(len(n_subj)), props[i, :, 2, 0, :], '.',
-                      color=[0.5, 0.4, 0.7])
-        if len(n_cond) > 3:
-            h3 = plt.plot(np.arange(len(n_subj)), props[i, :, 3, 0, :], '.',
-                          color=[0.5, 0.6, 1])
+        ax = plt.subplot(1, len(boots), i + 1)
+        h0 = plt.plot(np.arange(len(n_subj)) - 0.225,
+                      props[i, :, 0, 0, :], '.',
+                      color=[0.5, 0, 0], markersize=15)
+        h1 = plt.plot(np.arange(len(n_subj)) - 0.075,
+                      props[i, :, 1, 0, :], '.',
+                      color=[0.5, 0.2, 0.3], markersize=15)
+        h2 = plt.plot(np.arange(len(n_subj)) + 0.075,
+                      props[i, :, 2, 0, :], '.',
+                      color=[0.5, 0.4, 0.7], markersize=15)
+        h3 = plt.plot(np.arange(len(n_subj)) + 0.225,
+                      props[i, :, 3, 0, :], '.',
+                      color=[0.5, 0.6, 1], markersize=15)
         if i == 0:
-            plt.title('both', fontsize=18)
-            plt.ylabel('Proportion significant', fontsize=18)
+            plt.title('Bootstrap\nboth', fontsize=18)
+            plt.ylabel('Proportion significant', fontsize=24)
+            plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
         elif i == 1:
-            plt.title('rdm', fontsize=18)
+            plt.title('Bootstrap\nrdm', fontsize=18)
+            plt.yticks([0, alpha, 2*alpha, 3*alpha])
+            plt.tick_params(labelleft=False)
         elif i == 2:
-            plt.title('pattern', fontsize=18)
-            if len(n_cond) > 3:
-                plt.legend([h0[0], h1[0], h2[0], h3[0]], n_cond.astype('int'),
-                           frameon=False, title='# of patterns')
-            else:
-                plt.legend([h0[0], h1[0], h2[0]], n_cond.astype('int'),
-                           frameon=False, title='# of patterns')
-        plt.xticks(np.arange(len(n_subj)), n_subj.astype('int'))
+            plt.title('Bootstrap\npattern', fontsize=18)
+            plt.yticks([0, alpha, 2*alpha, 3*alpha])
+            plt.tick_params(labelleft=False)
+        elif i == 3:
+            plt.title('Wilcoxon\n', fontsize=18)
+            plt.yticks([0, alpha, 2*alpha, 3*alpha])
+            plt.tick_params(labelleft=False)
+            legend = plt.legend(
+                [h0[0], h1[0], h2[0], h3[0]], n_cond.astype('int'),
+                frameon=False, title='# of patterns', fontsize=18,
+                bbox_to_anchor=(1.0, 1.0), loc=2)
+            legend.get_title().set_fontsize('18')
+        plt.xticks(np.arange(len(n_cond)), n_cond.astype('int'), fontsize=18)
         plt.yticks([0, alpha, 2*alpha, 3*alpha])
-        plt.ylim([0, p_max + 0.01])
+        plt.ylim([0, 0.25])
         plt.xlim([-1, len(n_subj)])
         plt.plot([-1, len(n_subj)], [alpha, alpha], 'k--')
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         plt.xlabel('# of rdms', fontsize=18)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
+    if save_file:
+        fname = save_file + '_rdm.pdf'
+        plt.savefig(fname)
     # Third plot: plot against n_pattern
-    plt.figure(figsize=(12, 5))
+    plt.figure(figsize=(3 * len(boots), 5))
     for i in range(len(boots)):
-        ax = plt.subplot(1, 3, i+1)
-        h0 = plt.plot(np.arange(len(n_cond)), props[i, 0, :, 0, :], '.',
-                      color=[0.5, 0, 0])
-        h1 = plt.plot(np.arange(len(n_cond)), props[i, 1, :, 0, :], '.',
-                      color=[0.5, 0.2, 0.3])
-        h2 = plt.plot(np.arange(len(n_cond)), props[i, 2, :, 0, :], '.',
-                      color=[0.5, 0.4, 0.7])
-        h3 = plt.plot(np.arange(len(n_cond)), props[i, 3, :, 0, :], '.',
-                      color=[0.5, 0.6, 1])
+        ax = plt.subplot(1, len(boots), i+1)
+        h0 = plt.plot(np.arange(len(n_cond)) - 0.225,
+                      props[i, 0, :, 0, :], '.',
+                      color=[0.5, 0, 0], markersize=15)
+        h1 = plt.plot(np.arange(len(n_cond)) - 0.075,
+                      props[i, 1, :, 0, :], '.',
+                      color=[0.5, 0.2, 0.3], markersize=15)
+        h2 = plt.plot(np.arange(len(n_cond)) + 0.075,
+                      props[i, 2, :, 0, :], '.',
+                      color=[0.5, 0.4, 0.7], markersize=15)
+        h3 = plt.plot(np.arange(len(n_cond)) + 0.225,
+                      props[i, 3, :, 0, :], '.',
+                      color=[0.5, 0.6, 1], markersize=15)
         if i == 0:
-            plt.title('both', fontsize=18)
-            plt.ylabel('Proportion significant', fontsize=18)
+            plt.title('Bootstrap\nboth', fontsize=18)
+            plt.ylabel('Proportion significant', fontsize=24)
+            plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
         elif i == 1:
-            plt.title('rdm', fontsize=18)
+            plt.title('Bootstrap\nrdm', fontsize=18)
+            plt.yticks([0, alpha, 2*alpha, 3*alpha])
+            plt.tick_params(labelleft=False)
         elif i == 2:
-            plt.title('pattern', fontsize=18)
-            plt.legend([h0[0], h1[0], h2[0], h3[0]], n_subj.astype('int'),
-                       frameon=False, title='# of rdms')
-        plt.xticks(np.arange(len(n_cond)), n_cond.astype('int'))
-        plt.yticks([0, alpha, 2*alpha, 3*alpha])
-        plt.ylim([0, p_max + 0.01])
+            plt.title('Bootstrap\npattern', fontsize=18)
+            plt.yticks([0, alpha, 2*alpha, 3*alpha])
+            plt.tick_params(labelleft=False)
+        elif i == 3:
+            plt.title('Wilcoxon\n', fontsize=18)
+            plt.yticks([0, alpha, 2*alpha, 3*alpha])
+            plt.tick_params(labelleft=False)
+            legend = plt.legend(
+                [h0[0], h1[0], h2[0], h3[0]], n_cond.astype('int'),
+                frameon=False, title='# of rdms', fontsize=18,
+                bbox_to_anchor=(1.0, 1.0), loc=2)
+            legend.get_title().set_fontsize('18')
+        plt.xticks(np.arange(len(n_cond)), n_cond.astype('int'), fontsize=18)
+        plt.ylim([0, 0.25])
         plt.xlim([-1, len(n_cond)])
         plt.plot([-1, len(n_cond)], [alpha, alpha], 'k--')
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         plt.xlabel('# of patterns', fontsize=18)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
+    if save_file:
+        fname = save_file + '_pattern.pdf'
+        plt.savefig(fname)
 
 
 def plot_eco(simulation_folder='sim_eco', variation='both', savefig=False):

@@ -52,8 +52,14 @@ def load_comp(folder):
             boot = 2
         elif split[2] == 'fancy':
             boot = 3
+        elif split[2] == 'fancyboot':
+            boot = 4
+        elif split[2] == 'fix':
+            boot = 5
         if split[3] == 't':
             test_type = 1
+        elif split[3] == 'fix':
+            test_type = 2
         else:
             test_type = 0
         if split[3] == 'True' or split[4] == 'True':
