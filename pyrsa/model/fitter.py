@@ -7,6 +7,7 @@ Parameter fitting methods for models
 import numpy as np
 import scipy.optimize as opt
 from pyrsa.rdm import compare
+from pyrsa.rdm.compare import _get_v
 
 
 def fit_mock(model, data, method='cosine', pattern_idx=None,
@@ -158,17 +159,36 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
     data_vectors = data.get_vectors()
     # Normalizations
     if method == 'cosine':
-        data_scales = np.mean(data_vectors ** 2, 1, keepdims=True)
+        data_scales = np.sqrt(np.mean(data_vectors ** 2, 1, keepdims=True))
         data_vectors = data_vectors / data_scales
+        v = None
     elif method == 'corr':
         vectors = vectors - np.mean(vectors, 1, keepdims=True)
         data_vectors = data_vectors - np.mean(data_vectors, 1, keepdims=True)
-        data_scales = np.mean(data_vectors ** 2, 1, keepdims=True)
+        data_scales = np.sqrt(np.mean(data_vectors ** 2, 1, keepdims=True))
         data_vectors = data_vectors / data_scales
+        v = None
+    elif method == 'corr_cov':
+        vectors = vectors - np.mean(vectors, 1, keepdims=True)
+        data_vectors = data_vectors - np.mean(data_vectors, 1, keepdims=True)
+        data_scales = np.sqrt(np.mean(data_vectors ** 2, 1, keepdims=True))
+        data_vectors = data_vectors / data_scales
+        # calculate Xi
+        c_mat = pairwise_contrast_sparse(np.arange(pred.n_cond))
+        if sigma_k is None:
+            xi = c_mat @ c_mat.transpose()
+        else:
+            sigma_k = scipy.sparse.csr_matrix(sigma_k)
+            xi = c_mat @ sigma_k @ c_mat.transpose()
+        # calculate V
+        v = xi.multiply(xi).tocsc()
     else:
         raise ValueError('method argument invalid')
     y = np.mean(data_vectors, 0)
-    X = vectors @ vectors.T + ridge_weight * np.eye(vectors.shape[0])
+    if v is None:
+        X = vectors @ vectors.T + ridge_weight * np.eye(vectors.shape[0])
+    else:
+        
     theta = np.linalg.solve(X, vectors @ y)
     return theta
 
