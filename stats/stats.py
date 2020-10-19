@@ -284,11 +284,13 @@ def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
             else:
                 p_upper[i_sim] = pyrsa.util.inference_util.t_test_nc(
                     results.evaluations, results.variances,
-                    results.noise_ceiling[1], results.noise_ceil_var[1, :-2],
+                    np.nanmean(results.noise_ceiling[1]),
+                    results.noise_ceil_var[1, :-2],
                     results.dof)
                 p_lower[i_sim] = pyrsa.util.inference_util.t_test_nc(
                     results.evaluations, results.variances,
-                    results.noise_ceiling[0], results.noise_ceil_var[0, :-1],
+                    np.nanmean(results.noise_ceiling[0]),
+                    results.noise_ceil_var[0, :-1],
                     results.dof)
         elif test_type == 'ranksum':
             p_upper[i_sim] = pyrsa.util.inference_util.ranksum_value_test(

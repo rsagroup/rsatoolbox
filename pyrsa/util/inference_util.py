@@ -412,7 +412,7 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
         noise_ceil_var = np.array(noise_ceil_var)
         while noise_ceil_var.ndim > 1:
             noise_ceil_var = noise_ceil_var[:, 0]
-    evaluations = np.mean(evaluations, 0)
+    evaluations = np.nanmean(evaluations, 0)
     if len(variances.shape) == 1:
         variances = np.diag(variances)
     while evaluations.ndim > 1:
