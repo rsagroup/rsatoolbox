@@ -709,26 +709,30 @@ def summarize_eco(simulation_folder='sim_eco'):
                     pairwise = np.nan * np.zeros((100, 12, 12))
                     for i_res in results.glob('res*.hdf5'):
                         idx = int(str(i_res)[-9:-5])
-                        res = pyrsa.inference.load_results(i_res,
-                                                           file_type='hdf5')
-                        if res.evaluations.ndim == 2:
-                            no_nan_idx = ~np.isnan(res.evaluations[:, 0])
-                        elif res.evaluations.ndim == 3:
-                            no_nan_idx = ~np.isnan(res.evaluations[:, 0, 0])
-                        if np.any(no_nan_idx):
-                            for i in range(12):
-                                for j in range(12):
-                                    diff = (res.evaluations[:, i]
-                                            - res.evaluations[:, j])
-                                    pairwise[idx, i, j] = np.sum(
-                                        diff[no_nan_idx] > 0)
-                            m = np.mean(res.evaluations[no_nan_idx],
-                                        axis=0)
-                            while m.ndim > 1:
-                                m = np.mean(m, axis=-1)
-                            mean[idx] = m
-                            variance[idx] = res.variances
-                        else:
+                        try:
+                            res = pyrsa.inference.load_results(
+                                i_res, file_type='hdf5')
+                            if res.evaluations.ndim == 2:
+                                no_nan_idx = ~np.isnan(res.evaluations[:, 0])
+                            elif res.evaluations.ndim == 3:
+                                no_nan_idx = \
+                                    ~np.isnan(res.evaluations[:, 0, 0])
+                            if np.any(no_nan_idx):
+                                for i in range(12):
+                                    for j in range(12):
+                                        diff = (res.evaluations[:, i]
+                                                - res.evaluations[:, j])
+                                        pairwise[idx, i, j] = np.sum(
+                                            diff[no_nan_idx] > 0)
+                                m = np.mean(res.evaluations[no_nan_idx],
+                                            axis=0)
+                                while m.ndim > 1:
+                                    m = np.mean(m, axis=-1)
+                                mean[idx] = m
+                                variance[idx] = res.variances
+                            else:
+                                raise OSError('no valid results')
+                        except OSError:
                             mean[idx] = np.nan
                             variance[idx] = np.nan
                             pairwise[idx] = np.nan
