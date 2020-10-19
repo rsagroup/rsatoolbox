@@ -538,7 +538,7 @@ class TestCalcRDMMovie(unittest.TestCase):
             self.test_data_time, descriptor='conds',
             method='mahalanobis', time_descriptor='time')
         assert rdm.n_cond == 6
-        assert len([r for r in rdm]) == 15
+        assert len(list(rdm)) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
 
     def test_calc_rdm_movie_euclidean(self):
@@ -546,7 +546,7 @@ class TestCalcRDMMovie(unittest.TestCase):
             self.test_data_time, descriptor='conds',
             method='euclidean', time_descriptor='time')
         assert rdm.n_cond == 6
-        assert len([r for r in rdm]) == 15
+        assert len(list(rdm)) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
 
     def test_calc_rdm_movie_correlation(self):
@@ -554,7 +554,7 @@ class TestCalcRDMMovie(unittest.TestCase):
             self.test_data_time, descriptor='conds',
             method='correlation', time_descriptor='time')
         assert rdm.n_cond == 6
-        assert len([r for r in rdm]) == 15
+        assert len(list(rdm)) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
 
     def test_calc_rdm_movie_crossnobis(self):
@@ -563,7 +563,7 @@ class TestCalcRDMMovie(unittest.TestCase):
             method='crossnobis', time_descriptor='time',
             cv_descriptor='fold')
         assert rdm.n_cond == 6
-        assert len([r for r in rdm]) == 15
+        assert len(list(rdm)) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
 
     def test_calc_rdm_movie_crossnobis_no_descriptors(self):
@@ -597,7 +597,7 @@ class TestCalcRDMMovie(unittest.TestCase):
             method='mahalanobis', time_descriptor='time',
             bins=bins)
         assert rdm.n_cond == 6
-        assert len([r for r in rdm]) == 5
+        assert len(list(rdm)) == 5
         assert rdm.rdm_descriptors['time'][0] == np.mean(time[:3])
 
 
@@ -753,7 +753,7 @@ class TestCompareRDM(unittest.TestCase):
     def test_compare_kendall_tau_a(self):
         from pyrsa.rdm.compare import compare_kendall_tau_a
         result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm1)
-        assert_array_almost_equal(result, 1)
+        self.assertAlmostEqual(result, 1)
         result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
