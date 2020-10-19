@@ -151,14 +151,17 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
             noise_min.append(np.nan)
             noise_max.append(np.nan)
     if boot_noise_ceil:
+        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array([noise_min, noise_max])
-        var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
+        var = np.cov(np.concatenate([evaluations[eval_ok, :].T,
+                                     noise_ceil[:, eval_ok]]))
         variances = var[:-2, :-2]
         noise_ceil_var = var[:, -2:]
     else:
+        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
-        variances = np.cov(evaluations.T)
+        variances = np.cov(evaluations[eval_ok, :].T)
         noise_ceil_var = None
     dof = min(data.n_rdm, data.n_cond) - 1
     result = Result(models, evaluations, method=method,
@@ -212,14 +215,17 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
             noise_min.append(np.nan)
             noise_max.append(np.nan)
     if boot_noise_ceil:
+        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array([noise_min, noise_max])
-        var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
+        var = np.cov(np.concatenate([evaluations[eval_ok, :].T,
+                                     noise_ceil[:, eval_ok]]))
         variances = var[:-2, :-2]
         noise_ceil_var = var[:, -2:]
     else:
+        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
-        variances = np.cov(evaluations.T)
+        variances = np.cov(evaluations[eval_ok, :].T)
         noise_ceil_var = None
     dof = data.n_cond - 1
     result = Result(models, evaluations, method=method,
@@ -261,14 +267,17 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
             noise_min.append(noise_min_sample)
             noise_max.append(noise_max_sample)
     if boot_noise_ceil:
+        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array([noise_min, noise_max])
-        var = np.cov(np.concatenate([evaluations.T, noise_ceil]))
+        var = np.cov(np.concatenate([evaluations[eval_ok, :].T,
+                                     noise_ceil[:, eval_ok]]))
         variances = var[:-2, :-2]
         noise_ceil_var = var[:, -2:]
     else:
+        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
-        variances = np.cov(evaluations.T)
+        variances = np.cov(evaluations[eval_ok, :].T)
         noise_ceil_var = None
     dof = data.n_rdm - 1
     variances = np.cov(evaluations.T)
