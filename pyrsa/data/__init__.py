@@ -1,4 +1,5 @@
 from .dataset import Dataset
+from .dataset import TemporalDataset
 from .dataset import load_dataset
 from .dataset import dataset_from_dict
 from .dataset import merge_subsets
