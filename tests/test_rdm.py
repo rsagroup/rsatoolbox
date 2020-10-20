@@ -15,7 +15,6 @@ import pyrsa.rdm as rsr
 import pyrsa as rsa
 
 
-
 class TestRDM(unittest.TestCase):
 
     def test_rdm3d_init(self):
@@ -165,7 +164,8 @@ class TestRDM(unittest.TestCase):
         n_rdm, n_cond = 7, 10
         dis = np.zeros((n_rdm, n_cond, n_cond))
         rdms = rsr.RDMs(dissimilarities=dis,
-                        pattern_descriptors={'type': np.array(list(range(n_cond)))},
+                        pattern_descriptors={
+                            'type': np.array(list(range(n_cond)))},
                         dissimilarity_measure='Euclidean',
                         descriptors={'subj': range(n_rdm)})
         self.assertEqual(len(rdms), n_rdm)
@@ -174,7 +174,8 @@ class TestRDM(unittest.TestCase):
         n_rdm, n_cond = 7, 10
         dis = np.zeros((n_rdm, n_cond, n_cond))
         rdms = rsr.RDMs(dissimilarities=dis,
-                        pattern_descriptors={'type': np.array(list(range(n_cond)))},
+                        pattern_descriptors={
+                            'type': np.array(list(range(n_cond)))},
                         dissimilarity_measure='Euclidean',
                         descriptors={'subj': range(n_rdm)})
         self.assertEqual(len(rdms[0]), 1)
@@ -264,7 +265,8 @@ class TestRDM(unittest.TestCase):
         from pyrsa.rdm import get_categorical_rdm
         category_vector = [1, 2, 2, 3]
         rdm = get_categorical_rdm(category_vector)
-        np.testing.assert_array_almost_equal(rdm.dissimilarities,
+        np.testing.assert_array_almost_equal(
+            rdm.dissimilarities,
             np.array([[1., 1., 1., 0., 1., 1.]]))
 
     def test_reorder(self):
@@ -281,7 +283,8 @@ class TestRDM(unittest.TestCase):
             pattern_descriptors=dict(conds=conds)
         )
         conds_ordered = ['b', 'a', 'c', 'd']
-        new_order = [conds.index(l) for l in conds_ordered]
+        new_order = [conds.index(cond_idx)
+                     for cond_idx in conds_ordered]
         rdm_reordered = rdm[np.ix_(new_order, new_order)]
         rdms.reorder(new_order)
         assert_array_equal(
@@ -695,9 +698,9 @@ class TestCompareRDM(unittest.TestCase):
         d2 = d2 - np.mean(d2, 1, keepdims=True)
         for i in range(result_loop.shape[0]):
             for j in range(result_loop.shape[1]):
-                result_loop[i,j] = (np.sum(d1[i] * d2[j])
-                                    / np.sqrt(np.sum(d1[i] * d1[i]))
-                                    / np.sqrt(np.sum(d2[j] * d2[j])))
+                result_loop[i, j] = (np.sum(d1[i] * d2[j])
+                                     / np.sqrt(np.sum(d1[i] * d1[i]))
+                                     / np.sqrt(np.sum(d2[j] * d2[j])))
         assert_array_almost_equal(result, result_loop)
 
     def test_compare_spearman(self):
