@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from unittest import TestCase
+"""
+test_descriptor_utils
+Test for descriptor utils
+@author: adkipnis
+"""
+
+import unittest
 import numpy as np
 
 
-class TestDescriptorUtils(TestCase):
+class TestDescriptorUtils(unittest.TestCase):
 
     def test_format_descriptor(self):
         from pyrsa.util.descriptor_utils import format_descriptor
@@ -44,6 +50,13 @@ class TestDescriptorUtils(TestCase):
         descriptors = {'foo': ['bar']}
         assert check_descriptor_length(descriptors, 1)
 
+    def test_check_descriptor_length_0d(self):
+        """numpy casts str to 0d arrays (arrays with empty shape).
+        This breaks things."""
+        from pyrsa.util.descriptor_utils import check_descriptor_length
+        descriptors = {'foo': 'bar'}
+        assert check_descriptor_length(descriptors, 1)
+
     def test_subset_descriptor(self):
         import numpy as np
         from pyrsa.util.descriptor_utils import subset_descriptor
@@ -65,3 +78,17 @@ class TestDescriptorUtils(TestCase):
         from pyrsa.util.descriptor_utils import check_descriptor_length_error
         descriptors = {'foo': ['bar', 'bar2']}
         check_descriptor_length_error(descriptors, 'test', 2)
+
+    def test_append_obs_descriptors(self):
+        from pyrsa.util.descriptor_utils import append_obs_descriptors
+        descriptors_1 = {'foo': ['bar1', 'bar2'], 'boo': ['far1']}
+        descriptors_2 = {'foo': ['bar3', 'bar4'], 'boo': ['far2']}
+        desc_appended = append_obs_descriptors(descriptors_1, descriptors_2)
+        self.assertSequenceEqual(list(desc_appended['foo']),
+                                 ['bar%d' % i for i in range(1, 5)])
+        self.assertSequenceEqual(list(desc_appended['boo']),
+                                 ['far%d' % i for i in range(1, 3)])
+
+
+if __name__ == '__main__':
+    unittest.main()

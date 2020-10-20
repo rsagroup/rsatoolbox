@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 Definition of RSA RDMs class and subclasses
+
 @author: baihan
 """
 
 import numpy as np
 from scipy.stats import rankdata
-import pickle
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -44,6 +44,7 @@ class RDMs:
         n_cond(int): number of patterns
 
     """
+
     def __init__(self, dissimilarities,
                  dissimilarity_measure=None,
                  descriptors=None,
@@ -107,10 +108,11 @@ class RDMs:
     def __getitem__(self, idx):
         """
         allows indexing with []
+        and iterating over RDMs with `for rdm in rdms:`
         """
         idx = np.array(idx)
-        dissimilarities = self.dissimilarities[idx].reshape(-1,
-                                self.dissimilarities.shape[1])
+        dissimilarities = self.dissimilarities[idx].reshape(
+            -1, self.dissimilarities.shape[1])
         rdm_descriptors = subset_descriptor(self.rdm_descriptors, idx)
         rdms = RDMs(dissimilarities,
                     dissimilarity_measure=self.dissimilarity_measure,
@@ -118,6 +120,13 @@ class RDMs:
                     rdm_descriptors=rdm_descriptors,
                     pattern_descriptors=self.pattern_descriptors)
         return rdms
+
+    def __len__(self) -> int:
+        """
+        The number of RDMs in this stack.
+        Together with __getitem__, allows `reversed(rdms)`.
+        """
+        return self.n_rdm
 
     def get_vectors(self):
         """ Returns RDMs as np.ndarray with each RDM as a vector
@@ -331,27 +340,39 @@ class RDMs:
         rdm_dict['dissimilarity_measure'] = self.dissimilarity_measure
         return rdm_dict
 
-    def sort_by(self, by):
-        """ resorts the rdm patterns
+    def reorder(self, new_order):
+        """Reorder the patterns according to the index in new_order
 
         Args:
-            by(String): the descriptor by which the subset selection
-                        is made from descriptors
-            value:      the value by which the subset selection is made
-                        from descriptors
-
-        Returns:
-            RDMs object, with subsampled RDMs
-
+            new_order (numpy.ndarray): new order of patterns,
+                vector of length equal to the number of patterns
         """
-        desc = self.pattern_descriptors[by]
-        order = np.argsort(desc)
-        self.measurements = self.measurements[order]
-        self.pattern_descriptors = subset_descriptor(
-            self.pattern_descriptors, order)
-        dissimilarities = self.get_matrices()
-        dissimilarities = dissimilarities[:, order][:, :, order]
-        self.dissimilarities = batch_to_vectors(dissimilarities)
+        matrices = self.get_matrices()
+        matrices = matrices[(slice(None),) + np.ix_(new_order, new_order)]
+        self.dissimilarities = batch_to_vectors(matrices)[0]
+        for dname, descriptors in self.pattern_descriptors.items():
+            self.pattern_descriptors[dname] = descriptors[new_order]
+
+    def sort_by(self, **kwargs):
+        """Reorder the patterns by sorting a descriptor
+
+        Pass keyword arguments that correspond to descriptors,
+        with value 'alpha'. 
+
+        Example:
+            Sorts the condition descriptor alphabetically:
+
+            `rdms.sort(condition='alpha')`
+
+        Raises:
+            ValueError: Raised if the method chosen is not implemented
+        """
+        for dname, method in kwargs.items():
+            if method == 'alpha':
+                descriptor = self.pattern_descriptors[dname]
+                self.reorder(np.argsort(descriptor))
+            else:
+                raise ValueError(f'Unknown sorting method: {method}')
 
 
 def rdms_from_dict(rdm_dict):
@@ -394,10 +415,26 @@ def load_rdm(filename, file_type=None):
     return rdms_from_dict(rdm_dict)
 
 
-def rank_transform(rdms):
-    """ applyes a rank_transform and generates a new RDMs object"""
+def rank_transform(rdms, method='average'):
+    """ applies a rank_transform and generates a new RDMs object
+    This assigns a rank to each dissimilarity estimate in the RDM,
+    deals with rank ties and saves ranks as new dissimilarity estimates.
+    As an effect, all non-diagonal entries of the RDM will
+    range from 1 to (n_dim²-n_dim)/2, if the RDM has the dimensions
+    n_dim x n_dim.
+
+    Args:
+        rdms(RDMs): RDMs object
+        method(String):
+            controls how ranks are assigned to equal values
+            other options are: ‘average’, ‘min’, ‘max’, ‘dense’, ‘ordinal’
+
+    Returns:
+        rdms_new(RDMs): RDMs object with rank transformed dissimilarities
+
+    """
     dissimilarities = rdms.get_vectors()
-    dissimilarities = np.array([rankdata(dissimilarities[i])
+    dissimilarities = np.array([rankdata(dissimilarities[i], method=method)
                                 for i in range(rdms.n_rdm)])
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=rdms.dissimilarity_measure,
@@ -428,6 +465,61 @@ def concat(rdms):
     return rdm
 
 
+def permute_rdms(rdms, p=None):
+    """ Permute rows, columns and corresponding pattern descriptors
+    of RDM matrices according to a permutation vector
+
+    Args:
+        p (numpy.ndarray):
+           permutation vector (values must be unique integers
+           from 0 to n_cond of RDM matrix).
+           If p = None, a random permutation vector is created.
+
+    Returns:
+        rdm_p(pyrsa.rdm.RDMs): the rdm object with a permuted matrix
+            and pattern descriptors
+
+    """
+    if p is None:
+        p = np.random.permutation(rdms.n_cond)
+        print('No permutation vector specified,'
+              + ' performing random permutation.')
+
+    assert p.dtype == 'int', "permutation vector must have integer entries."
+    assert min(p) == 0 and max(p) == rdms.n_cond-1, \
+        "permutation vector must have entries ranging from 0 to n_cond"
+    assert len(np.unique(p)) == rdms.n_cond, \
+        "permutation vector must only have unique integer entries"
+
+    rdm_mats = rdms.get_matrices()
+    descriptors = rdms.descriptors.copy()
+    rdm_descriptors = rdms.rdm_descriptors.copy()
+    pattern_descriptors = rdms.pattern_descriptors.copy()
+
+    # To easily reverse permutation later
+    p_inv = np.arange(len(p))[np.argsort(p)]
+    descriptors.update({'p_inv': p_inv})
+    rdm_mats = rdm_mats[:, p, :]
+    rdm_mats = rdm_mats[:, :, p]
+    stims = np.array(pattern_descriptors['stim'])
+    pattern_descriptors.update({'stim': list(stims[p].astype(np.str_))})
+
+    rdms_p = RDMs(
+        dissimilarities=rdm_mats,
+        descriptors=descriptors,
+        rdm_descriptors=rdm_descriptors,
+        pattern_descriptors=pattern_descriptors)
+    return rdms_p
+
+
+def inverse_permute_rdms(rdms):
+    """ Gimmick function to reverse the effect of permute_rdms() """
+
+    p_inv = rdms.descriptors['p_inv']
+    rdms_p = permute_rdms(rdms, p=p_inv)
+    return rdms_p
+
+
 def get_categorical_rdm(category_vector, category_name='category'):
     """ generates an RDM object containing a categorical RDM, i.e. RDM = 0
     if the category is the same and 1 if they are different
@@ -444,14 +536,15 @@ def get_categorical_rdm(category_vector, category_name='category'):
     n = len(category_vector)
     rdm_list = []
     for i_cat in range(n):
-        for j_cat in range(i_cat+1,n):
+        for j_cat in range(i_cat + 1, n):
             if isinstance(category_vector[i_cat], Iterable):
                 comparisons = [np.array(category_vector[i_cat][idx])
                                != np.array(category_vector[j_cat][idx])
                                for idx in range(len(category_vector[i_cat]))]
                 rdm_list.append(np.any(comparisons))
             else:
-                rdm_list.append(category_vector[i_cat] != category_vector[j_cat])
+                rdm_list.append(
+                    category_vector[i_cat] != category_vector[j_cat])
     rdm = RDMs(np.array(rdm_list, dtype=np.float),
-               pattern_descriptors={category_name:np.array(category_vector)})
+               pattern_descriptors={category_name: np.array(category_vector)})
     return rdm

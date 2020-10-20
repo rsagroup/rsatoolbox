@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec  6 13:01:12 2019
-
-@author: heiko
+Comparison methods for comparing two RDMs objects
 """
 import numpy as np
 import scipy.stats
-import scipy.sparse.linalg as s_lin
 from scipy.stats._stats import _kendall_dis
 from pyrsa.util.matrix import pairwise_contrast_sparse
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
-from pyrsa.util.matrix import row_col_indicator_G
+from pyrsa.util.matrix import row_col_indicator_g
 
 
 def compare(rdm1, rdm2, method='cosine', sigma_k=None):
-    """calculates the distances between two RDMs objects using a chosen method
+    """calculates the similarity between two RDMs objects using a chosen method
 
     Args:
         rdm1 (pyrsa.rdm.RDMs):
@@ -24,13 +21,22 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
             second set of RDMs
         method (string):
             which method to use, options are:
-            'cosine' = cosine distance
-            'spearman' = spearman rank correlation distance
-            'corr' = pearson correlation distance
-            'kendall' = kendall-tau based distance
+            'cosine' = cosine similarity
+            'spearman' = spearman rank correlation
+            'corr' = pearson correlation
+            'kendall' = kendall-tau b
+            'tau-a' = kendall-tau a
+            'rho-a' = spearman correlation without tie correction
+            'corr_cov' = pearson correlation after whitening
+            'cosine_cov' = unbiased distance correlation
+                which is equivalent to the cosine dinstance after whitening
+        sigma_k (numpy.ndarray):
+            covariance matrix of the pattern estimates
+            Used only for corr_cov and cosine_cov
+
     Returns:
         numpy.ndarray: dist:
-            dissimilarity between the two RDMs
+            pariwise similarities between the RDMs from the RDMs objects
 
     """
     if method == 'cosine':
@@ -55,7 +61,7 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
 
 
 def compare_cosine(rdm1, rdm2):
-    """calculates the cosine distances between two RDMs objects
+    """calculates the cosine similarities between two RDMs objects
 
     Args:
         rdm1 (pyrsa.rdm.RDMs):
@@ -64,7 +70,7 @@ def compare_cosine(rdm1, rdm2):
             second set of RDMs
     Returns:
         numpy.ndarray: dist
-            cosine distance between the two RDMs
+            cosine similarity between the two RDMs
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
@@ -73,7 +79,7 @@ def compare_cosine(rdm1, rdm2):
 
 
 def compare_correlation(rdm1, rdm2):
-    """calculates the correlation distances between two RDMs objects
+    """calculates the correlations between two RDMs objects
 
     Args:
         rdm1 (pyrsa.rdm.RDMs):
@@ -82,7 +88,7 @@ def compare_correlation(rdm1, rdm2):
             second set of RDMs
     Returns:
         numpy.ndarray: dist:
-            correlation distance between the two RDMs
+            correlations between the two RDMs
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
@@ -94,7 +100,7 @@ def compare_correlation(rdm1, rdm2):
 
 
 def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
-    """calculates the cosine distances between two RDMs objects
+    """calculates the cosine similarities between two RDMs objects
 
     Args:
         rdm1 (pyrsa.rdm.RDMs):
@@ -103,7 +109,7 @@ def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
             second set of RDMs
     Returns:
         numpy.ndarray: dist:
-            cosine distance between the two RDMs
+            cosine similarities between the two RDMs
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
@@ -112,7 +118,8 @@ def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
 
 
 def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
-    """calculates the correlation distances between two RDMs objects
+    """calculates the correlations between two RDMs objects after whitening
+    with the covariance of the entries
 
     Args:
         rdm1 (pyrsa.rdm.RDMs):
@@ -121,7 +128,7 @@ def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
             second set of RDMs
     Returns:
         numpy.ndarray: dist:
-            correlation distance between the two RDMs
+            correlations between the two RDMs
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
@@ -133,7 +140,7 @@ def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
 
 
 def compare_spearman(rdm1, rdm2):
-    """calculates the spearman rank correlation distances between
+    """calculates the spearman rank correlations between
     two RDMs objects
 
     Args:
@@ -143,7 +150,7 @@ def compare_spearman(rdm1, rdm2):
             second set of RDMs
     Returns:
         numpy.ndarray: dist:
-            rank correlation distance between the two RDMs
+            rank correlations between the two RDMs
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
@@ -156,8 +163,8 @@ def compare_spearman(rdm1, rdm2):
 
 
 def compare_rho_a(rdm1, rdm2):
-    """calculates the spearman rank correlation distances between
-    two RDMs objects
+    """calculates the spearman rank correlations between
+    two RDMs objects without tie correction
 
     Args:
         rdm1 (pyrsa.rdm.RDMs):
@@ -166,7 +173,7 @@ def compare_rho_a(rdm1, rdm2):
             second set of RDMs
     Returns:
         numpy.ndarray: dist:
-            rank correlation distance between the two RDMs
+            rank correlations between the two RDMs
 
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
@@ -180,7 +187,7 @@ def compare_rho_a(rdm1, rdm2):
 
 
 def compare_kendall_tau(rdm1, rdm2):
-    """calculates the Kendall-tau b based distance between two RDMs objects.
+    """calculates the Kendall-tau bs between two RDMs objects.
     Kendall-tau b is the version, which corrects for ties.
     We here use the implementation from scipy.
 
@@ -191,7 +198,7 @@ def compare_kendall_tau(rdm1, rdm2):
                 second set of RDMs
         Returns:
             numpy.ndarray: dist:
-                kendall-tau based distance between the two RDMs
+                kendall-tau correlation between the two RDMs
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     sim = _all_combinations(vector1, vector2, _kendall_tau)
@@ -209,7 +216,7 @@ def compare_kendall_tau_a(rdm1, rdm2):
                 second set of RDMs
         Returns:
             numpy.ndarray: dist:
-                kendall-tau a based distance between the two RDMs
+                kendall-tau a between the two RDMs
     """
     vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
     sim = _all_combinations(vector1, vector2, _tau_a)
@@ -244,7 +251,8 @@ def _all_combinations(vectors1, vectors2, func):
 
 
 def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None):
-    """computes the cosine angles between two sets of vectors
+    """computes the cosine similarities between two sets of vectors
+    after whitening by their covariance.
 
     Args:
         vector1 (numpy.ndarray):
@@ -256,7 +264,7 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None):
 
     Returns:
         cos (float):
-            cosine angle between vectors
+            cosine of the angle between vectors
 
     """
     n_cond = _get_n_from_reduced_vectors(vector1)
@@ -279,17 +287,22 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None):
 
 def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
     """computes the cosine angles between two sets of vectors
-    weighted by the covariance - linearCKA
+    weighted by the covariance
+    If no covariance is given this is computed using the linear CKA,
+    which is equivalent in this case and faster to compute.
+    Otherwise reverts to _cosine_cov_weighted_slow.
 
     Args:
         vector1 (numpy.ndarray):
             first vectors (2D)
         vector1 (numpy.ndarray):
             second vectors (2D)
+        sigma_k (Matrix):
+            optional, covariance between pattern estimates
 
     Returns:
         cos (float):
-            cosine angle between vectors (linear CKA)
+            cosine angle between vectors
 
     """
     if sigma_k is not None:
@@ -319,14 +332,16 @@ def _cov_weighting(vector):
     Args:
         vector (numpy.ndarray):
             RDM vectors (2D) N x n_dist
+
     Returns:
         vector_w:
             weighted vectors (M x n_dist + n_cond)
+
     """
     N, n_dist = vector.shape
     n_cond = _get_n_from_reduced_vectors(vector)
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
-    rowI, colI = row_col_indicator_G(n_cond)
+    rowI, colI = row_col_indicator_g(n_cond)
     sumI = rowI + colI
     m = vector_w @ sumI / n_cond  # Column and row means
     mm = np.sum(vector_w * 2, axis=1) / (n_cond * n_cond)  # Overall mean

@@ -3,9 +3,6 @@
 """
 Collection of helper methods for data module
 
-+ extract_dict:        extract key-value pairs with values given indexes.
-+ get_unique_unsorted: return a unique unsorted list
-
 @author: baihan
 """
 
@@ -26,6 +23,4 @@ def get_unique_unsorted(array):
     """
     u, indices = np.unique(array, return_index=True)
     temp = indices.argsort()
-    ranks = np.empty_like(temp)
-    ranks[temp] = np.arange(len(indices))
-    return u[ranks]
+    return u[temp]

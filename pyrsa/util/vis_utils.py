@@ -24,7 +24,6 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_random_state, check_array, check_symmetric
 from sklearn.isotonic import IsotonicRegression
-from sklearn.utils.validation import _deprecate_positional_args
 from scipy.spatial.distance import squareform
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
 
@@ -179,7 +178,6 @@ def _smacof_single(dissimilarities, metric=True, n_components=2, init=None,
     return X, stress, it + 1
 
 
-@_deprecate_positional_args
 def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
            n_init=8, n_jobs=None, max_iter=300, verbose=0, eps=1e-3,
            random_state=None, return_n_iter=False, weight=None):
@@ -424,7 +422,6 @@ class Weighted_MDS(BaseEstimator):
     hypothesis" Kruskal, J. Psychometrika, 29, (1964)
 
     """
-    @_deprecate_positional_args
     def __init__(self, n_components=2, *, metric=True, n_init=4,
                  max_iter=300, verbose=0, eps=1e-3, n_jobs=None,
                  random_state=None, dissimilarity="euclidean"):
