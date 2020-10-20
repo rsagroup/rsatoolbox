@@ -127,7 +127,8 @@ def plot_model_comparison(result, sort=False, colors=None,
 
     while len(evaluations.shape) > 2:
         evaluations = np.nanmean(evaluations, axis=-1)
-    noise_ceiling = noise_ceiling[:, ~np.isnan(evaluations[:, 0])]
+    if noise_ceiling.ndim > 1:
+        noise_ceiling = noise_ceiling[:, ~np.isnan(evaluations[:, 0])]
     evaluations = evaluations[~np.isnan(evaluations[:, 0])]
     perf = np.mean(evaluations, axis=0)
     n_bootstraps, n_models = evaluations.shape
