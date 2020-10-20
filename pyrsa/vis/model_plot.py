@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Feb 13 14:04:52 2020
+Barplot for model comparison based on a results file
 """
 
 import numpy as np
@@ -127,8 +127,9 @@ def plot_model_comparison(result, sort=False, colors=None,
 
     while len(evaluations.shape) > 2:
         evaluations = np.nanmean(evaluations, axis=-1)
+    if noise_ceiling.ndim > 1:
+        noise_ceiling = noise_ceiling[:, ~np.isnan(evaluations[:, 0])]
     evaluations = evaluations[~np.isnan(evaluations[:, 0])]
-    noise_ceiling = np.array(noise_ceiling)
     perf = np.mean(evaluations, axis=0)
     n_bootstraps, n_models = evaluations.shape
     if sort is True:
@@ -306,7 +307,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     if test_pair_comparisons:
         model_comp_descr = 'Model comparisons: two-tailed, '
         p_values = pair_tests(evaluations)
-        n_tests = int((n_models**2-n_models)/2)
+        n_tests = int((n_models ** 2 - n_models) / 2)
         if multiple_pair_testing is None:
             multiple_pair_testing = 'uncorrected'
         if multiple_pair_testing.lower() == 'bonferroni' or \

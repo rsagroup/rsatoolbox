@@ -3,7 +3,7 @@
 """
 test_descriptor_utils
 Test for descriptor utils
-@author: heiko, adkipnis
+@author: adkipnis
 """
 
 import unittest
@@ -50,6 +50,13 @@ class TestDescriptorUtils(unittest.TestCase):
         descriptors = {'foo': ['bar']}
         assert check_descriptor_length(descriptors, 1)
 
+    def test_check_descriptor_length_0d(self):
+        """numpy casts str to 0d arrays (arrays with empty shape).
+        This breaks things."""
+        from pyrsa.util.descriptor_utils import check_descriptor_length
+        descriptors = {'foo': 'bar'}
+        assert check_descriptor_length(descriptors, 1)
+
     def test_subset_descriptor(self):
         import numpy as np
         from pyrsa.util.descriptor_utils import subset_descriptor
@@ -77,8 +84,11 @@ class TestDescriptorUtils(unittest.TestCase):
         descriptors_1 = {'foo': ['bar1', 'bar2'], 'boo': ['far1']}
         descriptors_2 = {'foo': ['bar3', 'bar4'], 'boo': ['far2']}
         desc_appended = append_obs_descriptors(descriptors_1, descriptors_2)
-        assert np.all((desc_appended['foo'] == ['bar%d' % i for i in range(1,5)]))
-        assert np.all((desc_appended['boo'] == ['far%d' % i for i in range(1,3)]))
- 
+        self.assertSequenceEqual(list(desc_appended['foo']),
+                                 ['bar%d' % i for i in range(1, 5)])
+        self.assertSequenceEqual(list(desc_appended['boo']),
+                                 ['far%d' % i for i in range(1, 3)])
+
+
 if __name__ == '__main__':
     unittest.main()

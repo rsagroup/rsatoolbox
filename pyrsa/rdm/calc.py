@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Calculation of RDMs from datasets
-@author: heiko
+@author: heiko, benjamin
 """
 
 from collections.abc import Iterable
@@ -71,6 +71,70 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
                                       prior_weight=prior_weight)
         else:
             raise(NotImplementedError)
+    return rdm
+
+
+def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
+             cv_descriptor=None, prior_lambda=1, prior_weight=0.1,
+             time_descriptor = 'time', bins=None):
+    """
+    calculates an RDM movie from an input TemporalDataset
+
+    Args:
+        dataset (pyrsa.data.dataset.TemporalDataset):
+            The dataset the RDM is computed from
+        method (String):
+            a description of the dissimilarity measure (e.g. 'Euclidean')
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+        noise (numpy.ndarray):
+            dataset.n_channel x dataset.n_channel
+            precision matrix used to calculate the RDM
+            used only for Mahalanobis and Crossnobis estimators
+            defaults to an identity matrix, i.e. euclidean distance
+        time_descriptor (String): descriptor key that points to the time dimension in
+            dataset.time_descriptors. Defaults to 'time'.
+        bins (array-like): list of bins, with bins[i] containing the vector
+            of time-points for the i-th bin. Defaults to no binning.
+
+    Returns:
+        pyrsa.rdm.rdms.RDMs: RDMs object with RDM movie
+    """
+
+    if isinstance(dataset, Iterable):
+        rdms = []
+        for i_dat, _ in enumerate(dataset):
+            if noise is None:
+                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
+                                     descriptor=descriptor))
+            elif isinstance(noise, np.ndarray) and noise.ndim == 2:
+                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
+                                     descriptor=descriptor,
+                                     noise=noise))
+            elif isinstance(noise, Iterable):
+                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
+                                     descriptor=descriptor,
+                                     noise=noise[i_dat]))
+        rdm = concat(rdms)
+    else:
+        if bins is not None:
+            binned_data = dataset.bin_time(time_descriptor, bins)
+            splited_data = binned_data.split_time(time_descriptor)
+            time = binned_data.time_descriptors[time_descriptor]
+        else:
+            splited_data = dataset.split_time(time_descriptor)
+            time = dataset.time_descriptors[time_descriptor]
+
+        rdms = []
+        for dat in splited_data:
+            dat_single = dat.convert_to_dataset(time_descriptor)
+            rdms.append(calc_rdm(dat_single, method=method,
+                                 descriptor=descriptor,noise=noise,
+                                 cv_descriptor=cv_descriptor, prior_lambda=prior_lambda,
+                                 prior_weight=prior_weight))
+
+        rdm = concat(rdms)
+        rdm.rdm_descriptors[time_descriptor] = time
     return rdm
 
 
