@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Descriptor handling
+
+@author: adkipnis
 """
 
 import numpy as np
@@ -157,3 +159,18 @@ def check_descriptor_length_error(descriptor, name, n_element):
         if not check_descriptor_length(descriptor, n_element):
             raise AttributeError(
                 name + " have mismatched dimension with measurements.")
+
+
+def append_obs_descriptors(dict_orig, dict_addit):
+    """
+    Merge two dictionaries of observation descriptors with matching keys and
+    numpy arrays as values.
+    """
+    assert list(dict_orig.keys()) == list(dict_addit.keys()), \
+        "Provided observationdescriptors have different keys."
+    dict_merged = {}
+    keys = list(dict_orig.keys())
+    for k in keys:
+        values = np.array(np.append(dict_orig[k], dict_addit[k]))
+        dict_merged.update({k: values})
+    return dict_merged
