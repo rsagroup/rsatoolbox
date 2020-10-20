@@ -415,10 +415,26 @@ def load_rdm(filename, file_type=None):
     return rdms_from_dict(rdm_dict)
 
 
-def rank_transform(rdms):
-    """ applyes a rank_transform and generates a new RDMs object"""
+def rank_transform(rdms, method='average'):
+    """ applies a rank_transform and generates a new RDMs object
+    This assigns a rank to each dissimilarity estimate in the RDM,
+    deals with rank ties and saves ranks as new dissimilarity estimates.
+    As an effect, all non-diagonal entries of the RDM will
+    range from 1 to (n_dim²-n_dim)/2, if the RDM has the dimensions
+    n_dim x n_dim.
+
+    Args:
+        rdms(RDMs): RDMs object
+        method(String):
+            controls how ranks are assigned to equal values
+            other options are: ‘average’, ‘min’, ‘max’, ‘dense’, ‘ordinal’
+
+    Returns:
+        rdms_new(RDMs): RDMs object with rank transformed dissimilarities
+
+    """
     dissimilarities = rdms.get_vectors()
-    dissimilarities = np.array([rankdata(dissimilarities[i])
+    dissimilarities = np.array([rankdata(dissimilarities[i], method=method)
                                 for i in range(rdms.n_rdm)])
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=rdms.dissimilarity_measure,
@@ -447,6 +463,61 @@ def concat(rdms):
     for rdm_new in rdms[1:]:
         rdm.append(rdm_new)
     return rdm
+
+
+def permute_rdms(rdms, p=None):
+    """ Permute rows, columns and corresponding pattern descriptors
+    of RDM matrices according to a permutation vector
+
+    Args:
+        p (numpy.ndarray):
+           permutation vector (values must be unique integers
+           from 0 to n_cond of RDM matrix).
+           If p = None, a random permutation vector is created.
+
+    Returns:
+        rdm_p(pyrsa.rdm.RDMs): the rdm object with a permuted matrix
+            and pattern descriptors
+
+    """
+    if p is None:
+        p = np.random.permutation(rdms.n_cond)
+        print('No permutation vector specified,'
+              + ' performing random permutation.')
+
+    assert p.dtype == 'int', "permutation vector must have integer entries."
+    assert min(p) == 0 and max(p) == rdms.n_cond-1, \
+        "permutation vector must have entries ranging from 0 to n_cond"
+    assert len(np.unique(p)) == rdms.n_cond, \
+        "permutation vector must only have unique integer entries"
+
+    rdm_mats = rdms.get_matrices()
+    descriptors = rdms.descriptors.copy()
+    rdm_descriptors = rdms.rdm_descriptors.copy()
+    pattern_descriptors = rdms.pattern_descriptors.copy()
+
+    # To easily reverse permutation later
+    p_inv = np.arange(len(p))[np.argsort(p)]
+    descriptors.update({'p_inv': p_inv})
+    rdm_mats = rdm_mats[:, p, :]
+    rdm_mats = rdm_mats[:, :, p]
+    stims = np.array(pattern_descriptors['stim'])
+    pattern_descriptors.update({'stim': list(stims[p].astype(np.str_))})
+
+    rdms_p = RDMs(
+        dissimilarities=rdm_mats,
+        descriptors=descriptors,
+        rdm_descriptors=rdm_descriptors,
+        pattern_descriptors=pattern_descriptors)
+    return rdms_p
+
+
+def inverse_permute_rdms(rdms):
+    """ Gimmick function to reverse the effect of permute_rdms() """
+
+    p_inv = rdms.descriptors['p_inv']
+    rdms_p = permute_rdms(rdms, p=p_inv)
+    return rdms_p
 
 
 def get_categorical_rdm(category_vector, category_name='category'):
