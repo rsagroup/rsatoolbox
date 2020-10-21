@@ -13,7 +13,7 @@ from pyrsa.util.pooling import pool_rdm
 
 
 def fit_mock(model, data, method='cosine', pattern_idx=None,
-             pattern_descriptor=None):
+             pattern_descriptor=None, sigma_k=None):
     """ formally acceptable fitting method which always returns a vector of
     zeros
 
@@ -23,6 +23,9 @@ def fit_mock(model, data, method='cosine', pattern_idx=None,
         method(String): Evaluation method
         pattern_idx(numpy.ndarray): Which patterns are sampled
         pattern_descriptor(String): Which descriptor is used
+        sigma_k(matrix): pattern-covariance matrix
+            used only for whitened distances (ending in _cov)
+            to compute the covariance matrix for rdms
 
     Returns:
         theta(numpy.ndarray): parameter vector
@@ -32,7 +35,7 @@ def fit_mock(model, data, method='cosine', pattern_idx=None,
 
 
 def fit_select(model, data, method='cosine', pattern_idx=None,
-               pattern_descriptor=None):
+               pattern_descriptor=None, sigma_k=None):
     """ fits selection models by evaluating each rdm and selcting the one
     with best performance. Works only for ModelSelect
 
@@ -42,6 +45,9 @@ def fit_select(model, data, method='cosine', pattern_idx=None,
         method(String): Evaluation method
         pattern_idx(numpy.ndarray): Which patterns are sampled
         pattern_descriptor(String): Which descriptor is used
+        sigma_k(matrix): pattern-covariance matrix
+            used only for whitened distances (ending in _cov)
+            to compute the covariance matrix for rdms
 
     Returns:
         theta(int): parameter vector
@@ -52,13 +58,14 @@ def fit_select(model, data, method='cosine', pattern_idx=None,
         pred = model.predict_rdm(i_rdm)
         if not (pattern_idx is None or pattern_descriptor is None):
             pred = pred.subsample_pattern(pattern_descriptor, pattern_idx)
-        evaluations[i_rdm] = np.mean(compare(pred, data, method=method))
+        evaluations[i_rdm] = np.mean(
+            compare(pred, data, method=method, sigma_k=sigma_k))
     theta = np.argmax(evaluations)
     return theta
 
 
 def fit_optimize(model, data, method='cosine', pattern_idx=None,
-                 pattern_descriptor=None):
+                 pattern_descriptor=None, sigma_k=None):
     """
     fitting theta using optimization
     currently allowed for ModelWeighted only
@@ -71,6 +78,9 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
             sampled patterns The default is None.
         pattern_descriptor (String, optional)
             descriptor used for fitting. The default is None.
+        sigma_k(matrix): pattern-covariance matrix
+            used only for whitened distances (ending in _cov)
+            to compute the covariance matrix for rdms
 
     Returns:
         numpy.ndarray: theta, parameter vector for the model
@@ -79,14 +89,15 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
     def _loss_opt(theta):
         return _loss(theta, model, data, method=method,
                      pattern_idx=pattern_idx,
-                     pattern_descriptor=pattern_descriptor)
+                     pattern_descriptor=pattern_descriptor,
+                     sigma_k=sigma_k)
     theta0 = np.random.rand(model.n_param)
     theta = opt.minimize(_loss_opt, theta0)
     return theta.x
 
 
 def fit_interpolate(model, data, method='cosine', pattern_idx=None,
-                    pattern_descriptor=None):
+                    pattern_descriptor=None, sigma_k=None):
     """
     fitting theta using bisection optimization
     allowed for ModelInterpolate only
@@ -99,6 +110,9 @@ def fit_interpolate(model, data, method='cosine', pattern_idx=None,
             sampled patterns The default is None.
         pattern_descriptor (String, optional)
             descriptor used for fitting. The default is None.
+        sigma_k(matrix): pattern-covariance matrix
+            used only for whitened distances (ending in _cov)
+            to compute the covariance matrix for rdms
 
     Returns:
         numpy.ndarray: theta, parameter vector for the model
@@ -112,7 +126,8 @@ def fit_interpolate(model, data, method='cosine', pattern_idx=None,
             theta[i_pair + 1] = 1 - w
             return _loss(theta, model, data, method=method,
                          pattern_idx=pattern_idx,
-                         pattern_descriptor=pattern_descriptor)
+                         pattern_descriptor=pattern_descriptor,
+                         sigma_k=sigma_k)
         results.append(
             opt.minimize_scalar(loss_opt, np.array([.5]),
                                 method='bounded', bounds=(0, 1)))
@@ -184,7 +199,7 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
     return theta.flatten()
 
 
-def _loss(theta, model, data, method='cosine', cov=None,
+def _loss(theta, model, data, method='cosine', sigma_k=None,
           pattern_descriptor=None, pattern_idx=None):
     """Method for calculating a loss for a model and parameter combination
 
@@ -197,9 +212,9 @@ def _loss(theta, model, data, method='cosine', cov=None,
             sampled patterns The default is None.
         pattern_descriptor (String, optional)
             descriptor used for fitting. The default is None.
-        cov(numpy.ndarray, optional):
-            Covariance matrix for likelihood based evaluation.
-            It is ignored otherwise. The default is None.
+        sigma_k(matrix): pattern-covariance matrix
+            used only for whitened distances (ending in _cov)
+            to compute the covariance matrix for rdms
 
     Returns:
 
@@ -209,4 +224,4 @@ def _loss(theta, model, data, method='cosine', cov=None,
     pred = model.predict_rdm(theta)
     if not (pattern_idx is None or pattern_descriptor is None):
         pred = pred.subsample_pattern(pattern_descriptor, pattern_idx)
-    return -np.mean(compare(pred, data, method=method))
+    return -np.mean(compare(pred, data, method=method, sigma_k=sigma_k))

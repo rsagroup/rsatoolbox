@@ -50,7 +50,7 @@ class Model:
             "Predict rdm function not implemented in used model class!")
 
     def fit(self, data, method='cosine', pattern_idx=None,
-            pattern_descriptor=None):
+            pattern_descriptor=None, sigma_k=None):
         """ fit the model to a RDM object data
 
         Args:
@@ -65,7 +65,8 @@ class Model:
         """
         return self.default_fitter(self, data, method=method,
                                    pattern_idx=pattern_idx,
-                                   pattern_descriptor=pattern_descriptor)
+                                   pattern_descriptor=pattern_descriptor,
+                                   sigma_k=sigma_k)
 
     def to_dict(self):
         """ Converts the model into a dictionary, which can be used for saving
