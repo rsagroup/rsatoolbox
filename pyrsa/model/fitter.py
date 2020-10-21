@@ -9,7 +9,7 @@ import scipy.optimize as opt
 import scipy.sparse
 from pyrsa.rdm import compare
 from pyrsa.rdm.compare import _get_v
-from pyrsa.util.inference_util import pool_rdm
+from pyrsa.util.pooling import pool_rdm
 
 
 def fit_mock(model, data, method='cosine', pattern_idx=None,
