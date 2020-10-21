@@ -105,7 +105,7 @@ def fit_interpolate(model, data, method='cosine', pattern_idx=None,
 
     """
     results = []
-    for i_pair in range(model.n_rdm-1):
+    for i_pair in range(model.n_rdm - 1):
         def loss_opt(w):
             theta = np.zeros(model.n_param)
             theta[i_pair] = w
@@ -181,7 +181,7 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
                             for i in range(vectors.shape[0])])
         X = vectors @ v_inv_x.T + ridge_weight * np.eye(vectors.shape[0])
     theta = np.linalg.solve(X, vectors @ y.T)
-    return theta
+    return theta.flatten()
 
 
 def _loss(theta, model, data, method='cosine', cov=None,

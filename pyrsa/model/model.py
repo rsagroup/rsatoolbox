@@ -49,18 +49,23 @@ class Model:
         raise NotImplementedError(
             "Predict rdm function not implemented in used model class!")
 
-    def fit(self, data):
+    def fit(self, data, method='cosine', pattern_idx=None,
+            pattern_descriptor=None):
         """ fit the model to a RDM object data
 
         Args:
             data(RDM object): the RDMs to be fit with the model
+            method(String): how to measure rdm_similarity
+            patterrn_idx: which patterns to use
+            pattern_descriptor: which part of the dict to use to interpret
+                pattern_idx
 
         Returns:
             theta(numpy.ndarray): parameter vector (one dimensional)
         """
-        return self.default_fitter(self, data, method='cosine',
-                                   pattern_idx=None,
-                                   pattern_descriptor=None)
+        return self.default_fitter(self, data, method=method,
+                                   pattern_idx=pattern_idx,
+                                   pattern_descriptor=pattern_descriptor)
 
     def to_dict(self):
         """ Converts the model into a dictionary, which can be used for saving
