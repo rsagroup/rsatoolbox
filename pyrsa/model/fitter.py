@@ -6,8 +6,10 @@ Parameter fitting methods for models
 
 import numpy as np
 import scipy.optimize as opt
+import scipy.sparse
 from pyrsa.rdm import compare
 from pyrsa.rdm.compare import _get_v
+from pyrsa.util.inference_util import pool_rdm
 
 
 def fit_mock(model, data, method='cosine', pattern_idx=None,
@@ -124,7 +126,7 @@ def fit_interpolate(model, data, method='cosine', pattern_idx=None,
 
 
 def fit_regress(model, data, method='cosine', pattern_idx=None,
-                pattern_descriptor=None, ridge_weight=0):
+                pattern_descriptor=None, ridge_weight=0, sigma_k=None):
     """
     fitting theta using linear algebra solutions to the OLS problem
     allowed for ModelWeighted only
@@ -146,6 +148,9 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
             weight for the ridge-regularisation of the regression
             weight is in comparison to the final regression problem on
             the appropriately normalized regressors
+        sigma_k(matrix): pattern-covariance matrix
+            used only for whitened distances (ending in _cov)
+            to compute the covariance matrix for rdms
 
     Returns:
         numpy.ndarray: theta, parameter vector for the model
@@ -156,40 +161,26 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
     else:
         pred = model.rdm_obj
     vectors = pred.get_vectors()
-    data_vectors = data.get_vectors()
+    data_mean = pool_rdm(data, method=method)
+    y = data_mean.get_vectors()
     # Normalizations
     if method == 'cosine':
-        data_scales = np.sqrt(np.mean(data_vectors ** 2, 1, keepdims=True))
-        data_vectors = data_vectors / data_scales
         v = None
     elif method == 'corr':
         vectors = vectors - np.mean(vectors, 1, keepdims=True)
-        data_vectors = data_vectors - np.mean(data_vectors, 1, keepdims=True)
-        data_scales = np.sqrt(np.mean(data_vectors ** 2, 1, keepdims=True))
-        data_vectors = data_vectors / data_scales
         v = None
     elif method == 'corr_cov':
         vectors = vectors - np.mean(vectors, 1, keepdims=True)
-        data_vectors = data_vectors - np.mean(data_vectors, 1, keepdims=True)
-        data_scales = np.sqrt(np.mean(data_vectors ** 2, 1, keepdims=True))
-        data_vectors = data_vectors / data_scales
-        # calculate Xi
-        c_mat = pairwise_contrast_sparse(np.arange(pred.n_cond))
-        if sigma_k is None:
-            xi = c_mat @ c_mat.transpose()
-        else:
-            sigma_k = scipy.sparse.csr_matrix(sigma_k)
-            xi = c_mat @ sigma_k @ c_mat.transpose()
-        # calculate V
-        v = xi.multiply(xi).tocsc()
+        v = _get_v(pred.n_cond, sigma_k)
     else:
         raise ValueError('method argument invalid')
-    y = np.mean(data_vectors, 0)
     if v is None:
         X = vectors @ vectors.T + ridge_weight * np.eye(vectors.shape[0])
     else:
-        
-    theta = np.linalg.solve(X, vectors @ y)
+        v_inv_x = np.array([scipy.sparse.linalg.cg(v, vectors[i])[0]
+                            for i in range(vectors.shape[0])])
+        X = vectors @ v_inv_x.T + ridge_weight * np.eye(vectors.shape[0])
+    theta = np.linalg.solve(X, vectors @ y.T)
     return theta
 
 

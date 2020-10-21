@@ -63,7 +63,7 @@ def input_check_model(model, theta=None, fitter=None, N=1):
     return evaluations, theta, fitter
 
 
-def pool_rdm(rdms, method='cosine', sigma_k=None):
+def pool_rdm(rdms, method='cosine'):
     """pools multiple RDMs into the one with maximal performance under a given
     evaluation metric
     rdm_descriptors of the generated rdms are empty
