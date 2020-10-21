@@ -6,6 +6,7 @@ Plot showing an RDMs object
 
 import numpy as np
 import matplotlib.pyplot as plt
+from pyrsa import vis
 from pyrsa.rdm import rank_transform
 from pyrsa.vis.colors import rdm_colormap
 
@@ -77,27 +78,47 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
     plt.show()
 
 
-def _add_descriptor_labels(rdm, descriptor, ax=None):
+def _add_descriptor_labels(rdm, descriptor, num_pattern_groups=1, scale=.5, offset=7,
+        linewidth=None, ax=None, axis="xy"):
     """ adds a descriptor as ticklabels """
     if ax is None:
         ax = plt.gca()
     if descriptor is not None:
 
         desc = rdm.pattern_descriptors[descriptor]
-        ax.set_xticks(np.arange(rdm.n_cond))
-        ax.set_xticklabels(
-            desc,
-            {'fontsize': 'xx-small',
-             'fontweight': 'normal',
-             'verticalalignment': 'center',
-             'horizontalalignment': 'center'})
-        ax.set_yticks(np.arange(rdm.n_cond))
-        ax.set_yticklabels(
-            desc,
-            {'fontsize': 'xx-small',
-             'fontweight': 'normal',
-             'verticalalignment': 'center',
-             'horizontalalignment': 'right'})
+        if isinstance(desc[0], vis.Icon):
+            # TODO - work these out
+            for group_ind in range(num_pattern_groups, 0, -1):
+                position = offset * group_ind
+                ticks = np.arange(group_ind, rdm.n_cond, num_pattern_groups)
+                # TODO - let's not plot rows and columns each time
+                [this_desc.x_tick_label(this_x, scale, offset=position,
+                    linewidth=linewidth) for (this_x, this_desc) in
+                        zip(ticks, desc[ticks])]
+                [this_desc.y_tick_label(this_y, scale, offset=position,
+                    linewidth=linewidth) for (this_y, this_desc) in
+                        zip(ticks, desc[ticks])]
+        else:
+            # vanilla
+            ax.set_xticks(np.arange(rdm.n_cond))
+            ax.set_xticklabels(
+                desc,
+                {'fontsize': 'xx-small',
+                 'fontweight': 'normal',
+                 'verticalalignment': 'center',
+                 'horizontalalignment': 'center'})
+            ax.set_yticks(np.arange(rdm.n_cond))
+            ax.set_yticklabels(
+                desc,
+                {'fontsize': 'xx-small',
+                 'fontweight': 'normal',
+                 'verticalalignment': 'center',
+                 'horizontalalignment': 'right'})
+            # rotate if the string is over some reasonable limit
+            # if isinstance(desc[0], str) and max([len(this_desc) for this_desc in desc]) > 5:
+                # ax.tick_params(axis='x', rotation=45, ha='right')
+            ax.set_yticks(ticks)
+            ax.set_yticklabels(desc)
         plt.ylim(rdm.n_cond - 0.5, -0.5)
         plt.xlim(-0.5, rdm.n_cond - 0.5)
         plt.setp(ax.get_xticklabels(), rotation=90, ha="right",
