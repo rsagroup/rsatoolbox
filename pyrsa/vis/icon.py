@@ -328,7 +328,11 @@ class Icon:
                         fontsize=self.fontsize, fontname=self.fontname,
                         color=self.fontcolor)
 
-    def x_tick_label(self, x, size, offset=7, ax=None):
+    def _tick_label(self, x, y, size, offset=7, ax=None, linewidth=None,
+            xybox=None, xycoords=None, box_alignment=None,
+                horizontalalignment=None,
+                verticalalignment=None):
+
         """
         uses the icon as a ticklabel at location x
 
@@ -345,21 +349,30 @@ class Icon:
         """
         if ax is None:
             ax = plt.gca()
+        if linewidth is None:
+            linewidth = .5 * ax.yaxis.get_majorticklines()[0].properties()['linewidth']
         if self.final_image is not None:
+            if linewidth > 0:
+                # we replace the existing ticks
+                # TODO - axis specific
+                ax.yaxis.set_tick_params(length=0)
+                ax.xaxis.set_tick_params(length=0)
             imagebox = OffsetImage(self.final_image, zoom=size)
             ab = AnnotationBbox(
-                imagebox, (x, 0),
-                xybox=(0, -offset),
-                xycoords=('data', 'axes fraction'),
-                box_alignment=(.5, 1),
+                imagebox, (x, y),
+                xybox=xybox,
+                xycoords=xycoords,
+                box_alignment=box_alignment,
                 boxcoords='offset points',
-                bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
+                bboxprops={'edgecolor': 'w', 'facecolor': 'w'},
                 arrowprops={
+                    'linewidth': linewidth,
                     'arrowstyle': '-',
                     'shrinkA': 0,
                     'shrinkB': 1
                     },
-                pad=0.1)
+                pad=0.,
+                annotation_clip=False)
             zorder = ab.zorder
             ax.add_artist(ab)
         else:
@@ -394,29 +407,31 @@ class Icon:
                     transform=d.get_transform(),
                     zorder=zorder_marker))
             ab_marker = AnnotationBbox(
-                d, (x, 0),
-                xybox=(0, -offset),
-                xycoords=('data', 'axes fraction'),
-                box_alignment=(.5, 1),
+                d, (x, y),
+                xybox=xybox,
+                xycoords=xycoords,
+                box_alignment=box_alignment,
                 boxcoords='offset points',
                 bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
                 arrowprops={
+                    'linewidth': linewidth,
                     'arrowstyle': '-',
                     'shrinkA': 0,
                     'shrinkB': 1
                     },
-                pad=0.1)
+                pad=0.,
+                annotation_clip=False)
             ab_marker.set_zorder(zorder_marker)
             ab_marker.set_alpha(0)
             ax.add_artist(ab_marker)
         if self.string is not None:
             ax.annotate(
-                self.string, (x, 0),
-                xytext=(0, -offset),
-                xycoords=('data', 'axes fraction'),
+                self.string, (x, y),
+                xytext=xybox,
+                xycoords=xycoords,
                 textcoords='offset points',
-                horizontalalignment='center',
-                verticalalignment='top',
+                horizontalalignment=horizontalalignment,
+                verticalalignment=verticalalignment,
                 arrowprops={
                     'arrowstyle': '-',
                     'shrinkA': 0,
@@ -426,7 +441,28 @@ class Icon:
                 fontsize=self.fontsize, fontname=self.fontname,
                 color=self.fontcolor)
 
-    def y_tick_label(self, y, size, offset=7, ax=None):
+    def x_tick_label(self, x, size, offset, **kwarg):
+        """
+        uses the icon as a ticklabel at location x
+
+        Args:
+            x (float)
+                the position of the tick
+            size (float)
+                scaling the size of the icon
+            offset (integer)
+                how far the icon should be from the axis in points
+            ax (matplotlib axis)
+                the axis to put the label on
+
+        """
+        self._tick_label(x=x, y=0, size=size, offset=offset, xybox=(0, -offset), xycoords=('data', 'axes fraction'),
+                box_alignment=(.5, 1),
+                horizontalalignment='center',
+                verticalalignment='top',
+                **kwarg)
+
+    def y_tick_label(self, y, size, offset, **kwarg):
         """
         uses the icon as a ticklabel at location x
 
@@ -441,88 +477,11 @@ class Icon:
                 the axis to put the label on
 
         """
-        if ax is None:
-            ax = plt.gca()
-        if self.final_image is not None:
-            imagebox = OffsetImage(self.final_image, zoom=size)
-            ab = AnnotationBbox(
-                imagebox, (0, y),
-                xybox=(-offset, 0),
-                xycoords=('axes fraction', 'data'),
+        self._tick_label(x=0, y=y, size=size, offset=offset, xybox=(-offset, 0), xycoords=('axes fraction', 'data'),
                 box_alignment=(1, .5),
-                boxcoords='offset points',
-                bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
-                arrowprops={
-                    'arrowstyle': '-',
-                    'shrinkA': 0,
-                    'shrinkB': 1
-                    },
-                pad=0.1)
-            ax.add_artist(ab)
-            zorder = ab.zorder
-        else:
-            zorder = 0
-        if self.marker:
-            if self.final_image is not None:
-                markersize = max(self.final_image.size)
-            else:
-                markersize = 50
-            markersize = markersize * size
-            d = DrawingArea(markersize, markersize)
-            if self.marker_front:
-                zorder_marker = zorder + 0.1
-            else:
-                zorder_marker = zorder - 0.1
-            d.set_zorder(zorder_marker)
-            d.set_alpha(0)
-            if self.marker_front:
-                d.add_artist(plt.Line2D(
-                    [markersize / 2], [markersize / 2],
-                    marker=self.marker, markeredgecolor=self.col,
-                    markerfacecolor=(0, 0, 0, 0), markersize=markersize,
-                    markeredgewidth=self.markeredgewidth,
-                    transform=d.get_transform(),
-                    zorder=zorder_marker))
-            else:
-                d.add_artist(plt.Line2D(
-                    [markersize / 2], [markersize / 2],
-                    marker=self.marker, markeredgecolor=self.col,
-                    markerfacecolor=self.col, markersize=markersize,
-                    markeredgewidth=self.markeredgewidth,
-                    transform=d.get_transform(),
-                    zorder=zorder_marker))
-            ab_marker = AnnotationBbox(
-                d, (0, y),
-                xybox=(-offset, 0),
-                xycoords=('axes fraction', 'data'),
-                box_alignment=(1, 0.5),
-                boxcoords='offset points',
-                bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
-                arrowprops={
-                    'arrowstyle': '-',
-                    'shrinkA': 0,
-                    'shrinkB': 1
-                    },
-                pad=0.1)
-            ab_marker.set_zorder(zorder_marker)
-            ab_marker.set_alpha(0)
-            ax.add_artist(ab_marker)
-        if self.string is not None:
-            ax.annotate(
-                self.string, (0, y),
-                xytext=(-offset, 0),
-                xycoords=('axes fraction', 'data'),
-                textcoords='offset points',
                 horizontalalignment='right',
                 verticalalignment='center',
-                arrowprops={
-                    'arrowstyle': '-',
-                    'shrinkA': 0,
-                    'shrinkB': 1
-                    },
-                zorder=zorder + 1,
-                fontsize=self.fontsize, fontname=self.fontname,
-                color=self.fontcolor)
+                **kwarg)
 
 
 def icons_from_folder(folder, resolution=None, col=None,
