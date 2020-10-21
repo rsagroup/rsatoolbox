@@ -417,3 +417,15 @@ def plot_eco(simulation_folder='sim_eco', variation='both', savefig=False):
             g9.fig.savefig('figures/std_std_stim_%s.pdf' % variation)
             g10.fig.savefig('figures/std_std_subj_%s.pdf' % variation)
             g11.fig.savefig('figures/std_std_rep_%s.pdf' % variation)
+
+
+def plot_metrics(simulation_folder='sim_metric', savefig=False):
+    labels = pd.read_csv(os.path.join(simulation_folder, 'labels.csv'))
+    means = np.load(os.path.join(simulation_folder, 'means.npy'))
+    stds = np.load(os.path.join(simulation_folder, 'stds.npy'))
+    means = means[:len(labels)]
+    # remove nan entries
+    idx_nan = ~np.any(np.isnan(means[:, :, 0]), axis=1)
+    labels = labels[list(idx_nan)]
+    means = means[idx_nan]
+    stds = stds[idx_nan]
