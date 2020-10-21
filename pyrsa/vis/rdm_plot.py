@@ -90,7 +90,7 @@ def _add_descriptor_labels(rdm, descriptor, num_pattern_groups=1, size=.5, offse
             # TODO - work these out
             for group_ind in range(num_pattern_groups, 0, -1):
                 position = offset * group_ind
-                ticks = np.arange(group_ind, rdm.n_cond, num_pattern_groups)
+                ticks = np.arange(group_ind-1, rdm.n_cond, num_pattern_groups)
                 # TODO - let's not plot rows and columns each time
                 [this_desc.x_tick_label(this_x, size, offset=position,
                     linewidth=linewidth) for (this_x, this_desc) in
