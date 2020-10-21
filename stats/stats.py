@@ -505,7 +505,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
 
 def save_metric(idx, simulation_folder='sim_metric'):
     """ saves simulations for the comparison of metrics, without bootstrapping!
-    uses run_eco still
+    uses the dnn-ecoset based simulations
     """
     rdm_comparisons = ['cosine', 'spearman', 'corr', 'kendall', 'tau-a',
                        'rho-a', 'corr_cov', 'cosine_cov']
@@ -532,7 +532,7 @@ def save_metric(idx, simulation_folder='sim_metric'):
 def save_rdm_type(idx, simulation_folder='sim_type'):
     """ saves simulations for the comparison of rdm types
     without bootstrapping!
-    still uses run_eco
+    uses the dnn-ecoset based simulations
     """
     rdm_types = ['euclidean', 'correlation', 'mahalanobis', 'crossnobis']
     variations = [None, 'stim', 'subj', 'both']
@@ -544,7 +544,7 @@ def save_rdm_type(idx, simulation_folder='sim_type'):
                simulation_folder=simulation_folder, n_sim=100,
                duration=1, pause=1, endzeros=25,
                use_cor_noise=True, resolution=2,
-               sigma_noise=5, ar_coeff=0.5,
+               sigma_noise=0.5, ar_coeff=0.5,
                ecoset_path='~/ecoset/val/',
                variation=variation,
                model_type='fixed_average',
