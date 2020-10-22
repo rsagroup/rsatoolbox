@@ -10,7 +10,7 @@ import numpy as np
 import scipy.sparse
 from scipy.stats import rankdata
 from pyrsa.rdm import RDMs
-from pyrsa.rdm.compare import _get_v
+from pyrsa.util.matrix import get_v
 
 
 def pool_rdm(rdms, method='cosine', sigma_k=None):
@@ -42,7 +42,7 @@ def pool_rdm(rdms, method='cosine', sigma_k=None):
         rdm_vec = _nan_mean(rdm_vec)
         rdm_vec = rdm_vec - np.nanmin(rdm_vec) + 0.01
     elif method == 'cosine_cov':
-        v = _get_v(rdms.n_cond, sigma_k=sigma_k)
+        v = get_v(rdms.n_cond, sigma_k=sigma_k)
         v_inv_x = np.array([scipy.sparse.linalg.cg(v, rdm_vec[i],
                                                    tol=10 ** -9)[0]
                             for i in range(rdms.n_rdm)])
@@ -52,7 +52,7 @@ def pool_rdm(rdms, method='cosine', sigma_k=None):
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'corr_cov':
         rdm_vec = rdm_vec - np.nanmean(rdm_vec, axis=1, keepdims=True)
-        v = _get_v(rdms.n_cond, sigma_k=sigma_k)
+        v = get_v(rdms.n_cond, sigma_k=sigma_k)
         v_inv_x = np.array([scipy.sparse.linalg.cg(v, rdm_vec[i],
                                                    tol=10 ** -9)[0]
                             for i in range(rdms.n_rdm)])

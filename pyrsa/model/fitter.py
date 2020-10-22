@@ -8,7 +8,7 @@ import numpy as np
 import scipy.optimize as opt
 import scipy.sparse
 from pyrsa.rdm import compare
-from pyrsa.rdm.compare import _get_v
+from pyrsa.util.matrix import get_v
 from pyrsa.util.pooling import pool_rdm
 
 
@@ -185,11 +185,11 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
         vectors = vectors - np.mean(vectors, 1, keepdims=True)
         v = None
     elif method == 'cosine_cov':
-        v = _get_v(pred.n_cond, sigma_k)
+        v = get_v(pred.n_cond, sigma_k)
     elif method == 'corr_cov':
         vectors = vectors - np.mean(vectors, 1, keepdims=True)
         y = y - np.mean(y)
-        v = _get_v(pred.n_cond, sigma_k)
+        v = get_v(pred.n_cond, sigma_k)
     else:
         raise ValueError('method argument invalid')
     if v is None:
