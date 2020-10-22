@@ -184,18 +184,24 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
     elif method == 'corr':
         vectors = vectors - np.mean(vectors, 1, keepdims=True)
         v = None
+    elif method == 'cosine_cov':
+        v = _get_v(pred.n_cond, sigma_k)
     elif method == 'corr_cov':
         vectors = vectors - np.mean(vectors, 1, keepdims=True)
+        y = y - np.mean(y)
         v = _get_v(pred.n_cond, sigma_k)
     else:
         raise ValueError('method argument invalid')
     if v is None:
         X = vectors @ vectors.T + ridge_weight * np.eye(vectors.shape[0])
+        y = vectors @ y.T
     else:
-        v_inv_x = np.array([scipy.sparse.linalg.cg(v, vectors[i])[0]
+        v_inv_x = np.array([scipy.sparse.linalg.cg(v, vectors[i],
+                                                   tol=10 ** -9)[0]
                             for i in range(vectors.shape[0])])
+        y = v_inv_x @ y.T
         X = vectors @ v_inv_x.T + ridge_weight * np.eye(vectors.shape[0])
-    theta = np.linalg.solve(X, vectors @ y.T)
+    theta = np.linalg.solve(X, y)
     return theta.flatten()
 
 

@@ -7,11 +7,13 @@ Created on Tue Oct 20 23:58:28 2020
 """
 
 import numpy as np
+import scipy.sparse
 from scipy.stats import rankdata
 from pyrsa.rdm import RDMs
+from pyrsa.rdm.compare import _get_v
 
 
-def pool_rdm(rdms, method='cosine'):
+def pool_rdm(rdms, method='cosine', sigma_k=None):
     """pools multiple RDMs into the one with maximal performance under a given
     evaluation metric
     rdm_descriptors of the generated rdms are empty
@@ -38,16 +40,27 @@ def pool_rdm(rdms, method='cosine'):
         rdm_vec = rdm_vec - np.nanmean(rdm_vec, axis=1, keepdims=True)
         rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
         rdm_vec = _nan_mean(rdm_vec)
-        rdm_vec = rdm_vec - np.nanmin(rdm_vec)
+        rdm_vec = rdm_vec - np.nanmin(rdm_vec) + 0.01
     elif method == 'cosine_cov':
-        rdm_vec = rdm_vec / np.sqrt(np.nanmean(rdm_vec ** 2, axis=1,
-                                               keepdims=True))
+        v = _get_v(rdms.n_cond, sigma_k=sigma_k)
+        v_inv_x = np.array([scipy.sparse.linalg.cg(v, rdm_vec[i],
+                                                   tol=10 ** -9)[0]
+                            for i in range(rdms.n_rdm)])
+        rdm_norms = np.einsum('ij, ij->i', rdm_vec, v_inv_x).reshape(
+            [rdms.n_rdm, 1])
+        rdm_vec = rdm_vec / np.sqrt(rdm_norms)
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'corr_cov':
         rdm_vec = rdm_vec - np.nanmean(rdm_vec, axis=1, keepdims=True)
-        rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
+        v = _get_v(rdms.n_cond, sigma_k=sigma_k)
+        v_inv_x = np.array([scipy.sparse.linalg.cg(v, rdm_vec[i],
+                                                   tol=10 ** -9)[0]
+                            for i in range(rdms.n_rdm)])
+        rdm_norms = np.einsum('ij, ij->i', rdm_vec, v_inv_x).reshape(
+            [rdms.n_rdm, 1])
+        rdm_vec = rdm_vec / np.sqrt(rdm_norms)
         rdm_vec = _nan_mean(rdm_vec)
-        rdm_vec = rdm_vec - np.nanmin(rdm_vec)
+        rdm_vec = rdm_vec - np.nanmin(rdm_vec) + 0.01
     elif method == 'spearman' or method == 'rho-a':
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
