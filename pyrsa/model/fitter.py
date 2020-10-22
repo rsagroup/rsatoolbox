@@ -197,7 +197,7 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
         y = vectors @ y.T
     else:
         v_inv_x = np.array([scipy.sparse.linalg.cg(v, vectors[i],
-                                                   tol=10 ** -9)[0]
+                                                   atol=10 ** -9)[0]
                             for i in range(vectors.shape[0])])
         y = v_inv_x @ y.T
         X = vectors @ v_inv_x.T + ridge_weight * np.eye(vectors.shape[0])

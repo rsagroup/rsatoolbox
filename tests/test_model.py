@@ -150,3 +150,52 @@ class TestModelInterpolate(unittest.TestCase):
         train = rdm_obj.subset('ind', 2)
         theta = m.fit(train)
         pre = m.predict(theta)
+
+
+class TestConsistency(unittest.TestCase):
+    """ Tests which compare different model types and fitting methods,
+    which should be equivalent
+    """
+
+    def setUp(self):
+        from pyrsa.data import Dataset
+        from pyrsa.rdm import calc_rdm
+        from pyrsa.rdm import concat
+        rdms = []
+        for i_data in range(5):
+            data = np.random.rand(6, 20)
+            data_s = Dataset(data)
+            rdms.append(calc_rdm(data_s))
+        self.rdms = concat(rdms)
+
+    def test_two_rdms(self):
+        from pyrsa.model import ModelInterpolate, ModelWeighted
+        from pyrsa.model.fitter import fit_regress
+        from pyrsa.rdm import concat
+        model_rdms = concat([self.rdms[0], self.rdms[1]])
+        model_weighted = ModelWeighted(
+            'm_weighted',
+            model_rdms)
+        model_interpolate = ModelInterpolate(
+            'm_interpolate',
+            model_rdms)
+        for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
+            theta_m_i = model_interpolate.fit(self.rdms, method=i_method)
+            theta_m_w = model_weighted.fit(self.rdms, method=i_method)
+            theta_m_w_linear = fit_regress(model_weighted, self.rdms,
+                                           method=i_method)
+            self.assertAlmostEqual(
+                theta_m_w[0] / theta_m_i[0],
+                theta_m_w[1] / theta_m_i[1],
+                places=2, msg='weighted fit differs from interpolation fit!'
+                + '\nfor %s' % i_method)
+            self.assertAlmostEqual(
+                theta_m_w_linear[0] / theta_m_w[0],
+                theta_m_w_linear[1] / theta_m_w[1],
+                places=2, msg='regression fit differs from optimization fit!'
+                + '\nfor %s' % i_method)
+            self.assertAlmostEqual(
+                theta_m_w_linear[0] / theta_m_i[0],
+                theta_m_w_linear[1] / theta_m_i[1],
+                places=2, msg='regression fit differs from interpolation fit!'
+                + '\nfor %s' % i_method)

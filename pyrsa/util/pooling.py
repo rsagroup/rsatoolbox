@@ -43,20 +43,26 @@ def pool_rdm(rdms, method='cosine', sigma_k=None):
         rdm_vec = rdm_vec - np.nanmin(rdm_vec) + 0.01
     elif method == 'cosine_cov':
         v = get_v(rdms.n_cond, sigma_k=sigma_k)
-        v_inv_x = np.array([scipy.sparse.linalg.cg(v, rdm_vec[i],
-                                                   tol=10 ** -9)[0]
+        ok_idx = np.all(np.isfinite(rdm_vec), axis=0)
+        v = v[ok_idx][:, ok_idx]
+        rdm_vec_nonan = rdm_vec[:, ok_idx]
+        v_inv_x = np.array([scipy.sparse.linalg.cg(v, rdm_vec_nonan[i],
+                                                   atol=10 ** -9)[0]
                             for i in range(rdms.n_rdm)])
-        rdm_norms = np.einsum('ij, ij->i', rdm_vec, v_inv_x).reshape(
+        rdm_norms = np.einsum('ij, ij->i', rdm_vec_nonan, v_inv_x).reshape(
             [rdms.n_rdm, 1])
         rdm_vec = rdm_vec / np.sqrt(rdm_norms)
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'corr_cov':
         rdm_vec = rdm_vec - np.nanmean(rdm_vec, axis=1, keepdims=True)
         v = get_v(rdms.n_cond, sigma_k=sigma_k)
-        v_inv_x = np.array([scipy.sparse.linalg.cg(v, rdm_vec[i],
-                                                   tol=10 ** -9)[0]
+        ok_idx = np.all(np.isfinite(rdm_vec), axis=0)
+        v = v[ok_idx][:, ok_idx]
+        rdm_vec_nonan = rdm_vec[:, ok_idx]
+        v_inv_x = np.array([scipy.sparse.linalg.cg(v, rdm_vec_nonan[i],
+                                                   atol=10 ** -9)[0]
                             for i in range(rdms.n_rdm)])
-        rdm_norms = np.einsum('ij, ij->i', rdm_vec, v_inv_x).reshape(
+        rdm_norms = np.einsum('ij, ij->i', rdm_vec_nonan, v_inv_x).reshape(
             [rdms.n_rdm, 1])
         rdm_vec = rdm_vec / np.sqrt(rdm_norms)
         rdm_vec = _nan_mean(rdm_vec)
