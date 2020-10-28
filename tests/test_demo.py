@@ -11,6 +11,7 @@ class TestDemos(unittest.TestCase):
 
     def test_example_dataset(self):
         import numpy as np
+        import numpy.matlib as matlib
         import matplotlib.pyplot as plt
         import pyrsa
         import pyrsa.data as rsd  # abbreviation to deal with dataset
@@ -63,7 +64,7 @@ class TestDemos(unittest.TestCase):
         randomData = np.random.rand(nObs, nChannel*nChannelVox)
         des = {'session': 1, 'subj': 1}
         obs_des = {'conds': np.array([0, 1, 2, 3])}
-        chn_des = np.matlib.repmat(['ROI1', 'ROI2', 'ROI3'], 1, nChannelVox)
+        chn_des = matlib.repmat(['ROI1', 'ROI2', 'ROI3'], 1, nChannelVox)
         chn_des = {'ROIs': np.array(chn_des[0])}
         data = rsd.Dataset(
             measurements=randomData,
@@ -97,6 +98,44 @@ class TestDemos(unittest.TestCase):
                 obs_descriptors=obs_des,
                 channel_descriptors=chn_des
                 ))
+
+    def test_example_dissimilarities(self):
+        # relevant imports
+        import numpy as np
+        from scipy import io
+        import pyrsa
+        import pyrsa.data as rsd  # abbreviation to deal with dataset
+        import pyrsa.rdm as rsr
+        # create a dataset object
+        measurements = {'simTruePatterns': np.random.randn(92, 100)}
+        measurements = measurements['simTruePatterns']
+        nCond = measurements.shape[0]
+        nVox = measurements.shape[1]
+        # now create a  dataset object
+        des = {'session': 1, 'subj': 1}
+        obs_des = {'conds': np.array(
+            ['cond_' + str(x) for x in np.arange(nCond)])}
+        chn_des = {'voxels': np.array(
+            ['voxel_' + str(x) for x in np.arange(nVox)])}
+        data = rsd.Dataset(measurements=measurements,
+                           descriptors=des,
+                           obs_descriptors=obs_des,
+                           channel_descriptors=chn_des)
+        # calculate an RDM
+        RDM_euc = rsr.calc_rdm(data)
+        RDM_corr = rsr.calc_rdm(data,
+                                method='correlation', descriptor='conds')
+        # create an RDM object
+        rdm_des = {'RDM': np.array(['RDM_1'])}
+        RDM_euc2 = rsr.RDMs(
+            RDM_euc.dissimilarities,
+            dissimilarity_measure=RDM_euc.dissimilarity_measure,
+            descriptors=RDM_euc.descriptors,
+            rdm_descriptors=rdm_des,
+            pattern_descriptors=obs_des)
+        print(RDM_euc.dissimilarities)  # here a vector
+        dist_matrix = RDM_euc.get_matrices()
+        print(dist_matrix)
 
 
 if __name__ == '__main__':
