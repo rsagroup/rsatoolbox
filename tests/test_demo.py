@@ -11,7 +11,6 @@ class TestDemos(unittest.TestCase):
 
     def test_example_dataset(self):
         import numpy as np
-        import numpy.matlib as matlib
         import matplotlib.pyplot as plt
         import pyrsa
         import pyrsa.data as rsd  # abbreviation to deal with dataset
@@ -64,8 +63,8 @@ class TestDemos(unittest.TestCase):
         randomData = np.random.rand(nObs, nChannel*nChannelVox)
         des = {'session': 1, 'subj': 1}
         obs_des = {'conds': np.array([0, 1, 2, 3])}
-        chn_des = matlib.repmat(['ROI1', 'ROI2', 'ROI3'], 1, nChannelVox)
-        chn_des = {'ROIs': np.array(chn_des[0])}
+        chn_des = ['ROI1', 'ROI2', 'ROI3'] * nChannelVox
+        chn_des = {'ROIs': np.array(chn_des)}
         data = rsd.Dataset(
             measurements=randomData,
             descriptors=des,

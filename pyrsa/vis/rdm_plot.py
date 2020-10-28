@@ -44,8 +44,8 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
         rdm = rank_transform(rdm)
     rdm_mat = rdm.get_matrices()
     if rdm.n_rdm > 1:
-        m = np.ceil(np.sqrt(rdm.n_rdm+1))
-        n = np.ceil((1 + rdm.n_rdm) / m)
+        m = int(np.ceil(np.sqrt(rdm.n_rdm+1)))
+        n = int(np.ceil((1 + rdm.n_rdm) / m))
         for idx in range(rdm.n_rdm):
             plt.subplot(n, m, idx + 1)
             image = plt.imshow(rdm_mat[idx], cmap=cmap)
