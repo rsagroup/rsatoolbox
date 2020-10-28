@@ -74,7 +74,6 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
     if isinstance(filename, str):
         fig1 = plt.gcf()
         fig1.savefig(filename, bbox_inches='tight')
-    plt.show()
 
 
 def _add_descriptor_labels(rdm, descriptor, ax=None):
