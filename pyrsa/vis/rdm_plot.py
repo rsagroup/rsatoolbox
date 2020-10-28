@@ -86,17 +86,19 @@ def _add_descriptor_labels(rdm, descriptor, ax=None):
         ax.set_xticks(np.arange(rdm.n_cond))
         ax.set_xticklabels(
             desc,
-            {'fontsize': 'xx-small',
-             'fontweight': 'normal',
-             'verticalalignment': 'center',
-             'horizontalalignment': 'center'})
+            fontdict={
+                'fontsize': 'xx-small',
+                'fontweight': 'normal',
+                'verticalalignment': 'center',
+                'horizontalalignment': 'center'})
         ax.set_yticks(np.arange(rdm.n_cond))
         ax.set_yticklabels(
             desc,
-            {'fontsize': 'xx-small',
-             'fontweight': 'normal',
-             'verticalalignment': 'center',
-             'horizontalalignment': 'right'})
+            fontdict={
+                'fontsize': 'xx-small',
+                'fontweight': 'normal',
+                'verticalalignment': 'center',
+                'horizontalalignment': 'right'})
         plt.ylim(rdm.n_cond - 0.5, -0.5)
         plt.xlim(-0.5, rdm.n_cond - 0.5)
         plt.setp(ax.get_xticklabels(), rotation=90, ha="right",

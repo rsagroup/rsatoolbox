@@ -250,6 +250,117 @@ class TestDemos(unittest.TestCase):
         # plot results
         pyrsa.vis.plot_model_comparison(results_3_full)
 
+    def test_temporal_rsa(self):
+        import numpy as np
+        import matplotlib.pyplot as plt
+        import pyrsa
+        import pickle
+        from pyrsa.rdm import calc_rdm_movie
+
+        import os
+        path = os.path.dirname(os.path.abspath(__file__))
+        dat = pickle.load(open(os.path.join(
+            path, '..', 'demos',
+            "TemporalSampleData", "meg_sample_data.pkl"), "rb"))
+        measurements = dat['data']
+        cond_names = [x for x in dat['cond_names'].keys()]
+        cond_idx = dat['cond_idx']
+        channel_names = dat['channel_names']
+        times = dat['times']
+        print('there are %d observations (trials), %d channels, and %d time-points\n' % 
+              (measurements.shape))
+        print('conditions:')
+        print(cond_names)
+
+        fig, ax = plt.subplots(1, 2, figsize=(12, 4))
+        ax = ax.flatten()
+        for jj, chan in enumerate(channel_names[:2]):
+            for ii, cond_ii in enumerate(np.unique(cond_idx)):
+                mn = measurements[cond_ii == cond_idx, jj, :].mean(0).squeeze()
+                ax[jj].plot(times, mn, label=cond_names[ii])
+                ax[jj].set_title(chan)
+        ax[jj].legend()
+        tim_des = {'time': times}
+        des = {'session': 0, 'subj': 0}
+        obs_des = {'conds': cond_idx}
+        chn_des = {'channels': channel_names}
+        data = pyrsa.data.TemporalDataset(
+            measurements,
+            descriptors=des,
+            obs_descriptors=obs_des,
+            channel_descriptors=chn_des,
+            time_descriptors=tim_des)
+        data.sort_by('conds')
+        print('shape of original measurements')
+        print(data.measurements.shape)
+        data_split_time = data.split_time('time')
+        print('\nafter splitting')
+        print(len(data_split_time))
+        print(data_split_time[0].measurements.shape)
+        print('shape of original measurements')
+        print(data.measurements.shape)
+        data_subset_time = data.subset_time('time', t_from=-.1, t_to=.5)
+        print('\nafter subsetting')
+        print(data_subset_time.measurements.shape)
+        print(data_subset_time.time_descriptors['time'][0])
+        bins = np.reshape(tim_des['time'], [-1, 2])
+        print(len(bins))
+        print(bins[0])
+        print('shape of original measurements')
+        print(data.measurements.shape)
+        data_binned = data.bin_time('time', bins=bins)
+        print('\nafter binning')
+        print(data_binned.measurements.shape)
+        print(data_binned.time_descriptors['time'][0])
+        print('shape of original measurements')
+        print(data.measurements.shape)
+        data_dataset = data.convert_to_dataset('time')
+        print('\nafter binning')
+        print(data_dataset.measurements.shape)
+        print(data_dataset.obs_descriptors['time'][0])
+        rdms_data = calc_rdm_movie(data, method='euclidean',
+                                   descriptor='conds')
+        print(rdms_data)
+        rdms_data_binned = calc_rdm_movie(
+            data, method='euclidean',
+            descriptor='conds',
+            bins=bins)
+        print(rdms_data_binned)
+        plt.figure(figsize=(10, 15))
+        # add formated time as rdm_descriptor
+        rdms_data_binned.rdm_descriptors['time_formatted'] = [
+            '%0.0f ms' % (np.round(x * 1000, 2))
+            for x in rdms_data_binned.rdm_descriptors['time']]
+
+        pyrsa.vis.show_rdm(rdms_data_binned,
+                           do_rank_transform=False,
+                           pattern_descriptor='conds',
+                           rdm_descriptor='time_formatted')
+        from pyrsa.rdm import get_categorical_rdm
+        rdms_model_in = get_categorical_rdm(['%d' % x for x in range(4)])
+        rdms_model_lr = get_categorical_rdm(['l', 'r', 'l', 'r'])
+        rdms_model_av = get_categorical_rdm(['a', 'a', 'v', 'v'])
+        model_names = ['independent', 'left/right', 'audio/visual']
+        # append in one RDMs object
+        model_rdms = rdms_model_in
+        model_rdms.append(rdms_model_lr)
+        model_rdms.append(rdms_model_av)
+        model_rdms.rdm_descriptors['model_names'] = model_names
+        model_rdms.pattern_descriptors['cond_names'] = cond_names
+        plt.figure(figsize=(10, 10))
+        pyrsa.vis.show_rdm(model_rdms, rdm_descriptor='model_names',
+                           pattern_descriptor='cond_names')
+        from pyrsa.rdm import compare
+        r = []
+        for mod in model_rdms:
+            r.append(compare(mod, rdms_data_binned, method='cosine'))
+        for i, r_ in enumerate(r):
+            plt.plot(rdms_data_binned.rdm_descriptors['time'], r_.squeeze(),
+                     label=model_names[i])
+        plt.xlabel('time')
+        plt.ylabel('model-data cosine similarity')
+        plt.legend()
+
 
 if __name__ == '__main__':
     unittest.main()
