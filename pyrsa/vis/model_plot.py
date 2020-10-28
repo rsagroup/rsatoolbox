@@ -4,6 +4,7 @@
 Barplot for model comparison based on a results file
 """
 
+import warnings
 import numpy as np
 import scipy.stats
 import matplotlib.pyplot as plt
@@ -138,16 +139,31 @@ def plot_model_comparison(result, sort=False, colors=None,
     variances = result.variances
     noise_ceil_var = result.noise_ceil_var
     dof = result.dof
-    if not (result.cv_method == 'fixed'):
+    if result.cv_method == 'fixed':
+        n_bootstraps, n_models, _ = evaluations.shape
+        perf = np.mean(evaluations, axis=0)
+        perf = np.nanmean(perf, axis=-1)
+    elif result.cv_method == 'crossvalidation':
+        n_bootstraps, n_models, _ = evaluations.shape
+        perf = np.mean(evaluations, axis=0)
+        perf = np.nanmean(perf, axis=-1)
+        if any([test_pair_comparisons,
+                test_above_0, test_below_noise_ceil]):
+            warnings.warn('tests deactivated as crossvalidation does not'
+                          + 'provide uncertainty estimate')
+            test_pair_comparisons = False
+            test_above_0 = False
+            test_below_noise_ceil = False
+        if error_bars:
+            warnings.warn('errorbars deactivated as crossvalidation does not'
+                          + 'provide uncertainty estimate')
+            error_bars = False
+    else:
         while (len(evaluations.shape) > 2):
             evaluations = np.nanmean(evaluations, axis=-1)
         evaluations = evaluations[~np.isnan(evaluations[:, 0])]
         n_bootstraps, n_models = evaluations.shape
         perf = np.mean(evaluations, axis=0)
-    else:
-        n_bootstraps, n_models, _ = evaluations.shape
-        perf = np.mean(evaluations, axis=0)
-        perf = np.nanmean(perf, axis=-1)
     noise_ceiling = np.array(noise_ceiling)
     if sort is True:
         sort = 'descending'  # descending by default if sort is True
@@ -170,8 +186,11 @@ def plot_model_comparison(result, sort=False, colors=None,
                             + sort + '.')
 
     # run tests
-    p_pairwise, p_zero, p_noise = all_tests(
-        evaluations, noise_ceiling, test_type, variances, noise_ceil_var, dof)
+    if any([test_pair_comparisons,
+            test_above_0, test_below_noise_ceil]):
+        p_pairwise, p_zero, p_noise = all_tests(
+            evaluations, noise_ceiling, test_type, variances,
+            noise_ceil_var, dof)
 
     # Prepare axes for bars and pairwise comparisons
     fs, fs2 = 18, 14  # axis label font sizes
@@ -229,42 +248,43 @@ def plot_model_comparison(result, sort=False, colors=None,
     ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
     if error_bars is True:
         error_bars = 'sem'
-    if error_bars.lower() == 'sem':
-        errorbar_low = np.sqrt(np.diag(variances))
-        errorbar_high = np.sqrt(np.diag(variances))
-    elif error_bars[0:2].lower() == 'ci':
-        if len(error_bars) == 2:
-            CI_percent = 95.0
-        else:
-            CI_percent = float(error_bars[2:])
-        prop_cut = (1 - CI_percent / 100) / 2
-        if test_type == 'bootstrap':
-            framed_evals = np.concatenate(
-                (np.tile(np.array((-np.inf, np.inf)).reshape(2, 1),
-                         (1, n_models)),
-                 evaluations),
-                axis=0)
-            errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
-                             - perf)
-            errorbar_high = (np.quantile(framed_evals, 1 - prop_cut, axis=0)
-                             - perf)
-        else:
-            tdist = scipy.stats.t
-            std_eval = np.sqrt(np.diag(variances))
-            errorbar_low = std_eval \
-                * tdist.ppf(prop_cut, dof)
-            errorbar_high = std_eval \
-                * tdist.ppf(prop_cut, dof)
-    elif error_bars:
-        raise Exception('plot_model_comparison: Argument ' +
-                        'error_bars is incorrectly defined as '
-                        + error_bars + '.')
-    limits = np.concatenate((errorbar_low, errorbar_high))
-    if np.isnan(limits).any() or (abs(limits) == np.inf).any():
-        raise Exception(
-            'plot_model_comparison: Too few bootstrap samples for the ' +
-            'requested confidence interval: ' + error_bars + '.')
     if error_bars:
+        if error_bars.lower() == 'sem':
+            errorbar_low = np.sqrt(np.diag(variances))
+            errorbar_high = np.sqrt(np.diag(variances))
+        elif error_bars[0:2].lower() == 'ci':
+            if len(error_bars) == 2:
+                CI_percent = 95.0
+            else:
+                CI_percent = float(error_bars[2:])
+            prop_cut = (1 - CI_percent / 100) / 2
+            if test_type == 'bootstrap':
+                framed_evals = np.concatenate(
+                    (np.tile(np.array((-np.inf, np.inf)).reshape(2, 1),
+                             (1, n_models)),
+                     evaluations),
+                    axis=0)
+                errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
+                                 - perf)
+                errorbar_high = (np.quantile(framed_evals, 1 - prop_cut,
+                                             axis=0)
+                                 - perf)
+            else:
+                tdist = scipy.stats.t
+                std_eval = np.sqrt(np.diag(variances))
+                errorbar_low = std_eval \
+                    * tdist.ppf(prop_cut, dof)
+                errorbar_high = std_eval \
+                    * tdist.ppf(prop_cut, dof)
+        else:
+            raise Exception('plot_model_comparison: Argument ' +
+                            'error_bars is incorrectly defined as '
+                            + str(error_bars) + '.')
+        limits = np.concatenate((errorbar_low, errorbar_high))
+        if np.isnan(limits).any() or (abs(limits) == np.inf).any():
+            raise Exception(
+                'plot_model_comparison: Too few bootstrap samples for the ' +
+                'requested confidence interval: ' + error_bars + '.')
         ax.errorbar(np.arange(evaluations.shape[1]), perf,
                     yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
                     capsize=0, linewidth=3)
