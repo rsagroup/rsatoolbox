@@ -44,7 +44,7 @@ def load_comp(folder):
             method = 2
         elif split[1] == 'rho_a':
             method = 3
-        if split[2] == 'boot':
+        if split[2] == 'both':
             boot = 0
         elif split[2] == 'rdm':
             boot = 1
