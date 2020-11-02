@@ -910,6 +910,9 @@ if __name__ == '__main__':
     elif args.sim == 'eco':
         run_eco(args.index, ecoset_path=args.path)
     elif args.sim == 'summarize_eco':
-        summarize_eco()
+        if args.path is None:
+            summarize_eco()
+        else:
+            summarize_eco(args.path)
     elif args.sim == 'fix_eco':
         fix_eco(ecoset_path=args.path)
