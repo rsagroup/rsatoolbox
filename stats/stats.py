@@ -582,12 +582,12 @@ def run_comp(idx):
     (i_boot, i_rep, i_sub, i_cond, i_comp) = np.unravel_index(
         idx,
         [len(boot_type), n_rep, len(n_subj), len(n_cond), len(comp_type)])
-    print(idx)
-    print('starting simulation:')
-    print('%d subjects' % n_subj[i_sub])
-    print('%d conditions' % n_cond[i_cond])
-    print(boot_type[i_boot])
-    print(comp_type[i_comp])
+    print(idx, flush=True)
+    print('starting simulation:', flush=True)
+    print('%d subjects' % n_subj[i_sub], flush=True)
+    print('%d conditions' % n_cond[i_cond], flush=True)
+    print(boot_type[i_boot], flush=True)
+    print(comp_type[i_comp], flush=True)
     if i_comp == 2:
         save_noise_ceiling(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
                            bootstrap=boot_type[i_boot][0],
