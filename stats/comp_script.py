@@ -9,5 +9,5 @@ Created on Mon Nov  2 17:23:33 2020
 import stats
 import numpy as np
 
-for i in np.random.permutation(2880):
+for i in np.random.permutation(14400):
     stats.run_comp(i)
