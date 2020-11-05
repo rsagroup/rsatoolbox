@@ -78,7 +78,7 @@ def _get_n_from_reduced_vectors(x):
         int: n: size of the RDM
 
     """
-    return int(np.ceil(np.sqrt(x.shape[1] * 2)))
+    return max(int(np.ceil(np.sqrt(x.shape[1] * 2))), 1)
 
 
 def add_pattern_index(rdms, pattern_descriptor):
