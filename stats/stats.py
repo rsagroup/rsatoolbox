@@ -63,7 +63,7 @@ def get_residuals_cross(designs, timecourses, betas, resolution=2, hrf=None):
     return residuals
 
 
-def check_compare_to_zero(model, n_voxel=200, n_subj=10, n_sim=1000,
+def check_compare_to_zero(model, n_voxel=200, n_subj=10, n_sim=100,
                           method='corr', bootstrap='pattern',
                           sigma_noise=1, test_type='perc'):
     """ runs simulations for comparison to zero
@@ -108,7 +108,7 @@ def check_compare_to_zero(model, n_voxel=200, n_subj=10, n_sim=1000,
 def save_compare_to_zero(idx, n_voxel=200, n_subj=10, n_cond=5,
                          method='corr', bootstrap='pattern',
                          folder='comp_zero', sigma_noise=1,
-                         test_type='t'):
+                         test_type='t', n_sim=100):
     """ saves the results of a simulation to a file
     """
     if not os.path.isdir(folder):
@@ -124,11 +124,11 @@ def save_compare_to_zero(idx, n_voxel=200, n_subj=10, n_cond=5,
         p = check_compare_to_zero(model, n_voxel=n_voxel, n_subj=n_subj,
                                   method=method, bootstrap=bootstrap,
                                   sigma_noise=sigma_noise,
-                                  test_type=test_type)
+                                  test_type=test_type, n_sim=n_sim)
         np.save(fname, p)
 
 
-def check_compare_models(model1, model2, n_voxel=200, n_subj=10, n_sim=1000,
+def check_compare_models(model1, model2, n_voxel=200, n_subj=10, n_sim=100,
                          method='corr', bootstrap='pattern', sigma_noise=1,
                          test_type='t'):
     """ runs simulations for comparison to zero
@@ -192,7 +192,7 @@ def check_compare_models(model1, model2, n_voxel=200, n_subj=10, n_sim=1000,
 def save_compare_models(idx, n_voxel=200, n_subj=10, n_cond=5,
                         method='corr', bootstrap='pattern',
                         folder='comp_model', sigma_noise=1,
-                        test_type='t'):
+                        test_type='t', n_sim=100):
     """ saves the results of a simulation to a file
     """
     if not os.path.isdir(folder):
@@ -212,11 +212,12 @@ def save_compare_models(idx, n_voxel=200, n_subj=10, n_cond=5,
         p = check_compare_models(model1, model2, n_voxel=n_voxel,
                                  n_subj=n_subj,
                                  method=method, bootstrap=bootstrap,
-                                 sigma_noise=sigma_noise)
+                                 sigma_noise=sigma_noise,
+                                 n_sim=n_sim)
         np.save(fname, p)
 
 
-def check_noise_ceiling(model, n_voxel=200, n_subj=10, n_sim=1000,
+def check_noise_ceiling(model, n_voxel=200, n_subj=10, n_sim=100,
                         method='corr', bootstrap='pattern', sigma_noise=1,
                         boot_noise_ceil=False, test_type='t'):
     """ runs simulations for comparing the model to data generated with the
@@ -307,7 +308,7 @@ def check_noise_ceiling(model, n_voxel=200, n_subj=10, n_sim=1000,
 def save_noise_ceiling(idx, n_voxel=200, n_subj=10, n_cond=5,
                        method='corr', bootstrap='pattern', sigma_noise=1,
                        folder='comp_noise', boot_noise_ceil=False,
-                       test_type='t'):
+                       test_type='t', n_sim=100):
     """ saves the results of a simulation to a file
     """
     if not os.path.isdir(folder):
@@ -324,7 +325,7 @@ def save_noise_ceiling(idx, n_voxel=200, n_subj=10, n_cond=5,
         p = check_noise_ceiling(model, n_voxel=n_voxel, n_subj=n_subj,
                                 method=method, bootstrap=bootstrap,
                                 boot_noise_ceil=boot_noise_ceil,
-                                test_type=test_type)
+                                test_type=test_type, n_sim=n_sim)
         np.save(fname, p)
 
 
@@ -559,7 +560,7 @@ def save_rdm_type(idx, simulation_folder='sim_type'):
 
 def run_comp(idx):
     """ master script for running the abstract simulations. Each call to
-    this script will run one repetition of the comparisons, i.e. 1000
+    this script will run one repetition of the comparisons, i.e. 100
     evaluations.
     run this script with all indices from 1 to 960 to reproduce  all analyses
     of this type.
@@ -575,8 +576,9 @@ def run_comp(idx):
                  ['rdm', 't'],
                  ['fix', 't'],
                  ['fancyboot', 't']]
-    comp_type = ['noise', 'noise_boot', 'model', 'zero']
-    n_rep = 5
+    # comp_type = ['noise', 'noise_boot', 'model', 'zero']
+    comp_type = ['model', 'zero']
+    n_rep = 50
     (i_boot, i_rep, i_sub, i_cond, i_comp) = np.unravel_index(
         idx,
         [len(boot_type), n_rep, len(n_subj), len(n_cond), len(comp_type)])
@@ -586,21 +588,21 @@ def run_comp(idx):
     print('%d conditions' % n_cond[i_cond])
     print(boot_type[i_boot])
     print(comp_type[i_comp])
-    if i_comp == 0:
+    if i_comp == 2:
         save_noise_ceiling(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
                            bootstrap=boot_type[i_boot][0],
                            test_type=boot_type[i_boot][1],
                            boot_noise_ceil=False)
-    elif i_comp == 1:
+    elif i_comp == 3:
         save_noise_ceiling(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
                            bootstrap=boot_type[i_boot][0],
                            test_type=boot_type[i_boot][1],
                            boot_noise_ceil=True)
-    elif i_comp == 2:
+    elif i_comp == 0:
         save_compare_models(i_rep, n_subj=n_subj[i_sub], n_cond=n_cond[i_cond],
                             bootstrap=boot_type[i_boot][0],
                             test_type=boot_type[i_boot][1])
-    elif i_comp == 3:
+    elif i_comp == 1:
         save_compare_to_zero(i_rep, n_subj=n_subj[i_sub],
                              n_cond=n_cond[i_cond],
                              bootstrap=boot_type[i_boot][0],

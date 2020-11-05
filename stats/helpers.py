@@ -205,7 +205,7 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
             model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
     elif bootstrap == 'fancyboot':
         results = pyrsa.inference.eval_fancy(
-            model, rdms, method=method, k_pattern=1, k_rdm=1, N=100)
+            model, rdms, method=method, k_pattern=1, k_rdm=1)
     elif bootstrap == 'fix':
         results = pyrsa.inference.eval_fixed(
             model, rdms, method=method)
