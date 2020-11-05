@@ -525,12 +525,12 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
                 rdm_descriptor=rdm_descriptor,
                 k_pattern=k_pattern, k_rdm=k_rdm, random=random)
             noise_ceil = cv_noise_ceiling(
-                sample, ceil_set, test_set,
+                data, ceil_set, test_set,
                 method=method,
                 pattern_descriptor=pattern_descriptor)
         else:
             noise_ceil = boot_noise_ceiling(
-                sample,
+                data,
                 method=method,
                 rdm_descriptor=rdm_descriptor)
         
