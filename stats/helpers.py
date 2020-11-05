@@ -17,7 +17,7 @@ def load_comp(folder):
     """ this function loads all comparison results from a folder and puts
     them into a long style matrix, i.e. one p-value per row with the
     metainfo added into the other rows. The final table has the format:
-        p_value | method | bootstrap-type | number of subjects |
+        p_value | method | bootstrap-type | test-type | number of subjects |
         number of patterns | number of voxels | boot_noise_ceil|
         sigma_noise | idx
     methods:
@@ -30,6 +30,14 @@ def load_comp(folder):
         'both' = 0
         'rdm' = 1
         'pattern' = 2
+        'fancy' = 3
+        'fancyboot' = 4
+        'fix' = 5
+    
+    test-type:
+        'perc' = 0
+        't' = 1
+        'ranksum' = 2
 
     """
     table = []
@@ -58,9 +66,9 @@ def load_comp(folder):
             boot = 5
         if split[3] == 't':
             test_type = 1
-        elif split[3] == 'fix':
+        elif split[3] == 'ranksum':
             test_type = 2
-        else:
+        else:  # should be 'perc'
             test_type = 0
         if split[3] == 'True' or split[4] == 'True':
             boot_noise_ceil = True
@@ -197,7 +205,7 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
             model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
     elif bootstrap == 'fancyboot':
         results = pyrsa.inference.eval_fancy(
-            model, rdms, method=method, k_pattern=1, k_rdm=1)
+            model, rdms, method=method, k_pattern=1, k_rdm=1, N=100)
     elif bootstrap == 'fix':
         results = pyrsa.inference.eval_fixed(
             model, rdms, method=method)

@@ -153,21 +153,23 @@ def plot_comp(data, alpha=0.05, save_file=None):
     """ plots comp check data
     """
     # methods = np.unique(data[:, 1])
-    boots = np.unique(data[:, 2])
+    # boots = np.unique(data[:, 2])
+    test_type_id = 10 * data[:, 2] + data[:, 3]
+    test_ids = np.unique(test_type_id)
     n_subj = np.unique(data[:, 4])
     n_cond = np.unique(data[:, 5])
     n_voxel = np.unique(data[:, 6])
     # boot_noise = np.unique(data[:, 6])
     # sigmas = np.unique(data[:, 7])
     idx = np.unique(data[:, 9])
-    props = np.nan * np.empty((len(boots), len(n_subj), len(n_cond),
+    props = np.nan * np.empty((len(test_ids), len(n_subj), len(n_cond),
                                len(n_voxel), len(idx)))
-    for i_boot, boot in enumerate(boots):
+    for i_test, test in enumerate(test_ids):
         for i_subj, n_sub in enumerate(n_subj):
             for i_cond, cond in enumerate(n_cond):
                 for i_vox, vox in enumerate(n_voxel):
                     for i, _ in enumerate(idx):
-                        dat = data[data[:, 2] == boot, :]
+                        dat = data[test_type_id == test, :]
                         dat = dat[dat[:, 4] == n_sub, :]
                         dat = dat[dat[:, 5] == cond, :]
                         dat = dat[dat[:, 6] == vox, :]
@@ -175,18 +177,18 @@ def plot_comp(data, alpha=0.05, save_file=None):
                         if len(dat) > 0:
                             prop = (np.sum(dat[:, 0] > (1 - alpha))
                                     / len(dat))
-                            props[i_boot, i_subj, i_cond, i_vox, i] = prop
+                            props[i_test, i_subj, i_cond, i_vox, i] = prop
                         else:
-                            props[i_boot, i_subj, i_cond, i_vox, i] = np.nan
+                            props[i_test, i_subj, i_cond, i_vox, i] = np.nan
     # First plot: barplot + scatter for each type of bootstrap
     plt.figure()
     ax = plt.subplot(1, 1, 1)
-    for i in range(len(boots)):
+    for i in range(len(test_ids)):
         plt.bar(i, np.mean(props[i]))
         plt.plot(np.repeat(i, props[i].size)
                  + 0.1 * np.random.randn(props[i].size),
                  props[i].flatten(), 'k.')
-    plt.plot([-0.5, len(boots) - 0.5], [alpha, alpha], 'k--')
+    plt.plot([-0.5, len(test_ids) - 0.5], [alpha, alpha], 'k--')
     plt.xticks([0, 1, 2, 3],
                ['Bootstrap\nboth', 'Bootstrap\nrdm', 'Bootstrap\npattern',
                 'Wilcoxon'])
@@ -197,9 +199,19 @@ def plot_comp(data, alpha=0.05, save_file=None):
         plt.savefig(fname)
     # Second plot: plot against n_subj
     p_max = np.nanmax(props)
-    plt.figure(figsize=(3 * len(boots), 5))
-    for i in range(len(boots)):
-        ax = plt.subplot(1, len(boots), i + 1)
+    plt.figure(figsize=(3 * len(test_ids), 5))
+    titles = {
+        0: 'Bootstrap\nboth',
+        1: 'Bootstrap\nboth, T',
+        10: 'Bootstrap\nrdm',
+        11: 'Bootstrap\nrdm, T',
+        20: 'Bootstrap\npattern',
+        21: 'Bootstrap\npattern, T',
+        41: 'Bootstrap\nFormula, T',
+        51: 'T-Test\n',
+        52: 'Wilcoxon\n'}
+    for i, t_id in enumerate(test_ids):
+        ax = plt.subplot(1, len(test_ids), i + 1)
         h0 = plt.plot(np.arange(len(n_subj)) - 0.225,
                       props[i, :, 0, 0, :], '.',
                       color=[0.5, 0, 0], markersize=15)
@@ -212,28 +224,19 @@ def plot_comp(data, alpha=0.05, save_file=None):
         h3 = plt.plot(np.arange(len(n_subj)) + 0.225,
                       props[i, :, 3, 0, :], '.',
                       color=[0.5, 0.6, 1], markersize=15)
+        plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
         if i == 0:
-            plt.title('Bootstrap\nboth', fontsize=18)
             plt.ylabel('Proportion significant', fontsize=24)
-            plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
-        elif i == 1:
-            plt.title('Bootstrap\nrdm', fontsize=18)
-            plt.yticks([0, alpha, 2*alpha, 3*alpha])
+        else:
             plt.tick_params(labelleft=False)
-        elif i == 2:
-            plt.title('Bootstrap\npattern', fontsize=18)
-            plt.yticks([0, alpha, 2*alpha, 3*alpha])
-            plt.tick_params(labelleft=False)
-        elif i == 3:
-            plt.title('Wilcoxon\n', fontsize=18)
-            plt.yticks([0, alpha, 2*alpha, 3*alpha])
-            plt.tick_params(labelleft=False)
+        plt.title(titles[t_id], fontsize=18)
+        if i == (len(test_ids) - 1):
             legend = plt.legend(
                 [h0[0], h1[0], h2[0], h3[0]], n_cond.astype('int'),
                 frameon=False, title='# of patterns', fontsize=18,
                 bbox_to_anchor=(1.0, 1.0), loc=2)
             legend.get_title().set_fontsize('18')
-        plt.xticks(np.arange(len(n_cond)), n_cond.astype('int'), fontsize=18)
+        plt.xticks(np.arange(len(n_subj)), n_subj.astype('int'), fontsize=18)
         plt.yticks([0, alpha, 2*alpha, 3*alpha])
         plt.ylim([0, 0.25])
         plt.xlim([-1, len(n_subj)])
@@ -246,9 +249,9 @@ def plot_comp(data, alpha=0.05, save_file=None):
         fname = save_file + '_rdm.pdf'
         plt.savefig(fname)
     # Third plot: plot against n_pattern
-    plt.figure(figsize=(3 * len(boots), 5))
-    for i in range(len(boots)):
-        ax = plt.subplot(1, len(boots), i+1)
+    plt.figure(figsize=(3 * len(test_ids), 5))
+    for i, t_id in enumerate(test_ids):
+        ax = plt.subplot(1, len(test_ids), i+1)
         h0 = plt.plot(np.arange(len(n_cond)) - 0.225,
                       props[i, 0, :, 0, :], '.',
                       color=[0.5, 0, 0], markersize=15)
@@ -261,33 +264,25 @@ def plot_comp(data, alpha=0.05, save_file=None):
         h3 = plt.plot(np.arange(len(n_cond)) + 0.225,
                       props[i, 3, :, 0, :], '.',
                       color=[0.5, 0.6, 1], markersize=15)
+        plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
         if i == 0:
-            plt.title('Bootstrap\nboth', fontsize=18)
             plt.ylabel('Proportion significant', fontsize=24)
-            plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
-        elif i == 1:
-            plt.title('Bootstrap\nrdm', fontsize=18)
-            plt.yticks([0, alpha, 2*alpha, 3*alpha])
+        else:
             plt.tick_params(labelleft=False)
-        elif i == 2:
-            plt.title('Bootstrap\npattern', fontsize=18)
-            plt.yticks([0, alpha, 2*alpha, 3*alpha])
-            plt.tick_params(labelleft=False)
-        elif i == 3:
-            plt.title('Wilcoxon\n', fontsize=18)
-            plt.yticks([0, alpha, 2*alpha, 3*alpha])
-            plt.tick_params(labelleft=False)
+        plt.title(titles[t_id], fontsize=18)
+        if i == (len(test_ids) - 1):
             legend = plt.legend(
-                [h0[0], h1[0], h2[0], h3[0]], n_cond.astype('int'),
-                frameon=False, title='# of rdms', fontsize=18,
+                [h0[0], h1[0], h2[0], h3[0]], n_subj.astype('int'),
+                frameon=False, title='# of patterns', fontsize=18,
                 bbox_to_anchor=(1.0, 1.0), loc=2)
             legend.get_title().set_fontsize('18')
         plt.xticks(np.arange(len(n_cond)), n_cond.astype('int'), fontsize=18)
+        plt.yticks([0, alpha, 2*alpha, 3*alpha])
         plt.ylim([0, 0.25])
         plt.xlim([-1, len(n_cond)])
         plt.plot([-1, len(n_cond)], [alpha, alpha], 'k--')
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        plt.xlabel('# of patterns', fontsize=18)
+        plt.xlabel('# of conditions', fontsize=18)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
     if save_file:
