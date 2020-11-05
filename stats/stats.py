@@ -92,12 +92,13 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
         results = run_inference(model, rdms, method, bootstrap)
         idx_valid = ~np.isnan(results.evaluations)
         if test_type == 'perc':
-            p[i_sim] = np.sum(results.evaluations[idx_valid] > 0) \
+            p[i_sim] = 1 - np.sum(results.evaluations[idx_valid] > 0) \
                 / np.sum(idx_valid)
         elif test_type == 't':
             p[i_sim] = pyrsa.util.inference_util.t_test_0(
                 results.evaluations,
-                results.variances)
+                results.variances,
+                dof=results.dof)
         elif test_type == 'ranksum':
             p[i_sim] = pyrsa.util.inference_util.ranksum_value_test(
                 results.evaluations)
@@ -175,9 +176,10 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
         results = run_inference([model1, model2], rdms, method, bootstrap)
         if test_type == 'perc':
             idx_valid = ~np.isnan(results.evaluations[:, 0])
-            p[i_sim] = (np.sum(results.evaluations[idx_valid, 0] >
-                               results.evaluations[idx_valid, 1])
-                        / np.sum(idx_valid))
+            p = (np.sum(results.evaluations[idx_valid, 0] >
+                        results.evaluations[idx_valid, 1])
+                 / np.sum(idx_valid))
+            p[i_sim] = 2 * np.min(p, 1 - p)
         elif test_type == 't':
             p[i_sim] = pyrsa.util.inference_util.t_tests(
                 results.evaluations, results.variances, results.dof)[0, 1]
