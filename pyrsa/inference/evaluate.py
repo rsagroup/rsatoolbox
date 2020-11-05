@@ -61,9 +61,14 @@ def eval_fancy(models, data, method='cosine', fitter=None, n_cv=1,
         pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
     var_estimate = 2 * (result_rdm.variances + result_pattern.variances) \
         - result_full.variances
-    var_nc_estimate = 2 * (result_rdm.noise_ceil_var
-                           + result_pattern.noise_ceil_var) \
-        - result_full.noise_ceil_var
+    if result_rdm.noise_ceil_var is not None \
+        and result_pattern.noise_ceil_var is not None \
+        and result_full.noise_ceil_var is not None:
+        var_nc_estimate = 2 * (result_rdm.noise_ceil_var
+                               + result_pattern.noise_ceil_var) \
+            - result_full.noise_ceil_var
+    else:
+        var_nc_estimate = None
     result = Result(models, result_full.evaluations, method=method,
                     cv_method='fancy',
                     noise_ceiling=result_full.noise_ceiling,
@@ -354,7 +359,8 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
 def bootstrap_crossval(models, data, method='cosine', fitter=None,
                        k_pattern=None, k_rdm=None, N=1000, n_cv=2,
                        pattern_descriptor='index', rdm_descriptor='index',
-                       random=True, boot_type='both', use_correction=True):
+                       random=True, boot_type='both', use_correction=True,
+                       calc_noise_ceil=True):
     """evaluates a set of models by k-fold crossvalidation within a bootstrap
 
     If a k is set to 1 no crossvalidation is performed over the
@@ -385,6 +391,12 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
             alternatives: 'rdm', 'pattern'
         use_correction(bool): switch for the correction for the
             variance caused by crossvalidation (default: True)
+        calc_noise_ceil(bool or String): how to calculate noise ceiling
+            False, 'False', None: don't calculate noise_ceiling
+            True, 'fix': default, calculate one noise ceiling from the
+                whole sample
+            'boot': calculate noise_ceiling for each bootstrapsample
+                + covariance estimate with model evaluations
 
     Returns:
         numpy.ndarray: matrix of evaluations (N x k)
@@ -400,6 +412,8 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         k_rdm = default_k_rdm((1 - 1 / np.exp(1)) * n_rdm)
     if isinstance(models, Model):
         models = [models]
+    if calc_noise_ceil == 'False':
+        calc_noise_ceil = False
     evaluations = np.zeros((N, len(models), k_pattern * k_rdm, n_cv))
     noise_ceil = np.zeros((2, N, n_cv))
     for i_sample in tqdm.trange(N):
@@ -429,18 +443,19 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
                     pattern_descriptor=pattern_descriptor,
                     rdm_descriptor=rdm_descriptor,
                     k_pattern=k_pattern, k_rdm=k_rdm, random=random)
-                if k_rdm > 1 or k_pattern > 1:
-                    cv_nc = cv_noise_ceiling(
-                        sample, ceil_set, test_set,
-                        method=method,
-                        pattern_descriptor=pattern_descriptor)
-                    noise_ceil[:, i_sample, i_rep] = cv_nc
-                else:
-                    nc = boot_noise_ceiling(
-                        sample,
-                        method=method,
-                        rdm_descriptor=rdm_descriptor)
-                    noise_ceil[:, i_sample, i_rep] = nc
+                if calc_noise_ceil == 'boot':
+                    if k_rdm > 1 or k_pattern > 1:
+                        cv_nc = cv_noise_ceiling(
+                            sample, ceil_set, test_set,
+                            method=method,
+                            pattern_descriptor=pattern_descriptor)
+                        noise_ceil[:, i_sample, i_rep] = cv_nc
+                    else:
+                        nc = boot_noise_ceiling(
+                            sample,
+                            method=method,
+                            rdm_descriptor=rdm_descriptor)
+                        noise_ceil[:, i_sample, i_rep] = nc
                 for idx in range(len(test_set)):
                     test_set[idx][1] = _concat_sampling(pattern_idx,
                                                         test_set[idx][1])
@@ -466,34 +481,59 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         cv_method = 'bootstrap_crossval_rdm'
         dof = data.n_rdm - 1
     eval_ok = ~np.isnan(evaluations[:, 0, 0, 0])
+    evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
     if use_correction and n_cv > 1:
         # we essentially project from the two points for 1 repetition and
         # for n_cv repetitions to infinitely many cv repetitions
-        evals_mean = np.mean(np.mean(evaluations[eval_ok], -1), -1)
         evals_1 = np.mean(evaluations[eval_ok], -2)
-        var_mean = np.cov(evals_mean.T)
+        var_mean = np.cov(evals_nonan.T)
         var_1 = []
         for i in range(n_cv):
             var_1.append(np.cov(evals_1[:, :, i].T))
         var_1 = np.mean(np.array(var_1), axis=0)
         # this is the main formula for the correction:
         variances = (n_cv * var_mean - var_1) / (n_cv - 1)
-        # for the noise_ceiling we are interested in the covariance,
-        # which should be correct from the mean estimates, as the covariance
-        # of the crossvalidation noise should be 0
-        noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
-        vars_nc = np.cov(np.concatenate([evals_mean.T, noise_ceil_nonan]))
-        noise_ceil_var = vars_nc[:, -2:]
+        if calc_noise_ceil == 'boot':
+            # for the noise_ceiling we are interested in the covariance,
+            # which should be correct from the mean estimates, as the covariance
+            # of the crossvalidation noise should be 0
+            noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
+            vars_nc = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
+            noise_ceil_var = vars_nc[:, -2:]
+        else:
+            noise_ceil_var = None
     else:
         if use_correction:
             raise Warning('correction requested, but only one cv run'
                           + ' per sample requested. This is invalid!'
                           + ' We do not use the correction for now.')
-        evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
-        noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
-        variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
-        noise_ceil_var = variances[:, -2:]
-        variances = variances[:-2, :-2]
+        if calc_noise_ceil == 'boot':
+            noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
+            variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
+            noise_ceil_var = variances[:, -2:]
+            variances = variances[:-2, :-2]
+        else:
+            variances = np.cov(evals_nonan.T)
+            noise_ceil_var = None
+    if calc_noise_ceil == 'boot':
+        pass
+    elif calc_noise_ceil:
+        if k_rdm > 1 or k_pattern > 1:
+            train_set, test_set, ceil_set = sets_k_fold(
+                data,
+                pattern_descriptor=pattern_descriptor,
+                rdm_descriptor=rdm_descriptor,
+                k_pattern=k_pattern, k_rdm=k_rdm, random=random)
+            noise_ceil = cv_noise_ceiling(
+                sample, ceil_set, test_set,
+                method=method,
+                pattern_descriptor=pattern_descriptor)
+        else:
+            noise_ceil = boot_noise_ceiling(
+                sample,
+                method=method,
+                rdm_descriptor=rdm_descriptor)
+        
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
                     variances=variances, dof=dof,
