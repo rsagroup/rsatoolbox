@@ -533,7 +533,9 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
                 data,
                 method=method,
                 rdm_descriptor=rdm_descriptor)
-        
+    else:
+        noise_ceil = None
+        noise_ceil_var = None
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
                     variances=variances, dof=dof,
