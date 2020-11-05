@@ -63,7 +63,7 @@ def get_residuals_cross(designs, timecourses, betas, resolution=2, hrf=None):
     return residuals
 
 
-def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
+def check_compare_to_zero(model, n_voxel=200, n_subj=10, n_sim=1000,
                           method='corr', bootstrap='pattern',
                           sigma_noise=1, test_type='perc'):
     """ runs simulations for comparison to zero
@@ -105,7 +105,7 @@ def check_compare_to_zero(model, n_voxel=100, n_subj=10, n_sim=1000,
     return p
 
 
-def save_compare_to_zero(idx, n_voxel=100, n_subj=10, n_cond=5,
+def save_compare_to_zero(idx, n_voxel=200, n_subj=10, n_cond=5,
                          method='corr', bootstrap='pattern',
                          folder='comp_zero', sigma_noise=1,
                          test_type='t'):
@@ -128,7 +128,7 @@ def save_compare_to_zero(idx, n_voxel=100, n_subj=10, n_cond=5,
         np.save(fname, p)
 
 
-def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
+def check_compare_models(model1, model2, n_voxel=200, n_subj=10, n_sim=1000,
                          method='corr', bootstrap='pattern', sigma_noise=1,
                          test_type='t'):
     """ runs simulations for comparison to zero
@@ -189,7 +189,7 @@ def check_compare_models(model1, model2, n_voxel=100, n_subj=10, n_sim=1000,
     return p
 
 
-def save_compare_models(idx, n_voxel=100, n_subj=10, n_cond=5,
+def save_compare_models(idx, n_voxel=200, n_subj=10, n_cond=5,
                         method='corr', bootstrap='pattern',
                         folder='comp_model', sigma_noise=1,
                         test_type='t'):
@@ -216,7 +216,7 @@ def save_compare_models(idx, n_voxel=100, n_subj=10, n_cond=5,
         np.save(fname, p)
 
 
-def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
+def check_noise_ceiling(model, n_voxel=200, n_subj=10, n_sim=1000,
                         method='corr', bootstrap='pattern', sigma_noise=1,
                         boot_noise_ceil=False, test_type='t'):
     """ runs simulations for comparing the model to data generated with the
@@ -304,7 +304,7 @@ def check_noise_ceiling(model, n_voxel=100, n_subj=10, n_sim=1000,
     return np.array([p_lower, p_upper])
 
 
-def save_noise_ceiling(idx, n_voxel=100, n_subj=10, n_cond=5,
+def save_noise_ceiling(idx, n_voxel=200, n_subj=10, n_cond=5,
                        method='corr', bootstrap='pattern', sigma_noise=1,
                        folder='comp_noise', boot_noise_ceil=False,
                        test_type='t'):
