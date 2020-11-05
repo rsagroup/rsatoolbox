@@ -175,7 +175,7 @@ def plot_comp(data, alpha=0.05, save_file=None):
                         dat = dat[dat[:, 6] == vox, :]
                         dat = dat[dat[:, 9] == idx[i], :]
                         if len(dat) > 0:
-                            prop = (np.sum(dat[:, 0] > (1 - alpha))
+                            prop = (np.sum(dat[:, 0] < alpha)
                                     / len(dat))
                             props[i_test, i_subj, i_cond, i_vox, i] = prop
                         else:
@@ -198,7 +198,6 @@ def plot_comp(data, alpha=0.05, save_file=None):
         fname = save_file + '_bars.pdf'
         plt.savefig(fname)
     # Second plot: plot against n_subj
-    p_max = np.nanmax(props)
     plt.figure(figsize=(3 * len(test_ids), 5))
     titles = {
         0: 'Bootstrap\nboth',
