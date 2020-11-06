@@ -162,6 +162,7 @@ def check_compare_models(model1, model2, n_voxel=200, n_subj=10, n_sim=100,
     D = squareform(target_rdm)
     H = pyrsa.util.matrix.centering(D.shape[0])
     G = -0.5 * (H @ D @ H)
+    G = G + np.eye(G.shape[0])
     U0 = pyrsa.simulation.make_signal(G, n_voxel, make_exact=True)
     # dat0 = pyrsa.data.Dataset(U0)
     # rdm0 = pyrsa.rdm.calc_rdm(dat0)
