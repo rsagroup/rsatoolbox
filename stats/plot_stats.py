@@ -411,6 +411,116 @@ def plot_eco(simulation_folder='sim_eco', variation='both', savefig=False):
             g11.fig.savefig('figures/std_std_rep_%s.pdf' % variation)
 
 
+def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
+    labels = pd.read_csv(os.path.join(simulation_folder, 'labels.csv'))
+    means = np.load(os.path.join(simulation_folder, 'means.npy'))
+    stds = np.load(os.path.join(simulation_folder, 'stds.npy'))
+    means = means[:len(labels)]
+    # remove nan entries
+    idx_nan = ~np.any(np.isnan(means[:, :, 0]), axis=1)
+    labels = labels[list(idx_nan)]
+    means = means[idx_nan]
+    stds = stds[idx_nan]
+    # compute statistics
+    true_std = np.nanstd(means, axis=1)
+    std_mean = np.nanmean(stds, axis=1)
+    std_mean = np.array([np.diag(i) for i in std_mean])
+    std_mean = np.sqrt(std_mean)  # those are actually variances!
+    std_var = np.nanvar(stds, axis=1)
+    std_var = np.array([np.diag(i) for i in std_var])
+    std_relative = std_mean / true_std
+    std_std = np.sqrt(std_var)
+    snr = (np.var(np.mean(means,axis=1), axis=1)
+           / np.mean(np.var(means, axis=1), axis=1))
+    # seaborn based plotting
+    # create full data table
+    data_df = pd.DataFrame()
+    for i_model in range(means.shape[2]):
+        labels['true_std'] = true_std[:, i_model]
+        labels['std_mean'] = std_mean[:, i_model]
+        labels['std_var'] = std_var[:, i_model]
+        labels['std_relative'] = std_relative[:, i_model]
+        labels['std_std'] = std_std[:, i_model]
+        labels['model_layer'] = i_model
+        labels['snr'] = snr
+        data_df = data_df.append(labels)
+    data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
+                              'n_rep': 'int'})
+    with sns.axes_style('ticks'):
+        sns.set_context('paper', font_scale=2)
+        # change in true Std
+        g1 = sns.catplot(data=data_df,
+                         x='n_stim', y='true_std', hue='n_subj',
+                         kind='point', ci='sd', palette='Blues_d', dodge=.2)
+        plt.ylim(bottom=0)
+        sns.despine(trim=True, offset=5)
+        g2 = sns.catplot(data=data_df,
+                         x='n_subj', y='true_std', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        plt.ylim(bottom=0)
+        sns.despine(trim=True, offset=5)
+        g3 = sns.catplot(data=data_df,
+                         x='n_rep', y='true_std', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        plt.ylim(bottom=0)
+        sns.despine(trim=True, offset=5)
+        # compare bootstrap to true_std
+        # scatterplot
+        g4 = sns.FacetGrid(data_df, col='boot_type', aspect=1)
+        g4.map(sns.scatterplot, 'true_std', 'std_mean')
+        plt.ylim(bottom=0)
+        plt.xlim(left=0)
+        plt.plot([0, plt.ylim()[1]], [0, plt.ylim()[1]], 'k--')
+        sns.despine(trim=True, offset=5)
+        # relative deviation of the mean
+        g5 = sns.FacetGrid(data_df, col='boot_type')
+        g5.map(sns.scatterplot, 'true_std', 'std_relative')
+        plt.xlim(left=0)
+        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        # relative mean and variance against n
+        g6 = sns.catplot(data=data_df, col='boot_type',
+                         x='n_stim', y='std_relative', hue='n_subj',
+                         kind='point', ci='sd', palette='Blues_d', dodge=.2,
+                         order=[10, 20, 40, 80, 160])
+        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        sns.despine(trim=True, offset=5)
+        g7 = sns.catplot(data=data_df, col='boot_type',
+                         x='n_subj', y='std_relative', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        sns.despine(trim=True, offset=5)
+        g8 = sns.catplot(data=data_df, col='boot_type',
+                         x='n_rep', y='std_relative', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        sns.despine(trim=True, offset=5)
+        g9 = sns.catplot(data=data_df, col='boot_type',
+                         x='n_stim', y='std_std', hue='n_subj',
+                         kind='point', ci='sd', palette='Blues_d', dodge=.2)
+        sns.despine(trim=True, offset=5)
+        g10 = sns.catplot(data=data_df, col='boot_type',
+                          x='n_subj', y='std_std', hue='n_stim',
+                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        sns.despine(trim=True, offset=5)
+        g11 = sns.catplot(data=data_df, col='boot_type',
+                          x='n_rep', y='std_std', hue='n_stim',
+                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        sns.despine(trim=True, offset=5)
+
+        if savefig:
+            g1.fig.savefig('figures/true_std_stim_%s.pdf' % variation)
+            g2.fig.savefig('figures/true_std_subj_%s.pdf' % variation)
+            g3.fig.savefig('figures/true_std_rep_%s.pdf' % variation)
+            g4.fig.savefig('figures/std_scatter_%s.pdf' % variation)
+            g5.fig.savefig('figures/std_rel_scatter_%s.pdf' % variation)
+            g6.fig.savefig('figures/std_rel_stim_%s.pdf' % variation)
+            g7.fig.savefig('figures/std_rel_subj_%s.pdf' % variation)
+            g8.fig.savefig('figures/std_rel_rep_%s.pdf' % variation)
+            g9.fig.savefig('figures/std_std_stim_%s.pdf' % variation)
+            g10.fig.savefig('figures/std_std_subj_%s.pdf' % variation)
+            g11.fig.savefig('figures/std_std_rep_%s.pdf' % variation)
+
+
 def plot_metrics(simulation_folder='sim_metric', savefig=False):
     labels = pd.read_csv(os.path.join(simulation_folder, 'labels.csv'))
     means = np.load(os.path.join(simulation_folder, 'means.npy'))
