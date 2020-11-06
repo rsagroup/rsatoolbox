@@ -363,7 +363,7 @@ class Icon:
                 xycoords=xycoords,
                 box_alignment=box_alignment,
                 boxcoords='offset points',
-                bboxprops={'edgecolor': 'w', 'facecolor': 'w'},
+                bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
                 arrowprops={
                     'linewidth': linewidth,
                     'color': tickline_color,
