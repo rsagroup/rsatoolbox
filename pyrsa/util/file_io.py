@@ -129,6 +129,5 @@ def remove_file(file):
     if isinstance(file, (str, Path)) and os.path.exists(file):
         os.remove(file)
     elif hasattr(file, 'name') and os.path.exists(file.name):
-        file.close()
-        os.remove(file)
+        file.truncate(0)
     return
