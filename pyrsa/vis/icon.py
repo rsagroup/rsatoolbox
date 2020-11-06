@@ -207,7 +207,8 @@ class Icon:
             self.final_image = None
             return
         if isinstance(self._image, np.ndarray):
-            if self._image.dtype == np.float and np.any(self._image > 1):
+            if self._image.dtype == np.uint8 or np.any(self._image > 1):
+                # assume image is in uint8 0-255 range
                 im = self._image / 255
             else:
                 im = self._image
