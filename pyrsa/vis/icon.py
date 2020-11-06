@@ -62,6 +62,12 @@ class Icon:
             image. If True the marker is plotted unfilled in front
             If False the marker is plotted behind the image filled.
             default = True
+        font_size (float)
+            size of any annotation text
+        font_name (str):
+            annotation font
+        font_color (np.ndarray)
+            font color for annotations
 
     """
 
@@ -69,11 +75,11 @@ class Icon:
                  cmap=None, border_type=None, border_width=2,
                  make_square=False, circ_cut=None, resolution=None,
                  marker_front=True, markeredgewidth=2,
-                 fontsize=None, fontname=None, fontcolor=None):
-        self.fontsize = fontsize
-        self.fontname = fontname
+                 font_size=None, font_name=None, font_color=None):
+        self.font_size = font_size
+        self.font_name = font_name
         self.string = string
-        self.fontcolor = fontcolor
+        self.font_color = font_color
         self.marker = marker
         self.marker_front = marker_front
         self.markeredgewidth = markeredgewidth
@@ -328,8 +334,8 @@ class Icon:
                         horizontalalignment='center',
                         verticalalignment='center',
                         zorder=zorder + 0.2,
-                        fontsize=self.fontsize, fontname=self.fontname,
-                        color=self.fontcolor)
+                        font_size=self.font_size, font_name=self.font_name,
+                        color=self.font_color)
 
     def _tick_label(self, x, y, size, offset=7, ax=None, linewidth=None,
             xybox=None, xycoords=None, box_alignment=None,
@@ -415,6 +421,7 @@ class Icon:
                 bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
                 arrowprops={
                     'linewidth': linewidth,
+                    'color': tickline_color,
                     'arrowstyle': '-',
                     'shrinkA': 0,
                     'shrinkB': 1
@@ -433,13 +440,16 @@ class Icon:
                 horizontalalignment=horizontalalignment,
                 verticalalignment=verticalalignment,
                 arrowprops={
+                    'linewidth': linewidth,
+                    'color': tickline_color,
                     'arrowstyle': '-',
                     'shrinkA': 0,
                     'shrinkB': 1
                     },
                 zorder=zorder + 0.2,
-                fontsize=self.fontsize, fontname=self.fontname,
-                color=self.fontcolor)
+                font_size=self.font_size,
+                font_name=self.font_name,
+                color=self.font_color)
 
     def x_tick_label(self, x, size, offset, **kwarg):
         """
