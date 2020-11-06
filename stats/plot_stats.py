@@ -161,25 +161,23 @@ def plot_comp(data, alpha=0.05, save_file=None):
     n_voxel = np.unique(data[:, 6])
     # boot_noise = np.unique(data[:, 6])
     # sigmas = np.unique(data[:, 7])
-    idx = np.unique(data[:, 9])
+    # idx = np.unique(data[:, 9])
     props = np.nan * np.empty((len(test_ids), len(n_subj), len(n_cond),
-                               len(n_voxel), len(idx)))
+                               len(n_voxel)))
     for i_test, test in enumerate(test_ids):
         for i_subj, n_sub in enumerate(n_subj):
             for i_cond, cond in enumerate(n_cond):
                 for i_vox, vox in enumerate(n_voxel):
-                    for i, _ in enumerate(idx):
-                        dat = data[test_type_id == test, :]
-                        dat = dat[dat[:, 4] == n_sub, :]
-                        dat = dat[dat[:, 5] == cond, :]
-                        dat = dat[dat[:, 6] == vox, :]
-                        dat = dat[dat[:, 9] == idx[i], :]
-                        if len(dat) > 0:
-                            prop = (np.sum(dat[:, 0] < alpha)
-                                    / len(dat))
-                            props[i_test, i_subj, i_cond, i_vox, i] = prop
-                        else:
-                            props[i_test, i_subj, i_cond, i_vox, i] = np.nan
+                    dat = data[test_type_id == test, :]
+                    dat = dat[dat[:, 4] == n_sub, :]
+                    dat = dat[dat[:, 5] == cond, :]
+                    dat = dat[dat[:, 6] == vox, :]
+                    if len(dat) > 0:
+                        prop = (np.sum(dat[:, 0] < alpha)
+                                / len(dat))
+                        props[i_test, i_subj, i_cond, i_vox] = prop
+                    else:
+                        props[i_test, i_subj, i_cond, i_vox] = np.nan
     # First plot: barplot + scatter for each type of bootstrap
     plt.figure()
     ax = plt.subplot(1, 1, 1)
@@ -212,16 +210,16 @@ def plot_comp(data, alpha=0.05, save_file=None):
     for i, t_id in enumerate(test_ids):
         ax = plt.subplot(1, len(test_ids), i + 1)
         h0 = plt.plot(np.arange(len(n_subj)) - 0.225,
-                      props[i, :, 0, 0, :], '.',
+                      props[i, :, 0, 0], '.',
                       color=[0.5, 0, 0], markersize=15)
         h1 = plt.plot(np.arange(len(n_subj)) - 0.075,
-                      props[i, :, 1, 0, :], '.',
+                      props[i, :, 1, 0], '.',
                       color=[0.5, 0.2, 0.3], markersize=15)
         h2 = plt.plot(np.arange(len(n_subj)) + 0.075,
-                      props[i, :, 2, 0, :], '.',
+                      props[i, :, 2, 0], '.',
                       color=[0.5, 0.4, 0.7], markersize=15)
         h3 = plt.plot(np.arange(len(n_subj)) + 0.225,
-                      props[i, :, 3, 0, :], '.',
+                      props[i, :, 3, 0], '.',
                       color=[0.5, 0.6, 1], markersize=15)
         plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
         if i == 0:
@@ -252,16 +250,16 @@ def plot_comp(data, alpha=0.05, save_file=None):
     for i, t_id in enumerate(test_ids):
         ax = plt.subplot(1, len(test_ids), i+1)
         h0 = plt.plot(np.arange(len(n_cond)) - 0.225,
-                      props[i, 0, :, 0, :], '.',
+                      props[i, 0, :, 0], '.',
                       color=[0.5, 0, 0], markersize=15)
         h1 = plt.plot(np.arange(len(n_cond)) - 0.075,
-                      props[i, 1, :, 0, :], '.',
+                      props[i, 1, :, 0], '.',
                       color=[0.5, 0.2, 0.3], markersize=15)
         h2 = plt.plot(np.arange(len(n_cond)) + 0.075,
-                      props[i, 2, :, 0, :], '.',
+                      props[i, 2, :, 0], '.',
                       color=[0.5, 0.4, 0.7], markersize=15)
         h3 = plt.plot(np.arange(len(n_cond)) + 0.225,
-                      props[i, 3, :, 0, :], '.',
+                      props[i, 3, :, 0], '.',
                       color=[0.5, 0.6, 1], markersize=15)
         plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
         if i == 0:
