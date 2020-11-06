@@ -253,7 +253,8 @@ class Icon:
                 bg_alpha = np.array(im.getchannel('A'))
                 bg_alpha = bg_alpha > 0
                 bg_alpha = PIL.Image.fromarray(255 * np.uint8(bg_alpha))
-                bg = PIL.Image.new('RGBA', im.size, color=self.col)
+                bg = PIL.Image.new('RGBA', im.size, color=tuple(
+                    np.uint8(255 * self.col)))
                 bg.putalpha(bg_alpha)
                 im = PIL.Image.alpha_composite(bg, im)
             elif self.border_type == 'pad':
@@ -272,7 +273,8 @@ class Icon:
                 bg_alpha = np.array(bg_alpha)
                 bg_alpha = 255 * np.uint8(bg_alpha > 0)
                 bg_alpha = PIL.Image.fromarray(bg_alpha)
-                bg = PIL.Image.new('RGBA', im.size, color=self.col)
+                bg = PIL.Image.new('RGBA', im.size, color=tuple(
+                    np.uint8(255 * self.col)))
                 bg.putalpha(bg_alpha)
                 im = PIL.Image.alpha_composite(bg, im)
         self.final_image = im
