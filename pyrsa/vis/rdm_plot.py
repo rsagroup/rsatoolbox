@@ -79,15 +79,23 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
 
 
 def _add_descriptor_labels(rdm, descriptor, num_pattern_groups=1, size=.5, offset=7,
-        linewidth=None, ax=None, axis="xy"):
+        linewidth=None, ax=None, axis="xy", gridlines=None):
     """ adds a descriptor as ticklabels """
     if ax is None:
         ax = plt.gca()
+    if linewidth is None:
+        linewidth = .5
     if descriptor is not None:
-
         desc = rdm.pattern_descriptors[descriptor]
+        ax.set_xticks(np.arange(rdm.n_cond), minor=True)
+        ax.set_yticks(np.arange(rdm.n_cond), minor=True)
         if isinstance(desc[0], vis.Icon):
-            # TODO - work these out
+            # image labels
+            if linewidth > 0:
+                # TODO - axis specific
+                ax.yaxis.set_tick_params(length=0, which='minor')
+                ax.xaxis.set_tick_params(length=0, which='minor')
+            # TODO - work out sizing from pixel size transform
             for group_ind in range(num_pattern_groups, 0, -1):
                 position = offset * group_ind
                 ticks = np.arange(group_ind-1, rdm.n_cond, num_pattern_groups)
@@ -98,29 +106,39 @@ def _add_descriptor_labels(rdm, descriptor, num_pattern_groups=1, size=.5, offse
                 [this_desc.y_tick_label(this_y, size, offset=position,
                     linewidth=linewidth) for (this_y, this_desc) in
                         zip(ticks, desc[ticks])]
+            # grid the groups
+            if not np.any(gridlines):
+                gridlines = np.arange(num_pattern_groups-.5, rdm.n_cond+.5,
+                        num_pattern_groups)
         else:
             # vanilla
-            ax.set_xticks(np.arange(rdm.n_cond))
             ax.set_xticklabels(
                 desc,
                 {'fontsize': 'xx-small',
                  'fontweight': 'normal',
                  'verticalalignment': 'center',
-                 'horizontalalignment': 'center'})
+                 'horizontalalignment': 'center'}, minor=True)
             ax.set_yticks(np.arange(rdm.n_cond))
             ax.set_yticklabels(
                 desc,
                 {'fontsize': 'xx-small',
                  'fontweight': 'normal',
                  'verticalalignment': 'center',
-                 'horizontalalignment': 'right'})
+                 'horizontalalignment': 'right'}, minor=True)
             # rotate if the string is over some reasonable limit
             # if isinstance(desc[0], str) and max([len(this_desc) for this_desc in desc]) > 5:
                 # ax.tick_params(axis='x', rotation=45, ha='right')
         plt.ylim(rdm.n_cond - 0.5, -0.5)
         plt.xlim(-0.5, rdm.n_cond - 0.5)
-        plt.setp(ax.get_xticklabels(), rotation=90, ha="right",
-                 rotation_mode="anchor")
+        ax.set_xticks(gridlines)
+        ax.set_yticks(gridlines)
+        ax.yaxis.set_tick_params(length=0)
+        ax.xaxis.set_tick_params(length=0)
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.grid(axis='both', color='w')
+        plt.setp(ax.get_xticklabels(minor=True), rotation=90, ha="right",
+                rotation_mode="anchor")
     else:
         ax.set_xticks([])
         ax.set_yticks([])
