@@ -128,4 +128,7 @@ def remove_file(file):
     from pathlib import Path
     if isinstance(file, (str, Path)) and os.path.exists(file):
         os.remove(file)
+    elif hasattr(file, 'name') and os.path.exists(file.name):
+        file.close()
+        os.remove(file)
     return
