@@ -13,7 +13,7 @@ class TestModel(unittest.TestCase):
     """
 
     def test_creation(self):
-        m = model.Model('Test Model')
+        _ = model.Model('Test Model')
 
 
 class TestModelFixed(unittest.TestCase):
@@ -149,7 +149,7 @@ class TestModelInterpolate(unittest.TestCase):
         m = model.ModelInterpolate('Test Model', rdm_obj)
         train = rdm_obj.subset('ind', 2)
         theta = m.fit(train)
-        pre = m.predict(theta)
+        _ = m.predict(theta)
 
 
 class TestConsistency(unittest.TestCase):
@@ -162,7 +162,7 @@ class TestConsistency(unittest.TestCase):
         from pyrsa.rdm import calc_rdm
         from pyrsa.rdm import concat
         rdms = []
-        for i_data in range(5):
+        for _ in range(5):
             data = np.random.rand(6, 20)
             data_s = Dataset(data)
             rdms.append(calc_rdm(data_s))
