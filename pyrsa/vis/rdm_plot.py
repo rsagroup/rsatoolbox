@@ -44,12 +44,13 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
     if do_rank_transform:
         rdm = rank_transform(rdm)
     rdm_mat = rdm.get_matrices()
+    alpha = 1-np.eye(rdm.n_cond)
     if rdm.n_rdm > 1:
         m = np.ceil(np.sqrt(rdm.n_rdm+1))
         n = np.ceil((1 + rdm.n_rdm) / m)
         for idx in range(rdm.n_rdm):
             plt.subplot(n, m, idx + 1)
-            image = plt.imshow(rdm_mat[idx], cmap=cmap)
+            image = plt.imshow(rdm_mat[idx], cmap=cmap, alpha=alpha)
             _add_descriptor_labels(rdm, pattern_descriptor, **kwarg)
             if rdm_descriptor in rdm.rdm_descriptors:
                 plt.title(rdm.rdm_descriptors[rdm_descriptor][idx])
@@ -58,13 +59,13 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
             if show_colorbar:
                 plt.colorbar(image)
         plt.subplot(n, m, n * m)
-        image = plt.imshow(np.mean(rdm_mat, axis=0), cmap=cmap)
+        image = plt.imshow(np.mean(rdm_mat, axis=0), cmap=cmap, alpha=alpha)
         _add_descriptor_labels(rdm, pattern_descriptor, **kwarg)
         plt.title('Average')
         if show_colorbar:
             plt.colorbar(image)
     elif rdm.n_rdm == 1:
-        image = plt.imshow(rdm_mat[0], cmap=cmap)
+        image = plt.imshow(rdm_mat[0], cmap=cmap, alpha=alpha)
         _add_descriptor_labels(rdm, pattern_descriptor, **kwarg)
         if rdm_descriptor in rdm.rdm_descriptors:
             plt.title(rdm.rdm_descriptors[rdm_descriptor][0])
