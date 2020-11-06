@@ -29,7 +29,7 @@ class Icon:
             If an Icon is passed its image property is used
         string (String)
             string to place on the icon
-        col (color definition)
+        color (color definition)
             background / border color
             default: None -> no border or background
         marker (matplotlib markertype)
@@ -71,7 +71,7 @@ class Icon:
 
     """
 
-    def __init__(self, image=None, string=None, col=None, marker=None,
+    def __init__(self, image=None, string=None, color=None, marker=None,
                  cmap=None, border_type=None, border_width=2,
                  make_square=False, circ_cut=None, resolution=None,
                  marker_front=True, markeredgewidth=2,
@@ -87,7 +87,7 @@ class Icon:
         self._border_width = border_width
         self._border_type = border_type
         self._cmap = cmap
-        self._col = col
+        self._color = color
         self._circ_cut = None
         self._resolution = None
         self.image = image
@@ -128,12 +128,12 @@ class Icon:
             raise ValueError('String must be a string')
 
     @property
-    def col(self):
-        return self._col
+    def color(self):
+        return self._color
 
-    @col.setter
-    def col(self, col):
-        self._col = col
+    @color.setter
+    def color(self, color):
+        self._color = color
         self.recompute_final_image()
 
     @property
@@ -253,7 +253,7 @@ class Icon:
             alpha = alpha.T * np.array(im.getchannel('A'))
             alpha = PIL.Image.fromarray(np.uint8(alpha))
             im.putalpha(alpha)
-        if self.col is not None:
+        if self.color is not None:
             if self.border_type is None:
                 pass
             elif self.border_type == 'alpha':
@@ -261,14 +261,14 @@ class Icon:
                 bg_alpha = bg_alpha > 0
                 bg_alpha = PIL.Image.fromarray(255 * np.uint8(bg_alpha))
                 bg = PIL.Image.new('RGBA', im.size, color=tuple(
-                    np.uint8(255 * self.col)))
+                    np.uint8(255 * self.color)))
                 bg.putalpha(bg_alpha)
                 im = PIL.Image.alpha_composite(bg, im)
             elif self.border_type == 'pad':
                 im = PIL.ImageOps.expand(
                     im,
                     border=self.border_width,
-                    fill=self.col)
+                    fill=self.color)
             elif self.border_type == 'conv':
                 im = PIL.ImageOps.expand(
                     im,
@@ -281,7 +281,7 @@ class Icon:
                 bg_alpha = 255 * np.uint8(bg_alpha > 0)
                 bg_alpha = PIL.Image.fromarray(bg_alpha)
                 bg = PIL.Image.new('RGBA', im.size, color=tuple(
-                    np.uint8(255 * self.col)))
+                    np.uint8(255 * self.color)))
                 bg.putalpha(bg_alpha)
                 im = PIL.Image.alpha_composite(bg, im)
         self.final_image = im
@@ -320,13 +320,13 @@ class Icon:
                 markersize = 50
             markersize = markersize * size
             if self.marker_front:
-                plt.plot(x, y, marker=self.marker, markeredgecolor=self.col,
+                plt.plot(x, y, marker=self.marker, markeredgecolor=self.color,
                          markerfacecolor=(0, 0, 0, 0), markersize=markersize,
                          zorder=zorder + 0.1,
                          markeredgewidth=self.markeredgewidth)
             else:
-                plt.plot(x, y, marker=self.marker, markeredgecolor=self.col,
-                         markerfacecolor=self.col, markersize=markersize,
+                plt.plot(x, y, marker=self.marker, markeredgecolor=self.color,
+                         markerfacecolor=self.color, markersize=markersize,
                          zorder=zorder - 0.1,
                          markeredgewidth=self.markeredgewidth)
         if self.string is not None:
@@ -334,7 +334,7 @@ class Icon:
                         horizontalalignment='center',
                         verticalalignment='center',
                         zorder=zorder + 0.2,
-                        font_size=self.font_size, font_name=self.font_name,
+                        fontsize=self.font_size, fontname=self.font_name,
                         color=self.font_color)
 
     def _tick_label(self, x, y, size, offset=7, ax=None, linewidth=None,
@@ -358,7 +358,7 @@ class Icon:
         """
         if ax is None:
             ax = plt.gca()
-        tickline_color = self.col
+        tickline_color = self.color
         if not np.any(tickline_color):
             tickline_color = [.8, .8, .8]
         if self.final_image is not None:
@@ -399,7 +399,7 @@ class Icon:
             if self.marker_front:
                 d.add_artist(plt.Line2D(
                     [markersize / 2], [markersize / 2],
-                    marker=self.marker, markeredgecolor=self.col,
+                    marker=self.marker, markeredgecolor=self.color,
                     markerfacecolor=(0, 0, 0, 0), markersize=markersize,
                     markeredgewidth=self.markeredgewidth,
                     transform=d.get_transform(),
@@ -407,8 +407,8 @@ class Icon:
             else:
                 d.add_artist(plt.Line2D(
                     [markersize / 2], [markersize / 2],
-                    marker=self.marker, markeredgecolor=self.col,
-                    markerfacecolor=self.col, markersize=markersize,
+                    marker=self.marker, markeredgecolor=self.color,
+                    markerfacecolor=self.color, markersize=markersize,
                     markeredgewidth=self.markeredgewidth,
                     transform=d.get_transform(),
                     zorder=zorder_marker))
@@ -447,8 +447,8 @@ class Icon:
                     'shrinkB': 1
                     },
                 zorder=zorder + 0.2,
-                font_size=self.font_size,
-                font_name=self.font_name,
+                fontsize=self.font_size,
+                fontname=self.font_name,
                 color=self.font_color)
 
     def x_tick_label(self, x, size, offset, **kwarg):
@@ -494,7 +494,7 @@ class Icon:
                 **kwarg)
 
 
-def icons_from_folder(folder, resolution=None, col=None,
+def icons_from_folder(folder, resolution=None, color=None,
                       cmap=None, border_type=None, border_width=2,
                       make_square=False, circ_cut=None):
     """ generates a dictionary of Icons for all images in a folder
@@ -505,7 +505,7 @@ def icons_from_folder(folder, resolution=None, col=None,
         try:
             im = PIL.Image.open(filename)
             icons[filename] = Icon(
-                image=im, col=col, resolution=resolution,
+                image=im, color=color, resolution=resolution,
                 cmap=cmap, border_type=border_type,
                 border_width=border_width,
                 make_square=make_square, circ_cut=circ_cut)
