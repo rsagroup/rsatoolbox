@@ -349,14 +349,10 @@ class Icon:
         """
         if ax is None:
             ax = plt.gca()
-        if linewidth is None:
-            linewidth = .5 * ax.yaxis.get_majorticklines()[0].properties()['linewidth']
+        tickline_color = self.col
+        if not np.any(tickline_color):
+            tickline_color = [.8, .8, .8]
         if self.final_image is not None:
-            if linewidth > 0:
-                # we replace the existing ticks
-                # TODO - axis specific
-                ax.yaxis.set_tick_params(length=0)
-                ax.xaxis.set_tick_params(length=0)
             imagebox = OffsetImage(self.final_image, zoom=size)
             ab = AnnotationBbox(
                 imagebox, (x, y),
@@ -367,6 +363,7 @@ class Icon:
                 bboxprops={'edgecolor': 'w', 'facecolor': 'w'},
                 arrowprops={
                     'linewidth': linewidth,
+                    'color': tickline_color,
                     'arrowstyle': '-',
                     'shrinkA': 0,
                     'shrinkB': 1
