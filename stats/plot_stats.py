@@ -443,27 +443,55 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         labels['std_std'] = std_std[:, i_model]
         labels['model_layer'] = i_model
         labels['snr'] = snr
+        labels['log-snr'] = np.log(snr)
         data_df = data_df.append(labels)
     data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
                               'n_rep': 'int'})
     with sns.axes_style('ticks'):
         sns.set_context('paper', font_scale=2)
-        # change in true Std
-        g1 = sns.catplot(data=data_df,
-                         x='n_stim', y='true_std', hue='n_subj',
+        # change in SNR
+        g1 = sns.catplot(data=data_df, legend=False,
+                         x='n_stim', y='log-snr', hue='n_subj',
                          kind='point', ci='sd', palette='Blues_d', dodge=.2)
-        plt.ylim(bottom=0)
+        g1.add_legend(
+            frameon=False, title='# of rdms',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g1.set_xlabels('# of stimuli')
+        g1.set_ylabels('Signal to Noise Ratio')
+        plt.ylim([-5, 6.5])
+        plt.yticks([-4, -2, 0, 2, 4, 6],
+                   ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
         sns.despine(trim=True, offset=5)
-        g2 = sns.catplot(data=data_df,
-                         x='n_subj', y='true_std', hue='n_stim',
+
+        g2 = sns.catplot(data=data_df, legend=False,
+                         x='n_subj', y='log-snr', hue='n_stim',
                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        plt.ylim(bottom=0)
+        g2.add_legend(
+            frameon=False, title='# of stimuli',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g2.set_xlabels('# of subjects')
+        g2.set_ylabels('Signal to Noise Ratio')
+        plt.ylim([-5, 6.5])
+        plt.yticks([-4, -2, 0, 2, 4, 6],
+                   ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
         sns.despine(trim=True, offset=5)
-        g3 = sns.catplot(data=data_df,
-                         x='n_rep', y='true_std', hue='n_stim',
+
+        g3 = sns.catplot(data=data_df, legend=False,
+                         x='n_rep', y='log-snr', hue='n_stim',
                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        plt.ylim(bottom=0)
+        g3.add_legend(
+            frameon=False, title='# of stimuli',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g3.set_xlabels('# of repetitions')
+        g3.set_ylabels('Signal to Noise Ratio')
+        plt.ylim([-5, 6.5])
+        plt.yticks([-4, -2, 0, 2, 4, 6],
+                   ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
         sns.despine(trim=True, offset=5)
+
+
+
+
         # compare bootstrap to true_std
         # scatterplot
         g4 = sns.FacetGrid(data_df, col='boot_type', aspect=1)
