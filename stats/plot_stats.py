@@ -447,10 +447,13 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         data_df = data_df.append(labels)
     data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
                               'n_rep': 'int'})
+    data_df.loc[pd.isna(data_df['variation']), 'variation'] = 'none'
     with sns.axes_style('ticks'):
         sns.set_context('paper', font_scale=2)
-        # change in SNR
-        g1 = sns.catplot(data=data_df, legend=False,
+        #### change in SNR ####
+        # appendix version
+        g1 = sns.catplot(data=data_df, legend=False, col='variation',
+                         row='sigma_noise',
                          x='n_stim', y='log-snr', hue='n_subj',
                          kind='point', ci='sd', palette='Blues_d', dodge=.2)
         g1.add_legend(
@@ -463,8 +466,9 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                    ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
         sns.despine(trim=True, offset=5)
 
-        g2 = sns.catplot(data=data_df, legend=False,
-                         x='n_subj', y='log-snr', hue='n_stim',
+        g2 = sns.catplot(data=data_df, legend=False, col='variation',
+                         row='sigma_noise',
+                         x='n_subj', y='log-snr', hue='sd',
                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
         g2.add_legend(
             frameon=False, title='# of stimuli',
@@ -476,7 +480,8 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                    ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
         sns.despine(trim=True, offset=5)
 
-        g3 = sns.catplot(data=data_df, legend=False,
+        g3 = sns.catplot(data=data_df, legend=False, col='variation',
+                         row='sigma_noise',
                          x='n_rep', y='log-snr', hue='n_stim',
                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
         g3.add_legend(
@@ -489,6 +494,45 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                    ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
         sns.despine(trim=True, offset=5)
 
+        # main text version
+        g1_m = sns.catplot(data=data_df, legend=False,
+                         x='n_stim', y='log-snr', hue='n_subj',
+                         kind='point', ci='sd', palette='Blues_d', dodge=.2)
+        g1_m.add_legend(
+            frameon=False, title='# of rdms',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g1_m.set_xlabels('# of stimuli')
+        g1_m.set_ylabels('Signal to Noise Ratio')
+        plt.ylim([-5, 6.5])
+        plt.yticks([-4, -2, 0, 2, 4, 6],
+                   ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
+        sns.despine(trim=True, offset=5)
+
+        g2_m = sns.catplot(data=data_df, legend=False,
+                         x='n_subj', y='log-snr', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        g2_m.add_legend(
+            frameon=False, title='# of stimuli',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g2_m.set_xlabels('# of subjects')
+        g2_m.set_ylabels('Signal to Noise Ratio')
+        plt.ylim([-5, 6.5])
+        plt.yticks([-4, -2, 0, 2, 4, 6],
+                   ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
+        sns.despine(trim=True, offset=5)
+
+        g3_m = sns.catplot(data=data_df, legend=False,
+                         x='n_rep', y='log-snr', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+        g3_m.add_legend(
+            frameon=False, title='# of stimuli',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g3_m.set_xlabels('# of repetitions')
+        g3_m.set_ylabels('Signal to Noise Ratio')
+        plt.ylim([-5, 6.5])
+        plt.yticks([-4, -2, 0, 2, 4, 6],
+                   ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
+        sns.despine(trim=True, offset=5)
 
 
 
