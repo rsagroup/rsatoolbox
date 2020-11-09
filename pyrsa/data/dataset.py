@@ -888,3 +888,63 @@ def merge_subsets(dataset_list):
                              obs_descriptors=obs_descriptors,
                              channel_descriptors=channel_descriptors)
     return merged_dataset
+
+
+
+def append_obs_descriptors(dict_orig, dict_addit):
+    """
+    Merge two dictionaries of observation descriptors with matching keys and
+    numpy arrays as values.
+    """
+    assert list(dict_orig.keys()) == list(dict_addit.keys()), "Provided \
+        observation descriptors have different keys."
+    
+    dict_merged = {}
+    keys = list(dict_orig.keys())
+    for k in keys:
+        values = np.array(np.append(dict_orig[k], dict_addit[k]))
+        dict_merged.update({k:values})
+    return dict_merged
+
+def odd_even_split(dataset, obs_desc, sort_by = None):
+    """
+    Perform a simple odd-even split on a PyRSA dataset. It will be partitioned
+    into n different datasets, where n is the number of distinct values on
+    dataset.obs_descriptors[obs_desc]. The resulting list will be split into
+    odd and even (index) subset. The datasets contained in these subsets will
+    then be merged.
+    
+    Args:
+        dataset (Dataset):
+            PyRSA dataset which will be split
+        obs_desc (str):
+            Observation descriptor, basis for partitioning
+            (must contained in keys of dataset.obs_descriptors)
+        sort_by (str or None):
+            If str, the resulting splits will be sorted according to sort_by
+            (must be contained in keys of dataset.obs_descriptors)
+    
+    Returns:
+        odd_split (Dataset):
+            subset of the Dataset with odd list-indices after partitioning
+            according to obs_desc
+        even_split (Dataset):
+            subset of the Dataset with even list-indices after partitioning
+            according to obs_desc
+    """
+    assert obs_desc in dataset.obs_descriptors.keys(), "obs_desc must be \
+        contained in keys of dataset.obs_descriptors"
+    if isinstance(sort_by, str):
+        assert sort_by in dataset.obs_descriptors.keys(), "sort_by must be \
+            contained in keys of dataset.obs_descriptors"
+        
+    ds_part = dataset.split_obs(obs_desc)
+    odd_list = ds_part[0::2]
+    even_list = ds_part[1::2]
+    odd_split = merge_subsets(odd_list)
+    even_split = merge_subsets(even_list)
+    
+    if sort_by is not None:
+        odd_split.sort_by(sort_by)
+        even_split.sort_by(sort_by)
+    return odd_split, even_split
