@@ -446,7 +446,7 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         labels['log-snr'] = np.log(snr)
         data_df = data_df.append(labels)
     data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
-                              'n_rep': 'int'})
+                              'n_rep': 'int', 'sigma_noise': 'int'})
     data_df.loc[pd.isna(data_df['variation']), 'variation'] = 'none'
     with sns.axes_style('ticks'):
         sns.set_context('paper', font_scale=2)
@@ -460,7 +460,7 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             frameon=False, title='# of rdms',
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g1.set_xlabels('# of stimuli')
-        g1.set_ylabels('Signal to Noise Ratio')
+        g1.set_ylabels('signal to noise ratio')
         plt.ylim([-5, 6.5])
         plt.yticks([-4, -2, 0, 2, 4, 6],
                    ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
@@ -474,7 +474,7 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             frameon=False, title='# of stimuli',
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g2.set_xlabels('# of subjects')
-        g2.set_ylabels('Signal to Noise Ratio')
+        g2.set_ylabels('signal to noise ratio')
         plt.ylim([-5, 6.5])
         plt.yticks([-4, -2, 0, 2, 4, 6],
                    ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
@@ -482,13 +482,13 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
 
         g3 = sns.catplot(data=data_df, legend=False, col='variation',
                          row='sigma_noise',
-                         x='n_rep', y='log-snr', hue='n_stim',
+                         x='n_rep', y='log-snr', hue='n_subj',
                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
         g3.add_legend(
             frameon=False, title='# of stimuli',
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g3.set_xlabels('# of repetitions')
-        g3.set_ylabels('Signal to Noise Ratio')
+        g3.set_ylabels('signal to noise ratio')
         plt.ylim([-5, 6.5])
         plt.yticks([-4, -2, 0, 2, 4, 6],
                    ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
@@ -499,10 +499,10 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                          x='n_stim', y='log-snr', hue='n_subj',
                          kind='point', ci='sd', palette='Blues_d', dodge=.2)
         g1_m.add_legend(
-            frameon=False, title='# of rdms',
+            frameon=False, title='# of subjects',
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g1_m.set_xlabels('# of stimuli')
-        g1_m.set_ylabels('Signal to Noise Ratio')
+        g1_m.set_ylabels('signal to noise ratio')
         plt.ylim([-5, 6.5])
         plt.yticks([-4, -2, 0, 2, 4, 6],
                    ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
@@ -515,82 +515,148 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             frameon=False, title='# of stimuli',
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g2_m.set_xlabels('# of subjects')
-        g2_m.set_ylabels('Signal to Noise Ratio')
+        g2_m.set_ylabels('signal to noise ratio')
         plt.ylim([-5, 6.5])
         plt.yticks([-4, -2, 0, 2, 4, 6],
                    ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
         sns.despine(trim=True, offset=5)
 
         g3_m = sns.catplot(data=data_df, legend=False,
-                         x='n_rep', y='log-snr', hue='n_stim',
-                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+                         x='n_subj', y='log-snr', hue='n_rep',
+                         kind='point', ci='sd', palette='Reds_d', dodge=.2)
         g3_m.add_legend(
-            frameon=False, title='# of stimuli',
+            frameon=False, title='# of repetitions',
             bbox_to_anchor=(1.0, 1.0), loc=2)
-        g3_m.set_xlabels('# of repetitions')
-        g3_m.set_ylabels('Signal to Noise Ratio')
+        g3_m.set_xlabels('# of subjects')
+        g3_m.set_ylabels('signal to noise ratio')
         plt.ylim([-5, 6.5])
         plt.yticks([-4, -2, 0, 2, 4, 6],
                    ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
         sns.despine(trim=True, offset=5)
 
+        g9_m = sns.catplot(data=data_df, legend=False,
+                         x='sd', y='log-snr', hue='sigma_noise',
+                         kind='point', ci='sd', palette='Greys', dodge=.2)
+        g9_m.add_legend(
+            frameon=False, title='noise std',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g9_m.set_ylabels('signal to noise ratio')
+        g9_m.set_xlabels('voxel size [prop. of image]')
+        plt.ylim([-7, 6.5])
+        plt.yticks([-6, -4, -2, 0, 2, 4, 6],
+                   ['10^-6', '10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
+        sns.despine(trim=True, offset=5)
+
+        g10_m = sns.catplot(data=data_df, legend=False,
+                         x='variation', y='log-snr', hue='sigma_noise',
+                         kind='point', ci='sd', palette='Greys', dodge=.2,
+                         order=['none', 'subj', 'stim', 'both'])
+        g10_m.add_legend(
+            frameon=False, title='noise std',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g10_m.set_xlabels('variation')
+        g10_m.set_ylabels('signal to noise ratio')
+        plt.ylim([-5, 6.5])
+        plt.yticks([-4, -2, 0, 2, 4, 6],
+                   ['10^-4', '10^-2', '10^0', '10^2', '10^4', '10^6'])
+        plt.xticks(
+            [0, 1, 2, 3],
+            labels=['none', 'subjects', 'stimuli', 'both'])
+        sns.despine(trim=True, offset=5)
 
 
         # compare bootstrap to true_std
-        # scatterplot
-        g4 = sns.FacetGrid(data_df, col='boot_type', aspect=1)
-        g4.map(sns.scatterplot, 'true_std', 'std_mean')
-        plt.ylim(bottom=0)
-        plt.xlim(left=0)
-        plt.plot([0, plt.ylim()[1]], [0, plt.ylim()[1]], 'k--')
-        sns.despine(trim=True, offset=5)
-        # relative deviation of the mean
-        g5 = sns.FacetGrid(data_df, col='boot_type')
-        g5.map(sns.scatterplot, 'true_std', 'std_relative')
-        plt.xlim(left=0)
+        # make subsets based on variation
+        dat_none = data_df[data_df['variation'] == 'none']
+        dat_none_rdm = dat_none[dat_none['boot_type'] == 'rdm']
+        dat_none_pat = dat_none[dat_none['boot_type'] == 'pattern']
+        dat_subj = data_df[data_df['variation'] == 'subj']
+        dat_subj = dat_subj[dat_subj['boot_type'] == 'rdm']
+        dat_stim = data_df[data_df['variation'] == 'stim']
+        dat_stim = dat_stim[dat_stim['boot_type'] == 'pattern']
+        dat_both = data_df[data_df['variation'] == 'both']
+        dat_both = dat_both[(dat_both['boot_type'] == 'both') 
+                            | (dat_both['boot_type'] == 'fancyboot')]
+
+        # relative standard deviation
+        g4_m = sns.catplot(data=dat_none_rdm, legend=False,
+                         x='n_subj', y='std_relative', hue='n_stim',
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2,
+                         order=[5, 10, 20, 40, 80])
         plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
-        # relative mean and variance against n
-        g6 = sns.catplot(data=data_df, col='boot_type',
+        sns.despine(trim=True, offset=5)
+        plt.title('RDM-bootstrap, no true variation')
+        g4_m.add_legend(
+            frameon=False, title='# of stimuli',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g4_m.set_xlabels('# of subjects')
+        g4_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+
+        g5_m = sns.catplot(data=dat_none_pat, legend=False,
                          x='n_stim', y='std_relative', hue='n_subj',
                          kind='point', ci='sd', palette='Blues_d', dodge=.2,
                          order=[10, 20, 40, 80, 160])
         plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
         sns.despine(trim=True, offset=5)
-        g7 = sns.catplot(data=data_df, col='boot_type',
+        plt.title('pattern-bootstrap, no true variation')
+        g5_m.add_legend(
+            frameon=False, title='# of subjects',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g5_m.set_xlabels('# of stimuli')
+        g5_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+
+        g6_m = sns.catplot(data=dat_stim, legend=False,
+                         x='n_stim', y='std_relative', hue='n_subj',
+                         kind='point', ci='sd', palette='Blues_d', dodge=.2,
+                         order=[10, 20, 40, 80, 160])
+        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        sns.despine(trim=True, offset=5)
+        plt.title('pattern-bootstrap, stimulus variation')
+        g6_m.add_legend(
+            frameon=False, title='# of subjects',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g6_m.set_xlabels('# of stimuli')
+        g6_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+        
+        g7_m = sns.catplot(data=dat_subj, legend=False,
                          x='n_subj', y='std_relative', hue='n_stim',
-                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+                         kind='point', ci='sd', palette='Greens_d', dodge=.2,
+                         order=[5, 10, 20, 40, 80])
         plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
         sns.despine(trim=True, offset=5)
-        g8 = sns.catplot(data=data_df, col='boot_type',
-                         x='n_rep', y='std_relative', hue='n_stim',
-                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        plt.title('RDM-bootstrap, subject variation')
+        g7_m.add_legend(
+            frameon=False, title='# of subjects',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g7_m.set_xlabels('# of stimuli')
+        g7_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+        
+        g8_m = sns.catplot(data=dat_both, col='boot_type', legend=False,
+                         x='n_stim', y='std_relative', hue='n_subj',
+                         kind='point', ci='sd', palette='Blues', dodge=.2,
+                         order=[10, 20, 40, 80, 160])
+        g8_m.axes[0, 0].plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        g8_m.axes[0, 1].plot([0, plt.xlim()[1]], [1, 1], 'k--')
         sns.despine(trim=True, offset=5)
-        g9 = sns.catplot(data=data_df, col='boot_type',
-                         x='n_stim', y='std_std', hue='n_subj',
-                         kind='point', ci='sd', palette='Blues_d', dodge=.2)
-        sns.despine(trim=True, offset=5)
-        g10 = sns.catplot(data=data_df, col='boot_type',
-                          x='n_subj', y='std_std', hue='n_stim',
-                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        sns.despine(trim=True, offset=5)
-        g11 = sns.catplot(data=data_df, col='boot_type',
-                          x='n_rep', y='std_std', hue='n_stim',
-                          kind='point', ci='sd', palette='Greens_d', dodge=.2)
-        sns.despine(trim=True, offset=5)
+        g8_m.axes[0, 0].set_title('double-bootstrap, both varied')
+        g8_m.axes[0, 1].set_title('bootstrap-formula, both varied')
+        g8_m.add_legend(
+            frameon=False, title='# of subjects',
+            bbox_to_anchor=(1.0, 1.0), loc=2)
+        g8_m.set_xlabels('# of stimuli')
+        g8_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
 
         if savefig:
-            g1.fig.savefig('figures/true_std_stim_%s.pdf' % variation)
-            g2.fig.savefig('figures/true_std_subj_%s.pdf' % variation)
-            g3.fig.savefig('figures/true_std_rep_%s.pdf' % variation)
-            g4.fig.savefig('figures/std_scatter_%s.pdf' % variation)
-            g5.fig.savefig('figures/std_rel_scatter_%s.pdf' % variation)
-            g6.fig.savefig('figures/std_rel_stim_%s.pdf' % variation)
-            g7.fig.savefig('figures/std_rel_subj_%s.pdf' % variation)
-            g8.fig.savefig('figures/std_rel_rep_%s.pdf' % variation)
-            g9.fig.savefig('figures/std_std_stim_%s.pdf' % variation)
-            g10.fig.savefig('figures/std_std_subj_%s.pdf' % variation)
-            g11.fig.savefig('figures/std_std_rep_%s.pdf' % variation)
+            g1_m.fig.savefig('figures/SNR_stim.pdf', bbox_inches='tight')
+            g2_m.fig.savefig('figures/SNR_subj.pdf', bbox_inches='tight')
+            g3_m.fig.savefig('figures/SNR_rep.pdf', bbox_inches='tight')
+            g4_m.fig.savefig('figures/std_rel_none_rdm.pdf', bbox_inches='tight')
+            g5_m.fig.savefig('figures/std_rel_none_pattern.pdf', bbox_inches='tight')
+            g6_m.fig.savefig('figures/std_rel_stim_pattern.pdf', bbox_inches='tight')
+            g7_m.fig.savefig('figures/std_rel_subj_rdm.pdf', bbox_inches='tight')
+            g8_m.fig.savefig('figures/std_rel_pattern.pdf', bbox_inches='tight')
+            g9_m.fig.savefig('figures/SNR_vox_size.pdf', bbox_inches='tight')
+            g10_m.fig.savefig('figures/SNR_variation.pdf', bbox_inches='tight')
 
 
 def plot_metrics(simulation_folder='sim_metric', savefig=False):
