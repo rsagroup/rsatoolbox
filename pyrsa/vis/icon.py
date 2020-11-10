@@ -14,7 +14,7 @@ import PIL.ImageFilter
 from PIL import UnidentifiedImageError
 import os
 from pyrsa.rdm import RDMs
-from pyrsa.util.inference_util import pool_rdm
+from pyrsa.util.pooling import pool_rdm
 
 
 class Icon:

@@ -6,9 +6,8 @@ Comparison methods for comparing two RDMs objects
 import numpy as np
 import scipy.stats
 from scipy.stats._stats import _kendall_dis
-from pyrsa.util.matrix import pairwise_contrast_sparse
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
-from pyrsa.util.matrix import row_col_indicator_g
+from pyrsa.util.matrix import row_col_indicator_g, get_v
 
 
 def compare(rdm1, rdm2, method='cosine', sigma_k=None):
@@ -268,7 +267,7 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None):
 
     """
     n_cond = _get_n_from_reduced_vectors(vector1)
-    v = _get_v(n_cond, sigma_k)
+    v = get_v(n_cond, sigma_k)
     # compute V^-1 vector1/2 for all vectors by solving Vx = vector1/2
     vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
                           for i in range(vector1.shape[0])])
@@ -441,20 +440,6 @@ def _count_rank_tie(ranks):
     return ((cnt * (cnt - 1) // 2).sum(),
             (cnt * (cnt - 1.) * (cnt - 2)).sum(),
             (cnt * (cnt - 1.) * (2*cnt + 5)).sum())
-
-
-def _get_v(n_cond, sigma_k):
-    """ get the rdm covariance from sigma_k """
-    # calculate Xi
-    c_mat = pairwise_contrast_sparse(np.arange(n_cond))
-    if sigma_k is None:
-        xi = c_mat @ c_mat.transpose()
-    else:
-        sigma_k = scipy.sparse.csr_matrix(sigma_k)
-        xi = c_mat @ sigma_k @ c_mat.transpose()
-    # calculate V
-    v = xi.multiply(xi).tocsc()
-    return v
 
 
 def _parse_input_rdms(rdm1, rdm2):
