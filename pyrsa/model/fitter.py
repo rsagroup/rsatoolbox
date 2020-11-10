@@ -179,7 +179,7 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
     vectors = pred.get_vectors()
     data_mean = pool_rdm(data, method=method)
     y = data_mean.get_vectors()
-    vectors, y = _parse_input_rdms(vectors, y)
+    vectors, y, nan_idx = _parse_input_rdms(vectors, y)
     # Normalizations
     if method == 'cosine':
         v = None
@@ -188,10 +188,12 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
         v = None
     elif method == 'cosine_cov':
         v = get_v(pred.n_cond, sigma_k)
+        v = v[nan_idx[0]][:, nan_idx[0]]
     elif method == 'corr_cov':
         vectors = vectors - np.mean(vectors, 1, keepdims=True)
         y = y - np.mean(y)
         v = get_v(pred.n_cond, sigma_k)
+        v = v[nan_idx[0]][:, nan_idx[0]]
     else:
         raise ValueError('method argument invalid')
     if v is None:

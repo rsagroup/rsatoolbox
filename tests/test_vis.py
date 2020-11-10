@@ -110,8 +110,14 @@ class Test_Icon(unittest.TestCase):
         ic4.plot(0.2, 0.8, size=0.4)
         ic4.x_tick_label(0.75, 0.15, offset=7)
         ic4.y_tick_label(0.75, 0.25, offset=17)
-
         self.assertEqual(ic2.image, test_im)
+
+    def test_Icon_from_rdm(self):
+        from pyrsa.vis import Icon
+        from pyrsa.rdm import RDMs
+        rdm = RDMs(np.random.rand(1, 190))
+        ic = Icon(rdm)
+        self.assertEqual(ic.final_image.size[0], 100)
 
 
 if __name__ == '__main__':

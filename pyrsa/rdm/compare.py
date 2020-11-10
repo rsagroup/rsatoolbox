@@ -73,7 +73,7 @@ def compare_cosine(rdm1, rdm2):
             cosine similarity between the two RDMs
 
     """
-    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
     sim = _cosine(vector1, vector2)
     return sim
 
@@ -91,7 +91,7 @@ def compare_correlation(rdm1, rdm2):
             correlations between the two RDMs
 
     """
-    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
     # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
@@ -112,8 +112,8 @@ def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
             cosine similarities between the two RDMs
 
     """
-    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
-    sim = _cosine_cov_weighted(vector1, vector2, sigma_k)
+    vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
+    sim = _cosine_cov_weighted(vector1, vector2, sigma_k, nan_idx)
     return sim
 
 
@@ -126,16 +126,17 @@ def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
             first set of RDMs
         rdm2 (pyrsa.rdm.RDMs):
             second set of RDMs
+
     Returns:
         numpy.ndarray: dist:
             correlations between the two RDMs
 
     """
-    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
     # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
-    sim = _cosine_cov_weighted(vector1, vector2, sigma_k)
+    sim = _cosine_cov_weighted(vector1, vector2, sigma_k, nan_idx)
     return sim
 
 
@@ -153,7 +154,7 @@ def compare_spearman(rdm1, rdm2):
             rank correlations between the two RDMs
 
     """
-    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
     vector1 = np.apply_along_axis(scipy.stats.rankdata, 1, vector1)
     vector2 = np.apply_along_axis(scipy.stats.rankdata, 1, vector2)
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
@@ -176,7 +177,7 @@ def compare_rho_a(rdm1, rdm2):
             rank correlations between the two RDMs
 
     """
-    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
     vector1 = np.apply_along_axis(scipy.stats.rankdata, 1, vector1)
     vector2 = np.apply_along_axis(scipy.stats.rankdata, 1, vector2)
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
@@ -200,7 +201,7 @@ def compare_kendall_tau(rdm1, rdm2):
             numpy.ndarray: dist:
                 kendall-tau correlation between the two RDMs
     """
-    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
     sim = _all_combinations(vector1, vector2, _kendall_tau)
     return sim
 
@@ -218,7 +219,7 @@ def compare_kendall_tau_a(rdm1, rdm2):
             numpy.ndarray: dist:
                 kendall-tau a between the two RDMs
     """
-    vector1, vector2 = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
     sim = _all_combinations(vector1, vector2, _tau_a)
     return sim
 
@@ -250,7 +251,7 @@ def _all_combinations(vectors1, vectors2, func):
     return value
 
 
-def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None):
+def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None, nan_idx=None):
     """computes the cosine similarities between two sets of vectors
     after whitening by their covariance.
 
@@ -261,14 +262,21 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None):
             second vectors (2D)
         sigma_k (Matrix):
             optional, covariance between pattern estimates
+        nan_idx (numpy.ndarray):
+            vector of non-nan entries from input parsing
 
     Returns:
         cos (float):
             cosine of the angle between vectors
 
     """
-    n_cond = _get_n_from_reduced_vectors(vector1)
-    v = get_v(n_cond, sigma_k)
+    if nan_idx is not None:
+        n_cond = _get_n_from_reduced_vectors(nan_idx)
+        v = get_v(n_cond, sigma_k)
+        v = v[nan_idx[0]][:, nan_idx[0]]
+    else:
+        n_cond = _get_n_from_reduced_vectors(vector1)
+        v = get_v(n_cond, sigma_k)
     # compute V^-1 vector1/2 for all vectors by solving Vx = vector1/2
     vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
                           for i in range(vector1.shape[0])])
@@ -285,7 +293,7 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None):
     return cos
 
 
-def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
+def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
     """computes the cosine angles between two sets of vectors
     weighted by the covariance
     If no covariance is given this is computed using the linear CKA,
@@ -305,8 +313,9 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
             cosine angle between vectors
 
     """
-    if sigma_k is not None:
-        cos = _cosine_cov_weighted_slow(vector1, vector2, sigma_k=sigma_k)
+    if (sigma_k is not None) or (nan_idx is not None):
+        cos = _cosine_cov_weighted_slow(
+            vector1, vector2, sigma_k=sigma_k, nan_idx=nan_idx)
     else:
         # Compute the extended version of RDM vectors in whitened space
         vector1_m = _cov_weighting(vector1)
@@ -323,7 +332,7 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None):
 
 
 def _cov_weighting(vector):
-    """Transforms a array of RDM vectors in to representation
+    """Transforms an array of RDM vectors in to representation
     in which the elements are isotropic. This is a stretched-out
     second moment matrix, with the diagonal elements appended.
     To account for the fact that the off-diagonal elements are
