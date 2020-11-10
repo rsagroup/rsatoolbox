@@ -264,5 +264,6 @@ def get_models(model_type, stimuli,
             rdms.append(rdm)
             rdms = pyrsa.rdm.concat(rdms)
             model = pyrsa.model.ModelWeighted('Layer%02d' % i_layer, rdms)
+            model.default_fitter = pyrsa.model.fitter.fit_regress
         models.append(model)
     return models

@@ -587,6 +587,7 @@ def run_flex(idx, simulation_folder='sim_flex'):
         ['interpolate_average', None],
         ['interpolate_full', None],
         ['weighted_avgfull', None]]
+    
     variation = 'both'
     boot = 'fancy'
     layer = 8
