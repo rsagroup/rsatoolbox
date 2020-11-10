@@ -7,6 +7,7 @@ import numpy as np
 import scipy.stats
 from scipy.stats._stats import _kendall_dis
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
+from pyrsa.util.rdm_utils import _parse_input_rdms
 from pyrsa.util.matrix import row_col_indicator_g, get_v
 
 
@@ -440,37 +441,3 @@ def _count_rank_tie(ranks):
     return ((cnt * (cnt - 1) // 2).sum(),
             (cnt * (cnt - 1.) * (cnt - 2)).sum(),
             (cnt * (cnt - 1.) * (2*cnt + 5)).sum())
-
-
-def _parse_input_rdms(rdm1, rdm2):
-    """Gets the vector representation of input RDMs, raises an error if
-    the two RDMs objects have different dimensions
-
-    Args:
-        rdm1 (pyrsa.rdm.RDMs):
-            first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
-            second set of RDMs
-
-    """
-    if not isinstance(rdm1, np.ndarray):
-        vector1 = rdm1.get_vectors()
-    else:
-        if len(rdm1.shape) == 1:
-            vector1 = rdm1.reshape(1, -1)
-        else:
-            vector1 = rdm1
-    if not isinstance(rdm2, np.ndarray):
-        vector2 = rdm2.get_vectors()
-    else:
-        if len(rdm2.shape) == 1:
-            vector2 = rdm2.reshape(1, -1)
-        else:
-            vector2 = rdm2
-    if not vector1.shape[1] == vector2.shape[1]:
-        raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
-    vector1_no_nan = vector1[~np.isnan(vector1)].reshape(vector1.shape[0], -1)
-    vector2_no_nan = vector2[~np.isnan(vector2)].reshape(vector2.shape[0], -1)
-    if not vector1_no_nan.shape[1] == vector2_no_nan.shape[1]:
-        raise ValueError('rdm1 and rdm2 have different nan positions')
-    return vector1_no_nan, vector2_no_nan
