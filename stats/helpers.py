@@ -116,7 +116,7 @@ def get_fname_base(simulation_folder, n_voxel, n_subj, n_repeat, sd,
 
 
 def get_resname(boot_type, rdm_type, model_type, rdm_comparison, noise_type,
-                n_stim, k_pattern, k_rdm):
+                n_stim, k_pattern, k_rdm, smoothing=-1):
     if k_pattern is None and k_rdm is None:
         res_name = 'results_%s_%s_%s_%s_%s_%d' % (
             boot_type, rdm_type, model_type, rdm_comparison, noise_type,
@@ -133,6 +133,8 @@ def get_resname(boot_type, rdm_type, model_type, rdm_comparison, noise_type,
         res_name = 'results_%s_%s_%s_%s_%s_%d_%d_%d' % (
             boot_type, rdm_type, model_type, rdm_comparison, noise_type,
             n_stim, k_pattern, k_rdm)
+    if smoothing is not None:
+        res_name = res_name + '_%.2f' % (smoothing)
     return res_name
 
 

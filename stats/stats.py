@@ -341,7 +341,7 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
                rdm_comparison='cosine', n_layer=12, k_pattern=None,
                k_rdm=None, rdm_type='crossnobis',
                noise_type='residuals', boot_type='both',
-               start_idx=0):
+               start_idx=0, smoothing=None):
     """ simulates representations based on randomly chosen ecoset images
         (or any other folder of folders with images inside)
         and directly runs the analysis on it saving only the subject
@@ -361,9 +361,12 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
     if not os.path.isdir(fname_base):
         os.makedirs(fname_base)
     res_name = get_resname(boot_type, rdm_type, model_type, rdm_comparison,
-                           noise_type, n_stim, k_pattern, k_rdm)
+                           noise_type, n_stim, k_pattern, k_rdm,
+                           smoothing=smoothing)
     res_path = fname_base + res_name
     print(res_path, flush=True)
+    if smoothing is None:
+        smoothing = sd
     if not os.path.isdir(res_path):
         os.mkdir(res_path)
     for i in tqdm.trange(start_idx, n_sim):
@@ -479,8 +482,10 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
         # run analysis
         # get models if stimulus changed, subjects are irrelevant
         if i == start_idx or variation in ['stim', 'both']:
-            models = get_models(model_type, stim_list,
-                                n_layer=n_layer, n_sim=n_sim, smoothing=sd)
+            models = get_models(
+                model_type, stim_list,
+                n_layer=n_layer,
+                smoothing=smoothing)
         # calculate RDMs
         data = []
         desc = {'stim': np.tile(np.arange(n_stim), n_repeat),
@@ -557,6 +562,90 @@ def save_rdm_type(idx, simulation_folder='sim_type'):
                k_rdm=None, rdm_type=rdm_type,
                noise_type='residuals', boot_type='fix',
                start_idx=0)
+
+
+def run_flex(idx, simulation_folder='sim_flex'):
+    """ runs the flexible model checks
+    based on dnn-ecoset simulations
+    """
+    models = [
+        ['fixed_full', 0],
+        ['fixed_full', 0.05],
+        ['fixed_full', np.inf],
+        ['fixed_average', 0],
+        ['fixed_average', 0.05],
+        ['fixed_average', np.inf],
+        ['fixed_mean', 0],
+        ['fixed_mean', 0.05],
+        ['fixed_mean', np.inf],
+        ['select_full', None],
+        ['select_mean', None],
+        ['select_average', None],
+        ['select_both', None],
+        ['interpolate_full', None],
+        ['interpolate_mean', None],
+        ['interpolate_average', None],
+        ['interpolate_full', None],
+        ['weighted_avgfull', None]]
+    variation = 'both'
+    boot = 'fancy'
+    layer = 8
+    n_repeat = 4
+    n_stim = 40
+    n_vox = 100
+    n_subj = 20
+    sd = 0.05
+    sigma_noise = 1
+    rdm_type = 'crossnobis'
+    model_type = models[idx][0]
+    smoothing = models[idx][1]
+    rdm_comparison = 'corr'
+    noise_type = 'residuals'
+    k_pattern = None
+    k_rdm = None
+    # check how far the simulation was processed
+    fname_base = get_fname_base(simulation_folder=simulation_folder,
+                                layer=layer, n_voxel=n_vox,
+                                n_subj=n_subj,
+                                n_repeat=n_repeat,
+                                sd=sd,
+                                duration=1, pause=1, endzeros=25,
+                                resolution=2,
+                                ar_coeff=0.5,
+                                use_cor_noise=True,
+                                sigma_noise=sigma_noise,
+                                variation=variation)
+    if os.path.isdir(fname_base):
+        res_name = get_resname(boot, rdm_type, model_type,
+                               rdm_comparison, noise_type, n_stim,
+                               k_pattern, k_rdm, smoothing)
+        if os.path.isdir(os.path.join(fname_base, res_name)):
+            start_idx = 0
+            for i_res in pathlib.Path(
+                    os.path.join(fname_base, res_name)
+                    ).glob('*res*.hdf5'):
+                i = int(str(i_res)[-9:-5])
+                if i >= start_idx:
+                    start_idx = i + 1
+        else:
+            start_idx = 0
+    else:
+        start_idx = 0
+    if start_idx < 100:
+        sim_ecoset(layer=layer, sd=sd, n_stim_all=80,
+            n_voxel=n_vox, n_subj=n_subj, n_stim=n_stim, n_repeat=n_repeat,
+            simulation_folder=simulation_folder, n_sim=100,
+            sigma_noise=sigma_noise,
+            ecoset_path='~/ecoset/val/', variation=variation,
+            model_type=model_type,
+            rdm_comparison=rdm_comparison, n_layer=12,
+            k_pattern=k_pattern, k_rdm=k_rdm,
+            rdm_type='crossnobis',
+            noise_type=noise_type, boot_type=boot,
+            start_idx=start_idx,
+            smoothing=smoothing)
+    print(f'index # {idx} complete\n', flush=True)
+    
 
 
 def run_comp(idx):
