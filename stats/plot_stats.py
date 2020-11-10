@@ -194,7 +194,7 @@ def plot_comp(data, alpha=0.05, save_file=None):
     plt.xlabel('Test type', fontsize=18)
     if save_file:
         fname = save_file + '_bars.pdf'
-        plt.savefig(fname)
+        plt.savefig(fname, bbox_inches='tight')
     # Second plot: plot against n_subj
     plt.figure(figsize=(3 * len(test_ids), 5))
     titles = {
@@ -211,16 +211,20 @@ def plot_comp(data, alpha=0.05, save_file=None):
         ax = plt.subplot(1, len(test_ids), i + 1)
         h0 = plt.plot(np.arange(len(n_subj)) - 0.225,
                       props[i, :, 0, 0], '.',
-                      color=[0.5, 0, 0], markersize=15)
+                      color=sns.palettes.color_palette('Greens_d')[0],
+                      markersize=15)
         h1 = plt.plot(np.arange(len(n_subj)) - 0.075,
                       props[i, :, 1, 0], '.',
-                      color=[0.5, 0.2, 0.3], markersize=15)
+                      color=sns.palettes.color_palette('Greens_d')[1],
+                      markersize=15)
         h2 = plt.plot(np.arange(len(n_subj)) + 0.075,
                       props[i, :, 2, 0], '.',
-                      color=[0.5, 0.4, 0.7], markersize=15)
+                      color=sns.palettes.color_palette('Greens_d')[2],
+                      markersize=15)
         h3 = plt.plot(np.arange(len(n_subj)) + 0.225,
                       props[i, :, 3, 0], '.',
-                      color=[0.5, 0.6, 1], markersize=15)
+                      color=sns.palettes.color_palette('Greens_d')[3],
+                      markersize=15)
         plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
         if i == 0:
             plt.ylabel('Proportion significant', fontsize=24)
@@ -230,12 +234,12 @@ def plot_comp(data, alpha=0.05, save_file=None):
         if i == (len(test_ids) - 1):
             legend = plt.legend(
                 [h0[0], h1[0], h2[0], h3[0]], n_cond.astype('int'),
-                frameon=False, title='# of patterns', fontsize=18,
+                frameon=False, title='# of conditions', fontsize=18,
                 bbox_to_anchor=(1.0, 1.0), loc=2)
             legend.get_title().set_fontsize('18')
         plt.xticks(np.arange(len(n_subj)), n_subj.astype('int'), fontsize=18)
         plt.yticks([0, alpha, 2*alpha, 3*alpha])
-        plt.ylim([0, 0.25])
+        plt.ylim([0, 0.15])
         plt.xlim([-1, len(n_subj)])
         plt.plot([-1, len(n_subj)], [alpha, alpha], 'k--')
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
@@ -244,23 +248,27 @@ def plot_comp(data, alpha=0.05, save_file=None):
         ax.spines['right'].set_visible(False)
     if save_file:
         fname = save_file + '_rdm.pdf'
-        plt.savefig(fname)
+        plt.savefig(fname, bbox_inches='tight')
     # Third plot: plot against n_pattern
     plt.figure(figsize=(3 * len(test_ids), 5))
     for i, t_id in enumerate(test_ids):
         ax = plt.subplot(1, len(test_ids), i+1)
         h0 = plt.plot(np.arange(len(n_cond)) - 0.225,
                       props[i, 0, :, 0], '.',
-                      color=[0.5, 0, 0], markersize=15)
+                      color=sns.palettes.color_palette('Blues_d')[0],
+                      markersize=15)
         h1 = plt.plot(np.arange(len(n_cond)) - 0.075,
                       props[i, 1, :, 0], '.',
-                      color=[0.5, 0.2, 0.3], markersize=15)
+                      color=sns.palettes.color_palette('Blues_d')[1],
+                      markersize=15)
         h2 = plt.plot(np.arange(len(n_cond)) + 0.075,
                       props[i, 2, :, 0], '.',
-                      color=[0.5, 0.4, 0.7], markersize=15)
+                      color=sns.palettes.color_palette('Blues_d')[2],
+                      markersize=15)
         h3 = plt.plot(np.arange(len(n_cond)) + 0.225,
                       props[i, 3, :, 0], '.',
-                      color=[0.5, 0.6, 1], markersize=15)
+                      color=sns.palettes.color_palette('Blues_d')[3],
+                      markersize=15)
         plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
         if i == 0:
             plt.ylabel('Proportion significant', fontsize=24)
@@ -270,12 +278,12 @@ def plot_comp(data, alpha=0.05, save_file=None):
         if i == (len(test_ids) - 1):
             legend = plt.legend(
                 [h0[0], h1[0], h2[0], h3[0]], n_subj.astype('int'),
-                frameon=False, title='# of patterns', fontsize=18,
+                frameon=False, title='# of rdms', fontsize=18,
                 bbox_to_anchor=(1.0, 1.0), loc=2)
             legend.get_title().set_fontsize('18')
         plt.xticks(np.arange(len(n_cond)), n_cond.astype('int'), fontsize=18)
         plt.yticks([0, alpha, 2*alpha, 3*alpha])
-        plt.ylim([0, 0.25])
+        plt.ylim([0, 0.15])
         plt.xlim([-1, len(n_cond)])
         plt.plot([-1, len(n_cond)], [alpha, alpha], 'k--')
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
@@ -284,7 +292,7 @@ def plot_comp(data, alpha=0.05, save_file=None):
         ax.spines['right'].set_visible(False)
     if save_file:
         fname = save_file + '_pattern.pdf'
-        plt.savefig(fname)
+        plt.savefig(fname, bbox_inches='tight')
 
 
 def plot_eco(simulation_folder='sim_eco', variation='both', savefig=False):
