@@ -13,7 +13,43 @@ import pyrsa
 
 
 def get_models(model_type, stimuli,
-               n_layer=12, n_sim=1000, smoothing=None):
+               n_layer=12, smoothing=None):
+    """
+    creates the models for the DNN based simulations
+    most commonly used model is fixed_average, which produces the correct
+    weighting between full and feature averaged RDM at a given smoothing
+    other model types described below.
+    All models adapt to the smoothing of the voxels
+
+    Parameters
+    ----------
+    model_type : String
+        which type of model to create
+        'fixed_full' : fixed model of full feature space RDM
+        'fixed_average' : correct weighting of fixed_full and fixed_mean
+        'fixed_avg' : fixed model of feature averaged maps
+        'select_full' : selection model of full feature space
+        'select_avg' : selection model of feature averaged space
+        'select_both' : selection among both _full and _avg
+        'interpolate_full' : interpolation model for full feature space
+        'interpolate_avg' : interpolation model for feature averaged space
+        'interpolate_full' : interpolation model both _full and _avg
+        'weighted_avgfull' : weighted model of 4 rdms full and avg for
+            zero and infinite smoothing
+        
+    stimuli : images
+        model inputs for conditions
+    n_layer : int, optional
+        number of layers -> how many models? The default is 12.
+    smoothing : float, optional
+        how much smoothing to apply for models. The default is no smoothing.
+
+    Returns
+    -------
+    models : list of pyrsa.model.Model
+        Models corresponding to the model possibilities 
+
+    """
     n_stimuli = len(stimuli)
     pat_desc = {'stim': np.arange(n_stimuli)}
     models = []
@@ -45,6 +81,16 @@ def get_models(model_type, stimuli,
             # Thus 1 : 3 should be the right weighting between the two
             # euclidean distances
             rdm = pyrsa.rdm.RDMs(3 * rdm1.get_vectors() + rdm2.get_vectors(),
+                                 pattern_descriptors=pat_desc)
+            model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
+        elif model_type == 'fixed_avg':
+            rdm2 = dnn.get_true_RDM(
+                model=dnn_model,
+                layer=i_layer,
+                stimuli=stimuli,
+                smoothing=smoothing,
+                average=True)
+            rdm = pyrsa.rdm.RDMs(rdm2.get_vectors(),
                                  pattern_descriptors=pat_desc)
             model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
         elif model_type == 'select_full':
