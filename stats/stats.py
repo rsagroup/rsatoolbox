@@ -564,7 +564,8 @@ def save_rdm_type(idx, simulation_folder='sim_type'):
                start_idx=0)
 
 
-def run_flex(idx, simulation_folder='sim_flex'):
+def run_flex(idx, start_idx, simulation_folder='sim_flex',
+             ecoset_path='~/ecoset/val/'):
     """ runs the flexible model checks
     based on dnn-ecoset simulations
     """
@@ -582,11 +583,11 @@ def run_flex(idx, simulation_folder='sim_flex'):
         ['select_mean', None],
         ['select_average', None],
         ['select_both', None],
+        ['weighted_avgfull', None],
         ['interpolate_full', None],
         ['interpolate_mean', None],
         ['interpolate_average', None],
-        ['interpolate_full', None],
-        ['weighted_avgfull', None]]
+        ['interpolate_full', None]]
     
     variation = 'both'
     boot = 'fancy'
@@ -616,28 +617,22 @@ def run_flex(idx, simulation_folder='sim_flex'):
                                 use_cor_noise=True,
                                 sigma_noise=sigma_noise,
                                 variation=variation)
-    if os.path.isdir(fname_base):
-        res_name = get_resname(boot, rdm_type, model_type,
-                               rdm_comparison, noise_type, n_stim,
-                               k_pattern, k_rdm, smoothing)
-        if os.path.isdir(os.path.join(fname_base, res_name)):
-            start_idx = 0
-            for i_res in pathlib.Path(
-                    os.path.join(fname_base, res_name)
-                    ).glob('*res*.hdf5'):
-                i = int(str(i_res)[-9:-5])
-                if i >= start_idx:
-                    start_idx = i + 1
-        else:
-            start_idx = 0
-    else:
-        start_idx = 0
-    if start_idx < 100:
+    res_name = get_resname(boot, rdm_type, model_type,
+                           rdm_comparison, noise_type, n_stim,
+                           k_pattern, k_rdm, smoothing)
+    fname = 'res%04d.hdf5'
+    if not os.path.isdir(fname_base):
+        os.mkdir(fname_base)
+    if not os.path.isdir(os.path.join(fname_base, res_name)):
+        os.mkdir(os.path.join(fname_base, res_name))
+    if not os.path.isfile(os.path.join(
+            fname_base, res_name, fname)):
         sim_ecoset(layer=layer, sd=sd, n_stim_all=80,
-            n_voxel=n_vox, n_subj=n_subj, n_stim=n_stim, n_repeat=n_repeat,
-            simulation_folder=simulation_folder, n_sim=100,
+            n_voxel=n_vox, n_subj=n_subj, n_stim=n_stim,
+            n_repeat=n_repeat,
+            simulation_folder=simulation_folder, n_sim=start_idx + 1,
             sigma_noise=sigma_noise,
-            ecoset_path='~/ecoset/val/', variation=variation,
+            ecoset_path=ecoset_path, variation=variation,
             model_type=model_type,
             rdm_comparison=rdm_comparison, n_layer=12,
             k_pattern=k_pattern, k_rdm=k_rdm,
@@ -645,8 +640,18 @@ def run_flex(idx, simulation_folder='sim_flex'):
             noise_type=noise_type, boot_type=boot,
             start_idx=start_idx,
             smoothing=smoothing)
-    print(f'index # {idx} complete\n', flush=True)
-    
+    print(f'index # {idx}, simulation # {start_idx} complete\n', flush=True)
+
+
+def fix_flex(simulation_folder='sim_flex', ecoset_path='~/ecoset/val/'):
+    """runs single flexible model simulations to allow parallelization
+    """
+    indices = np.random.permutation(1400)
+    for idx in indices:
+        model_idx = int(np.floor(idx / 100))
+        start_idx = int(idx % 100)
+        run_flex(model_idx, start_idx, simulation_folder=simulation_folder,
+                 ecoset_path=ecoset_path)
 
 
 def run_comp(idx):
@@ -994,7 +999,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--path', type=str,
                         help='where is ecoset?', default=None)
     parser.add_argument('sim', help='simulation type',
-                        choices=['comp', 'eco',
+                        choices=['comp', 'eco', 'flex',
                                  'summarize_eco', 'fix_eco'],
                         default='comp')
     parser.add_argument('index', type=int,
@@ -1011,3 +1016,9 @@ if __name__ == '__main__':
             summarize_eco(args.path)
     elif args.sim == 'fix_eco':
         fix_eco(ecoset_path=args.path)
+    elif args.sim == 'flex':
+        if args.path is None:
+            fix_flex()
+        else:
+            fix_flex(ecoset_path=args.path)
+
