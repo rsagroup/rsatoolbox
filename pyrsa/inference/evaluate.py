@@ -20,9 +20,10 @@ from .noise_ceiling import boot_noise_ceiling
 from .noise_ceiling import cv_noise_ceiling
 
 
-def eval_fancy(models, data, method='cosine', fitter=None, n_cv=1,
+def eval_fancy(models, data, method='cosine', fitter=None, n_cv=2,
                k_pattern=None, k_rdm=None, N=1000, boot_noise_ceil=False,
-               pattern_descriptor='index', rdm_descriptor='index'):
+               pattern_descriptor='index', rdm_descriptor='index',
+               use_correction=True):
     """evaluates a model by k-fold crossvalidation within a bootstrap
     Then uses the correction formula to get an estimate of the variance
     of the mean.
@@ -50,15 +51,18 @@ def eval_fancy(models, data, method='cosine', fitter=None, n_cv=1,
     result_full = bootstrap_crossval(
         models, data, method=method, fitter=fitter,
         k_pattern=k_pattern, k_rdm=k_rdm, N=N,
-        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
+        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor,
+        n_cv=n_cv, use_correction=use_correction)
     result_rdm = bootstrap_crossval(
         models, data, method=method, fitter=fitter,
         k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='rdm',
-        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
+        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor,
+        n_cv=n_cv, use_correction=use_correction)
     result_pattern = bootstrap_crossval(
         models, data, method=method, fitter=fitter,
         k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='pattern',
-        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
+        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor,
+        n_cv=n_cv, use_correction=use_correction)
     var_estimate = 2 * (result_rdm.variances + result_pattern.variances) \
         - result_full.variances
     if result_rdm.noise_ceil_var is not None \
@@ -480,7 +484,8 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
     elif boot_type == 'rdm':
         cv_method = 'bootstrap_crossval_rdm'
         dof = data.n_rdm - 1
-    eval_ok = ~np.isnan(evaluations[:, 0, 0, 0])
+    eval_ok = ~np.any(np.any(np.any(np.isnan(evaluations),
+                                    axis=-1), axis=-1), axis=-1)
     evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
     if use_correction and n_cv > 1:
         # we essentially project from the two points for 1 repetition and
