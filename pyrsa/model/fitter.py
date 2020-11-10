@@ -10,6 +10,7 @@ import scipy.sparse
 from pyrsa.rdm import compare
 from pyrsa.util.matrix import get_v
 from pyrsa.util.pooling import pool_rdm
+from pyrsa.util.rdm_utils import _parse_input_rdms
 
 
 def fit_mock(model, data, method='cosine', pattern_idx=None,
@@ -178,6 +179,7 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
     vectors = pred.get_vectors()
     data_mean = pool_rdm(data, method=method)
     y = data_mean.get_vectors()
+    vectors, y = _parse_input_rdms(vectors, y)
     # Normalizations
     if method == 'cosine':
         v = None

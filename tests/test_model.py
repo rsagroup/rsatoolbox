@@ -199,3 +199,41 @@ class TestConsistency(unittest.TestCase):
                 theta_m_w_linear[1] / theta_m_i[1],
                 places=2, msg='regression fit differs from interpolation fit!'
                 + '\nfor %s' % i_method)
+
+    def test_two_rdms_nan(self):
+        from pyrsa.model import ModelInterpolate, ModelWeighted
+        from pyrsa.model.fitter import fit_regress
+        from pyrsa.rdm import concat
+        from copy import deepcopy
+        model_rdms = concat([self.rdms[0], self.rdms[1]])
+        model_rdms.dissimilarities[:, 3] = np.nan
+        model_rdms.dissimilarities[:, 4] = np.nan
+        rdms = deepcopy(self.rdms)
+        rdms.dissimilarities[:, 3] = np.nan
+        rdms.dissimilarities[:, 4] = np.nan
+        model_weighted = ModelWeighted(
+            'm_weighted',
+            model_rdms)
+        model_interpolate = ModelInterpolate(
+            'm_interpolate',
+            model_rdms)
+        for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
+            theta_m_i = model_interpolate.fit(rdms, method=i_method)
+            theta_m_w = model_weighted.fit(rdms, method=i_method)
+            theta_m_w_linear = fit_regress(model_weighted, rdms,
+                                           method=i_method)
+            self.assertAlmostEqual(
+                theta_m_w[0] / theta_m_i[0],
+                theta_m_w[1] / theta_m_i[1],
+                places=2, msg='weighted fit differs from interpolation fit!'
+                + '\nfor %s' % i_method)
+            self.assertAlmostEqual(
+                theta_m_w_linear[0] / theta_m_w[0],
+                theta_m_w_linear[1] / theta_m_w[1],
+                places=2, msg='regression fit differs from optimization fit!'
+                + '\nfor %s' % i_method)
+            self.assertAlmostEqual(
+                theta_m_w_linear[0] / theta_m_i[0],
+                theta_m_w_linear[1] / theta_m_i[1],
+                places=2, msg='regression fit differs from interpolation fit!'
+                + '\nfor %s' % i_method)
