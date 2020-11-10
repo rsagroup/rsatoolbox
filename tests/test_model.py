@@ -204,13 +204,8 @@ class TestConsistency(unittest.TestCase):
         from pyrsa.model import ModelInterpolate, ModelWeighted
         from pyrsa.model.fitter import fit_regress
         from pyrsa.rdm import concat
-        from copy import deepcopy
-        model_rdms = concat([self.rdms[0], self.rdms[1]])
-        model_rdms.dissimilarities[:, 3] = np.nan
-        model_rdms.dissimilarities[:, 4] = np.nan
-        rdms = deepcopy(self.rdms)
-        rdms.dissimilarities[:, 3] = np.nan
-        rdms.dissimilarities[:, 4] = np.nan
+        rdms = self.rdms.subsample_pattern('index', [0,1,1,3,4,5])
+        model_rdms = concat([rdms[0], rdms[1]])
         model_weighted = ModelWeighted(
             'm_weighted',
             model_rdms)
