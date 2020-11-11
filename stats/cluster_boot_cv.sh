@@ -7,7 +7,7 @@
 #SBATCH --job-name=boot_cv
 #SBATCH --mail-type=END
 #SBATCH --mail-user=hhs4@nyu.edu
-#SBATCH --output=slurm-output/slurm_flex_%a.out
+#SBATCH --output=slurm-output/slurm_boot_cv_%a.out
 
 index=$SLURM_ARRAY_TASK_ID
 job=$SLURM_JOB_ID
