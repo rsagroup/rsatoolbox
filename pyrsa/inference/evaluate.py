@@ -6,6 +6,7 @@ evaluate model performance
 
 import numpy as np
 import tqdm
+import warnings
 from collections.abc import Iterable
 from pyrsa.rdm import compare
 from pyrsa.inference import bootstrap_sample
@@ -509,7 +510,7 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
             noise_ceil_var = None
     else:
         if use_correction:
-            raise Warning('correction requested, but only one cv run'
+            warnings.warn('correction requested, but only one cv run'
                           + ' per sample requested. This is invalid!'
                           + ' We do not use the correction for now.')
         if calc_noise_ceil == 'boot':
