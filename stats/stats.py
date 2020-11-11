@@ -1020,7 +1020,7 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
     res_path = os.path.join(simulation_folder, f'cv_{n_cv}')
     if not os.path.isdir(res_path):
         os.makedirs(res_path)
-    res_file = '/res%04d_%03d.hdf5' % (i, i_rep)
+    res_file = 'res%04d_%03d.hdf5' % (i, i_rep)
     full_path = os.path.join(res_path, res_file)
     if os.path.isfile(full_path):
         print(full_path)
@@ -1165,8 +1165,8 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
     # run inference & save it
     results = run_inference(models, rdms, method=rdm_comparison,
                             bootstrap=boot_type, n_cv=n_cv)
-    results.save(full_path)
     print(full_path)
+    results.save(full_path)
     
 
 def fix_boot_cv(simulation_folder='boot_cv', ecoset_path='~/ecoset/val/'):
