@@ -620,7 +620,7 @@ def run_flex(idx, start_idx, simulation_folder='sim_flex',
     res_name = get_resname(boot, rdm_type, model_type,
                            rdm_comparison, noise_type, n_stim,
                            k_pattern, k_rdm, smoothing)
-    fname = 'res%04d.hdf5'
+    fname = 'res%04d.hdf5' % idx
     if not os.path.isdir(fname_base):
         os.mkdir(fname_base)
     if not os.path.isdir(os.path.join(fname_base, res_name)):
@@ -991,6 +991,174 @@ def _resolve_idx(idx):
         noise_type = 'residuals'
     return (variation, boot, i_var, layer, i_layer, n_repeat, i_repeat, n_stim,
             i_stim, n_subj, i_sub, sd, i_sd, n_vox, i_vox, noise_type)
+
+
+def boot_cv_sim(i=0, n_cv=2, ecoset_path='~/ecoset/val/',
+                simulation_folder='boot_cv'):
+    layer = 8
+    n_voxel = 100
+    n_subj = 20
+    n_stim = 40
+    n_stim_all = 40
+    n_repeat = 4
+    sd = 0.05
+    smoothing = sd
+    duration = 1
+    pause = 1
+    endzeros = 25
+    use_cor_noise = True
+    sigma_noise = 1
+    resolution = 2
+    ar_coeff = 0.5
+    model_type = 'select_average'
+    rdm_type = 'crossnobis'
+    rdm_comparison = 'corr'
+    boot_type = 'crossval'
+    
+    model = dnn.get_default_model()
+    ecoset_path = pathlib.Path(ecoset_path).expanduser()
+    fname_base = os.path.join(simulation_folder, f'cv_{n_cv}')
+    if not os.path.isdir(fname_base):
+        os.makedirs(fname_base)
+    res_path = fname_base
+    # get stimulus list or save one if there is none yet
+    stim_file = os.path.join(simulation_folder, 'stim%04d.txt' % i)
+    if os.path.isfile(stim_file):
+        f = open(stim_file, )
+        stim_paths = f.read()
+        f.close()
+        stim_paths = stim_paths.split('\n')
+    else:
+        stim_paths = []
+        folders = os.listdir(ecoset_path)
+        for i_stim in range(n_stim_all):
+            i_folder = np.random.randint(len(folders))
+            images = os.listdir(os.path.join(ecoset_path,
+                                             folders[i_folder]))
+            i_image = np.random.randint(len(images))
+            stim_paths.append(os.path.join(folders[i_folder],
+                                           images[i_image]))
+    if not os.path.isfile(stim_file):
+        with open(stim_file, 'w') as f:
+            for item in stim_paths:
+                f.write("%s\n" % item)
+    stim_list = get_stimuli_ecoset(ecoset_path, stim_paths[:n_stim])
+    # Recalculate U_complete if necessary
+    U_complete = []
+    for i_stim in range(n_stim):
+        U_complete.append(
+            dnn.get_complete_representation(
+                model=model, layer=layer,
+                stimulus=stim_list[i_stim]))
+    U_shape = np.array(U_complete[0].shape)
+
+    # get new sampling locations if necessary
+    weight_file = os.path.join(simulation_folder,
+                               'weights%04d.npy' % i)
+    indices_file = os.path.join(simulation_folder,
+                                'indices_space%04d.npy' % i)
+    if os.path.isfile(weight_file):
+        indices_space = np.load(indices_file)
+        weights = np.load(weight_file)
+        sigmaP = []
+        for i_subj in range(n_subj):
+            sigmaP_subj = dnn.get_sampled_sigmaP(
+                U_shape, indices_space[i_subj], weights[i_subj], [sd, sd])
+            sigmaP.append(sigmaP_subj)
+        sigmaP = np.array(sigmaP)
+    else:
+        sigmaP = []
+        indices_space = []
+        weights = []
+        for i_subj in range(n_subj):
+            indices_space_subj, weights_subj = dnn.get_random_indices_conv(
+                U_shape, n_voxel)
+            sigmaP_subj = dnn.get_sampled_sigmaP(
+                U_shape, indices_space_subj, weights_subj, [sd, sd])
+            sigmaP.append(sigmaP_subj)
+            indices_space.append(indices_space_subj)
+            weights.append(weights_subj)
+        sigmaP = np.array(sigmaP)
+        indices_space = np.array(indices_space)
+        weights = np.array(weights)
+    if not os.path.isfile(weight_file):
+        np.save(weight_file, weights)
+    if not os.path.isfile(indices_file):
+        np.save(indices_file, indices_space)
+
+    # extract new dnn activations
+    Utrue = []
+    for i_subj in range(n_subj):
+        Utrue_subj = [dnn.sample_representation(np.squeeze(U_c),
+                                                indices_space[i_subj],
+                                                weights[i_subj],
+                                                [sd, sd])
+                      for U_c in U_complete]
+        Utrue_subj = np.array(Utrue_subj)
+        Utrue_subj = Utrue_subj / np.sqrt(np.sum(Utrue_subj ** 2)) \
+            * np.sqrt(Utrue_subj.size)
+        Utrue.append(Utrue_subj)
+    Utrue = np.array(Utrue)
+
+    # run the fmri simulation
+    U = []
+    residuals = []
+    for i_subj in range(n_subj):
+        timecourses = []
+        Usamps = []
+        res_subj = []
+        for iSamp in range(n_repeat):
+            design = dnn.generate_design_random(
+                len(stim_list), repeats=1, duration=duration, pause=pause,
+                endzeros=endzeros)
+            if use_cor_noise:
+                timecourse = dnn.generate_timecourse(
+                    design, Utrue[i_subj],
+                    sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
+                    sigmaP=sigmaP[i_subj])
+            else:
+                timecourse = dnn.generate_timecourse(
+                    design, Utrue[i_subj],
+                    sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
+                    sigmaP=None)
+            Usamp = estimate_betas(design, timecourse)
+            timecourses.append(timecourse)
+            Usamps.append(Usamp)
+            res_subj.append(get_residuals(design, timecourse, Usamp,
+                                          resolution=resolution))
+        res_subj = np.concatenate(res_subj, axis=0)
+        residuals.append(res_subj)
+        U.append(np.array(Usamps))
+    residuals = np.array(residuals)
+    U = np.array(U)
+
+    # run analysis
+    # get models if stimulus changed, subjects are irrelevant
+    models = get_models(
+        model_type, stim_list,
+        n_layer=12,
+        smoothing=smoothing)
+    # calculate RDMs
+    data = []
+    desc = {'stim': np.tile(np.arange(n_stim), n_repeat),
+            'repeat': np.repeat(np.arange(n_repeat), n_stim)}
+    for i_subj in range(U.shape[0]):
+        u_subj = U[i_subj, :, :n_stim, :].reshape(n_repeat * n_stim,
+                                                  n_voxel)
+        data.append(pyrsa.data.Dataset(u_subj, obs_descriptors=desc))
+    noise = pyrsa.data.prec_from_residuals(residuals)
+    rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
+                              cv_descriptor='repeat', noise=noise)
+    # get true U RDMs
+    # dat_true = []
+    # for i_subj in range(U.shape[0]):
+    #     dat_true.append(pyrsa.data.Dataset(Utrue[i_subj]))
+    # rdms_true = pyrsa.rdm.calc_rdm(dat_true)
+    # run inference & save it
+    results = run_inference(models, rdms, method=rdm_comparison,
+                            bootstrap=boot_type)
+    results.save(res_path + '/res%04d.hdf5' % (i))
+    
 
 
 if __name__ == '__main__':

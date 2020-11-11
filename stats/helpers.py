@@ -164,7 +164,7 @@ def get_stimuli_ecoset(ecoset_path, stim_paths):
 
 
 def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
-                  k_rdm=None, k_pattern=None):
+                  k_rdm=None, k_pattern=None, n_cv=2):
     """ runs a run of inference
 
     Args:
@@ -195,19 +195,24 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
             boot_noise_ceil=boot_noise_ceil, method=method)
     elif bootstrap == 'crossval':
         results = pyrsa.inference.bootstrap_crossval(
-            model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
+            model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm,
+            n_cv=n_cv)
     elif bootstrap == 'crossval_pattern':
         results = pyrsa.inference.bootstrap_crossval(
-            model, rdms, method=method, k_rdm=1, k_pattern=k_pattern)
+            model, rdms, method=method, k_rdm=1, k_pattern=k_pattern,
+            n_cv=n_cv)
     elif bootstrap == 'crossval_rdms':
         results = pyrsa.inference.bootstrap_crossval(
-            model, rdms, method=method, k_pattern=1, k_rdm=k_rdm)
+            model, rdms, method=method, k_pattern=1, k_rdm=k_rdm,
+            n_cv=n_cv)
     elif bootstrap == 'fancy':
         results = pyrsa.inference.eval_fancy(
-            model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm)
+            model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm,
+            n_cv=n_cv)
     elif bootstrap == 'fancyboot':
         results = pyrsa.inference.eval_fancy(
-            model, rdms, method=method, k_pattern=1, k_rdm=1)
+            model, rdms, method=method, k_pattern=1, k_rdm=1,
+            n_cv=n_cv)
     elif bootstrap == 'fix':
         results = pyrsa.inference.eval_fixed(
             model, rdms, method=method)
