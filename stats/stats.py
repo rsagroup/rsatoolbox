@@ -620,7 +620,7 @@ def run_flex(idx, start_idx, simulation_folder='sim_flex',
     res_name = get_resname(boot, rdm_type, model_type,
                            rdm_comparison, noise_type, n_stim,
                            k_pattern, k_rdm, smoothing)
-    fname = 'res%04d.hdf5' % idx
+    fname = 'res%04d.hdf5' % start_idx
     if not os.path.isdir(fname_base):
         os.mkdir(fname_base)
     if not os.path.isdir(os.path.join(fname_base, res_name)):
