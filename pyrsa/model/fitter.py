@@ -97,6 +97,38 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
     return theta.x
 
 
+def fit_optimize_positive(model, data, method='cosine', pattern_idx=None,
+                 pattern_descriptor=None, sigma_k=None):
+    """
+    fitting theta using optimization enforcing positive weights
+    currently allowed for ModelWeighted only
+
+    Args:
+        model(Model): the model to be fit
+        data(pyrsa.rdm.RDMs): data to be fit
+        method(String, optional): evaluation metric The default is 'cosine'.
+        pattern_idx(numpy.ndarray, optional)
+            sampled patterns The default is None.
+        pattern_descriptor (String, optional)
+            descriptor used for fitting. The default is None.
+        sigma_k(matrix): pattern-covariance matrix
+            used only for whitened distances (ending in _cov)
+            to compute the covariance matrix for rdms
+
+    Returns:
+        numpy.ndarray: theta, parameter vector for the model
+
+    """
+    def _loss_opt(theta):
+        return _loss(theta ** 2, model, data, method=method,
+                     pattern_idx=pattern_idx,
+                     pattern_descriptor=pattern_descriptor,
+                     sigma_k=sigma_k)
+    theta0 = np.random.rand(model.n_param)
+    theta = opt.minimize(_loss_opt, theta0)
+    return theta.x ** 2
+
+
 def fit_interpolate(model, data, method='cosine', pattern_idx=None,
                     pattern_descriptor=None, sigma_k=None):
     """

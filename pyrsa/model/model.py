@@ -259,7 +259,6 @@ class ModelWeighted(Model):
         """
         if theta is None:
             theta = np.ones(self.n_rdm)
-        theta = np.maximum(theta, 0)
         theta = np.array(theta)
         dissimilarities = np.matmul(self.rdm.T, theta.reshape(-1))
         rdms = RDMs(
