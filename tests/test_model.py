@@ -170,8 +170,8 @@ class TestConsistency(unittest.TestCase):
 
     def test_two_rdms(self):
         from pyrsa.model import ModelInterpolate, ModelWeighted
-        from pyrsa.model.fitter import fit_regress
-        from pyrsa.rdm import concat
+        from pyrsa.model.fitter import fit_regress, fit_optimize_positive
+        from pyrsa.rdm import concat, compare
         model_rdms = concat([self.rdms[0], self.rdms[1]])
         model_weighted = ModelWeighted(
             'm_weighted',
@@ -182,28 +182,31 @@ class TestConsistency(unittest.TestCase):
         for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
             theta_m_i = model_interpolate.fit(self.rdms, method=i_method)
             theta_m_w = model_weighted.fit(self.rdms, method=i_method)
-            theta_m_w_linear = fit_regress(model_weighted, self.rdms,
-                                           method=i_method)
+            theta_m_w_pos = fit_optimize_positive(
+                model_weighted, self.rdms, method=i_method)
+            theta_m_w_linear = fit_regress(
+                model_weighted, self.rdms, method=i_method)
+            eval_m_i = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_i), self.rdms, method=i_method))
+            eval_m_w = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w), self.rdms, method=i_method))
+            eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w_pos), self.rdms, method=i_method))
+            eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w_linear), self.rdms, method=i_method))
             self.assertAlmostEqual(
-                theta_m_w[0] / theta_m_i[0],
-                theta_m_w[1] / theta_m_i[1],
-                places=2, msg='weighted fit differs from interpolation fit!'
+                eval_m_i, eval_m_w_pos,
+                places=4, msg='weighted fit differs from interpolation fit!'
                 + '\nfor %s' % i_method)
             self.assertAlmostEqual(
-                theta_m_w_linear[0] / theta_m_w[0],
-                theta_m_w_linear[1] / theta_m_w[1],
-                places=2, msg='regression fit differs from optimization fit!'
-                + '\nfor %s' % i_method)
-            self.assertAlmostEqual(
-                theta_m_w_linear[0] / theta_m_i[0],
-                theta_m_w_linear[1] / theta_m_i[1],
-                places=2, msg='regression fit differs from interpolation fit!'
+                eval_m_w, eval_m_w_linear,
+                places=4, msg='regression fit differs from optimization fit!'
                 + '\nfor %s' % i_method)
 
     def test_two_rdms_nan(self):
         from pyrsa.model import ModelInterpolate, ModelWeighted
-        from pyrsa.model.fitter import fit_regress
-        from pyrsa.rdm import concat
+        from pyrsa.model.fitter import fit_regress, fit_optimize_positive
+        from pyrsa.rdm import concat, compare
         rdms = self.rdms.subsample_pattern('index', [0,1,1,3,4,5])
         model_rdms = concat([rdms[0], rdms[1]])
         model_weighted = ModelWeighted(
@@ -215,20 +218,23 @@ class TestConsistency(unittest.TestCase):
         for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
             theta_m_i = model_interpolate.fit(rdms, method=i_method)
             theta_m_w = model_weighted.fit(rdms, method=i_method)
-            theta_m_w_linear = fit_regress(model_weighted, rdms,
-                                           method=i_method)
+            theta_m_w_pos = fit_optimize_positive(
+                model_weighted, rdms, method=i_method)
+            theta_m_w_linear = fit_regress(
+                model_weighted, rdms, method=i_method)
+            eval_m_i = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_i), rdms, method=i_method))
+            eval_m_w = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w), rdms, method=i_method))
+            eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w_pos), rdms, method=i_method))
+            eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w_linear), rdms, method=i_method))
             self.assertAlmostEqual(
-                theta_m_w[0] / theta_m_i[0],
-                theta_m_w[1] / theta_m_i[1],
-                places=2, msg='weighted fit differs from interpolation fit!'
+                eval_m_i, eval_m_w_pos,
+                places=4, msg='weighted fit differs from interpolation fit!'
                 + '\nfor %s' % i_method)
             self.assertAlmostEqual(
-                theta_m_w_linear[0] / theta_m_w[0],
-                theta_m_w_linear[1] / theta_m_w[1],
-                places=2, msg='regression fit differs from optimization fit!'
-                + '\nfor %s' % i_method)
-            self.assertAlmostEqual(
-                theta_m_w_linear[0] / theta_m_i[0],
-                theta_m_w_linear[1] / theta_m_i[1],
-                places=2, msg='regression fit differs from interpolation fit!'
+                eval_m_w, eval_m_w_linear,
+                places=4, msg='regression fit differs from optimization fit!'
                 + '\nfor %s' % i_method)
