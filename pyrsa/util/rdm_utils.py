@@ -96,3 +96,25 @@ def add_pattern_index(rdms, pattern_descriptor):
     pattern_select = rdms.pattern_descriptors[pattern_descriptor]
     pattern_select = np.unique(pattern_select)
     return pattern_descriptor, pattern_select
+
+
+def gt_transform(rdms, l=0., u=1., scale='percentile', transform='intermediate'):
+    """
+    apply geo-topological (GT) transform on RDMs
+
+    Args:
+        **rdms** (pyrsa.rdm.RDMs): rdms object to be parsed
+        l (float): lower bound to cap the distance
+        u (float): lower bound to cap the distance
+        scale:     the scale to use for l and u (e.g. 'percentile', 'absolute')
+        transform: the type of GT transforms (e.g. 'intermediate', 'stretched')
+
+    Returns:
+        t_rdms: transformed rdms
+
+    References: 
+        Lin, B., & Kriegeskorte, N. (2018). Adaptive Geo-Topological 
+        Independence Criterion. arXiv preprint arXiv:1810.02923.
+    """
+    t_rdms = rdms
+    return t_rdms
