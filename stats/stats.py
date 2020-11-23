@@ -849,6 +849,142 @@ def summarize_eco(simulation_folder='sim_eco'):
     return data_labels, means, variances, pairs
 
 
+def summarize_flex(simulation_folder='sim_flex'):
+    """ collects the existing flex simulations from a folder where they are
+    copied to the top layer
+    Results are saved at the toplevel of the folder
+
+    Args:
+        simulation_folder : folder
+            Which folder to go through. The default is 'sim_flex'.
+
+    """
+    data_labels = pd.DataFrame({
+        'layer': [], 'n_voxel': [], 'n_subj': [], 'n_rep': [],
+        'sd': [], 'variation': [], 'duration': [], 'pause': [],
+        'endzeros': [], 'use_cor_noise': [], 'resolution': [],
+        'sigma_noise': [], 'ar_coeff': [], 'boot_type': [],
+        'rdm_type': [], 'model_type': [], 'rdm_comparison': [],
+        'noise_type': [], 'n_stim': [], 'sd_fit': []})
+    means = []
+    variances = []
+    pairs = []
+    i_layer = 8
+    n_voxel = 100
+    n_subj=20
+    n_rep=4
+    sd=0.05
+    variation='both'
+    duration = 1
+    pause = 1
+    endzeros = 25
+    use_cor_noise = True
+    resolution = 2
+    sigma_noise = 1
+    ar_coeff = 0.5
+    for results in pathlib.Path(simulation_folder).glob('results_*'):
+        sys.stdout.write(str(results) + '\n')
+        res_string = os.path.split(results)[-1]
+        split = res_string.split('_')
+        if split[-1] == '40':
+            sd_fit = 0
+        else:
+            sd_fit = float(split[-1])
+            res_string = '_'.join(split[:-1])
+        boot_type, rdm_type, model_type, rdm_comparison, \
+            noise_type, n_stim = parse_results(res_string)
+            
+        data_labels = data_labels.append(
+            {'layer': i_layer,
+             'n_voxel': n_voxel, 'n_subj': n_subj,
+             'n_rep': n_rep, 'sd': sd,
+             'variation': variation, 'endzeros': endzeros,
+             'duration': duration, 'pause': pause,
+             'use_cor_noise': use_cor_noise,
+             'resolution': resolution,
+             'sigma_noise': sigma_noise, 'ar_coeff': ar_coeff,
+             'boot_type': boot_type, 'noise_type': noise_type,
+             'rdm_comparison': rdm_comparison,
+             'rdm_type': rdm_type, 'model_type': model_type,
+             'n_stim': n_stim,
+             'sd_fit': sd_fit},
+            ignore_index=True)
+        mean = np.nan * np.zeros((100, 12))
+        variance = np.nan * np.zeros((100, 12, 12))
+        pairwise = np.nan * np.zeros((100, 12, 12))
+        for i_res in results.glob('res*.hdf5'):
+            idx = int(str(i_res)[-9:-5])
+            try:
+                res = pyrsa.inference.load_results(
+                    i_res, file_type='hdf5')
+                if res.evaluations.ndim == 2:
+                    no_nan_idx = ~np.isnan(res.evaluations[:, 0])
+                elif res.evaluations.ndim == 3:
+                    no_nan_idx = \
+                        ~np.isnan(res.evaluations[:, 0, 0])
+                elif res.evaluations.ndim == 4:
+                    no_nan_idx = \
+                        ~np.any(np.any(np.any(
+                            np.isnan(res.evaluations),
+                            axis=-1), axis=-1),axis=-1)
+                if np.any(no_nan_idx):
+                    for i in range(12):
+                        for j in range(12):
+                            diff = (res.evaluations[:, i]
+                                    - res.evaluations[:, j])
+                            pairwise[idx, i, j] = np.sum(
+                                diff[no_nan_idx] > 0)
+                    m = np.mean(res.evaluations[no_nan_idx],
+                                axis=0)
+                    while m.ndim > 1:
+                        m = np.mean(m, axis=-1)
+                    mean[idx] = m
+                    variance[idx] = res.variances
+                else:
+                    raise OSError('no valid results')
+            except OSError:
+                mean[idx] = np.nan
+                variance[idx] = np.nan
+                pairwise[idx] = np.nan
+        means.append(mean)
+        variances.append(variance)
+        pairs.append(pairwise)
+        means_array = np.array(means)
+        vars_array = np.array(variances)
+        pairs_array = np.array(pairs)
+        np.save(os.path.join(simulation_folder, 'means.npy'), means_array)
+        np.save(os.path.join(simulation_folder, 'stds.npy'), vars_array)
+        np.save(os.path.join(simulation_folder, 'pairs.npy'), pairs_array)
+        data_labels.to_csv(os.path.join(simulation_folder, 'labels.csv'))
+    return data_labels, means, variances, pairs
+
+
+def summarize_boot_cv(simulation_folder='boot_cv'):
+    """ summarizes the bootstrap_cv results into var.npy and var_raw.npy"""
+    n_cvs = [1, 2, 4, 8, 16, 32]
+    means = np.zeros([6, 12, 10, 100]) * np.nan
+    variances = np.zeros([6, 12, 12, 10, 100]) * np.nan
+    variances_raw = np.zeros([6, 12, 12, 10, 100]) * np.nan
+    for i, n_cv in enumerate(n_cvs):
+        for results in pathlib.Path(os.path.join(
+                simulation_folder, f'cv_{n_cv}/')).glob('res*'):
+            sys.stdout.write(str(results) + '\n')
+            res_string = os.path.split(results)[-1][3:-5]
+            split = res_string.split('_')
+            i_sim = int(split[0])
+            i_rep = int(split[1])
+            res = pyrsa.inference.load_results(results, 'hdf5')
+            means[i, :, i_sim, i_rep] = np.mean(np.mean(np.mean(
+                res.evaluations, 0), 1),1)
+            variances[i, :, :, i_sim, i_rep] = res.variances
+            eval_ok = ~np.any(np.any(np.any(np.isnan(res.evaluations),
+                                    axis=-1), axis=-1), axis=-1)
+            evals_nonan = np.mean(np.mean(res.evaluations[eval_ok], -1), -1)
+            variances_raw[i, :, :, i_sim, i_rep] = np.cov(evals_nonan.T)
+    np.save(os.path.join(simulation_folder, 'var.npy'), variances)
+    np.save(os.path.join(simulation_folder, 'var_raw.npy'), variances_raw)
+
+
 def check_eco(simulation_folder='sim_eco', N=100):
     """ checks which simulations are complete and lists incomplete simulations
     i.e. simulations which were started but not finished

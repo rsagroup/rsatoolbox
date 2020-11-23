@@ -252,11 +252,14 @@ def parse_results(res_string):
     split = res_string.split('_')
     boot_type = split[1]
     rdm_type = split[2]
-    if len(split) == 8:
+    if split[4] in ['full', 'mean', 'average', 'both', 'avgfull']:
         model_type = split[3] + '_' + split[4]
     else:
         model_type = split[3]
-    rdm_comparison = split[-3]
+    if split[-3] == 'cov':
+        rdm_comparison = split[-4] + '_' + split[-3]
+    else:
+        rdm_comparison = split[-3]
     noise_type = split[-2]
     n_stim = int(split[-1])
     return boot_type, rdm_type, model_type, rdm_comparison, noise_type, n_stim
