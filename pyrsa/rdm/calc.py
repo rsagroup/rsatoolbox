@@ -71,6 +71,8 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
                                       prior_weight=prior_weight)
         else:
             raise(NotImplementedError)
+        rdm.rdm_descriptors = dataset.descriptors
+        rdm.rdm_descriptors['index'] = np.array([0])
     return rdm
 
 
