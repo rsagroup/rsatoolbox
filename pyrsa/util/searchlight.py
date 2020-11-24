@@ -14,6 +14,7 @@ from pyrsa.data.dataset import Dataset
 from pyrsa.rdm.calc import calc_rdm
 from pyrsa.rdm import RDMs
 
+
 def _get_searchlight_neighbors(mask, center, radius=3):
     """Return indices for searchlight where distance
         between a voxel and their center < radius (in voxels)
@@ -27,16 +28,16 @@ def _get_searchlight_neighbors(mask, center, radius=3):
     """
     center = np.array(center)
     mask_shape = mask.shape
-    cx, cy, cz = np.array(center)
+    c_x, c_y, c_z = np.array(center)
     x = np.arange(mask_shape[0])
     y = np.arange(mask_shape[1])
     z = np.arange(mask_shape[2])
 
     # First mask the obvious points
     # - may actually slow down your calculation depending.
-    x = x[abs(x - cx) < radius]
-    y = y[abs(y - cy) < radius]
-    z = z[abs(z - cz) < radius]
+    x = x[abs(x - c_x) < radius]
+    y = y[abs(y - c_y) < radius]
+    z = z[abs(z - c_z) < radius]
 
     # Generate grid of points
     X, Y, Z = np.meshgrid(x, y, z)
@@ -52,17 +53,20 @@ def get_volume_searchlight(mask, radius=2, threshold=1.0):
 
     Args:
         mask ([numpy array]): binary brain mask
-        radius (int, optional): the radius of each searchlight, defined in voxels. Defaults to 2.
-        threshold (float, optional): Threshold of the proportion of voxels that need to
-                                     be inside the brain mask in order for it to be
-                                     considered a good searchlight center.
-                                     Values go between 0.0 - 1.0 where 1.0 means that
-                                     100% of the voxels need to be inside
-                                     the brain mask. Defaults to 1.0.
+        radius (int, optional): the radius of each searchlight,
+            defined in voxels. Defaults to 2.
+        threshold (float, optional):
+            Threshold of the proportion of voxels that need to
+            be inside the brain mask in order for it to be
+            considered a good searchlight center.
+            Values go between 0.0 - 1.0 where 1.0 means that
+            100% of the voxels need to be inside
+            the brain mask. Defaults to 1.0.
 
     Returns:
         [numpy array]: array of centers of size n_centers x 3
-        [list]: list of lists with neighbors - the length of the list will correspond to:
+        [list]: list of lists with neighbors
+            the length of the list will correspond to:
                 n_centers x 3 x n_neighbors
     """
 
@@ -91,25 +95,27 @@ def get_volume_searchlight(mask, radius=2, threshold=1.0):
     return centers, neighbors
 
 
-def get_searchlight_RDMs(data_2d, centers, neighbors, events,
-                         method='correlation', verbose=True):
-    """Iterates over all the searchlight centers and calculates the RDM
+def get_searchlight_rdms(data_2d, centers, neighbors, events,
+                         method='correlation'):
+    """Iterates over all the searchlight centers and calculates the rdm
 
     Args:
-        data_2d (2D numpy array): brain data, shape n_observations x n_channels (i.e. voxels/vertices)
-        centers (1D numpy array): center indices for all searchlights as provided
-                                        by pyrsa.util.searchlight.get_volume_searchlight
-        neighbors (list): list of lists with neighbor voxel indices for all searchlights
-                                        as provided by pyrsa.util.searchlight.get_volume_searchlight
+        data_2d (2D numpy array): brain data
+            shape n_observations x n_channels (i.e. voxels/vertices)
+        centers (1D numpy array): center indices for all searchlights
+            as provided by pyrsa.util.searchlight.get_volume_searchlight
+        neighbors (list): list of lists with neighbor voxel indices
+            for all searchlights
+            as provided by pyrsa.util.searchlight.get_volume_searchlight
         events (1D numpy array): 1D array of length n_observations
         method (str, optional): distance metric,
-                                see pyrsa.rdm.calc for options. Defaults to 'correlation'.
-        verbose (bool, optional): Defaults to True.
+            see pyrsa.rdm.calc for options. Defaults to 'correlation'.
 
     Returns:
-        RDM [pyrsa.rdm.RDMs]: RDMs object with the RDM for each searchlight
-                              the RDM.rdm_descriptors['voxel_index']
-                              describes the center voxel index each RDM is associated with
+        rdm [pyrsa.rdm.RDMs]:
+            RDMs object with the rdm for each searchlight
+            the rdm.rdm_descriptors['voxel_index']
+            describes the center voxel index each rdm is associated with
     """
 
     data_2d, centers = np.array(data_2d), np.array(centers)
@@ -125,54 +131,59 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
 
         # loop over chunks
         n_conds = len(np.unique(events))
-        RDM = np.zeros((n_centers, n_conds * (n_conds - 1) // 2))
-        for chunks in tqdm(chunked_center, desc='Calculating RDMs...'):
+        rdm = np.zeros((n_centers, n_conds * (n_conds - 1) // 2))
+        for chunk in tqdm(chunked_center, desc='Calculating RDMs...'):
             center_data = []
-            for c in chunks:
+            for i_c in chunk:
                 # grab this center and neighbors
-                center = centers[c]
-                center_neighbors = neighbors[c]
+                center = centers[i_c]
+                center_neighbors = neighbors[i_c]
                 # create a database object with this data
-                ds = Dataset(data_2d[:, center_neighbors],
-                             descriptors={'center': center},
-                             obs_descriptors={'events': events},
-                             channel_descriptors={'voxels': center_neighbors})
-                center_data.append(ds)
+                dataset = Dataset(
+                    data_2d[:, center_neighbors],
+                    descriptors={'center': center},
+                    obs_descriptors={'events': events},
+                    channel_descriptors={'voxels': center_neighbors})
+                center_data.append(dataset)
 
-            RDM_corr = calc_rdm(center_data, method=method,
+            rdm_corr = calc_rdm(center_data, method=method,
                                 descriptor='events')
-            RDM[chunk, :] = RDM_corr.dissimilarities
+            rdm[chunk, :] = rdm_corr.dissimilarities
     else:
         center_data = []
-        for c in range(n_centers):
+        for i_c in range(n_centers):
             # grab this center and neighbors
-            center = centers[c]
-            nb = neighbors[c]
+            center = centers[i_c]
+            voxels = neighbors[i_c]
             # create a database object with this data
-            ds = Dataset(data_2d[:, nb],
-                         descriptors={'center': c},
-                         obs_descriptors={'events': events},
-                         channel_descriptors={'voxels': nb})
-            center_data.append(ds)
+            dataset = Dataset(
+                data_2d[:, voxels],
+                descriptors={'center': i_c},
+                obs_descriptors={'events': events},
+                channel_descriptors={'voxels': voxels})
+            center_data.append(dataset)
         # calculate RDMs for each database object
-        RDM = calc_rdm(center_data, method=method,
+        rdm = calc_rdm(center_data, method=method,
                        descriptor='events').dissimilarities
 
-    SL_rdms = RDMs(RDM,
+    sl_rdms = RDMs(rdm,
                    rdm_descriptors={'voxel_index': centers},
                    dissimilarity_measure=method)
 
-    return SL_rdms
+    return sl_rdms
 
 
-def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', theta=None, n_jobs=1):
+def evaluate_models_searchlight(sl_rdm, models, eval_function, method='corr',
+                                theta=None, n_jobs=1):
     """evaluates each searchlighth with the given model/models
 
     Args:
-        sl_RDM ([pyrsa.rdm.RDMs]): RDMs object as computed by pyrsa.util.searchlight.get_searchlight_RDMs
+        sl_rdm ([pyrsa.rdm.RDMs]): RDMs object
+            as computed by pyrsa.util.searchlight.get_searchlight_rdms
         models ([pyrsa.model]: models to evaluate - can also be list of models
         eval_function (pyrsa.inference evaluation-function): [description]
-        method (str, optional): see pyrsa.rdm.compare for specifics. Defaults to 'corr'.
+        method (str, optional): see pyrsa.rdm.compare for specifics.
+            Defaults to 'corr'.
         n_jobs (int, optional): how many jobs to run. Defaults to 1.
 
     Returns:
@@ -182,6 +193,6 @@ def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', th
     results = Parallel(n_jobs=n_jobs)(
         delayed(eval_function)(
             models, x, method=method, theta=theta) for x in tqdm(
-            sl_RDM, desc='Evaluating models for each searchlight'))
+            sl_rdm, desc='Evaluating models for each searchlight'))
 
     return results

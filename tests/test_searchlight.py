@@ -2,7 +2,7 @@
     searchlight tests
     @author: Daniel Lindh
 """
-#pylint: disable=import-outside-toplevel, no-self-use
+# pylint: disable=import-outside-toplevel, no-self-use
 import unittest
 import numpy as np
 
@@ -41,8 +41,8 @@ class TestSearchlight(unittest.TestCase):
         assert len(centers) == 7
         assert len(neighbors) == 7
 
-    def test_get_searchlight_RDMs(self):
-        from pyrsa.util.searchlight import get_searchlight_RDMs
+    def test_get_searchlight_rdms(self):
+        from pyrsa.util.searchlight import get_searchlight_rdms
 
         n_observations = 5
         n_voxels = 5
@@ -51,6 +51,6 @@ class TestSearchlight(unittest.TestCase):
         neighbors = [[0,1,2], [2,3,4]]
         events = np.arange(n_observations)
 
-        sl_RDMs = get_searchlight_RDMs(data_2d, centers, neighbors, events)
+        sl_RDMs = get_searchlight_rdms(data_2d, centers, neighbors, events)
 
         assert sl_RDMs.dissimilarities.shape == (2, 10)
