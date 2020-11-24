@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Calculation of RDMs from datasets
-@author: heiko, benjamin
+Calculation of RDMs from unbalanced datasets, i.e. datasets with different
+channels or numbers of measurements per dissimilarity
+
+@author: heiko
 """
 
 from collections.abc import Iterable
@@ -10,8 +12,6 @@ import numpy as np
 from copy import deepcopy
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
-from pyrsa.data import average_dataset_by
-from pyrsa.util.matrix import pairwise_contrast_sparse
 
 
 def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
@@ -19,7 +19,7 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
                         prior_lambda=1, prior_weight=0.1,
                         weighting='number', enforce_same=False):
     """
-    calculates a RDM from an input dataset for unbalanced datasets
+    calculate a RDM from an input dataset for unbalanced datasets.
 
     Args:
         dataset (pyrsa.data.dataset.DatasetBase):
@@ -80,7 +80,7 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
                             dataset, descriptor, i_des, j_des,
                             method=method,
                             noise=noise, weighting=weighting,
-                            prior_lambda=prior_lambda, 
+                            prior_lambda=prior_lambda,
                             prior_weight=prior_weight,
                             cv_descriptor=cv_descriptor,
                             enforce_same=enforce_same)
@@ -105,7 +105,6 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
         rdm.pattern_descriptors[descriptor] = unique_cond
         rdm.rdm_descriptors['weights'] = [weights]
     return rdm
-
 
 
 def _check_noise(noise, n_channel):
@@ -151,12 +150,13 @@ def calc_one_distance(dataset, descriptor, i_des, j_des, method='euclidean',
         j_des : descriptor value
             the value of the second condition
         noise : numpy.ndarray (n_channels x n_channels), optional
-            the covariance or precision matrix over channels 
+            the covariance or precision matrix over channels
             necessary for calculation of mahalanobis distances
 
     Returns:
         (np.ndarray, np.ndarray) : (value, weight)
-        value are the dissimilarities 
+            value are the dissimilarities
+            weight is the weight for the samples
 
     """
     data_i = dataset.subset_obs(descriptor, i_des)
@@ -203,12 +203,13 @@ def calc_one_distance_cv(dataset, descriptor, i_des, j_des, method='euclidean',
         j_des : descriptor value
             the value of the second condition
         noise : numpy.ndarray (n_channels x n_channels), optional
-            the covariance or precision matrix over channels 
+            the covariance or precision matrix over channels
             necessary for calculation of mahalanobis distances
 
     Returns:
         (np.ndarray, np.ndarray) : (value, weight)
-        value are the dissimilarities 
+            value is the dissimilarity
+            weight is the weight of the samples
 
     """
     data_i = dataset.subset_obs(descriptor, i_des)
@@ -222,27 +223,27 @@ def calc_one_distance_cv(dataset, descriptor, i_des, j_des, method='euclidean',
                     if cv_descriptor is None:
                         accepted = True
                     else:
-                        if (data_i.obs_descriptors[cv_descriptor][i] \
-                            == data_i.obs_descriptors[cv_descriptor][k]):
+                        if (data_i.obs_descriptors[cv_descriptor][i]
+                                == data_i.obs_descriptors[cv_descriptor][k]):
                             accepted = False
-                        elif (data_j.obs_descriptors[cv_descriptor][j] \
-                            == data_j.obs_descriptors[cv_descriptor][l]):
+                        elif (data_j.obs_descriptors[cv_descriptor][j]
+                              == data_j.obs_descriptors[cv_descriptor][l]):
                             accepted = False
-                        elif (data_i.obs_descriptors[cv_descriptor][i] \
-                            == data_j.obs_descriptors[cv_descriptor][l]):
+                        elif (data_i.obs_descriptors[cv_descriptor][i]
+                              == data_j.obs_descriptors[cv_descriptor][l]):
                             accepted = False
-                        elif (data_j.obs_descriptors[cv_descriptor][j] \
-                            == data_i.obs_descriptors[cv_descriptor][k]):
+                        elif (data_j.obs_descriptors[cv_descriptor][j]
+                              == data_i.obs_descriptors[cv_descriptor][k]):
                             accepted = False
                         else:
                             accepted = True
                         if enforce_same:
-                            if (data_i.obs_descriptors[cv_descriptor][i] \
+                            if (data_i.obs_descriptors[cv_descriptor][i]
                                 != data_j.obs_descriptors[cv_descriptor][j]):
-                                accepted=False
-                            if (data_i.obs_descriptors[cv_descriptor][k] \
+                                accepted = False
+                            if (data_i.obs_descriptors[cv_descriptor][k]
                                 != data_j.obs_descriptors[cv_descriptor][l]):
-                                accepted=False
+                                accepted = False
                     if accepted:
                         vec_i = data_i.measurements[i]
                         vec_j = data_j.measurements[j]
@@ -286,7 +287,7 @@ def dissimilarity(vec_i, vec_j, method, noise=None,
         norm_i = np.sum(vec_i ** 2)
         norm_j = np.sum(vec_j ** 2)
         if (norm_i) > 0 and (norm_j > 0):
-            dissim = 1 - (np.sum(vec_i * vec_j) 
+            dissim = 1 - (np.sum(vec_i * vec_j)
                           / np.sqrt(norm_i) / np.sqrt(norm_j))
         else:
             dissim = 1
@@ -313,8 +314,7 @@ def dissimilarity(vec_i, vec_j, method, noise=None,
 
 def dissimilarity_cv(vec_i, vec_j, vec_k, vec_l, method, noise=None,
                      prior_lambda=1, prior_weight=0.1):
-    """ helper function for crossvalidated distances 
-    """
+    """ helper function for crossvalidated distances """
     if method == 'crossnobis':
         if noise is None:
             diff = vec_i - vec_j
@@ -337,7 +337,7 @@ def dissimilarity_cv(vec_i, vec_j, vec_k, vec_l, method, noise=None,
         diff2 = vec_k - vec_l
         diff_log = np.log(vec_i) - np.log(vec_j)
         diff_log2 = np.log(vec_k) - np.log(vec_l)
-        dissim = np.sum(diff * diff_log2) + np.sum(diff * diff_log2)
+        dissim = np.sum(diff * diff_log2) + np.sum(diff2 * diff_log)
     else:
         raise ValueError('dissimilarity method not recognized!')
     return dissim
