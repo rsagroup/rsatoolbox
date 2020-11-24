@@ -39,16 +39,25 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
         rdms = []
         for i_dat in range(len(dataset)):
             if noise is None:
-                rdms.append(calc_rdm(dataset[i_dat], method=method,
-                                     descriptor=descriptor))
+                rdms.append(calc_rdm(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor,
+                    cv_descriptor=cv_descriptor,
+                    prior_lambda=prior_lambda, prior_weight=prior_weight))
             elif isinstance(noise, np.ndarray) and noise.ndim == 2:
-                rdms.append(calc_rdm(dataset[i_dat], method=method,
-                                     descriptor=descriptor,
-                                     noise=noise))
+                rdms.append(calc_rdm(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor,
+                    noise=noise,
+                    cv_descriptor=cv_descriptor,
+                    prior_lambda=prior_lambda, prior_weight=prior_weight))
             elif isinstance(noise, Iterable):
-                rdms.append(calc_rdm(dataset[i_dat], method=method,
-                                     descriptor=descriptor,
-                                     noise=noise[i_dat]))
+                rdms.append(calc_rdm(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor,
+                    noise=noise[i_dat],
+                    cv_descriptor=cv_descriptor,
+                    prior_lambda=prior_lambda, prior_weight=prior_weight))
         rdm = concat(rdms)
     else:
         if method == 'euclidean':
