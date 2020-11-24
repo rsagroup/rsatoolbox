@@ -361,7 +361,7 @@ def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
     measurements = (measurements + prior_lambda * prior_weight) \
-        / (prior_lambda * prior_weight)
+        / (1 + prior_weight)
     diff = _calc_pairwise_differences(measurements)
     diff_log = _calc_pairwise_differences(np.log(measurements))
     rdm = np.einsum('ij,ij->i', diff, diff_log) / measurements.shape[1]
@@ -413,10 +413,10 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
         measurements_test, _, _ = average_dataset_by(data_test, descriptor)
         measurements_train = (measurements_train
                               + prior_lambda * prior_weight) \
-            / (prior_lambda * prior_weight)
+            / (1 + prior_weight)
         measurements_test = (measurements_test
                              + prior_lambda * prior_weight) \
-            / (prior_lambda * prior_weight)
+            / (1 + prior_weight)
         diff = _calc_pairwise_differences(measurements_train)
         diff_log = _calc_pairwise_differences(np.log(measurements_test))
         rdm = np.einsum('ij,ij->i', diff, diff_log) \
