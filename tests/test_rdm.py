@@ -283,7 +283,8 @@ class TestRDM(unittest.TestCase):
             pattern_descriptors=dict(conds=conds)
         )
         conds_ordered = ['b', 'a', 'c', 'd']
-        new_order = [conds.index(label) for label in conds_ordered]
+        new_order = [conds.index(cond_idx)
+                     for cond_idx in conds_ordered]
         rdm_reordered = rdm[np.ix_(new_order, new_order)]
         rdms.reorder(new_order)
         assert_array_equal(
