@@ -101,7 +101,7 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
         rdm = RDMs(
             dissimilarities=np.array([rdm]),
             dissimilarity_measure=method,
-            descriptors=dataset.descriptors)
+            rdm_descriptors=deepcopy(dataset.descriptors))
         rdm.pattern_descriptors[descriptor] = unique_cond
         rdm.rdm_descriptors['weights'] = [weights]
     return rdm
