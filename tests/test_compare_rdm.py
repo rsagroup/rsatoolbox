@@ -4,11 +4,8 @@
 """
 
 import unittest
-from unittest.mock import Mock, patch
 import numpy as np
-from numpy.testing import assert_array_almost_equal, assert_array_equal
-from scipy.spatial.distance import pdist, squareform
-import pyrsa.rdm as rsr
+from numpy.testing import assert_array_almost_equal
 import pyrsa as rsa
 
 
