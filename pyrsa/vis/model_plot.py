@@ -250,8 +250,8 @@ def plot_model_comparison(result, sort=False, colors=None,
         error_bars = 'sem'
     if error_bars:
         if error_bars.lower() == 'sem':
-            errorbar_low = np.sqrt(np.diag(variances))
-            errorbar_high = np.sqrt(np.diag(variances))
+            errorbar_low = np.sqrt(np.maximum(np.diag(variances), 0))
+            errorbar_high = np.sqrt(np.maximum(np.diag(variances), 0))
         elif error_bars[0:2].lower() == 'ci':
             if len(error_bars) == 2:
                 CI_percent = 95.0
