@@ -141,7 +141,8 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
             dat_single = dat.convert_to_dataset(time_descriptor)
             rdms.append(calc_rdm(dat_single, method=method,
                                  descriptor=descriptor,noise=noise,
-                                 cv_descriptor=cv_descriptor, prior_lambda=prior_lambda,
+                                 cv_descriptor=cv_descriptor,
+                                 prior_lambda=prior_lambda,
                                  prior_weight=prior_weight))
 
         rdm = concat(rdms)
