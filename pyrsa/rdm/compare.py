@@ -8,6 +8,7 @@ import scipy.stats
 from scipy.stats._stats import _kendall_dis
 from pyrsa.util.matrix import pairwise_contrast_sparse
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
+from pyrsa.util.rdm_utils import _get_n_from_length
 from pyrsa.util.matrix import row_col_indicator_g
 
 
@@ -313,13 +314,13 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
             cosine angle between vectors
 
     """
-    if (sigma_k is not None) or (nan_idx is not None):
+    if (sigma_k is not None):
         cos = _cosine_cov_weighted_slow(
             vector1, vector2, sigma_k=sigma_k, nan_idx=nan_idx)
     else:
         # Compute the extended version of RDM vectors in whitened space
-        vector1_m = _cov_weighting(vector1)
-        vector2_m = _cov_weighting(vector2)
+        vector1_m = _cov_weighting(vector1, nan_idx)
+        vector2_m = _cov_weighting(vector2, nan_idx)
         # compute the inner products v1^T V^-1 v2 for all combinations
         cos = np.einsum('ij,kj->ik', vector1_m, vector2_m)
         # divide by sqrt(v1^T V^-1 v1)
@@ -331,7 +332,7 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
     return cos
 
 
-def _cov_weighting(vector):
+def _cov_weighting(vector, nan_idx):
     """Transforms an array of RDM vectors in to representation
     in which the elements are isotropic. This is a stretched-out
     second moment matrix, with the diagonal elements appended.
@@ -348,10 +349,12 @@ def _cov_weighting(vector):
 
     """
     N, n_dist = vector.shape
-    n_cond = _get_n_from_reduced_vectors(vector)
+    n_cond = _get_n_from_length(nan_idx.shape[0])
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
+    nan_idx_ext = np.concatenate((nan_idx, np.ones(n_cond, np.bool)))
     rowI, colI = row_col_indicator_g(n_cond)
     sumI = rowI + colI
+    sumI = sumI[nan_idx_ext]
     m = vector_w @ sumI / n_cond  # Column and row means
     mm = np.sum(vector_w * 2, axis=1) / (n_cond * n_cond)  # Overall mean
     mm = mm.reshape(-1, 1)
