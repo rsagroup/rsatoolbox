@@ -351,15 +351,25 @@ def _cov_weighting(vector, nan_idx):
     N, n_dist = vector.shape
     n_cond = _get_n_from_length(nan_idx.shape[0])
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
-    nan_idx_ext = np.concatenate((nan_idx, np.ones(n_cond, np.bool)))
     rowI, colI = row_col_indicator_g(n_cond)
     sumI = rowI + colI
-    sumI = sumI[nan_idx_ext]
-    m = vector_w @ sumI / n_cond  # Column and row means
-    mm = np.sum(vector_w * 2, axis=1) / (n_cond * n_cond)  # Overall mean
-    mm = mm.reshape(-1, 1)
-    # subtract the column and row means and add overall mean
-    vector_w = vector_w - m @ sumI.T + mm
+    if np.all(nan_idx):
+        # column and row means
+        m = vector_w @ sumI / n_cond
+        # Overall mean
+        mm = np.sum(vector_w * 2, axis=1, keepdims=True) / (n_cond * n_cond)
+        # subtract the column and row means and add overall mean
+        vector_w = vector_w - m @ sumI.T + mm
+    else:
+        nan_idx_ext = np.concatenate((nan_idx, np.ones(n_cond, np.bool)))
+        sumI = sumI[nan_idx_ext]
+        # get matrix for double centering with missing values:
+        sumI[n_dist:, :] /= 2
+        diag = np.concatenate((np.ones((n_dist, 1)) / 2, np.ones((n_cond, 1))))
+        # one line version much faster here!
+        vector_w = vector_w - (
+            vector_w
+            @ sumI @ np.linalg.inv(sumI.T @ (diag*sumI)) @ (diag * sumI).T)
     # Weight the off-diagnoal terms double
     vector_w[:, :n_dist] = vector_w[:, :n_dist] * np.sqrt(2)
     return vector_w
