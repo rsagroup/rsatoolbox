@@ -314,25 +314,27 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
             cosine angle between vectors
 
     """
-    if (sigma_k is not None):
+    if (sigma_k is not None) and (sigma_k.ndim >= 2) and (nan_idx is not None):
         cos = _cosine_cov_weighted_slow(
             vector1, vector2, sigma_k=sigma_k, nan_idx=nan_idx)
     else:
+        if nan_idx is None:
+            nan_idx = np.ones(vector1[0].shape, np.bool)
         # Compute the extended version of RDM vectors in whitened space
-        vector1_m = _cov_weighting(vector1, nan_idx)
-        vector2_m = _cov_weighting(vector2, nan_idx)
-        # compute the inner products v1^T V^-1 v2 for all combinations
+        vector1_m = _cov_weighting(vector1, nan_idx, sigma_k)
+        vector2_m = _cov_weighting(vector2, nan_idx, sigma_k)
+        # compute the inner products v1^T v2 for all combinations
         cos = np.einsum('ij,kj->ik', vector1_m, vector2_m)
-        # divide by sqrt(v1^T V^-1 v1)
+        # divide by sqrt(v1^T v1)
         cos /= np.sqrt(np.einsum('ij,ij->i', vector1_m,
                                  vector1_m)).reshape((-1, 1))
-        # divide by sqrt(v2^T V^-1 v2)
+        # divide by sqrt(v2^T v2)
         cos /= np.sqrt(np.einsum('ij,ij->i', vector2_m,
                                  vector2_m)).reshape((1, -1))
     return cos
 
 
-def _cov_weighting(vector, nan_idx):
+def _cov_weighting(vector, nan_idx, sigma_k=None):
     """Transforms an array of RDM vectors in to representation
     in which the elements are isotropic. This is a stretched-out
     second moment matrix, with the diagonal elements appended.
@@ -354,6 +356,22 @@ def _cov_weighting(vector, nan_idx):
     rowI, colI = row_col_indicator_g(n_cond)
     sumI = rowI + colI
     if np.all(nan_idx):
+        if sigma_k is not None:
+            if sigma_k.ndim == 1:
+                sigma_k_sqrt = np.sqrt(sigma_k)
+                vector_w /= rowI @ sigma_k_sqrt
+                vector_w /= colI @ sigma_k_sqrt
+            elif sigma_k.ndim == 2:
+                L_sigma_k = np.linalg.inv(np.linalg.cholesky(sigma_k))
+                Gs = np.empty((vector.shape[0], n_cond, n_cond))
+                for i_vec in range(vector.shape[0]):
+                    G = scipy.spatial.distance.squareform(
+                        vector_w[i_vec, :n_dist])
+                    np.fill_diagonal(G, vector_w[i_vec, n_dist:])
+                    Gs[i_vec] = G
+                # These two are the slow lines for this whitening
+                Gs = np.einsum('ij,mjk,lk->mil', L_sigma_k, Gs, L_sigma_k)
+                vector_w = np.einsum('ij,mjk,ik->mi', rowI, Gs, colI)
         # column and row means
         m = vector_w @ sumI / n_cond
         # Overall mean
@@ -363,13 +381,20 @@ def _cov_weighting(vector, nan_idx):
     else:
         nan_idx_ext = np.concatenate((nan_idx, np.ones(n_cond, np.bool)))
         sumI = sumI[nan_idx_ext]
+        if sigma_k is not None:
+            if sigma_k.ndim == 1:
+                sigma_k_sqrt = np.sqrt(sigma_k)
+                vector_w /= rowI[nan_idx_ext] @ sigma_k_sqrt
+                vector_w /= colI[nan_idx_ext] @ sigma_k_sqrt
+            elif sigma_k.ndim == 2:
+                raise ValueError('cannot handle sigma_k and nans')
         # get matrix for double centering with missing values:
         sumI[n_dist:, :] /= 2
         diag = np.concatenate((np.ones((n_dist, 1)) / 2, np.ones((n_cond, 1))))
         # one line version much faster here!
         vector_w = vector_w - (
             vector_w
-            @ sumI @ np.linalg.inv(sumI.T @ (diag*sumI)) @ (diag * sumI).T)
+            @ sumI @ np.linalg.inv(sumI.T @ (diag * sumI)) @ (diag * sumI).T)
     # Weight the off-diagnoal terms double
     vector_w[:, :n_dist] = vector_w[:, :n_dist] * np.sqrt(2)
     return vector_w
