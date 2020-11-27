@@ -780,7 +780,8 @@ class TestCompareRDMNaN(unittest.TestCase):
             dissimilarity_measure='test',
             descriptors=des2
             )
-        self.test_rdm2 = test_rdm2.subsample_pattern('index', [0,1,1,3,4,5])
+        self.test_rdm2 = test_rdm2.subsample_pattern('index',
+                                                     [0, 1, 1, 3, 4, 5])
         dissimilarities3 = np.random.rand(7, 15)
         des2 = {'session': 0, 'subj': 0}
         test_rdm3 = rsa.rdm.RDMs(
@@ -788,7 +789,8 @@ class TestCompareRDMNaN(unittest.TestCase):
             dissimilarity_measure='test',
             descriptors=des2
             )
-        self.test_rdm3 = test_rdm3.subsample_pattern('index', [0,1,1,3,4,5])
+        self.test_rdm3 = test_rdm3.subsample_pattern('index',
+                                                     [0, 1, 1, 3, 4, 5])
 
     def test_compare_cosine(self):
         from pyrsa.rdm.compare import compare_cosine
