@@ -808,6 +808,20 @@ class TestCompareRDMNaN(unittest.TestCase):
                                              sigma_k=np.eye(6))
         assert np.all(result < 1)
 
+    def test_compare_cosine_cov_sk(self):
+        from pyrsa.rdm.compare import compare_cosine_cov_weighted
+        result = compare_cosine_cov_weighted(self.test_rdm1,
+                                             self.test_rdm2,
+                                             sigma_k=None)
+        result_1D = compare_cosine_cov_weighted(self.test_rdm1,
+                                                self.test_rdm2,
+                                                sigma_k=np.ones(6))
+        result_2D = compare_cosine_cov_weighted(self.test_rdm1,
+                                                self.test_rdm2,
+                                                sigma_k=np.eye(6))
+        assert_array_almost_equal(result, result_1D)
+        assert_array_almost_equal(result, result_2D)
+
     def test_cosine_cov_consistency(self):
         from pyrsa.rdm.compare import _cosine_cov_weighted
         from pyrsa.rdm.compare import _cosine_cov_weighted_slow

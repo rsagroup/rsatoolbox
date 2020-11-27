@@ -471,6 +471,9 @@ def _get_v(n_cond, sigma_k):
     c_mat = pairwise_contrast_sparse(np.arange(n_cond))
     if sigma_k is None:
         xi = c_mat @ c_mat.transpose()
+    elif sigma_k.ndim == 1:
+        sigma_k = scipy.sparse.diags(sigma_k)
+        xi = c_mat @ sigma_k @ c_mat.transpose()
     else:
         sigma_k = scipy.sparse.csr_matrix(sigma_k)
         xi = c_mat @ sigma_k @ c_mat.transpose()
