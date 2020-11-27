@@ -356,6 +356,12 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
     rowI, colI = row_col_indicator_g(n_cond)
     sumI = rowI + colI
     if np.all(nan_idx):
+        # column and row means
+        m = vector_w @ sumI / n_cond
+        # Overall mean
+        mm = np.sum(vector_w * 2, axis=1, keepdims=True) / (n_cond * n_cond)
+        # subtract the column and row means and add overall mean
+        vector_w = vector_w - m @ sumI.T + mm
         if sigma_k is not None:
             if sigma_k.ndim == 1:
                 sigma_k_sqrt = np.sqrt(sigma_k)
@@ -372,22 +378,9 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
                 # These two are the slow lines for this whitening
                 Gs = np.einsum('ij,mjk,lk->mil', L_sigma_k, Gs, L_sigma_k)
                 vector_w = np.einsum('ij,mjk,ik->mi', rowI, Gs, colI)
-        # column and row means
-        m = vector_w @ sumI / n_cond
-        # Overall mean
-        mm = np.sum(vector_w * 2, axis=1, keepdims=True) / (n_cond * n_cond)
-        # subtract the column and row means and add overall mean
-        vector_w = vector_w - m @ sumI.T + mm
     else:
         nan_idx_ext = np.concatenate((nan_idx, np.ones(n_cond, np.bool)))
         sumI = sumI[nan_idx_ext]
-        if sigma_k is not None:
-            if sigma_k.ndim == 1:
-                sigma_k_sqrt = np.sqrt(sigma_k)
-                vector_w /= rowI[nan_idx_ext] @ sigma_k_sqrt
-                vector_w /= colI[nan_idx_ext] @ sigma_k_sqrt
-            elif sigma_k.ndim == 2:
-                raise ValueError('cannot handle sigma_k and nans')
         # get matrix for double centering with missing values:
         sumI[n_dist:, :] /= 2
         diag = np.concatenate((np.ones((n_dist, 1)) / 2, np.ones((n_cond, 1))))
@@ -395,6 +388,13 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
         vector_w = vector_w - (
             vector_w
             @ sumI @ np.linalg.inv(sumI.T @ (diag * sumI)) @ (diag * sumI).T)
+        if sigma_k is not None:
+            if sigma_k.ndim == 1:
+                sigma_k_sqrt = np.sqrt(sigma_k)
+                vector_w /= rowI[nan_idx_ext] @ sigma_k_sqrt
+                vector_w /= colI[nan_idx_ext] @ sigma_k_sqrt
+            elif sigma_k.ndim == 2:
+                raise ValueError('cannot handle sigma_k and nans')
     # Weight the off-diagnoal terms double
     vector_w[:, :n_dist] = vector_w[:, :n_dist] * np.sqrt(2)
     return vector_w
