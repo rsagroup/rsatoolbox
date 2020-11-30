@@ -1,0 +1,13 @@
+font.size: 6
+font.style: normal
+axes.grid: True
+axes.titlesize: 7
+axes.titleweight: bold
+axes.labelsize: 7
+axes.labelweight: normal
+grid.color: white
+figure.dpi: 300
+xtick.major.size: 0
+xtick.labelsize: 6
+ytick.labelsize: 6
+ytick.major.size: 0
