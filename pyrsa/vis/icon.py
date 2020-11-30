@@ -337,17 +337,20 @@ class Icon:
                         fontsize=self.font_size, fontname=self.font_name,
                         color=self.font_color)
 
-    def _tick_label(self, x, y, size, offset=7, ax=None, linewidth=None,
+    def _tick_label(self, x, y, size, ax=None, linewidth=None,
             xybox=None, xycoords=None, box_alignment=None,
                 horizontalalignment=None,
-                verticalalignment=None):
+                verticalalignment=None,
+                rotation=None):
 
         """
         uses the icon as a ticklabel at location x
 
         Args:
             x (float)
-                the position of the tick
+                the horizontal position of the tick
+            y (float)
+                the vertical position of the tick
             size (float)
                 scaling the size of the icon
             offset (integer)
@@ -449,7 +452,8 @@ class Icon:
                 zorder=zorder + 0.2,
                 fontsize=self.font_size,
                 fontname=self.font_name,
-                color=self.font_color)
+                color=self.font_color,
+                rotation=rotation)
 
     def x_tick_label(self, x, size, offset, **kwarg):
         """
@@ -466,10 +470,11 @@ class Icon:
                 the axis to put the label on
 
         """
-        self._tick_label(x=x, y=0, size=size, offset=offset, xybox=(0, -offset), xycoords=('data', 'axes fraction'),
+        self._tick_label(x=x, y=0, size=size, xybox=(0, -offset), xycoords=('data', 'axes fraction'),
                 box_alignment=(.5, 1),
                 horizontalalignment='center',
-                verticalalignment='top',
+                verticalalignment='bottom',
+                rotation=90,
                 **kwarg)
 
     def y_tick_label(self, y, size, offset, **kwarg):
@@ -487,10 +492,11 @@ class Icon:
                 the axis to put the label on
 
         """
-        self._tick_label(x=0, y=y, size=size, offset=offset, xybox=(-offset, 0), xycoords=('axes fraction', 'data'),
+        self._tick_label(x=0, y=y, size=size, xybox=(-offset, 0), xycoords=('axes fraction', 'data'),
                 box_alignment=(1, .5),
                 horizontalalignment='right',
                 verticalalignment='center',
+                rotation=0,
                 **kwarg)
 
 
