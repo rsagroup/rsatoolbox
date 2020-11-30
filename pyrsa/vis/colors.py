@@ -104,4 +104,7 @@ def rdm_colormap(n_cols=256, monitor=None):
 
     cols = color_scale(n_cols, anchor_cols, monitor)
 
-    return ListedColormap(cols)
+    cmap = ListedColormap(cols)
+    cmap.set_bad('white')
+
+    return cmap
