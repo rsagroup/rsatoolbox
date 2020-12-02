@@ -267,7 +267,7 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None):
             cosine of the angle between vectors
 
     """
-    n_cond = _get_n_from_reduced_vectors(vector1)
+    n_cond = _get_n_from_reduced_vectors(vector1.shape[1])
     v = _get_v(n_cond, sigma_k)
     # compute V^-1 vector1/2 for all vectors by solving Vx = vector1/2
     vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
@@ -339,7 +339,7 @@ def _cov_weighting(vector):
 
     """
     N, n_dist = vector.shape
-    n_cond = _get_n_from_reduced_vectors(vector)
+    n_cond = _get_n_from_reduced_vectors(vector.shape[1])
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
     rowI, colI = row_col_indicator_g(n_cond)
     sumI = rowI + colI

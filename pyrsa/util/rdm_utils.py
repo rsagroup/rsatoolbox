@@ -9,42 +9,42 @@ import numpy as np
 from scipy.spatial.distance import squareform
 
 
-def batch_to_vectors(x):
+def batch_to_vectors(rdms):
     """converts a *stack* of RDMs in vector or matrix form into vector form
 
     Args:
-        x: stack of RDMs
+        rdms: stack of RDMs
 
     Returns:
-        tuple: **v** (np.ndarray): 2D, vector form of the stack of RDMs
+        tuple: **vectors** (np.ndarray): 2D, vector form of the stack of RDMs
 
         **n_rdm** (int): number of rdms
 
         **n_cond** (int): number of conditions
     """
-    if x.ndim == 2:
-        v = x
-        n_rdm = x.shape[0]
-        n_cond = _get_n_from_reduced_vectors(x)
-    elif x.ndim == 3:
-        m = x
-        n_rdm = x.shape[0]
-        n_cond = x.shape[1]
-        v = np.ndarray((n_rdm, int(n_cond * (n_cond - 1) / 2)))
+    if rdms.ndim == 2:
+        vectors = rdms
+        n_rdm = rdms.shape[0]
+        n_cond = _get_n_from_reduced_vectors(rdms.shape[1])
+    elif rdms.ndim == 3:
+        matrices = rdms
+        n_rdm = rdms.shape[0]
+        n_cond = rdms.shape[1]
+        vectors = np.ndarray((n_rdm, int(n_cond * (n_cond - 1) / 2)))
         for idx in np.arange(n_rdm):
-            v[idx, :] = squareform(m[idx, :, :], checks=False)
-    elif x.ndim == 1:
-        v = np.array([x])
+            vectors[idx, :] = squareform(matrices[idx, :, :], checks=False)
+    elif rdms.ndim == 1:
+        vectors = np.array([rdms])
         n_rdm = 1
-        n_cond = _get_n_from_reduced_vectors(v)
-    return v, n_rdm, n_cond
+        n_cond = _get_n_from_reduced_vectors(vectors.shape[1])
+    return vectors, n_rdm, n_cond
 
 
-def batch_to_matrices(x):
+def batch_to_matrices(rdms):
     """converts a *stack* of RDMs in vector or matrix form into matrix form
 
     Args:
-        **x**: stack of RDMs
+        **rdms**: stack of RDMs
 
     Returns:
         tuple: **v** (np.ndarray): 3D, matrix form of the stack of RDMs
@@ -53,32 +53,32 @@ def batch_to_matrices(x):
 
         **n_cond** (int): number of conditions
     """
-    if x.ndim == 2:
-        v = x
-        n_rdm = x.shape[0]
-        n_cond = _get_n_from_reduced_vectors(x)
-        m = np.ndarray((n_rdm, n_cond, n_cond))
+    if rdms.ndim == 2:
+        vectors = rdms
+        n_rdm = vectors.shape[0]
+        n_cond = _get_n_from_reduced_vectors(rdms.shape[1])
+        matrices = np.ndarray((n_rdm, n_cond, n_cond))
         for idx in np.arange(n_rdm):
-            m[idx, :, :] = squareform(v[idx, :])
-    elif x.ndim == 3:
-        m = x
-        n_rdm = x.shape[0]
-        n_cond = x.shape[1]
-    return m, n_rdm, n_cond
+            matrices[idx, :, :] = squareform(vectors[idx, :])
+    elif rdms.ndim == 3:
+        matrices = rdms
+        n_rdm = rdms.shape[0]
+        n_cond = rdms.shape[1]
+    return matrices, n_rdm, n_cond
 
 
-def _get_n_from_reduced_vectors(x):
+def _get_n_from_reduced_vectors(shape):
     """
     calculates the size of the RDM from the vector representation
 
     Args:
-        **x**(np.ndarray): stack of RDM vectors (2D)
+        **shape**(int): length of the vector representation
 
     Returns:
-        int: n: size of the RDM
+        int: n: number of conditions
 
     """
-    return int(np.ceil(np.sqrt(x.shape[1] * 2)))
+    return int(np.ceil(np.sqrt(shape * 2)))
 
 
 def add_pattern_index(rdms, pattern_descriptor):

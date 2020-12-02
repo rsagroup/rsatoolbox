@@ -27,6 +27,7 @@ from sklearn.isotonic import IsotonicRegression
 from scipy.spatial.distance import squareform
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
 
+
 def weight_to_matrices(x):
     """converts a *stack* of weights in vector or matrix form into matrix form
 
@@ -39,7 +40,7 @@ def weight_to_matrices(x):
     if x.ndim == 2:
         v = x
         n_rdm = x.shape[0]
-        n_cond = _get_n_from_reduced_vectors(x)
+        n_cond = _get_n_from_reduced_vectors(x.shape[1])
         m = np.ndarray((n_rdm, n_cond, n_cond))
         for idx in np.arange(n_rdm):
             m[idx, :, :] = squareform(v[idx, :])
