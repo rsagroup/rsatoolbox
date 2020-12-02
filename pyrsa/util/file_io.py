@@ -4,10 +4,10 @@
 saving to and reading from files
 """
 
-import h5py
-import pickle
-import numpy as np
 import os
+import pickle
+import h5py
+import numpy as np
 
 
 def write_dict_hdf5(file, dictionary):

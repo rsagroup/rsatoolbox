@@ -7,12 +7,12 @@
 
 @author: baihan
 
-Notice: 
+Notice:
 
-The functions of MDS in this module are modified from 
+The functions of MDS in this module are modified from
 the Python package scikit-learn, originally written by
-Nelle Varoquaux <nelle.varoquaux@gmail.com> under BSD 
-licence <https://en.wikipedia.org/wiki/BSD_licenses>. 
+Nelle Varoquaux <nelle.varoquaux@gmail.com> under BSD
+licence <https://en.wikipedia.org/wiki/BSD_licenses>.
 We modified the MDS function to include an additional
 functionality of having an important matrix as an input.
 """
@@ -423,6 +423,7 @@ class Weighted_MDS(BaseEstimator):
     hypothesis" Kruskal, J. Psychometrika, 29, (1964)
 
     """
+
     def __init__(self, n_components=2, *, metric=True, n_init=4,
                  max_iter=300, verbose=0, eps=1e-3, n_jobs=None,
                  random_state=None, dissimilarity="euclidean"):

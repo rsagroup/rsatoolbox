@@ -4,11 +4,11 @@
 Inference module utilities
 """
 
+from collections.abc import Iterable
 import numpy as np
 from scipy.stats import rankdata
 from pyrsa.model import Model
 from pyrsa.rdm import RDMs
-from collections.abc import Iterable
 
 
 def input_check_model(model, theta=None, fitter=None, N=1):
@@ -54,9 +54,9 @@ def input_check_model(model, theta=None, fitter=None, N=1):
         else:
             assert len(fitter) == len(model), 'if fitters are passed ' \
                 + 'there should be as many as models'
-        for k in range(len(model)):
+        for k, mod in enumerate(model):
             if fitter[k] is None:
-                fitter[k] = model[k].default_fitter
+                fitter[k] = mod.default_fitter
     else:
         raise ValueError('model should be a pyrsa.model.Model or a list of'
                          + ' such objects')
@@ -100,13 +100,13 @@ def pool_rdm(rdms, method='cosine', sigma_k=None):
         rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
         rdm_vec = _nan_mean(rdm_vec)
         rdm_vec = rdm_vec - np.nanmin(rdm_vec)
-    elif method == 'spearman' or method == 'rho-a':
+    elif method in ['spearman', 'rho-a']:
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'rho-a':
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
-    elif method == 'kendall' or method == 'tau-b':
+    elif method in ['kendall', 'tau-b']:
         Warning('Noise ceiling for tau based on averaged ranks!')
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
@@ -183,7 +183,8 @@ def pair_tests(evaluations):
                    np.sum(evaluations[:, i_model] == evaluations[:, j_model]))
             proportions[j_model, i_model] = proportions[i_model, j_model]
     proportions = np.minimum(proportions, 1 - proportions) * 2
-    proportions = (len(evaluations) - 1) / len(evaluations) * proportions \
-         + 1 / len(evaluations)
+    proportions = (
+        len(evaluations) - 1) / len(evaluations) * proportions \
+        + 1 / len(evaluations)
     np.fill_diagonal(proportions, 1)
     return proportions

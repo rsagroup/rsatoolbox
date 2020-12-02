@@ -13,8 +13,8 @@ def extract_dict(dictionary, indices):
     """extract key-value pairs with values given indexes.
     """
     extracted_dictionary = dictionary.copy()
-    for k, v in dictionary.items():
-        extracted_dictionary[k] = np.array(v)[indices]
+    for k, value in dictionary.items():
+        extracted_dictionary[k] = np.array(value)[indices]
     return extracted_dictionary
 
 
