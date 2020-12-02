@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Model family graph visualization
+TODO:
+1. labeling option binary or indicators
+2.
 """
 import bisect
 import operator as op
@@ -9,7 +12,7 @@ from functools import reduce
 import numpy as np
 #import plotly.graph_objects as go
 import networkx as nx
-
+import matplotlib.pyplot as plt
 
 def ncr(n, r):
     """Calculates n choose r nCr.
@@ -67,7 +70,7 @@ def get_node_position(index, num_models):
     pos = x,y
     return pos
 
-def show_family_graph(model_family, results, node_property="color"):
+def show_family_graph(model_family, results, node_labels='presence', node_property="color", method='corr', **kwargs):
     """visualizes the model family results in a graph
 
     Parameters
@@ -96,9 +99,16 @@ def show_family_graph(model_family, results, node_property="color"):
     min_edge_width = 0.05
     node_area_multiplier = 1000
     edge_width_multiiplier = 4
-
+    labeldict = {}
     for index, family_member_id in enumerate(model_family.family_list):
         node_id = ''.join(map(str, family_member_id))
+        if node_labels == 'presence':
+            labeldict[node_id] = node_id
+        elif node_labels == 'binary':
+            binary_id = list(model_family.model_indices[index].astype(np.uint8))
+            binary_id = ''.join(map(str, binary_id))
+            labeldict[node_id] = binary_id
+
         node_area = min_node_area + node_area_multiplier*(scores_model_family[index]/scores_model_family.max())
         node_color = scores_model_family[index]
         node_sizes.append(node_area)
@@ -123,10 +133,17 @@ def show_family_graph(model_family, results, node_property="color"):
     edges = G.edges()
     colors = [G[u][v]['color'] for u, v in edges]
     weights = [G[u][v]['weight'] for u, v in edges]
-
+    fig, ax = plt.subplots()
     if node_property == 'color':
-        nx.draw_networkx(G, with_labels=True, pos=pos, node_color=node_colors, \
-                        edges=edges, edge_color=colors, width=weights)
+        nx.draw_networkx(G, labels=labeldict, with_labels=True, pos=pos, node_color=node_colors, \
+                        edges=edges, edge_color=colors, width=weights,node_size=800, **kwargs)
+        vmin = min(node_colors)
+        vmax = max(node_colors)
+        sm = plt.cm.ScalarMappable(norm=plt.Normalize(vmin = vmin, vmax=vmax),**kwargs)
+        sm._A = []
+        cbar = plt.colorbar(sm)
+        cbar.set_label(method, rotation=270, size='x-large', labelpad=20)
+        plt.show()
     elif node_property == 'area':
-        nx.draw_networkx(G, with_labels=True, pos=pos, node_size=node_sizes, \
-                        edges=edges, edge_color=colors, width=weights)
+        nx.draw_networkx(G, labels=labeldict, with_labels=True, pos=pos, node_size=node_sizes, \
+                        edges=edges, edge_color=colors, width=weights,**kwargs)
