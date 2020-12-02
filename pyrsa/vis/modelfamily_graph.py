@@ -133,7 +133,6 @@ def show_family_graph(model_family, results, node_labels='presence', node_proper
     edges = G.edges()
     colors = [G[u][v]['color'] for u, v in edges]
     weights = [G[u][v]['weight'] for u, v in edges]
-    fig, ax = plt.subplots()
     if node_property == 'color':
         nx.draw_networkx(G, labels=labeldict, with_labels=True, pos=pos, node_color=node_colors, \
                         edges=edges, edge_color=colors, width=weights,node_size=800, **kwargs)
