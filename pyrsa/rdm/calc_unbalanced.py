@@ -8,6 +8,7 @@ channels or numbers of measurements per dissimilarity
 """
 
 from collections.abc import Iterable
+import warnings
 import numpy as np
 from copy import deepcopy
 from pyrsa.rdm.rdms import RDMs
@@ -74,43 +75,32 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
         weights = []
         self_sim = []
         if method == 'crossnobis' or method == 'poisson_cv':
-            unique_cond = set(dataset.obs_descriptors[descriptor])
-            for i, i_des in enumerate(unique_cond):
-                v, _ = calc_one_distance_cv(
-                    dataset, descriptor, i_des, i_des,
-                    method=method,
-                    noise=noise, weighting=weighting,
-                    prior_lambda=prior_lambda,
-                    prior_weight=prior_weight,
-                    cv_descriptor=cv_descriptor,
-                    enforce_same=enforce_same)
-                self_sim.append(v)
-                for j, j_des in enumerate(unique_cond):
-                    if j > i:
-                        v, w = calc_one_distance_cv(
-                            dataset, descriptor, i_des, j_des,
-                            method=method,
-                            noise=noise, weighting=weighting,
-                            prior_lambda=prior_lambda,
-                            prior_weight=prior_weight,
-                            cv_descriptor=cv_descriptor,
-                            enforce_same=enforce_same)
-                        rdm.append(v)
-                        weights.append(w)
-        else:
-            unique_cond = set(dataset.obs_descriptors[descriptor])
-            for i, i_des in enumerate(unique_cond):
-                v, _ = calc_one_similarity(
-                    dataset, descriptor, i_des, i_des, method=method,
-                    noise=noise, weighting=weighting)
-                self_sim.append(v)
-                for j, j_des in enumerate(unique_cond):
-                    if j > i:
-                        v, w = calc_one_similarity(
-                            dataset, descriptor, i_des, j_des, method=method,
-                            noise=noise, weighting=weighting)
-                        rdm.append(v)
-                        weights.append(w)
+            if cv_descriptor is None:
+                if 'index' not in dataset.obs_descriptors.keys():
+                    dataset.obs_descriptors['index'] = np.arange(dataset.n_obs)
+                cv_descriptor = 'index'
+                warnings.warn('cv_descriptor not set, using index for now.'
+                              + 'This will only remove self-similarities.'
+                              + 'Effectively this assumes independent trials')
+        unique_cond = set(dataset.obs_descriptors[descriptor])
+        for i, i_des in enumerate(unique_cond):
+            v, _ = calc_one_similarity(
+                dataset, descriptor, i_des, i_des, method=method,
+                noise=noise, weighting=weighting,
+                prior_lambda=prior_lambda,
+                prior_weight=prior_weight,
+                cv_descriptor=cv_descriptor)
+            self_sim.append(v)
+            for j, j_des in enumerate(unique_cond):
+                if j > i:
+                    v, w = calc_one_similarity(
+                        dataset, descriptor, i_des, j_des, method=method,
+                        noise=noise, weighting=weighting,
+                        prior_lambda=prior_lambda,
+                        prior_weight=prior_weight,
+                        cv_descriptor=cv_descriptor)
+                    rdm.append(v)
+                    weights.append(w)
         row_idx, col_idx = row_col_indicator_rdm(len(unique_cond))
         self_sim = np.array(self_sim)
         rdm = np.array(rdm)
@@ -151,68 +141,12 @@ def _check_noise(noise, n_channel):
     return noise
 
 
-def calc_one_distance(dataset, descriptor, i_des, j_des, method='euclidean',
-                      noise=None, weighting='number',
-                      prior_lambda=1, prior_weight=0.1):
+def calc_one_similarity_small(
+        dataset, descriptor, i_des, j_des, method='euclidean',
+        noise=None, weighting='number',
+        prior_lambda=1, prior_weight=0.1):
     """
-    finds all pairs of vectors to be compared and calculates one distance
-
-    Args:
-        dataset (pyrsa.data.DatasetBase):
-            dataset to extract from
-        descriptor (String):
-            key for the descriptor defining the conditions
-        i_des : descriptor value
-            the value of the first condition
-        j_des : descriptor value
-            the value of the second condition
-        noise : numpy.ndarray (n_channels x n_channels), optional
-            the covariance or precision matrix over channels
-            necessary for calculation of mahalanobis distances
-
-    Returns:
-        (np.ndarray, np.ndarray) : (value, weight)
-            value are the dissimilarities
-            weight is the weight for the samples
-
-    """
-    data_i = dataset.subset_obs(descriptor, i_des)
-    data_j = dataset.subset_obs(descriptor, j_des)
-    values = []
-    weights = []
-    for vec_i in data_i.measurements:
-        for vec_j in data_j.measurements:
-            finite = np.isfinite(vec_i) & np.isfinite(vec_j)
-            if noise is not None:
-                noise_small = noise[finite][:, finite]
-            if np.any(finite):
-                if weighting == 'number':
-                    weight = np.sum(finite)
-                elif weighting == 'equal':
-                    weight = 1
-                dissim = dissimilarity(
-                    vec_i[finite], vec_j[finite], method,
-                    prior_lambda=prior_lambda, prior_weight=prior_weight,
-                    noise=noise_small) \
-                    / np.sum(finite)
-                values.append(dissim)
-                weights.append(weight)
-    weights = np.array(weights)
-    values = np.array(values)
-    if np.sum(weights) > 0:
-        weight = np.sum(weights)
-        value = np.sum(weights * values) / weight
-    else:
-        value = np.nan
-        weight = 0
-    return value, weight
-
-
-def calc_one_similarity(dataset, descriptor, i_des, j_des, method='euclidean',
-                        noise=None, weighting='number',
-                        prior_lambda=1, prior_weight=0.1):
-    """
-    finds all pairs of vectors to be compared and calculates one distance
+    finds all pairs of vectors to be compared and calculates one similarity
 
     Args:
         dataset (pyrsa.data.DatasetBase):
@@ -267,10 +201,81 @@ def calc_one_similarity(dataset, descriptor, i_des, j_des, method='euclidean',
     return value, weight
 
 
-def calc_one_distance_cv(dataset, descriptor, i_des, j_des, method='euclidean',
-                         noise=None, weighting='number',
-                         prior_lambda=1, prior_weight=0.1,
-                         cv_descriptor=None, enforce_same=False):
+def calc_one_similarity(dataset, descriptor, i_des, j_des,
+                        method='euclidean',
+                        noise=None, weighting='number',
+                        prior_lambda=1, prior_weight=0.1,
+                        cv_descriptor=None):
+    """
+    finds all pairs of vectors to be compared and calculates one distance
+
+    Args:
+        dataset (pyrsa.data.DatasetBase):
+            dataset to extract from
+        descriptor (String):
+            key for the descriptor defining the conditions
+        i_des : descriptor value
+            the value of the first condition
+        j_des : descriptor value
+            the value of the second condition
+        noise : numpy.ndarray (n_channels x n_channels), optional
+            the covariance or precision matrix over channels
+            necessary for calculation of mahalanobis distances
+
+    Returns:
+        (np.ndarray, np.ndarray) : (value, weight)
+            value is the dissimilarity
+            weight is the weight of the samples
+
+    """
+    data_i = dataset.subset_obs(descriptor, i_des)
+    data_j = dataset.subset_obs(descriptor, j_des)
+    values = []
+    weights = []
+    for i in range(data_i.n_obs):
+        for j in range(data_j.n_obs):
+            if cv_descriptor is None:
+                accepted = True
+            else:
+                if (data_i.obs_descriptors[cv_descriptor][i]
+                        == data_j.obs_descriptors[cv_descriptor][j]):
+                    accepted = False
+                else:
+                    accepted = True
+            if accepted:
+                vec_i = data_i.measurements[i]
+                vec_j = data_j.measurements[j]
+                finite = np.isfinite(vec_i) & np.isfinite(vec_j)
+                if np.any(finite):
+                    if weighting == 'number':
+                        weight = np.sum(finite)
+                    elif weighting == 'equal':
+                        weight = 1
+                    sim = similarity(
+                        vec_i[finite], vec_j[finite],
+                        method,
+                        noise=noise,
+                        prior_lambda=prior_lambda,
+                        prior_weight=prior_weight) \
+                        / np.sum(finite)
+                    values.append(sim)
+                    weights.append(weight)
+    weights = np.array(weights)
+    values = np.array(values)
+    if np.sum(weights) > 0:
+        weight = np.sum(weights)
+        value = np.sum(weights * values) / weight
+    else:
+        value = np.nan
+        weight = 0
+    return value, weight
+
+
+def calc_one_dissimilarity_cv(dataset, descriptor, i_des, j_des,
+                              method='euclidean',
+                              noise=None, weighting='number',
+                              prior_lambda=1, prior_weight=0.1,
+                              cv_descriptor=None, enforce_same=False):
     """
     finds all pairs of vectors to be compared and calculates one distance
 
@@ -407,19 +412,19 @@ def similarity(vec_i, vec_j, method, noise=None,
                    / np.sqrt(norm_i) / np.sqrt(norm_j))
         else:
             sim = 1
-        sim = sim * len(vec_i)
-    elif method == 'mahalanobis':
+        sim = sim * len(vec_i) / 2
+    elif method in ['mahalanobis', 'crossnobis']:
         if noise is None:
             sim = similarity(vec_i, vec_j, 'euclidean')
         else:
             vec2 = (noise @ vec_j.T).T
             sim = np.sum(vec_i * vec2)
-    elif method == 'poisson':
+    elif method in ['poisson', 'poisson_cv']:
         vec_i = (vec_i + prior_lambda * prior_weight) \
             / (1 + prior_weight)
         vec_j = (vec_j + prior_lambda * prior_weight) \
             / (1 + prior_weight)
-        sim = np.sum(vec_j * np.log(vec_i) + vec_i * np.log(vec_j))
+        sim = np.sum((vec_j - vec_i) * (np.log(vec_i) - np.log(vec_j))) / 2
     else:
         raise ValueError('dissimilarity method not recognized!')
     return sim
