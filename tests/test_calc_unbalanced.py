@@ -54,12 +54,13 @@ class TestCalcRDM(unittest.TestCase):
             channel_descriptors=dict(feats=['v1', 'v2', 'v3'])
         )
 
-
     def test_calc_euclid_nconds(self):
         d = self.test_data
-        rdm = rsr.calc_rdm_unbalanced([d, d], descriptor='conds',
-                           method='euclidean')
+        rdm = rsr.calc_rdm_unbalanced(
+            [d, d], descriptor='conds',
+            method='euclidean')
         assert rdm.n_cond == 6
+        assert rdm.n_rdm == 2
 
     @patch('pyrsa.rdm.calc._parse_input')
     def test_calc_euclid_as_scipy(self, _parse_input):
@@ -115,6 +116,16 @@ class TestCalcRDM(unittest.TestCase):
             self.test_data, descriptor='conds',
             method='mahalanobis')
         assert rdm.n_cond == 6
+        rdm_bal = rsr.calc_rdm_unbalanced(
+            self.test_data, descriptor='conds',
+            method='mahalanobis')
+        rdm_check = rsr.calc_rdm(
+            self.test_data, descriptor='conds',
+            method='mahalanobis')
+        assert_array_almost_equal(
+            rdm_bal.dissimilarities.flatten(),
+            rdm_check.dissimilarities.flatten()
+            )
 
     def test_calc_crossnobis(self):
         rdm = rsr.calc_rdm_unbalanced(self.test_data,
@@ -122,24 +133,51 @@ class TestCalcRDM(unittest.TestCase):
                                       cv_descriptor='fold',
                                       method='crossnobis')
         assert rdm.n_cond == 6
+        rdm_bal = rsr.calc_rdm_unbalanced(
+            self.test_data, descriptor='conds',
+            cv_descriptor='fold',
+            method='crossnobis')
+        rdm_check = rsr.calc_rdm(
+            self.test_data, descriptor='conds',
+            cv_descriptor='fold',
+            method='crossnobis')
+        assert_array_almost_equal(
+            rdm_bal.dissimilarities.flatten(),
+            rdm_check.dissimilarities.flatten()
+            )
 
-    def test_calc_crossnobis_no_descriptors(self):
-        rdm = rsr.calc_rdm_unbalanced(self.test_data_balanced,
+    def test_calc_crossnobis_no_descriptor(self):
+        rdm = rsr.calc_rdm_unbalanced(self.test_data,
                                       descriptor='conds',
                                       method='crossnobis')
-        assert rdm.n_cond == 5
+        assert rdm.n_cond == 6
 
     def test_calc_crossnobis_noise(self):
         noise = np.random.randn(10, 5)
         noise = np.matmul(noise.T, noise)
-        rdm = rsr.calc_rdm_unbalanced(self.test_data_balanced,
-                                      descriptor='conds',
+        rdm = rsr.calc_rdm_unbalanced(self.test_data,
+                                      descriptor='conds', cv_descriptor='fold',
                                       noise=noise,
                                       method='crossnobis')
-        assert rdm.n_cond == 5
+        assert rdm.n_cond == 6
+        rdm_bal = rsr.calc_rdm_unbalanced(
+            self.test_data_balanced, descriptor='conds',
+            cv_descriptor='fold',
+            noise=noise,
+            method='crossnobis')
+        rdm_check = rsr.calc_rdm(
+            self.test_data_balanced, descriptor='conds',
+            cv_descriptor='fold',
+            noise=noise,
+            method='crossnobis')
+        assert_array_almost_equal(
+            rdm_bal.dissimilarities.flatten(),
+            rdm_check.dissimilarities.flatten()
+            )
 
-
-    def test_calc_poisson_6_conditions(self):
+    def test_calc_poisson(self):
+        """ for the poisson-KL the dissimilarities differ! This is explained
+        in more detail in the demo on this computation"""
         rdm = rsr.calc_rdm_unbalanced(
             self.test_data,
             descriptor='conds',
@@ -165,8 +203,9 @@ class TestCalcRDM(unittest.TestCase):
         self.assertEqual(furthest_pair_index, 2)
 
     def test_calc_poisson_cv(self):
-        rdm = rsr.calc_rdm_unbalanced(self.test_data,
-                           descriptor='conds',
-                           cv_descriptor='fold',
-                           method='poisson_cv')
+        rdm = rsr.calc_rdm_unbalanced(
+            self.test_data,
+            descriptor='conds',
+            cv_descriptor='fold',
+            method='poisson_cv')
         assert rdm.n_cond == 6
