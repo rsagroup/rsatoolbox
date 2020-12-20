@@ -115,16 +115,19 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
         rdms = []
         for i_dat, _ in enumerate(dataset):
             if noise is None:
-                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
-                                     descriptor=descriptor))
+                rdms.append(calc_rdm_movie(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor))
             elif isinstance(noise, np.ndarray) and noise.ndim == 2:
-                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
-                                     descriptor=descriptor,
-                                     noise=noise))
+                rdms.append(calc_rdm_movie(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor,
+                    noise=noise))
             elif isinstance(noise, Iterable):
-                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
-                                     descriptor=descriptor,
-                                     noise=noise[i_dat]))
+                rdms.append(calc_rdm_movie(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor,
+                    noise=noise[i_dat]))
         rdm = concat(rdms)
     else:
         if bins is not None:
@@ -139,7 +142,7 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
         for dat in splited_data:
             dat_single = dat.convert_to_dataset(time_descriptor)
             rdms.append(calc_rdm(dat_single, method=method,
-                                 descriptor=descriptor,noise=noise,
+                                 descriptor=descriptor, noise=noise,
                                  cv_descriptor=cv_descriptor,
                                  prior_lambda=prior_lambda,
                                  prior_weight=prior_weight))
