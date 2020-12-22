@@ -15,7 +15,7 @@ from pyrsa.model import Model
 from pyrsa.util.inference_util import input_check_model
 from pyrsa.util.inference_util import default_k_pattern, default_k_rdm
 from .result import Result
-from .crossvalsets import sets_k_fold
+from .crossvalsets import sets_k_fold, sets_random
 from .noise_ceiling import boot_noise_ceiling
 from .noise_ceiling import cv_noise_ceiling
 
@@ -350,17 +350,43 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
                        random=True, boot_type='both', use_correction=True):
     """evaluates a set of models by k-fold crossvalidation within a bootstrap
 
+    Crossvalidation creates variance in the results for a single bootstrap
+    sample, because different assginments to the training and test group
+    lead to different results. To correct for this, we apply a formula
+    which estimates the variance we expect if we evaluated all possible
+    crossvalidation assignments from n_cv different assignments per bootstrap
+    sample.
+    In our statistical evaluations we saw that many bootstrap samples and
+    few different crossvalidation assignments are optimal to minimize the
+    variance of the variance estimate. Thus, this function by default
+    applies this correction formula and sets n_cv=2, i.e. performs only two
+    different assignments per fold.
+    This function nonetheless performs full crossvalidation schemes, i.e.
+    in every bootstrap sample all crossvalidation folds are evaluated such
+    that each RDM and each condition is in the test set n_cv times. For the
+    even more optimized version which computes only two randomly chosen test
+    sets see bootstrap_cv_random.
+
+    The k_[] parameters control the cross-validation per sample. They give
+    the number of crossvalidation folds to be created along this dimension.
     If a k is set to 1 no crossvalidation is performed over the
     corresponding dimension.
-
-    As especially crossvalidation over patterns/conditions creates
-    variance in the cv result for a single variance the default setting
-    of n_cv=1 inflates the estimated variance. Setting this value
-    higher will decrease this effect at the cost of more computation time.
-
     by default ks are set by pyrsa.util.inference_util.default_k_pattern
     and pyrsa.util.inference_util.default_k_rdm based on the number of
     rdms and patterns provided. the ks are then in the range 2-5.
+
+    Using the []_descriptor inputs you may make the crossvalidation and
+    bootstrap aware of groups of rdms or conditions to be handled en block.
+    Conditions with the same entry will be sampled in or out of the bootstrap
+    together and will be assigned to cross-calidation folds together.
+
+    Using the boot_type argument you may choose the dimension to bootstrap.
+    By default both conditions and RDMs are resampled. You may alternatively
+    choose to resample only one of them by passing 'rdm' or 'pattern'.
+
+    models should be a list of models. data the RDMs object to evaluate against
+    method the method for comparing the predictions and the data. fitter may
+    provide a non-default funcion or list of functions to fit the models.
 
     Args:
         models(pyrsa.model.Model): models to be evaluated
@@ -464,6 +490,157 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         # for n_cv repetitions to infinitely many cv repetitions
         evals_mean = np.mean(np.mean(evaluations[eval_ok], -1), -1)
         evals_1 = np.mean(evaluations[eval_ok], -2)
+        var_mean = np.cov(evals_mean.T)
+        var_1 = []
+        for i in range(n_cv):
+            var_1.append(np.cov(evals_1[:, :, i].T))
+        var_1 = np.mean(np.array(var_1), axis=0)
+        # this is the main formula for the correction:
+        variances = (n_cv * var_mean - var_1) / (n_cv - 1)
+        # for the noise_ceiling we are interested in the covariance,
+        # which should be correct from the mean estimates, as the covariance
+        # of the crossvalidation noise should be 0
+        noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
+        vars_nc = np.cov(np.concatenate([evals_mean.T, noise_ceil_nonan]))
+        noise_ceil_var = vars_nc[:, -2:]
+    else:
+        if use_correction:
+            raise Warning('correction requested, but only one cv run'
+                          + ' per sample requested. This is invalid!'
+                          + ' We do not use the correction for now.')
+        evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
+        noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
+        variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
+        noise_ceil_var = variances[:, -2:]
+        variances = variances[:-2, :-2]
+    result = Result(models, evaluations, method=method,
+                    cv_method=cv_method, noise_ceiling=noise_ceil,
+                    variances=variances, dof=dof,
+                    noise_ceil_var=noise_ceil_var)
+    return result
+
+
+def bootstrap_cv_random(models, data, method='cosine', fitter=None,
+                        n_pattern=None, n_rdm=None, N=1000, n_cv=2,
+                        pattern_descriptor='index', rdm_descriptor='index',
+                        random=True, boot_type='both', use_correction=True):
+    """evaluates a set of models by a evaluating a few random crossvalidation
+    folds per bootstrap.
+
+    If a k is set to 1 no crossvalidation is performed over the
+    corresponding dimension.
+
+    As especially crossvalidation over patterns/conditions creates
+    variance in the cv result for a single variance the default setting
+    of n_cv=1 inflates the estimated variance. Setting this value
+    higher will decrease this effect at the cost of more computation time.
+
+    by default ks are set by pyrsa.util.inference_util.default_k_pattern
+    and pyrsa.util.inference_util.default_k_rdm based on the number of
+    rdms and patterns provided. the ks are then in the range 2-5.
+
+    Args:
+        models(pyrsa.model.Model): models to be evaluated
+        data(pyrsa.rdm.RDMs): RDM data to use
+        method(string): comparison method to use
+        fitter(function): fitting method for models
+        k_pattern(int): #folds over patterns
+        k_rdm(int): #folds over rdms
+        N(int): number of bootstrap samples (default: 1000)
+        n_cv(int) : number of crossvalidation runs per sample (default: 1)
+        pattern_descriptor(string): descriptor to group patterns
+        rdm_descriptor(string): descriptor to group rdms
+        random(bool): randomize group assignments (default: True)
+        boot_type(String): which dimension to bootstrap over (default: 'both')
+            alternatives: 'rdm', 'pattern'
+        use_correction(bool): switch for the correction for the
+            variance caused by crossvalidation (default: True)
+
+    Returns:
+        numpy.ndarray: matrix of evaluations (N x k)
+
+    """
+    if n_pattern is None:
+        n_pattern_all = len(np.unique(data.pattern_descriptors[
+            pattern_descriptor]))
+        k_pattern = default_k_pattern((1 - 1 / np.exp(1)) * n_pattern_all)
+        n_pattern = int(np.floor(n_pattern_all / k_pattern))
+    if n_rdm is None:
+        n_rdm_all = len(np.unique(data.rdm_descriptors[
+            rdm_descriptor]))
+        k_rdm = default_k_rdm((1 - 1 / np.exp(1)) * n_rdm_all)
+        n_rdm = int(np.floor(n_rdm_all / k_rdm))
+    if isinstance(models, Model):
+        models = [models]
+    evaluations = np.zeros((N, len(models), n_cv))
+    noise_ceil = np.zeros((2, N, n_cv))
+    for i_sample in tqdm.trange(N):
+        if boot_type == 'both':
+            sample, rdm_idx, pattern_idx = bootstrap_sample(
+                data,
+                rdm_descriptor=rdm_descriptor,
+                pattern_descriptor=pattern_descriptor)
+        elif boot_type == 'pattern':
+            sample, pattern_idx = bootstrap_sample_pattern(
+                data,
+                pattern_descriptor=pattern_descriptor)
+            rdm_idx = np.unique(data.rdm_descriptors[rdm_descriptor])
+        elif boot_type == 'rdm':
+            sample, rdm_idx = bootstrap_sample_rdm(
+                data,
+                rdm_descriptor=rdm_descriptor)
+            pattern_idx = np.unique(
+                data.pattern_descriptors[pattern_descriptor])
+        else:
+            raise ValueError('boot_type not understood')
+        if len(np.unique(rdm_idx)) > n_rdm \
+           and len(np.unique(pattern_idx)) >= 3 + n_pattern:
+            train_set, test_set, ceil_set = sets_random(
+                sample,
+                pattern_descriptor=pattern_descriptor,
+                rdm_descriptor=rdm_descriptor,
+                n_pattern=n_pattern, n_rdm=n_rdm, n_cv=n_cv)
+            if n_rdm > 0 or n_pattern > 0:
+                nc = cv_noise_ceiling(
+                    sample, ceil_set, test_set,
+                    method=method,
+                    pattern_descriptor=pattern_descriptor)
+            else:
+                nc = boot_noise_ceiling(
+                    sample,
+                    method=method,
+                    rdm_descriptor=rdm_descriptor)
+            noise_ceil[:, i_sample] = nc
+            for idx in range(len(test_set)):
+                test_set[idx][1] = _concat_sampling(pattern_idx,
+                                                    test_set[idx][1])
+                train_set[idx][1] = _concat_sampling(pattern_idx,
+                                                     train_set[idx][1])
+            cv_result = crossval(
+                models, sample,
+                train_set, test_set,
+                method=method, fitter=fitter,
+                pattern_descriptor=pattern_descriptor,
+                calc_noise_ceil=False)
+            evaluations[i_sample, :, :] = cv_result.evaluations[0]
+        else:  # sample does not allow desired crossvalidation
+            evaluations[i_sample, :, :] = np.nan
+            noise_ceil[:, i_sample] = np.nan
+    if boot_type == 'both':
+        cv_method = 'bootstrap_crossval'
+        dof = min(data.n_rdm, data.n_cond) - 1
+    elif boot_type == 'pattern':
+        cv_method = 'bootstrap_crossval_pattern'
+        dof = data.n_cond - 1
+    elif boot_type == 'rdm':
+        cv_method = 'bootstrap_crossval_rdm'
+        dof = data.n_rdm - 1
+    eval_ok = ~np.isnan(evaluations[:, 0, 0])
+    if use_correction and n_cv > 1:
+        # we essentially project from the two points for 1 repetition and
+        # for n_cv repetitions to infinitely many cv repetitions
+        evals_mean = np.mean(evaluations[eval_ok], -1)
+        evals_1 = evaluations[eval_ok]
         var_mean = np.cov(evals_mean.T)
         var_1 = []
         for i in range(n_cv):
