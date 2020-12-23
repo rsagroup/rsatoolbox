@@ -438,7 +438,7 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
     std_var = np.array([np.diag(i) for i in std_var])
     std_relative = std_mean / true_std
     std_std = np.sqrt(std_var)
-    snr = (np.var(np.mean(means,axis=1), axis=1)
+    snr = (np.var(np.mean(means, axis=1), axis=1)
            / np.mean(np.var(means, axis=1), axis=1))
     # seaborn based plotting
     # create full data table
@@ -504,8 +504,8 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
 
         # main text version
         g1_m = sns.catplot(data=data_df, legend=False,
-                         x='n_stim', y='log-snr', hue='n_subj',
-                         kind='point', ci='sd', palette='Blues_d', dodge=.2)
+                           x='n_stim', y='log-snr', hue='n_subj',
+                           kind='point', ci='sd', palette='Blues_d', dodge=.2)
         g1_m.add_legend(
             frameon=False, title='# of subjects',
             bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -517,8 +517,8 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         sns.despine(trim=True, offset=5)
 
         g2_m = sns.catplot(data=data_df, legend=False,
-                         x='n_subj', y='log-snr', hue='n_stim',
-                         kind='point', ci='sd', palette='Greens_d', dodge=.2)
+                           x='n_subj', y='log-snr', hue='n_stim',
+                           kind='point', ci='sd', palette='Greens_d', dodge=.2)
         g2_m.add_legend(
             frameon=False, title='# of stimuli',
             bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -530,8 +530,8 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         sns.despine(trim=True, offset=5)
 
         g3_m = sns.catplot(data=data_df, legend=False,
-                         x='n_subj', y='log-snr', hue='n_rep',
-                         kind='point', ci='sd', palette='Reds_d', dodge=.2)
+                           x='n_subj', y='log-snr', hue='n_rep',
+                           kind='point', ci='sd', palette='Reds_d', dodge=.2)
         g3_m.add_legend(
             frameon=False, title='# of repetitions',
             bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -543,8 +543,8 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         sns.despine(trim=True, offset=5)
 
         g9_m = sns.catplot(data=data_df, legend=False,
-                         x='sd', y='log-snr', hue='sigma_noise',
-                         kind='point', ci='sd', palette='Greys', dodge=.2)
+                           x='sd', y='log-snr', hue='sigma_noise',
+                           kind='point', ci='sd', palette='Greys', dodge=.2)
         g9_m.add_legend(
             frameon=False, title='noise std',
             bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -556,9 +556,9 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         sns.despine(trim=True, offset=5)
 
         g10_m = sns.catplot(data=data_df, legend=False,
-                         x='variation', y='log-snr', hue='sigma_noise',
-                         kind='point', ci='sd', palette='Greys', dodge=.2,
-                         order=['none', 'subj', 'stim', 'both'])
+                            x='variation', y='log-snr', hue='sigma_noise',
+                            kind='point', ci='sd', palette='Greys', dodge=.2,
+                            order=['none', 'subj', 'stim', 'both'])
         g10_m.add_legend(
             frameon=False, title='noise std',
             bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -572,7 +572,6 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             labels=['none', 'subjects', 'stimuli', 'both'])
         sns.despine(trim=True, offset=5)
 
-
         # compare bootstrap to true_std
         # make subsets based on variation
         dat_none = data_df[data_df['variation'] == 'none']
@@ -583,14 +582,14 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         dat_stim = data_df[data_df['variation'] == 'stim']
         dat_stim = dat_stim[dat_stim['boot_type'] == 'pattern']
         dat_both = data_df[data_df['variation'] == 'both']
-        dat_both = dat_both[(dat_both['boot_type'] == 'both') 
+        dat_both = dat_both[(dat_both['boot_type'] == 'both')
                             | (dat_both['boot_type'] == 'fancyboot')]
 
         # relative standard deviation
         g4_m = sns.catplot(data=dat_none_rdm, legend=False,
-                         x='n_subj', y='std_relative', hue='n_stim',
-                         kind='point', ci='sd', palette='Greens_d', dodge=.2,
-                         order=[5, 10, 20, 40, 80])
+                           x='n_subj', y='std_relative', hue='n_stim',
+                           kind='point', ci='sd', palette='Greens_d', dodge=.2,
+                           order=[5, 10, 20, 40, 80])
         plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
         sns.despine(trim=True, offset=5)
         plt.title('RDM-bootstrap, no true variation')
@@ -601,9 +600,9 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         g4_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
 
         g5_m = sns.catplot(data=dat_none_pat, legend=False,
-                         x='n_stim', y='std_relative', hue='n_subj',
-                         kind='point', ci='sd', palette='Blues_d', dodge=.2,
-                         order=[10, 20, 40, 80, 160])
+                           x='n_stim', y='std_relative', hue='n_subj',
+                           kind='point', ci='sd', palette='Blues_d', dodge=.2,
+                           order=[10, 20, 40, 80, 160])
         plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
         sns.despine(trim=True, offset=5)
         plt.title('pattern-bootstrap, no true variation')
@@ -614,9 +613,9 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         g5_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
 
         g6_m = sns.catplot(data=dat_stim, legend=False,
-                         x='n_stim', y='std_relative', hue='n_subj',
-                         kind='point', ci='sd', palette='Blues_d', dodge=.2,
-                         order=[10, 20, 40, 80, 160])
+                           x='n_stim', y='std_relative', hue='n_subj',
+                           kind='point', ci='sd', palette='Blues_d', dodge=.2,
+                           order=[10, 20, 40, 80, 160])
         plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
         sns.despine(trim=True, offset=5)
         plt.title('pattern-bootstrap, stimulus variation')
@@ -625,11 +624,11 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g6_m.set_xlabels('# of stimuli')
         g6_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
-        
+
         g7_m = sns.catplot(data=dat_subj, legend=False,
-                         x='n_subj', y='std_relative', hue='n_stim',
-                         kind='point', ci='sd', palette='Greens_d', dodge=.2,
-                         order=[5, 10, 20, 40, 80])
+                           x='n_subj', y='std_relative', hue='n_stim',
+                           kind='point', ci='sd', palette='Greens_d', dodge=.2,
+                           order=[5, 10, 20, 40, 80])
         plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
         sns.despine(trim=True, offset=5)
         plt.title('RDM-bootstrap, subject variation')
@@ -638,11 +637,11 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g7_m.set_xlabels('# of stimuli')
         g7_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
-        
+
         g8_m = sns.catplot(data=dat_both, col='boot_type', legend=False,
-                         x='n_stim', y='std_relative', hue='n_subj',
-                         kind='point', ci='sd', palette='Blues', dodge=.2,
-                         order=[10, 20, 40, 80, 160])
+                           x='n_stim', y='std_relative', hue='n_subj',
+                           kind='point', ci='sd', palette='Blues', dodge=.2,
+                           order=[10, 20, 40, 80, 160])
         g8_m.axes[0, 0].plot([0, plt.xlim()[1]], [1, 1], 'k--')
         g8_m.axes[0, 1].plot([0, plt.xlim()[1]], [1, 1], 'k--')
         sns.despine(trim=True, offset=5)
@@ -686,7 +685,7 @@ def plot_metrics(simulation_folder='sim_metric', savefig=False):
     std_var = np.array([np.diag(i) for i in std_var])
     std_relative = std_mean / true_std
     std_std = np.sqrt(std_var)
-    snr = (np.var(np.mean(means,axis=1), axis=1)
+    snr = (np.var(np.mean(means, axis=1), axis=1)
            / np.mean(np.var(means, axis=1), axis=1))
     # seaborn based plotting
     # create full data table
@@ -710,7 +709,7 @@ def plot_metrics(simulation_folder='sim_metric', savefig=False):
                      x='rdm_comparison', y='log-snr', hue='variation',
                      kind='point', ci='sd', dodge=0, aspect=0.6,
                      order=['kendall', 'tau-a', 'spearman', 'rho-a', '',
-                            'corr', 'cosine', 'corr_cov','cosine_cov'],
+                            'corr', 'cosine', 'corr_cov', 'cosine_cov'],
                      hue_order=['none', 'subj', 'stim', 'both'],
                      hue_labels=['none', 'subjects', 'stimuli', 'both'])
     g1.add_legend(
@@ -722,10 +721,10 @@ def plot_metrics(simulation_folder='sim_metric', savefig=False):
     plt.yticks([0, 1, 2, 3],
                ['10^0', '10^1', '10^2', '10^3'])
     sns.despine(trim=True, offset=5)
-    plt.xticks([0,1,2,3,5,6,7,8],
-               ['tau-a','tau-b', 'rho-a', 'rho-b',
-                'corr','cosine', 'whitened corr', 'whitened cosine'],
-                rotation=90)
+    plt.xticks([0, 1, 2, 3, 5, 6, 7, 8],
+               ['tau-a', 'tau-b', 'rho-a', 'rho-b',
+                'corr', 'cosine', 'whitened corr', 'whitened cosine'],
+               rotation=90)
     if savefig:
         g1.fig.savefig('figures/metrics.pdf', bbox_inches='tight')
 
@@ -751,11 +750,11 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
     std_var = np.array([np.diag(i) for i in std_var])
     std_relative = std_mean / true_std
     std_std = np.sqrt(std_var)
-    snr = (np.var(np.mean(means,axis=1), axis=1)
+    snr = (np.var(np.mean(means, axis=1), axis=1)
            / np.mean(np.var(means, axis=1), axis=1))
-    means_other = np.concatenate((means[:,:,:8], means[:,:,9:]), axis=2)
-    true_best = np.mean(means[:,:,8], 1) \
-        - np.max(np.mean(means_other[:,:,:], 1), 1)
+    means_other = np.concatenate((means[:, :, :8], means[:, :, 9:]), axis=2)
+    true_best = np.mean(means[:, :, 8], 1) \
+        - np.max(np.mean(means_other[:, :, :], 1), 1)
     # seaborn based plotting
     # create full data table
     data_df = pd.DataFrame()
@@ -768,7 +767,7 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
         labels['model_layer'] = i_model
         labels['snr'] = snr
         labels['log-snr'] = np.log10(snr)
-        labels['true_perf'] = np.mean(means[:,:,8], 1)
+        labels['true_perf'] = np.mean(means[:, :, 8], 1)
         labels['true-best'] = true_best
         data_df = data_df.append(labels)
     data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
@@ -789,8 +788,8 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
                             'select_full', 'select_average', 'select_both',
                             'select_mean', '',
                             'weighted_avgfull'],
-                     hue_order = [0.0, 0.05, np.inf, 'fit'],
-                     palette = ['r', 'b', 'y', 'k'])
+                     hue_order=[0.0, 0.05, np.inf, 'fit'],
+                     palette=['r', 'b', 'y', 'k'])
     g1.add_legend(
         frameon=False, title='assumed voxel size',
         bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -807,9 +806,6 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
          'selection: both',
          'selection: weighted',
          'linear combination'], rotation=90)
-    
-    
-
     g2 = sns.catplot(data=data_df, legend=False,
                      x='model_type', y='true_perf', hue='sd_fit',
                      kind='point', ci='sd', dodge=0,
@@ -817,8 +813,8 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
                             'select_full', 'select_average', 'select_both',
                             'select_mean', '',
                             'weighted_avgfull'],
-                     hue_order = [0.0, 0.05, np.inf, 'fit'],
-                     palette = ['r', 'b', 'y', 'k'])
+                     hue_order=[0.0, 0.05, np.inf, 'fit'],
+                     palette=['r', 'b', 'y', 'k'])
     g2.add_legend(
         frameon=False, title='assumed voxel size',
         bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -835,7 +831,6 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
          'selection: both',
          'selection: weighted',
          'linear combination'], rotation=90)
-    
     g3 = sns.catplot(data=data_df, legend=False,
                      x='model_type', y='true-best', hue='sd_fit',
                      kind='point', ci='sd', dodge=0,
@@ -843,8 +838,8 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
                             'select_full', 'select_average', 'select_both',
                             'select_mean', '',
                             'weighted_avgfull'],
-                     hue_order = [0.0, 0.05, np.inf, 'fit'],
-                     palette = ['r', 'b', 'y', 'k'])
+                     hue_order=[0.0, 0.05, np.inf, 'fit'],
+                     palette=['r', 'b', 'y', 'k'])
     g3.add_legend(
         frameon=False, title='assumed voxel size',
         bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -861,7 +856,7 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
          'selection: both',
          'selection: weighted',
          'linear combination'], rotation=90)
-    plt.plot([-0, 9], [0,0], 'k--')
+    plt.plot([-0, 9], [0, 0], 'k--')
     g3.ax.set_position(g2.ax.get_position())
 
     g4 = sns.catplot(data=data_df, legend=False,
@@ -871,8 +866,8 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
                             'select_full', 'select_average', 'select_both',
                             'select_mean', '',
                             'weighted_avgfull'],
-                     hue_order = [0.0, 0.05, np.inf, 'fit'],
-                     palette = ['r', 'b', 'y', 'k'])
+                     hue_order=[0.0, 0.05, np.inf, 'fit'],
+                     palette=['r', 'b', 'y', 'k'])
     g4.add_legend(
         frameon=False, title='assumed voxel size',
         bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -889,7 +884,7 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
          'selection: both',
          'selection: weighted',
          'linear combination'], rotation=90)
-    plt.plot([-0.5, 9.5], [1,1], 'k--')
+    plt.plot([-0.5, 9.5], [1, ], 'k--')
 
     if savefig:
         g1.fig.savefig('figures/flex_snr.pdf', bbox_inches='tight')
@@ -903,8 +898,8 @@ def plot_boot_cv(simulation_folder='boot_cv', savefig=False):
     # preprocessing
     variances = np.load(os.path.join(simulation_folder, 'var.npy'))
     variances_raw = np.load(os.path.join(simulation_folder, 'var_raw.npy'))
-    variances[0] = np.nan 
-    normalizer = np.nanmean(np.nanmean(variances, 0,keepdims=True),
+    variances[0] = np.nan
+    normalizer = np.nanmean(np.nanmean(variances, 0, keepdims=True),
                             -1, keepdims=True)
     var_norm = variances / normalizer
     var_raw_norm = variances_raw / normalizer
@@ -917,8 +912,8 @@ def plot_boot_cv(simulation_folder='boot_cv', savefig=False):
     var_norm_plot = np.einsum('ijjk->ijk', np.nanmean(var_norm, -1)
                               ).reshape(6, -1)
     var_raw_plot = np.einsum('ijjk->ijk', np.nanmean(var_raw_norm, -1)
-                              ).reshape(6, -1)
-    x = np.repeat(np.arange(6), 120).reshape(6,-1) \
+                             ).reshape(6, -1)
+    x = np.repeat(np.arange(6), 120).reshape(6, -1) \
         + 0.2 * np.random.rand(6, 120) - 0.1
     # Plotting
     # variance estimation accurate
@@ -926,16 +921,16 @@ def plot_boot_cv(simulation_folder='boot_cv', savefig=False):
     with sns.axes_style("white", rc={"axes.linewidth": 2.5}):
         sns.set_style("ticks", {"xtick.major.size": 8, "ytick.major.size": 8})
         line_raw = plt.plot(x, var_raw_plot, 'c.',
-                            markersize = 5, linewidth=2)
+                            markersize=5, linewidth=2)
         line_norm = plt.plot(x, var_norm_plot, 'k.',
-                             markersize = 5, linewidth=2)
-        plt.plot([-0.5, 5.5], [1,1], 'k--')
+                             markersize=5, linewidth=2)
+        plt.plot([-0.5, 5.5], [1, 1], 'k--')
         plt.xticks(np.arange(6), [1, 2, 4, 8, 16, 32], fontsize=16)
-        plt.yticks([1,1.5,2,2.5],[1,1.5,2,2.5], fontsize=16)
+        plt.yticks([1, 1.5, 2, 2.5], [1, 1.5, 2, 2.5], fontsize=16)
         plt.box('off')
         sns.despine(trim=True, offset=5)
         plt.xticks(np.arange(6), [1, 2, 4, 8, 16, 32], fontsize=16)
-        plt.yticks([1,1.5,2,2.5],[1,1.5,2,2.5], fontsize=16)
+        plt.yticks([1, 1.5, 2, 2.5], [1, 1.5, 2, 2.5], fontsize=16)
         plt.ylabel('normalized variance', fontsize=18)
         plt.xlabel('number of cv-assignments', fontsize=18)
         plt.legend([line_raw[0], line_norm[0]],
@@ -945,7 +940,7 @@ def plot_boot_cv(simulation_folder='boot_cv', savefig=False):
     f_eff = plt.figure()
     with sns.axes_style("white", rc={"axes.linewidth": 2.5}):
         sns.set_style("ticks", {"xtick.major.size": 8, "ytick.major.size": 8})
-        p_dat = plt.semilogy(x,var_var, 'k.')
+        p_dat = plt.semilogy(x, var_var, 'k.')
         l_line = plt.plot([0.5, 5.5], [0.064, 0.001], 'k--')
         plt.box('off')
         plt.xticks(np.arange(5) + 1, [2, 4, 8, 16, 32], fontsize=16)
@@ -959,4 +954,3 @@ def plot_boot_cv(simulation_folder='boot_cv', savefig=False):
     if savefig:
         f_acc.savefig('figures/boot_cv_acc.pdf', bbox_inches='tight')
         f_eff.savefig('figures/boot_cv_eff.pdf', bbox_inches='tight')
-    
