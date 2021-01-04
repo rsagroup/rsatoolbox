@@ -380,10 +380,12 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
         elif i == start_idx or variation in ['stim', 'both']:
             stim_paths = []
             folders = os.listdir(ecoset_path)
+            folders = [f for f in folders if f[0] != '.']
             for i_stim in range(n_stim_all):
                 i_folder = np.random.randint(len(folders))
                 images = os.listdir(os.path.join(ecoset_path,
                                                  folders[i_folder]))
+                images = [i for i in images if i[0] != '.']
                 i_image = np.random.randint(len(images))
                 stim_paths.append(os.path.join(folders[i_folder],
                                                images[i_image]))
@@ -518,8 +520,9 @@ def save_metric(idx, simulation_folder='sim_metric'):
     """
     rdm_comparisons = ['cosine', 'spearman', 'corr', 'kendall', 'tau-a',
                        'rho-a', 'corr_cov', 'cosine_cov']
-    variations = [None, 'stim', 'subj', 'both']
-    i_comp, i_var = np.unravel_index(idx, (8, 4))
+    variations = [None, 'stim', 'subj']  # , 'both']
+
+    i_comp, i_var = np.unravel_index(idx, (8, 3))  # , 4))
     rdm_comparison = rdm_comparisons[i_comp]
     variation = variations[i_var]
     sim_ecoset(layer=8, sd=0.05, n_stim_all=320,
@@ -627,7 +630,8 @@ def run_flex(idx, start_idx, simulation_folder='sim_flex',
         os.mkdir(os.path.join(fname_base, res_name))
     if not os.path.isfile(os.path.join(
             fname_base, res_name, fname)):
-        sim_ecoset(layer=layer, sd=sd, n_stim_all=80,
+        sim_ecoset(
+            layer=layer, sd=sd, n_stim_all=80,
             n_voxel=n_vox, n_subj=n_subj, n_stim=n_stim,
             n_repeat=n_repeat,
             simulation_folder=simulation_folder, n_sim=start_idx + 1,
