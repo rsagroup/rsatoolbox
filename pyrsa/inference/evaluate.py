@@ -6,7 +6,6 @@ evaluate model performance
 
 import numpy as np
 import tqdm
-from collections.abc import Iterable
 from pyrsa.rdm import compare
 from pyrsa.inference import bootstrap_sample
 from pyrsa.inference import bootstrap_sample_rdm

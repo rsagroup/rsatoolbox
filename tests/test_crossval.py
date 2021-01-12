@@ -92,9 +92,11 @@ class TestCrossval(unittest.TestCase):
                     dissimilarity_measure=mes,
                     descriptors=des)
         m = ModelFixed('test', rdms[0])
-        bootstrap_cv_random(m, rdms, N=10, n_rdm=2, n_pattern=4,
-                            pattern_descriptor='type',
-                            rdm_descriptor='session')
+        res = bootstrap_cv_random(
+            m, rdms, N=10, n_rdm=2, n_pattern=4,
+            pattern_descriptor='type',
+            rdm_descriptor='session')
+        self.assertEqual(res.evaluations.shape[0], 10)
 
     def test_bootstrap_crossval_pattern(self):
         from pyrsa.inference import bootstrap_crossval
