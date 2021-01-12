@@ -7,6 +7,7 @@ from .evaluate import eval_bootstrap
 from .evaluate import eval_bootstrap_rdm
 from .evaluate import eval_bootstrap_pattern
 from .evaluate import bootstrap_crossval
+from .evaluate import bootstrap_cv_random
 from .evaluate import crossval
 from .boot_testset import bootstrap_testset
 from .boot_testset import bootstrap_testset_pattern
