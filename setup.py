@@ -14,7 +14,7 @@ with open('README.md', encoding='utf-8') as readmefile:
 
 setup(
     name='rsa3',
-    version='3.0.0',
+    version='3.0.0.post20201106',
     description='Python Representational Similarity Analysis (RSA)',
     url='https://github.com/rsagroup/pyrsa',
     long_description=long_description,
@@ -23,7 +23,7 @@ setup(
         'Programming Language :: Python',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Topic :: Scientific/Engineering',
         'Intended Audience :: Science/Research',
         'Programming Language :: Python :: 3.6',
