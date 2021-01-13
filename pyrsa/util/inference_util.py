@@ -428,6 +428,90 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
     return p
 
 
+def extract_variances(variance, nc_included=True):
+    """ extracts the variances for the individual model evaluations,
+    differences between model evaluations and for the comparison to
+    the noise ceiling
+
+    for 1D arrays we assume a diagonal covariance is meant
+    for 2D arrays this is taken as the covariance of the model evals
+    for 3D arrays we assume this is the result of a dual bootstrap and
+        perform the correction. Then there should be three covariances given
+        from double, rdm & pattern bootstrap in that order.
+
+    nc_included=True jields the result if the last two columns correspond
+    to the noise ceiling results
+    nc_included=False assumes that the noise ceiling is fixed instead.
+    """
+    if variance.ndim == 1:
+        # model evaluations assumed independent
+        if nc_included:
+            C = pairwise_contrast(np.arange(variance.shape[0] - 2))
+            model_variances = variance[:-2]
+            nc_variances = np.expand_dims(model_variances, -1) \
+                + np.expand_dims(variance[-2:], 0)
+            diff_variances = np.diag(C @ np.diag(variance[:-2]) @ C.T)
+        else:
+            C = pairwise_contrast(np.arange(variance.shape[0]))
+            model_variances = variance
+            nc_variances = np.array([variance, variance]).T
+            diff_variances = np.diag(C @ np.diag(variance) @ C.T)
+    elif variance.ndim == 2:
+        # a single covariance matrix
+        if nc_included:
+            C = pairwise_contrast(np.arange(variance.shape[0] - 2))
+            model_variances = np.diag(variance)[:-2]
+            nc_variances = np.expand_dims(model_variances, -1) \
+                - 2 * variance[:-2, -2:] \
+                + np.expand_dims(np.diag(variance[-2:, -2:]), 0)
+            diff_variances = np.diag(C @ variance[:-2, :-2] @ C.T)
+        else:
+            C = pairwise_contrast(np.arange(variance.shape[0]))
+            model_variances = np.diag(variance)
+            nc_variances = np.array([model_variances, model_variances]).T
+            diff_variances = np.diag(C @ variance @ C.T)
+    elif variance.ndim == 3:
+        # general transform for multiple covariance matrices
+        if nc_included:
+            C = pairwise_contrast(np.arange(variance.shape[0] - 2))
+            model_variances = np.einsum('ijj->ij', variance)[:, :-2]
+            nc_variances = np.expand_dims(model_variances, -1) \
+                - 2 * variance[:, :-2, -2:] \
+                + np.expand_dims(np.einsum('ijj->ij',
+                                           variance[:, -2:, -2:]), 1)
+            # np.diag(C@variances@C.T)
+            diff_variances = np.einsum(
+                'ij,kjl,il->ki', C, variance[:, :-2, :-2], C)
+        else:
+            C = pairwise_contrast(np.arange(variance.shape[0]))
+            model_variances = np.einsum('ijj->ij', variance)
+            nc_variances = np.array([model_variances, model_variances]
+                                    ).permute(1, 0, 2)
+            diff_variances = np.einsum('ij,kjl,il->ki', C, variance, C)
+        # dual bootstrap variance estimate from 3 covariance matrices
+        model_variances = _dual_bootstrap(model_variances)
+        nc_variances = _dual_bootstrap(nc_variances)
+        diff_variances = _dual_bootstrap(diff_variances)
+    return model_variances, diff_variances, nc_variances
+
+
+def _dual_bootstrap(variances):
+    """ helper function to perform the dual bootstrap
+
+    Takes a 3x... array of variances and computes the corrections assuming:
+    variances[0] are the variances in the double bootstrap
+    variances[1] are the variances in the rdm bootstrap
+    variances[2] are the variances in the pattern bootstrap
+    """
+    variance = 2 * (variances[1] + variances[2]) \
+        - variances[0]
+    variance = np.maximum(np.maximum(
+        variance, variances[1]), variances[2])
+    variance = np.minimum(
+        variance, variances[0])
+    return variance
+
+
 def default_k_pattern(n_pattern):
     """ the default number of pattern divisions for crossvalidation
     minimum number of patterns is 3*k_pattern. Thus for n_pattern <=9 this
