@@ -297,7 +297,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     dataset.sort_by(descriptor)
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     rdms = []
-    if noise is None or (isinstance(noise, np.ndarray) and noise.ndim == 2):
+    if (noise is None) or (isinstance(noise, np.ndarray) and noise.ndim == 2):
         for i_fold in range(len(cv_folds)):
             fold = cv_folds[i_fold]
             data_test = dataset.subset_obs(cv_descriptor, fold)
@@ -307,7 +307,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
                 average_dataset_by(data_train, descriptor)
             measurements_test, _, _ = \
                 average_dataset_by(data_test, descriptor)
-            n_cond = measurements_train.shape[0]
+            n_cond, n_channel = measurements_train.shape
             rdm = np.empty(int(n_cond * (n_cond-1) / 2))
             k = 0
             for i_cond in range(n_cond - 1):
@@ -339,7 +339,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
                                       + variances[j_fold]))
                     rdms.append(rdm)
     rdms = np.array(rdms)
-    rdm = np.einsum('ij->j', rdms) / len(cv_folds)
+    rdm = rdms.mean(axis=0)
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='crossnobis',
                rdm_descriptors=deepcopy(dataset.descriptors))
