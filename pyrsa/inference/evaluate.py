@@ -200,18 +200,17 @@ def dual_bootstrap(models, data, method='cosine', fitter=None,
         # for n_cv repetitions to infinitely many cv repetitions
         evals_mean = np.mean(np.mean(evaluations[eval_ok], -1), -1)
         evals_1 = np.mean(evaluations[eval_ok], -2)
-        var_mean = np.cov(evals_mean.T)
+        noise_ceil_mean = np.mean(noise_ceil[:, eval_ok], -1)
+        noise_ceil_1 = noise_ceil[:, eval_ok]
+        var_mean = np.cov(
+            np.concatenate([evals_mean.T, noise_ceil_mean]))
         var_1 = []
         for i in range(n_cv):
-            var_1.append(np.cov(evals_1[:, :, i].T))
+            var_1.append(np.cov(np.concatenate([
+                evals_1[:, :, i].T, noise_ceil_1[:, :, i]])))
         var_1 = np.mean(np.array(var_1), axis=0)
         # this is the main formula for the correction:
         variances = (n_cv * var_mean - var_1) / (n_cv - 1)
-        # for the noise_ceiling we are interested in the covariance,
-        # which should be correct from the mean estimates, as the covariance
-        # of the crossvalidation noise should be 0
-        noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
-        vars_nc = np.cov(np.concatenate([evals_mean.T, noise_ceil_nonan]))
     else:
         if use_correction:
             raise Warning('correction requested, but only one cv run'

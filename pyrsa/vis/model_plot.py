@@ -14,6 +14,7 @@ import matplotlib.transforms as transforms
 from matplotlib import cm
 import networkx as nx
 from networkx.algorithms.clique import find_cliques as maximal_cliques
+from scipy.spatial.distance import squareform
 from pyrsa.util.inference_util import all_tests
 from pyrsa.util.rdm_utils import batch_to_vectors
 
@@ -136,7 +137,8 @@ def plot_model_comparison(result, sort=False, colors=None,
     models = result.models
     noise_ceiling = result.noise_ceiling
     method = result.method
-    variances = result.variances
+    model_var = result.model_var
+    diff_var = result.diff_var
     noise_ceil_var = result.noise_ceil_var
     dof = result.dof
     if result.cv_method == 'fixed':
@@ -175,9 +177,12 @@ def plot_model_comparison(result, sort=False, colors=None,
             idx = np.flip(idx)
         perf = perf[idx]
         evaluations = evaluations[:, idx]
-        variances = variances[idx, :][:, idx]
+        if model_var:
+            model_var = model_var[idx]
         if noise_ceil_var:
-            noise_ceil_var = noise_ceil_var[np.concatenate((idx, (-2, -1))), :]
+            noise_ceil_var = noise_ceil_var[idx]
+        if diff_var:
+            diff_var = squareform(squareform(diff_var)[idx][:, idx])
         models = [models[i] for i in idx]
         if not ('descend' in sort.lower() or
                 'ascend' in sort.lower()):
@@ -189,8 +194,9 @@ def plot_model_comparison(result, sort=False, colors=None,
     if any([test_pair_comparisons,
             test_above_0, test_below_noise_ceil]):
         p_pairwise, p_zero, p_noise = all_tests(
-            evaluations, noise_ceiling, test_type, variances,
-            noise_ceil_var, dof)
+            evaluations, noise_ceiling, test_type,
+            model_var=model_var, diff_var=diff_var,
+            noise_ceil_var=noise_ceil_var, dof=dof)
 
     # Prepare axes for bars and pairwise comparisons
     fs, fs2 = 18, 14  # axis label font sizes
@@ -250,8 +256,8 @@ def plot_model_comparison(result, sort=False, colors=None,
         error_bars = 'sem'
     if error_bars:
         if error_bars.lower() == 'sem':
-            errorbar_low = np.sqrt(np.maximum(np.diag(variances), 0))
-            errorbar_high = np.sqrt(np.maximum(np.diag(variances), 0))
+            errorbar_low = np.sqrt(model_var)
+            errorbar_high = np.sqrt(model_var)
         elif error_bars[0:2].lower() == 'ci':
             if len(error_bars) == 2:
                 CI_percent = 95.0
@@ -271,7 +277,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                                  - perf)
             else:
                 tdist = scipy.stats.t
-                std_eval = np.sqrt(np.diag(variances))
+                std_eval = np.sqrt(model_var)
                 errorbar_low = std_eval \
                     * tdist.ppf(prop_cut, dof)
                 errorbar_high = std_eval \

@@ -163,7 +163,8 @@ def _nan_rank_data(rdm_vector):
 
 
 def all_tests(evaluations, noise_ceil, test_type='t-test',
-              variances=None, noise_ceil_var=None, dof=1):
+              model_var=None, diff_var=None, noise_ceil_var=None,
+              dof=1):
     """wrapper running all tests necessary for the model plot
     -> pairwise tests, tests against 0 and against noise ceiling
 
@@ -184,10 +185,10 @@ def all_tests(evaluations, noise_ceil, test_type='t-test',
 
     """
     if test_type == 't-test':
-        p_pairwise = t_tests(evaluations, variances, dof=dof)
-        p_zero = t_test_0(evaluations, variances, dof=dof)
-        p_noise = t_test_nc(evaluations, variances, np.mean(noise_ceil[0]),
-                            noise_ceil_var, dof)
+        p_pairwise = t_tests(evaluations, diff_var, dof=dof)
+        p_zero = t_test_0(evaluations, model_var, dof=dof)
+        p_noise = t_test_nc(evaluations, noise_ceil_var[:, 0],
+                            np.mean(noise_ceil[0]), dof)
     elif test_type == 'bootstrap':
         if len(noise_ceil.shape) > 1:
             noise_lower_bs = noise_ceil[0]
@@ -302,36 +303,27 @@ def t_tests(evaluations, variances, dof=1):
     """pairwise t_test based significant tests for a difference in model
     performance
 
-    Take special care here preparing variances! This should be the covariance
-    matrix for the model evaluations.
-
     Args:
         evaluations (numpy.ndarray):
             model evaluations to be tested, typically from a results object
         variances (numpy.ndarray):
-            vector of model evaluation variances
-            or covariance matrix of the model evaluations
+            vector of the variances of model evaluation differences
         dof (integer):
             degrees of freedom used for the test (default=1)
-            this input is overwritten if no variances are passed
 
     Returns:
-        numpy.ndarray: matrix of proportions of opposit conclusions, i.e.
-        p-values for the bootstrap test
+        numpy.ndarray: matrix of p-values for the test
 
     """
     if variances is None:
         raise ValueError('No variance estimates provided for t_test!')
     n_model = evaluations.shape[1]
     evaluations = np.mean(evaluations, 0)
-    if len(variances.shape) == 1:
-        variances = np.diag(variances)
     while evaluations.ndim > 1:
         evaluations = np.mean(evaluations, axis=-1)
     C = pairwise_contrast(np.arange(n_model))
     diffs = C @ evaluations
-    var = np.diag(C @ variances @ C.T)
-    t = diffs / np.sqrt(var)
+    t = diffs / np.sqrt(variances)
     t = batch_to_matrices(np.array([t]))[0][0]
     p = 2 * (1 - stats.t.cdf(np.abs(t), dof))
     return p
@@ -346,10 +338,8 @@ def t_test_0(evaluations, variances, dof=1):
             model evaluations to be tested, typically from a results object
         variances (numpy.ndarray):
             vector of model evaluation variances
-            or covariance matrix of the model evaluations
         dof (integer):
             degrees of freedom used for the test (default=1)
-            this input is overwritten if no variances are passed
 
     Returns:
         numpy.ndarray: p-values for the raw t-test of each model against 0.
@@ -358,44 +348,30 @@ def t_test_0(evaluations, variances, dof=1):
     if variances is None:
         raise ValueError('No variance estimates provided for t_test!')
     evaluations = np.mean(evaluations, 0)
-    if len(variances.shape) == 1:
-        variances = np.diag(variances)
     while evaluations.ndim > 1:
         evaluations = np.mean(evaluations, axis=-1)
-    var = np.diag(variances)
-    t = evaluations / np.sqrt(var)
+    t = evaluations / np.sqrt(variances)
     p = 1 - stats.t.cdf(t, dof)
     return p
 
 
-def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
+def t_test_nc(evaluations, variances, noise_ceil, dof=1):
     """
-    t-tests against lower noise_ceiling.
+    t-tests against noise_ceiling.
     Technically this can be used to test evaluations against any fixed
     number.
-
-    If noise_ceil_var is the covariance matrix of the model evaluations
-    and the noise ceilings a normal t-test is performed.
-    If noise_ceil_var is a single number or vector an indpendent t-test is
-    performed
-    If noise_ceil_var is None the noise_ceiling is treated as a fixed number
 
     Args:
         evaluations (numpy.ndarray):
             model evaluations to be tested, typically from a results object
         variances (numpy.ndarray):
-            vector of model evaluation variances
-            or covariance matrix of the model evaluations
-            defaults to taking the variance over the third dimension
-            of evaluations and setting dof based on the length of this
-            dimension.
+            variance estimates for the comparisons to the noise ceiling
         noise_ceil (float):
             the average noise ceiling to test against.
         noise_ceil_var (numpy.ndarray):
             variance or covariance of the noise ceiling
         dof (integer):
             degrees of freedom used for the test (default=1)
-            this input is overwritten if no variances are passed
 
     Returns:
         numpy.ndarray: p-values for the raw t-test of each model against
@@ -404,26 +380,12 @@ def t_test_nc(evaluations, variances, noise_ceil, noise_ceil_var=None, dof=1):
     """
     if variances is None:
         raise ValueError('No variance estimates provided for t_test!')
-    if noise_ceil_var is not None:
-        noise_ceil_var = np.array(noise_ceil_var)
-        while noise_ceil_var.ndim > 1:
-            noise_ceil_var = noise_ceil_var[:, 0]
     evaluations = np.mean(evaluations, 0)
-    if len(variances.shape) == 1:
-        variances = np.diag(variances)
     while evaluations.ndim > 1:
         evaluations = np.mean(evaluations, axis=-1)
-    var = np.diag(variances)
     p = np.empty(len(evaluations))
     for i, eval_i in enumerate(evaluations):
-        if noise_ceil_var is None:
-            var_i = var[i]
-        elif (isinstance(noise_ceil_var, np.ndarray)
-              and noise_ceil_var.size > 1):
-            var_i = var[i] - 2 * noise_ceil_var[i] + noise_ceil_var[-1]
-        else:  # hope that noise_ceil_var is a scalar
-            var_i = var[i] + noise_ceil_var
-        t = (eval_i - noise_ceil) / np.sqrt(var_i)
+        t = (eval_i - noise_ceil) / np.sqrt(variances[i])
         p[i] = 2 * (1 - stats.t.cdf(np.abs(t), dof))
     return p
 
