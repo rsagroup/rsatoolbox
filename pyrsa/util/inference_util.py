@@ -443,6 +443,8 @@ def extract_variances(variance, nc_included=True):
     to the noise ceiling results
     nc_included=False assumes that the noise ceiling is fixed instead.
     """
+    if variance.ndim == 0:
+        variance = np.array([variance])
     if variance.ndim == 1:
         # model evaluations assumed independent
         if nc_included:
