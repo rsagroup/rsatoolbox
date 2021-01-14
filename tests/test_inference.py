@@ -331,7 +331,7 @@ class TestsPairTests(unittest.TestCase):
 
     def test_t_tests(self):
         from pyrsa.util.inference_util import t_tests
-        variances = np.eye(5)
+        variances = np.ones(10)
         ps = t_tests(self.evaluations, variances)
         assert np.all(ps <= 1)
         assert np.all(ps >= 0)
@@ -347,30 +347,22 @@ class TestsPairTests(unittest.TestCase):
         m = ModelFixed('test', rdms.get_vectors()[0])
         m2 = ModelFixed('test', rdms.get_vectors()[2])
         value = eval_fixed([m, m2], rdms)
-        ps = t_tests(value.evaluations, value.variances, dof=value.dof)
+        ps = t_tests(value.evaluations, value.diff_var, dof=value.dof)
         scipy_t = scipy.stats.ttest_rel(value.evaluations[0, 0],
                                         value.evaluations[0, 1])
         self.assertAlmostEqual(scipy_t.pvalue, ps[0, 1])
 
     def test_t_test_0(self):
         from pyrsa.util.inference_util import t_test_0
-        variances = np.eye(5)
+        variances = np.ones(5)
         ps = t_test_0(self.evaluations, variances)
         assert np.all(ps <= 1)
         assert np.all(ps >= 0)
 
     def test_t_test_nc(self):
         from pyrsa.util.inference_util import t_test_nc
-        variances = np.eye(5)
+        variances = np.array([0.01, 0.1, 0.2, 0.1, 0.1, 0.3])
         ps = t_test_nc(self.evaluations, variances, 0.3)
-        assert np.all(ps <= 1)
-        assert np.all(ps >= 0)
-        ps = t_test_nc(self.evaluations, variances, 0.3, noise_ceil_var=0.1)
-        assert np.all(ps <= 1)
-        assert np.all(ps >= 0)
-        noise_ceil_var = [0.01, 0.1, 0.2, 0.1, 0.1, 0.3]
-        ps = t_test_nc(self.evaluations, variances, 0.3,
-                       noise_ceil_var=noise_ceil_var)
         assert np.all(ps <= 1)
         assert np.all(ps >= 0)
 
