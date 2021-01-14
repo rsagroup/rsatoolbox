@@ -473,7 +473,7 @@ def extract_variances(variance, nc_included=True):
     elif variance.ndim == 3:
         # general transform for multiple covariance matrices
         if nc_included:
-            C = pairwise_contrast(np.arange(variance.shape[0] - 2))
+            C = pairwise_contrast(np.arange(variance.shape[1] - 2))
             model_variances = np.einsum('ijj->ij', variance)[:, :-2]
             nc_variances = np.expand_dims(model_variances, -1) \
                 - 2 * variance[:, :-2, -2:] \
@@ -483,10 +483,10 @@ def extract_variances(variance, nc_included=True):
             diff_variances = np.einsum(
                 'ij,kjl,il->ki', C, variance[:, :-2, :-2], C)
         else:
-            C = pairwise_contrast(np.arange(variance.shape[0]))
+            C = pairwise_contrast(np.arange(variance.shape[1]))
             model_variances = np.einsum('ijj->ij', variance)
             nc_variances = np.array([model_variances, model_variances]
-                                    ).permute(1, 0, 2)
+                                    ).transpose(1, 2, 0)
             diff_variances = np.einsum('ij,kjl,il->ki', C, variance, C)
         # dual bootstrap variance estimate from 3 covariance matrices
         model_variances = _dual_bootstrap(model_variances)

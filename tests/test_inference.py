@@ -408,3 +408,59 @@ class TestsDefaultK(unittest.TestCase):
         self.assertEqual(default_k_pattern(20), 3)
         self.assertEqual(default_k_pattern(30), 4)
         self.assertEqual(default_k_pattern(100), 5)
+
+
+class TestsExtractVar(unittest.TestCase):
+
+    def test_extract_var_1D(self):
+        from pyrsa.util.inference_util import extract_variances
+        variance = np.var(np.random.randn(10, 100), 1)
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, True)
+        self.assertEqual(model_variances.shape[0], 8)
+        self.assertEqual(diff_variances.shape[0], 28)
+        self.assertEqual(nc_variances.shape[0], 8)
+        self.assertEqual(nc_variances.shape[1], 2)
+
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, False)
+        self.assertEqual(model_variances.shape[0], 10)
+        self.assertEqual(diff_variances.shape[0], 45)
+        self.assertEqual(nc_variances.shape[0], 10)
+        self.assertEqual(nc_variances.shape[1], 2)
+
+    def test_extract_var_2D(self):
+        from pyrsa.util.inference_util import extract_variances
+        variance = np.cov(np.random.randn(10, 100))
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, True)
+        self.assertEqual(model_variances.shape[0], 8)
+        self.assertEqual(diff_variances.shape[0], 28)
+        self.assertEqual(nc_variances.shape[0], 8)
+        self.assertEqual(nc_variances.shape[1], 2)
+
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, False)
+        self.assertEqual(model_variances.shape[0], 10)
+        self.assertEqual(diff_variances.shape[0], 45)
+        self.assertEqual(nc_variances.shape[0], 10)
+        self.assertEqual(nc_variances.shape[1], 2)
+
+    def test_extract_var_3D(self):
+        from pyrsa.util.inference_util import extract_variances
+        variance = np.cov(np.random.randn(10, 100))
+        variance = np.repeat(np.expand_dims(variance, 0), 3, 0
+                             ).reshape(3, 10, 10)
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, True)
+        self.assertEqual(model_variances.shape[0], 8)
+        self.assertEqual(diff_variances.shape[0], 28)
+        self.assertEqual(nc_variances.shape[0], 8)
+        self.assertEqual(nc_variances.shape[1], 2)
+
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, False)
+        self.assertEqual(model_variances.shape[0], 10)
+        self.assertEqual(diff_variances.shape[0], 45)
+        self.assertEqual(nc_variances.shape[0], 10)
+        self.assertEqual(nc_variances.shape[1], 2)
