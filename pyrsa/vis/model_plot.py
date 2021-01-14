@@ -256,8 +256,8 @@ def plot_model_comparison(result, sort=False, colors=None,
         error_bars = 'sem'
     if error_bars:
         if error_bars.lower() == 'sem':
-            errorbar_low = np.sqrt(model_var)
-            errorbar_high = np.sqrt(model_var)
+            errorbar_low = np.sqrt(np.maximum(model_var, 0))
+            errorbar_high = np.sqrt(np.maximum(model_var, 0))
         elif error_bars[0:2].lower() == 'ci':
             if len(error_bars) == 2:
                 CI_percent = 95.0
@@ -277,7 +277,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                                  - perf)
             else:
                 tdist = scipy.stats.t
-                std_eval = np.sqrt(model_var)
+                std_eval = np.sqrt(np.maximum(model_var, 0))
                 errorbar_low = std_eval \
                     * tdist.ppf(prop_cut, dof)
                 errorbar_high = std_eval \
