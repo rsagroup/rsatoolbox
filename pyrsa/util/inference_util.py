@@ -323,7 +323,7 @@ def t_tests(evaluations, variances, dof=1):
         evaluations = np.mean(evaluations, axis=-1)
     C = pairwise_contrast(np.arange(n_model))
     diffs = C @ evaluations
-    t = diffs / np.sqrt(variances)
+    t = diffs / np.sqrt(np.maximum(variances, 0))
     t = batch_to_matrices(np.array([t]))[0][0]
     p = 2 * (1 - stats.t.cdf(np.abs(t), dof))
     return p

@@ -247,8 +247,8 @@ def eval_fixed(models, data, theta=None, method='cosine'):
     models, evaluations, theta, _ = input_check_model(models, theta, None, 1)
     evaluations = np.repeat(np.expand_dims(evaluations, -1),
                             data.n_rdm, -1)
-    for k in range(len(models)):
-        rdm_pred = models[k].predict_rdm(theta=theta[k])
+    for k, model in enumerate(models):
+        rdm_pred = model.predict_rdm(theta=theta[k])
         evaluations[k] = compare(rdm_pred, data, method)
     evaluations = evaluations.reshape((1, len(models), data.n_rdm))
     noise_ceil = boot_noise_ceiling(
@@ -595,35 +595,13 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         if len(np.unique(rdm_idx)) >= k_rdm \
            and len(np.unique(pattern_idx)) >= 3 * k_pattern:
             for i_rep in range(n_cv):
-                train_set, test_set, ceil_set = sets_k_fold(
-                    sample,
-                    pattern_descriptor=pattern_descriptor,
-                    rdm_descriptor=rdm_descriptor,
-                    k_pattern=k_pattern, k_rdm=k_rdm, random=random)
-                if k_rdm > 1 or k_pattern > 1:
-                    cv_nc = cv_noise_ceiling(
-                        sample, ceil_set, test_set,
-                        method=method,
-                        pattern_descriptor=pattern_descriptor)
-                    noise_ceil[:, i_sample, i_rep] = cv_nc
-                else:
-                    nc = boot_noise_ceiling(
-                        sample,
-                        method=method,
-                        rdm_descriptor=rdm_descriptor)
-                    noise_ceil[:, i_sample, i_rep] = nc
-                for idx in range(len(test_set)):
-                    test_set[idx][1] = _concat_sampling(pattern_idx,
-                                                        test_set[idx][1])
-                    train_set[idx][1] = _concat_sampling(pattern_idx,
-                                                         train_set[idx][1])
-                cv_result = crossval(
+                evals, cv_nc = _internal_cv(
                     models, sample,
-                    train_set, test_set,
-                    method=method, fitter=fitter,
-                    pattern_descriptor=pattern_descriptor,
-                    calc_noise_ceil=False)
-                evaluations[i_sample, :, :, i_rep] = cv_result.evaluations[0]
+                    pattern_descriptor, rdm_descriptor, pattern_idx,
+                    k_pattern, k_rdm,
+                    method, fitter)
+                noise_ceil[:, i_sample, i_rep] = cv_nc
+                evaluations[i_sample, :, :, i_rep] = evals[0]
         else:  # sample does not allow desired crossvalidation
             evaluations[i_sample, :, :] = np.nan
             noise_ceil[:, i_sample] = np.nan
