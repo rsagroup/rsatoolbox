@@ -359,7 +359,8 @@ class RDMs:
         Pass keyword arguments that correspond to descriptors,
         with value indicating the sort type. Supported methods:
             'alpha': sort alphabetically (using np.sort)
-            list/np.array: specify the new order explicitly
+            list/np.array: specify the new order explicitly. Values should
+                correspond to the descriptor values
 
         Example:
             Sorts the condition descriptor alphabetically:
