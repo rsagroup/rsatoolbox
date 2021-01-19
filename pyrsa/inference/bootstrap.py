@@ -42,11 +42,11 @@ def bootstrap_sample(rdms, rdm_descriptor='index', pattern_descriptor='index'):
     rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
     pattern_descriptor, pattern_select = \
         add_pattern_index(rdms, pattern_descriptor)
-    rdm_idx = np.random.randint(0, len(rdm_select) - 1,
+    rdm_idx = np.random.randint(0, len(rdm_select),
                                 size=len(rdm_select))
     rdm_idx = rdm_select[rdm_idx]
     rdms = rdms.subsample(rdm_descriptor, rdm_idx)
-    pattern_idx = np.random.randint(0, len(pattern_select) - 1,
+    pattern_idx = np.random.randint(0, len(pattern_select),
                                     size=len(pattern_select))
     pattern_idx = pattern_select[pattern_idx]
     rdms = rdms.subsample_pattern(pattern_descriptor,
@@ -81,7 +81,7 @@ def bootstrap_sample_rdm(rdms, rdm_descriptor='index'):
 
     """
     rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
-    rdm_sample = np.random.randint(0, len(rdm_select) - 1,
+    rdm_sample = np.random.randint(0, len(rdm_select),
                                    size=len(rdm_select))
     rdm_idx = rdm_select[rdm_sample]
     rdms = rdms.subsample(rdm_descriptor, rdm_idx)
@@ -111,7 +111,7 @@ def bootstrap_sample_pattern(rdms, pattern_descriptor='index'):
     """
     pattern_descriptor, pattern_select = \
         add_pattern_index(rdms, pattern_descriptor)
-    pattern_idx = np.random.randint(0, len(pattern_select) - 1,
+    pattern_idx = np.random.randint(0, len(pattern_select),
                                     size=len(pattern_select))
     pattern_idx = pattern_select[pattern_idx]
     rdms = rdms.subsample_pattern(pattern_descriptor,
