@@ -260,6 +260,7 @@ class TestRDM(unittest.TestCase):
                          rdm_descriptors=rdm_des)
         rdms = concat((rdms1, rdms2))
         assert rdms.n_rdm == 16
+        assert len(rdms.rdm_descriptors['session'] == 16)
 
     def test_categorical_rdm(self):
         from pyrsa.rdm import get_categorical_rdm
@@ -365,7 +366,8 @@ class TestCalcRDM(unittest.TestCase):
         )
 
     def test_calc_euclid_nconds(self):
-        rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
+        d = self.test_data
+        rdm = rsr.calc_rdm([d, d], descriptor='conds',
                            method='euclidean')
         assert rdm.n_cond == 6
 
@@ -421,6 +423,12 @@ class TestCalcRDM(unittest.TestCase):
             rdme.dissimilarities.flatten(),
             rdm.dissimilarities.flatten()
         )
+
+    def test_calc_list_descriptors(self):
+        rdm = rsr.calc_rdm([self.test_data, self.test_data, self.test_data],
+                           descriptor='conds',
+                           method='euclidean')
+        assert np.all(rdm.rdm_descriptors['subj'] == np.array([0, 0, 0]))
 
     def test_calc_mahalanobis(self):
         rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
@@ -541,6 +549,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.n_cond == 6
         assert len(list(rdm)) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
+        assert len(rdm.rdm_descriptors['time']) == 15
 
     def test_calc_rdm_movie_euclidean(self):
         rdm = rsr.calc_rdm_movie(
