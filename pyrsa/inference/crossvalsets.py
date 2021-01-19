@@ -346,7 +346,7 @@ def sets_random(rdms, n_rdm=None, n_pattern=None, n_cv=2,
     train_set = []
     test_set = []
     ceil_set = []
-    for i_group in range(n_cv):
+    for _i_group in range(n_cv):
         # shuffle
         np.random.shuffle(rdm_select)
         np.random.shuffle(pattern_select)
