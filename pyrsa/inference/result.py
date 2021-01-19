@@ -10,6 +10,7 @@ from pyrsa.util.file_io import write_dict_hdf5
 from pyrsa.util.file_io import write_dict_pkl
 from pyrsa.util.file_io import read_dict_hdf5
 from pyrsa.util.file_io import read_dict_pkl
+from pyrsa.util.file_io import remove_file
 from pyrsa.util.inference_util import extract_variances
 
 
@@ -66,7 +67,7 @@ class Result:
             self.diff_var = None
             self.noise_ceil_var = None
 
-    def save(self, filename, file_type='hdf5'):
+    def save(self, filename, file_type='hdf5', overwrite=False):
         """ saves the results into a file.
 
         Args:
@@ -75,9 +76,12 @@ class Result:
             file_type(String): Type of file to create:
                 hdf5: hdf5 file
                 pkl: pickle file
+            overwrite(Boolean): overwrites file if it already exists
 
         """
         result_dict = self.to_dict()
+        if overwrite:
+            remove_file(filename)
         if file_type == 'hdf5':
             write_dict_hdf5(filename, result_dict)
         elif file_type == 'pkl':
