@@ -312,13 +312,17 @@ class TestRDM(unittest.TestCase):
         rdms.sort_by(conds='alpha')
         new_order = np.argsort(conds)
         rdm_reordered = rdm[np.ix_(new_order, new_order)]
-        assert_array_equal(
-            np.atleast_2d(squareform(rdm_reordered)),
-            rdms.dissimilarities
+        self.assertIsNone(
+            assert_array_equal(
+                np.atleast_2d(squareform(rdm_reordered)),
+                rdms.dissimilarities
+            )
         )
-        assert_array_equal(
-            sorted(conds),
-            rdms.pattern_descriptors.get('conds')
+        self.assertIsNone(
+            assert_array_equal(
+                sorted(conds),
+                rdms.pattern_descriptors.get('conds')
+            )
         )
 
     def test_sort_by_list(self):
@@ -339,13 +343,17 @@ class TestRDM(unittest.TestCase):
 
         new_order = np.array([conds.index(c) for c in conds_new_order])
         rdm_reordered = rdm[np.ix_(new_order, new_order)]
-        assert_array_equal(
-            np.atleast_2d(squareform(rdm_reordered)),
-            rdms.dissimilarities
+        self.assertIsNone(
+            assert_array_equal(
+                np.atleast_2d(squareform(rdm_reordered)),
+                rdms.dissimilarities
+            )
         )
-        assert_array_equal(
-            conds_new_order,
-            rdms.pattern_descriptors.get('conds')
+        self.assertIsNone(
+            assert_array_equal(
+                conds_new_order,
+                rdms.pattern_descriptors.get('conds')
+            )
         )
 
 class TestCalcRDM(unittest.TestCase):
