@@ -357,7 +357,7 @@ class RDMs:
         """Reorder the patterns by sorting a descriptor
 
         Pass keyword arguments that correspond to descriptors,
-        with value 'alpha'. 
+        with value 'alpha'.
 
         Example:
             Sorts the condition descriptor alphabetically:
