@@ -311,3 +311,76 @@ def sets_of_k_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     n_groups = int(len(pattern_select) / k)
     return sets_k_fold_pattern(rdms, pattern_descriptor=pattern_descriptor,
                                k=n_groups, random=random)
+
+
+def sets_random(rdms, n_rdm=None, n_pattern=None, n_cv=2,
+                pattern_descriptor='index', rdm_descriptor='index'):
+    """ generates training and test set combinations by selecting random
+    test sets of n_rdm RDMs and n_pattern patterns and using the rest of
+    the data as the training set.
+
+    If a n is set to 0 the corresponding dimension is not crossvalidated.
+
+    Args:
+        rdms(pyrsa.rdm.RDMs): rdms to split
+        pattern_descriptor(String): descriptor to select pattern groups
+        rdm_descriptor(String): descriptor to select rdm groups
+        n_rdm(int): number of rdms per test set
+        n_pattern(int): number of patterns per test set
+
+    Returns:
+        train_set(list): list of tuples (rdms, pattern_idx)
+        test_set(list): list of tuples (rdms, pattern_idx)
+        ceil_set(list): list of tuples (rdms, pattern_idx)
+
+    """
+    rdm_select = rdms.rdm_descriptors[rdm_descriptor]
+    rdm_select = np.unique(rdm_select)
+    if n_rdm is None:
+        k_rdm = default_k_rdm(len(rdm_select))
+        n_rdm = int(np.floor(len(rdm_select) / k_rdm))
+    pattern_descriptor, pattern_select = \
+        add_pattern_index(rdms, pattern_descriptor)
+    if n_pattern is None:
+        k_pattern = default_k_pattern(len(pattern_select))
+        n_pattern = int(np.floor(len(pattern_select) / k_pattern))
+    train_set = []
+    test_set = []
+    ceil_set = []
+    for _i_group in range(n_cv):
+        # shuffle
+        np.random.shuffle(rdm_select)
+        np.random.shuffle(pattern_select)
+        # choose indices based on n_rdm
+        if n_rdm == 0:
+            train_idx = np.arange(len(rdm_select))
+            test_idx = np.arange(len(rdm_select))
+        else:
+            test_idx = np.arange(n_rdm)
+            train_idx = np.arange(n_rdm, len(rdm_select))
+        # take subset of rdms
+        rdm_idx_test = [rdm_select[int(idx)] for idx in test_idx]
+        rdm_idx_train = [rdm_select[int(idx)] for idx in train_idx]
+        rdms_test = rdms.subsample(rdm_descriptor,
+                                   rdm_idx_test)
+        rdms_train = rdms.subsample(rdm_descriptor,
+                                    rdm_idx_train)
+        # choose indices based on n_pattern
+        if n_pattern == 0:
+            train_idx = np.arange(len(pattern_select))
+            test_idx = np.arange(len(pattern_select))
+        else:
+            test_idx = np.arange(n_pattern)
+            train_idx = np.arange(n_pattern, len(pattern_select))
+        pattern_idx_test = [pattern_select[int(idx)] for idx in test_idx]
+        pattern_idx_train = [pattern_select[int(idx)] for idx in train_idx]
+        rdms_test = rdms_test.subset_pattern(pattern_descriptor,
+                                             pattern_idx_test)
+        rdms_ceil = rdms_train.subset_pattern(pattern_descriptor,
+                                              pattern_idx_test)
+        rdms_train = rdms_train.subset_pattern(pattern_descriptor,
+                                               pattern_idx_train)
+        test_set.append([rdms_test, pattern_idx_test])
+        train_set.append([rdms_train, pattern_idx_train])
+        ceil_set.append([rdms_ceil, pattern_idx_test])
+    return train_set, test_set, ceil_set

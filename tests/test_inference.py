@@ -98,7 +98,7 @@ class TestEvaluation(unittest.TestCase):
         from pyrsa.model import ModelFixed
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
-        value = eval_fixed(m, rdms)
+        eval_fixed(m, rdms)
 
     def test_eval_bootstrap(self):
         from pyrsa.inference import eval_bootstrap
@@ -106,7 +106,7 @@ class TestEvaluation(unittest.TestCase):
         from pyrsa.model import ModelFixed
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
-        value = eval_bootstrap(m, rdms, N=10)
+        eval_bootstrap(m, rdms, N=10)
 
     def test_eval_bootstrap_pattern(self):
         from pyrsa.inference import eval_bootstrap_pattern
@@ -114,7 +114,7 @@ class TestEvaluation(unittest.TestCase):
         from pyrsa.model import ModelFixed
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
-        value = eval_bootstrap_pattern(m, rdms, N=10)
+        eval_bootstrap_pattern(m, rdms, N=10)
 
     def test_eval_bootstrap_rdm(self):
         from pyrsa.inference import eval_bootstrap_rdm
@@ -122,8 +122,8 @@ class TestEvaluation(unittest.TestCase):
         from pyrsa.model import ModelFixed
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
-        value = eval_bootstrap_rdm(m, rdms, N=10)
-        value = eval_bootstrap_rdm(m, rdms, N=10, boot_noise_ceil=True)
+        eval_bootstrap_rdm(m, rdms, N=10)
+        eval_bootstrap_rdm(m, rdms, N=10, boot_noise_ceil=True)
 
     def test_bootstrap_testset(self):
         from pyrsa.inference import bootstrap_testset
@@ -140,7 +140,7 @@ class TestEvaluation(unittest.TestCase):
         from pyrsa.model import ModelFixed
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
-        evaluations, n_cond = bootstrap_testset_pattern(
+        _, _ = bootstrap_testset_pattern(
             m, rdms,
             method='cosine', fitter=None, N=100, pattern_descriptor=None)
 
@@ -150,7 +150,7 @@ class TestEvaluation(unittest.TestCase):
         from pyrsa.model import ModelFixed
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
-        evaluations, n_rdms = bootstrap_testset_rdm(
+        _, _ = bootstrap_testset_rdm(
             m, rdms,
             method='cosine', fitter=None, N=100, rdm_descriptor=None)
 
@@ -331,7 +331,7 @@ class TestsPairTests(unittest.TestCase):
 
     def test_t_tests(self):
         from pyrsa.util.inference_util import t_tests
-        variances = np.eye(5)
+        variances = np.ones(10)
         ps = t_tests(self.evaluations, variances)
         assert np.all(ps <= 1)
         assert np.all(ps >= 0)
@@ -347,30 +347,22 @@ class TestsPairTests(unittest.TestCase):
         m = ModelFixed('test', rdms.get_vectors()[0])
         m2 = ModelFixed('test', rdms.get_vectors()[2])
         value = eval_fixed([m, m2], rdms)
-        ps = t_tests(value.evaluations, value.variances, dof=value.dof)
+        ps = t_tests(value.evaluations, value.diff_var, dof=value.dof)
         scipy_t = scipy.stats.ttest_rel(value.evaluations[0, 0],
                                         value.evaluations[0, 1])
         self.assertAlmostEqual(scipy_t.pvalue, ps[0, 1])
 
     def test_t_test_0(self):
         from pyrsa.util.inference_util import t_test_0
-        variances = np.eye(5)
+        variances = np.ones(5)
         ps = t_test_0(self.evaluations, variances)
         assert np.all(ps <= 1)
         assert np.all(ps >= 0)
 
     def test_t_test_nc(self):
         from pyrsa.util.inference_util import t_test_nc
-        variances = np.eye(5)
+        variances = np.array([0.01, 0.1, 0.2, 0.1, 0.1, 0.3])
         ps = t_test_nc(self.evaluations, variances, 0.3)
-        assert np.all(ps <= 1)
-        assert np.all(ps >= 0)
-        ps = t_test_nc(self.evaluations, variances, 0.3, noise_ceil_var=0.1)
-        assert np.all(ps <= 1)
-        assert np.all(ps >= 0)
-        noise_ceil_var = [0.01, 0.1, 0.2, 0.1, 0.1, 0.3]
-        ps = t_test_nc(self.evaluations, variances, 0.3,
-                       noise_ceil_var=noise_ceil_var)
         assert np.all(ps <= 1)
         assert np.all(ps >= 0)
 
@@ -408,3 +400,59 @@ class TestsDefaultK(unittest.TestCase):
         self.assertEqual(default_k_pattern(20), 3)
         self.assertEqual(default_k_pattern(30), 4)
         self.assertEqual(default_k_pattern(100), 5)
+
+
+class TestsExtractVar(unittest.TestCase):
+
+    def test_extract_var_1D(self):
+        from pyrsa.util.inference_util import extract_variances
+        variance = np.var(np.random.randn(10, 100), 1)
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, True)
+        self.assertEqual(model_variances.shape[0], 8)
+        self.assertEqual(diff_variances.shape[0], 28)
+        self.assertEqual(nc_variances.shape[0], 8)
+        self.assertEqual(nc_variances.shape[1], 2)
+
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, False)
+        self.assertEqual(model_variances.shape[0], 10)
+        self.assertEqual(diff_variances.shape[0], 45)
+        self.assertEqual(nc_variances.shape[0], 10)
+        self.assertEqual(nc_variances.shape[1], 2)
+
+    def test_extract_var_2D(self):
+        from pyrsa.util.inference_util import extract_variances
+        variance = np.cov(np.random.randn(10, 100))
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, True)
+        self.assertEqual(model_variances.shape[0], 8)
+        self.assertEqual(diff_variances.shape[0], 28)
+        self.assertEqual(nc_variances.shape[0], 8)
+        self.assertEqual(nc_variances.shape[1], 2)
+
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, False)
+        self.assertEqual(model_variances.shape[0], 10)
+        self.assertEqual(diff_variances.shape[0], 45)
+        self.assertEqual(nc_variances.shape[0], 10)
+        self.assertEqual(nc_variances.shape[1], 2)
+
+    def test_extract_var_3D(self):
+        from pyrsa.util.inference_util import extract_variances
+        variance = np.cov(np.random.randn(10, 100))
+        variance = np.repeat(np.expand_dims(variance, 0), 3, 0
+                             ).reshape(3, 10, 10)
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, True)
+        self.assertEqual(model_variances.shape[0], 8)
+        self.assertEqual(diff_variances.shape[0], 28)
+        self.assertEqual(nc_variances.shape[0], 8)
+        self.assertEqual(nc_variances.shape[1], 2)
+
+        model_variances, diff_variances, nc_variances = \
+            extract_variances(variance, False)
+        self.assertEqual(model_variances.shape[0], 10)
+        self.assertEqual(diff_variances.shape[0], 45)
+        self.assertEqual(nc_variances.shape[0], 10)
+        self.assertEqual(nc_variances.shape[1], 2)
