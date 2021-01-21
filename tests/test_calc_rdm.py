@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+""" tests for calculation of RDMs
 """
-Created on Thu Jan 21 12:16:05 2021
 
-@author: heiko
-"""
 import unittest
 from unittest.mock import Mock, patch
 import numpy as np
-from scipy.spatial.distance import pdist, squareform
 from numpy.testing import assert_array_almost_equal
+from scipy.spatial.distance import pdist, squareform
 import pyrsa.rdm as rsr
 import pyrsa as rsa
 
@@ -83,13 +81,15 @@ class TestCalcRDM(unittest.TestCase):
         _parse_input.return_value = (data.measurements, desc, 'conds')
         rdm_expected = pdist(data.measurements)**2/5
         rdms = calc_rdm(
-            self.test_data,
+            data,
             descriptor='conds',
             method='euclidean'
         )
-        assert_array_almost_equal(
-            rdm_expected,
-            rdms.dissimilarities.flatten()
+        self.assertIsNone(
+            assert_array_almost_equal(
+                rdm_expected,
+                rdms.dissimilarities.flatten()
+            )
         )
 
     @patch('pyrsa.rdm.calc._parse_input')
@@ -106,13 +106,15 @@ class TestCalcRDM(unittest.TestCase):
             dissimilarity_measure='correlation',
             descriptors=data.descriptors)
         rdm = calc_rdm(
-            self.test_data,
+            data,
             descriptor='conds',
             method='correlation'
         )
-        assert_array_almost_equal(
-            rdme.dissimilarities.flatten(),
-            rdm.dissimilarities.flatten()
+        self.assertIsNone(
+            assert_array_almost_equal(
+                rdme.dissimilarities.flatten(),
+                rdm.dissimilarities.flatten()
+            )
         )
 
     def test_calc_list_descriptors(self):
@@ -215,7 +217,8 @@ class TestCalcRDMMovie(unittest.TestCase):
                         'fold': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                           1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
                         }
-        chn_des = {'rois': np.array(['sensor1', 'sensor2', 'sensor3', 'sensor5', 'sensor5'])}
+        chn_des = {'rois': np.array(
+            ['sensor1', 'sensor2', 'sensor3', 'sensor5', 'sensor5'])}
 
         self.test_data_time = rsa.data.TemporalDataset(
             measurements=measurements_time,

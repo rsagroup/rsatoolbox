@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 21 12:19:55 2021
+""" Tests for comparing RDMs
 
 @author: heiko
 """

@@ -356,6 +356,7 @@ class TestRDM(unittest.TestCase):
             )
         )
 
+
 class TestSave(unittest.TestCase):
     def test_dict_conversion(self):
         dis = np.zeros((8, 10))
