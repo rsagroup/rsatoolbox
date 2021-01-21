@@ -67,9 +67,9 @@ class TestCalcRDM(unittest.TestCase):
         data.measurements = np.random.rand(6, 5)
         desc_true = [0, 1, 2, 3, 4, 5]
         measurements, desc, descriptor = _parse_input(data, None)
-        assert descriptor == 'pattern'
-        assert np.all(np.array(desc_true) == desc)
-        assert np.all(data.measurements == measurements)
+        self.assertTrue(descriptor == 'pattern')
+        self.assertTrue(np.all(np.array(desc_true) == desc))
+        self.assertTrue(np.all(data.measurements == measurements))
 
     @patch('pyrsa.rdm.calc._parse_input')
     def test_calc_euclid_as_scipy(self, _parse_input):
@@ -281,10 +281,11 @@ class TestCalcRDMMovie(unittest.TestCase):
     def test_calc_rdm_movie_rdm_movie_poisson(self):
         noise = np.random.randn(10, 5)
         noise = np.matmul(noise.T, noise)
-        rdm = rsr.calc_rdm_movie(self.test_data_time_balanced,
-                                 method='poisson',
-                                 descriptor='conds',
-                                 noise=noise)
+        rdm = rsr.calc_rdm_movie(
+            self.test_data_time_balanced,
+            method='poisson',
+            descriptor='conds',
+            noise=noise)
         assert rdm.n_cond == 5
 
     def test_calc_rdm_movie_binned(self):
