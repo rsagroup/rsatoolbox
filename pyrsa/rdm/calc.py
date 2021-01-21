@@ -7,6 +7,7 @@ Calculation of RDMs from datasets
 
 from collections.abc import Iterable
 import numpy as np
+from copy import deepcopy
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
 from pyrsa.data import average_dataset_by
@@ -76,7 +77,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
 
 def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
              cv_descriptor=None, prior_lambda=1, prior_weight=0.1,
-             time_descriptor = 'time', bins=None):
+             time_descriptor='time', bins=None):
     """
     calculates an RDM movie from an input TemporalDataset
 
@@ -160,7 +161,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
     rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='euclidean',
-               descriptors=dataset.descriptors)
+               rdm_descriptors=deepcopy(dataset.descriptors))
     rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
@@ -188,7 +189,7 @@ def calc_rdm_correlation(dataset, descriptor=None):
     rdm = 1 - np.einsum('ik,jk', ma, ma)
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='correlation',
-               descriptors=dataset.descriptors)
+               rdm_descriptors=deepcopy(dataset.descriptors))
     rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
@@ -227,7 +228,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
         rdm = np.einsum('ij,ij->i', diff, diff2) / measurements.shape[1]
         rdm = RDMs(dissimilarities=np.array([rdm]),
                    dissimilarity_measure='Mahalanobis',
-                   descriptors=dataset.descriptors)
+                   rdm_descriptors=deepcopy(dataset.descriptors))
         rdm.pattern_descriptors[descriptor] = desc
         rdm.descriptors['noise'] = noise
     return rdm
@@ -330,7 +331,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     rdm = np.einsum('ij->j', rdms)
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='crossnobis',
-               descriptors=dataset.descriptors)
+               rdm_descriptors=deepcopy(dataset.descriptors))
     _, desc, _ = average_dataset_by(dataset, descriptor)
     rdm.pattern_descriptors[descriptor] = desc
     rdm.descriptors['noise'] = noise
@@ -365,7 +366,7 @@ def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
     rdm = np.einsum('ij,ij->i', diff, diff_log) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='poisson',
-               descriptors=dataset.descriptors)
+               rdm_descriptors=deepcopy(dataset.descriptors))
     rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
@@ -421,7 +422,7 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
             / measurements_train.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='poisson_cv',
-               descriptors=dataset.descriptors)
+               rdm_descriptors=deepcopy(dataset.descriptors))
     _, desc, _ = average_dataset_by(dataset, descriptor)
     rdm.pattern_descriptors[descriptor] = desc
     return rdm
