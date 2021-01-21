@@ -368,7 +368,7 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
                 vector_w /= rowI @ sigma_k_sqrt
                 vector_w /= colI @ sigma_k_sqrt
             elif sigma_k.ndim == 2:
-                L_sigma_k = np.linalg.inv(np.linalg.cholesky(sigma_k))
+                l_sigma_k = np.linalg.inv(np.linalg.cholesky(sigma_k))
                 Gs = np.empty((vector.shape[0], n_cond, n_cond))
                 for i_vec in range(vector.shape[0]):
                     G = scipy.spatial.distance.squareform(
@@ -376,7 +376,7 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
                     np.fill_diagonal(G, vector_w[i_vec, n_dist:])
                     Gs[i_vec] = G
                 # These two are the slow lines for this whitening
-                Gs = np.einsum('ij,mjk,lk->mil', L_sigma_k, Gs, L_sigma_k)
+                Gs = np.einsum('ij,mjk,lk->mil', l_sigma_k, Gs, l_sigma_k)
                 vector_w = np.einsum('ij,mjk,ik->mi', rowI, Gs, colI)
     else:
         nan_idx_ext = np.concatenate((nan_idx, np.ones(n_cond, np.bool)))
