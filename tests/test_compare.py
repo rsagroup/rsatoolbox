@@ -391,4 +391,3 @@ class TestCompareCov(unittest.TestCase):
             sigma_k=np.eye(6))
         assert_array_almost_equal(result, result_1D)
         assert_array_almost_equal(result, result_2D)
-        
