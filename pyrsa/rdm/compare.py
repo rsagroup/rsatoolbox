@@ -314,7 +314,7 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
             cosine angle between vectors
 
     """
-    if (sigma_k is not None) and (sigma_k.ndim >= 2) and (nan_idx is not None):
+    if (sigma_k is not None) and (sigma_k.ndim >= 2):
         cos = _cosine_cov_weighted_slow(
             vector1, vector2, sigma_k=sigma_k, nan_idx=nan_idx)
     else:
