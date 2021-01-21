@@ -367,7 +367,7 @@ class TestCompareCov(unittest.TestCase):
             dissimilarity_measure='test',
             descriptors=des2
             )
-    
+
     def test_cov_identity_equal(self):
         from pyrsa.rdm.compare import compare
         result = compare(self.test_rdm1, self.test_rdm2, method='corr_cov')
@@ -376,6 +376,18 @@ class TestCompareCov(unittest.TestCase):
             sigma_k=np.ones(6))
         result_2D = compare(
             self.test_rdm1, self.test_rdm2, method='corr_cov',
+            sigma_k=np.eye(6))
+        assert_array_almost_equal(result, result_1D)
+        assert_array_almost_equal(result, result_2D)
+
+    def test_cov_identity_equal(self):
+        from pyrsa.rdm.compare import compare
+        result = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov')
+        result_1D = compare(
+            self.test_rdm1, self.test_rdm2, method='cosine_cov',
+            sigma_k=np.ones(6))
+        result_2D = compare(
+            self.test_rdm1, self.test_rdm2, method='cosine_cov',
             sigma_k=np.eye(6))
         assert_array_almost_equal(result, result_1D)
         assert_array_almost_equal(result, result_2D)

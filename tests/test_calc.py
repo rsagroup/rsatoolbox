@@ -69,9 +69,9 @@ class TestCalcRDM(unittest.TestCase):
         data.measurements = np.random.rand(6, 5)
         desc_true = [0, 1, 2, 3, 4, 5]
         measurements, desc, descriptor = _parse_input(data, None)
-        assert descriptor == 'pattern'
-        assert np.all(np.array(desc_true) == desc)
-        assert np.all(data.measurements == measurements)
+        self.assertTrue(descriptor == 'pattern')
+        self.assertTrue(np.all(np.array(desc_true) == desc))
+        self.assertTrue(np.all(data.measurements == measurements))
 
     @patch('pyrsa.rdm.calc._parse_input')
     def test_calc_euclid_as_scipy(self, _parse_input):
