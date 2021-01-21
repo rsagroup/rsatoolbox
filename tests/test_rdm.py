@@ -297,7 +297,7 @@ class TestRDM(unittest.TestCase):
             rdms.pattern_descriptors.get('conds')
         )
 
-    def test_sort_by(self):
+    def test_sort_by_alpha(self):
         from pyrsa.rdm import RDMs
         rdm = np.array([
             [0., 1., 2., 3.],
@@ -313,15 +313,49 @@ class TestRDM(unittest.TestCase):
         rdms.sort_by(conds='alpha')
         new_order = np.argsort(conds)
         rdm_reordered = rdm[np.ix_(new_order, new_order)]
-        assert_array_equal(
-            np.atleast_2d(squareform(rdm_reordered)),
-            rdms.dissimilarities
+        self.assertIsNone(
+            assert_array_equal(
+                np.atleast_2d(squareform(rdm_reordered)),
+                rdms.dissimilarities
+            )
         )
-        assert_array_equal(
-            sorted(conds),
-            rdms.pattern_descriptors.get('conds')
+        self.assertIsNone(
+            assert_array_equal(
+                sorted(conds),
+                rdms.pattern_descriptors.get('conds')
+            )
         )
 
+    def test_sort_by_list(self):
+        from pyrsa.rdm import RDMs
+        rdm = np.array([
+            [0., 1., 2., 3.],
+            [1., 0., 1., 2.],
+            [2., 1., 0., 1.],
+            [3., 2., 1., 0.]]
+        )
+        conds = ['a', 'b', 'c', 'd']
+        rdms = RDMs(
+            np.atleast_2d(squareform(rdm)),
+            pattern_descriptors=dict(conds=conds)
+        )
+        conds_new_order = ['c', 'd', 'b', 'a']
+        rdms.sort_by(conds=conds_new_order)
+
+        new_order = np.array([conds.index(c) for c in conds_new_order])
+        rdm_reordered = rdm[np.ix_(new_order, new_order)]
+        self.assertIsNone(
+            assert_array_equal(
+                np.atleast_2d(squareform(rdm_reordered)),
+                rdms.dissimilarities
+            )
+        )
+        self.assertIsNone(
+            assert_array_equal(
+                conds_new_order,
+                rdms.pattern_descriptors.get('conds')
+            )
+        )
 
 class TestCalcRDM(unittest.TestCase):
 
