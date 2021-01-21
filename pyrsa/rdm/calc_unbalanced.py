@@ -8,9 +8,9 @@ channels or numbers of measurements per dissimilarity
 """
 
 from collections.abc import Iterable
+from copy import deepcopy
 import warnings
 import numpy as np
-from copy import deepcopy
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
 from pyrsa.util.matrix import row_col_indicator_rdm

@@ -6,8 +6,8 @@ Calculation of RDMs from datasets
 """
 
 from collections.abc import Iterable
-import numpy as np
 from copy import deepcopy
+import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
 from pyrsa.data import average_dataset_by
