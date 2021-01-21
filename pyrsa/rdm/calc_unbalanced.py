@@ -46,16 +46,16 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
         descriptor = 'index'
     if isinstance(dataset, Iterable):
         rdms = []
-        for i_dat in range(len(dataset)):
+        for i_dat, dat in enumerate(dataset):
             if noise is None:
                 rdms.append(calc_rdm_unbalanced(
-                    dataset[i_dat], method=method, descriptor=descriptor,
+                    dat, method=method, descriptor=descriptor,
                     cv_descriptor=cv_descriptor,
                     prior_lambda=prior_lambda, prior_weight=prior_weight,
                     weighting=weighting, enforce_same=enforce_same))
             elif isinstance(noise, np.ndarray) and noise.ndim == 2:
                 rdms.append(calc_rdm_unbalanced(
-                    dataset[i_dat], method=method,
+                    dat, method=method,
                     descriptor=descriptor,
                     noise=noise,
                     cv_descriptor=cv_descriptor,
@@ -63,7 +63,7 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
                     weighting=weighting, enforce_same=enforce_same))
             elif isinstance(noise, Iterable):
                 rdms.append(calc_rdm_unbalanced(
-                    dataset[i_dat], method=method,
+                    dat, method=method,
                     descriptor=descriptor,
                     noise=noise[i_dat],
                     cv_descriptor=cv_descriptor,
@@ -131,7 +131,7 @@ def _check_noise(noise, n_channel):
     elif isinstance(noise, np.ndarray) and noise.ndim == 2:
         assert np.all(noise.shape == (n_channel, n_channel))
     elif isinstance(noise, Iterable):
-        for i in range(len(noise)):
+        for i, _ in enumerate(noise):
             noise[i] = _check_noise(noise[i], n_channel)
     elif isinstance(noise, dict):
         for key in noise.keys():

@@ -4,9 +4,9 @@
 """
 
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 import numpy as np
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
 from scipy.spatial.distance import pdist, squareform
 import pyrsa.rdm as rsr
 import pyrsa as rsa
@@ -76,10 +76,12 @@ class TestCalcRDM(unittest.TestCase):
             descriptor='conds',
             method='euclidean'
         )
-        assert_array_almost_equal(
-            rdm_expected,
-            rdms.dissimilarities.flatten()
-        )
+        self.assertIsNone(
+            assert_array_almost_equal(
+                rdm_expected,
+                rdms.dissimilarities.flatten()
+                )
+            )
 
     @patch('pyrsa.rdm.calc._parse_input')
     def test_calc_correlation(self, _parse_input):
@@ -99,9 +101,11 @@ class TestCalcRDM(unittest.TestCase):
             descriptor='conds',
             method='correlation'
         )
-        assert_array_almost_equal(
-            rdme.dissimilarities.flatten(),
-            rdm.dissimilarities.flatten()
+        self.assertIsNone(
+            assert_array_almost_equal(
+                rdme.dissimilarities.flatten(),
+                rdm.dissimilarities.flatten()
+            )
         )
 
     def test_calc_list_descriptors(self):

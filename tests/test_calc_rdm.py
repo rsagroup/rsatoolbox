@@ -85,9 +85,11 @@ class TestCalcRDM(unittest.TestCase):
             descriptor='conds',
             method='euclidean'
         )
-        assert_array_almost_equal(
-            rdm_expected,
-            rdms.dissimilarities.flatten()
+        self.assertIsNone(
+            assert_array_almost_equal(
+                rdm_expected,
+                rdms.dissimilarities.flatten()
+            )
         )
 
     @patch('pyrsa.rdm.calc._parse_input')
@@ -108,9 +110,11 @@ class TestCalcRDM(unittest.TestCase):
             descriptor='conds',
             method='correlation'
         )
-        assert_array_almost_equal(
-            rdme.dissimilarities.flatten(),
-            rdm.dissimilarities.flatten()
+        self.assertIsNone(
+            assert_array_almost_equal(
+                rdme.dissimilarities.flatten(),
+                rdm.dissimilarities.flatten()
+            )
         )
 
     def test_calc_list_descriptors(self):
