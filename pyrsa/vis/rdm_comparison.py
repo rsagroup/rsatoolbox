@@ -6,10 +6,10 @@ Created on 2020-09-17
 @author: caiw
 """
 
-from typing import Tuple, List, Dict, Union
+from typing import Tuple, List, Union, Dict, Optional
 
-from numpy import fill_diagonal, zeros_like
-from matplotlib import pyplot
+from numpy import fill_diagonal, zeros_like, array
+from matplotlib import pyplot, rcParams
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
@@ -20,7 +20,10 @@ from pyrsa.util.matrix import square_category_binary_mask, square_between_catego
 from pyrsa.util.rdm_utils import category_condition_idxs
 
 
-_default_colour = "xkcd:nice blue"
+_Colour = Tuple[float, float, float]
+
+
+_default_colour = "#107ab0"  # xkcd:nice blue
 _default_cmap   = None
 
 
@@ -29,7 +32,7 @@ def rdm_comparison_scatterplot(rdms,
                                show_identity_line: bool = True,
                                highlight_category_selector: Union[str, List[int]] = None,
                                highlight_categories: List = None,
-                               colors: Dict = None,
+                               colors: Dict[str, _Colour] = None,
                                cmap = None,
                                axlim: Tuple[float, float] = None,
                                hist_bins: int = 30,
@@ -77,7 +80,9 @@ def rdm_comparison_scatterplot(rdms,
     """
 
     rdms_x, rdms_y = _handle_args_rdms(rdms)
-    category_idxs  = _handle_args_hilight_categories(highlight_category_selector, highlight_categories, rdms_x)
+    category_idxs: Optional[Dict[str, List[int]]] = _handle_args_highlight_categories(highlight_category_selector, highlight_categories, rdms_x)
+    if cmap is None:
+        cmap = _default_cmap
 
     n_rdms_x, n_rdms_y = len(rdms_x), len(rdms_y)
 
@@ -113,22 +118,33 @@ def rdm_comparison_scatterplot(rdms,
 
             # Decide how to colour scatter points
             if highlight_category_selector is not None:
-                scatter_colour = _do_color_highlighted_categories(rdm_for_col, highlight_categories, category_idxs, colors)
-            elif 'c' in scatter_kwargs:
-                scatter_colour = scatter_kwargs['c']
+                dissimilarity_colours = _colours_within_and_between_categories(rdm_for_col, highlight_categories, category_idxs, colors)
             else:
-                scatter_colour = _default_colour
+                dissimilarity_colours = _default_colour
 
+            # First plot dissimilarities within all stimuli
+            full_marker_size = rcParams["lines.markersize"] ** 2
             sub_axis.scatter(x=rdm_for_col.get_vectors(),
                              y=rdm_for_row.get_vectors(),
-                             c=scatter_colour,
-                             cmap=cmap if cmap is not None else _default_cmap)
+                             c=_default_colour,
+                             s=full_marker_size,
+                             cmap=cmap)
+
+            # Then plot highlighted categories
+            sub_axis.scatter(x=rdm_for_col.get_vectors(),
+                             y=rdm_for_row.get_vectors(),
+                             c=dissimilarity_colours,
+                             # Slightly smaller, so the dist for all still shows
+                             s=full_marker_size * 0.5,
+                             cmap=cmap)
             scatter_axes.append(sub_axis)
 
             _do_format_sub_axes(sub_axis, is_bottom_row, is_leftmost_col)
 
     if show_marginal_distributions:
-        _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins)
+        _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins,
+                                        highlight_categories, category_idxs, colors,
+                                        cmap)
 
     if show_identity_line:
         _do_show_identity_line(reference_axis, scatter_axes)
@@ -139,7 +155,7 @@ def rdm_comparison_scatterplot(rdms,
     return fig
 
 
-def _handle_args_hilight_categories(highlight_category_selector, highlight_categories, reference_rdms):
+def _handle_args_highlight_categories(highlight_category_selector, highlight_categories, reference_rdms) -> Optional[Dict[str, List[int]]]:
     # Handle category highlighting args
     _msg_arg_highlight = "Arguments `highlight_category_selector` and `highlight_categories` must be compatible."
     try:
@@ -224,10 +240,14 @@ def _do_show_identity_line(reference_axis, scatter_axes):
         # Prevent autoscale, else plotting from the origin causes the axes to rescale
         ax.autoscale(False)
         ax.plot([reference_axis.get_xlim()[0], reference_axis.get_xlim()[1]],
-                [reference_axis.get_ylim()[0], reference_axis.get_ylim()[1]])
+                [reference_axis.get_ylim()[0], reference_axis.get_ylim()[1]],
+                # Grey line in the background
+                "0.5", zorder=-1)
 
 
-def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins):
+def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins,
+                                    highlight_categories, category_idxs, colors, cmap):
+
     # Add marginal distributions along the x axis
     reference_hist = None
     for col_idx, rdm_for_col in enumerate(rdms_x):
@@ -261,13 +281,24 @@ def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_
     reference_hist.set_xlim(hist_axis.get_xlim()[::-1])
 
 
-def _do_color_highlighted_categories(rdm, highlight_categories, category_idxs, colors):
+def _colours_within_and_between_categories(rdm, highlight_categories, category_idxs, colors):
+    """
+
+    Args:
+        rdm:
+        highlight_categories:
+        category_idxs:
+        colors:
+
+    Returns:
+
+    """
     # Initialise some things
 
     # List of ints. Each refers to a colour for the dissimilarity point in the scatter graph. So all dissims
     # within category 1 get an int, all within category 2 get a different int, all between categories 1 and
     # 2 get a third int, and so on for more categories. A final int (0) is reserved for remaining points.
-    scatter_colour = zeros_like(rdm.get_vectors().flatten(), dtype=int)
+    dissimilarity_colours = zeros_like(rdm.get_vectors().flatten(), dtype=int)
     # Counter to be incremented and guarantee unique int for each kind of dissim
     colour_indicator = 1
     # Dictionary mapping colour_indicator values against categories for lookup against user-specified
@@ -276,12 +307,12 @@ def _do_color_highlighted_categories(rdm, highlight_categories, category_idxs, c
 
     # Within categories
     for category_name in highlight_categories:
-        square_mask = square_category_binary_mask(category_idxs=category_idxs[category_name], size=n_cond)
+        square_mask = square_category_binary_mask(category_idxs=category_idxs[category_name], size=rdm.n_cond)
         # We don't use diagonal entries, but they must be 0 for squareform to work
         fill_diagonal(square_mask, False)
         # Get UTV binary mask for within-category dissims
         within_category_idxs = squareform(square_mask)
-        scatter_colour[within_category_idxs] = colour_indicator
+        dissimilarity_colours[within_category_idxs] = colour_indicator
         # within-category indicators mark just their categories
         indicator_categories[colour_indicator] = [category_name]
         # Set to this category colour
@@ -299,8 +330,8 @@ def _do_color_highlighted_categories(rdm, highlight_categories, category_idxs, c
             between_category_idxs = squareform(
                 square_between_category_binary_mask(category_1_idxs=category_idxs[category_1_name],
                                                     category_2_idxs=category_idxs[category_2_name],
-                                                    size=n_cond))
-            scatter_colour[between_category_idxs] = colour_indicator
+                                                    size=rdm.n_cond))
+            dissimilarity_colours[between_category_idxs] = colour_indicator
             # between-category indicators mark category pairs
             indicator_categories[colour_indicator] = {category_1_name, category_2_name}
             colour_indicator += 1
@@ -308,15 +339,15 @@ def _do_color_highlighted_categories(rdm, highlight_categories, category_idxs, c
 
     if colors is not None:
         # Use colour selector to pick out user-specified colours
-        scatter_colour = [
+        dissimilarity_colours = [
             _blend_rgb_colours(*(
                 colors[cat]
                 for cat in indicator_categories[indicator]
             ))
-            for indicator in scatter_colour
+            for indicator in dissimilarity_colours
         ]
 
-    return scatter_colour
+    return dissimilarity_colours
 
 
 def _blend_rgb_colours(c1, c2=None):
