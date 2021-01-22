@@ -7,7 +7,6 @@ Parameter fitting methods for models
 import numpy as np
 import scipy.optimize as opt
 import scipy.sparse
-from scipy.optimize import nnls
 from pyrsa.rdm import compare
 from pyrsa.util.matrix import get_v
 from pyrsa.util.pooling import pool_rdm
@@ -243,6 +242,65 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
     return theta.flatten()
 
 
+def fit_regress_nn(model, data, method='cosine', pattern_idx=None,
+                   pattern_descriptor=None, ridge_weight=0, sigma_k=None):
+    """
+    fitting theta using linear algebra solutions to the OLS problem
+    allowed for ModelWeighted only
+    This method first normalizes the data and model RDMs appropriately
+    for the measure to be optimized. For 'cosine' similarity this is a
+    normalization of the data-RDMs to vector length 1. For correlation
+    the mean is removed from both model and data rdms additionally.
+    Then the parameters are estimated using ordinary least squares.
+
+    Args:
+        model(Model): the model to be fit
+        data(pyrsa.rdm.RDMs): data to be fit
+        method(String, optional): evaluation metric The default is 'cosine'.
+        pattern_idx(numpy.ndarray, optional)
+            sampled patterns The default is None.
+        pattern_descriptor (String, optional)
+            descriptor used for fitting. The default is None.
+        ridge_weight (float, default=0)
+            weight for the ridge-regularisation of the regression
+            weight is in comparison to the final regression problem on
+            the appropriately normalized regressors
+        sigma_k(matrix): pattern-covariance matrix
+            used only for whitened distances (ending in _cov)
+            to compute the covariance matrix for rdms
+
+    Returns:
+        numpy.ndarray: theta, parameter vector for the model
+
+    """
+    if not (pattern_idx is None or pattern_descriptor is None):
+        pred = model.rdm_obj.subsample_pattern(pattern_descriptor, pattern_idx)
+    else:
+        pred = model.rdm_obj
+    vectors = pred.get_vectors()
+    data_mean = pool_rdm(data, method=method)
+    y = data_mean.get_vectors()
+    vectors, y, nan_idx = _parse_input_rdms(vectors, y)
+    # Normalizations
+    if method == 'cosine':
+        v = None
+    elif method == 'corr':
+        vectors = vectors - np.mean(vectors, 1, keepdims=True)
+        v = None
+    elif method == 'cosine_cov':
+        v = get_v(pred.n_cond, sigma_k)
+        v = v[nan_idx[0]][:, nan_idx[0]]
+    elif method == 'corr_cov':
+        vectors = vectors - np.mean(vectors, 1, keepdims=True)
+        y = y - np.mean(y)
+        v = get_v(pred.n_cond, sigma_k)
+        v = v[nan_idx[0]][:, nan_idx[0]]
+    else:
+        raise ValueError('method argument invalid')
+    theta = _nn_least_squares(vectors, y, ridge_weight=ridge_weight, V=v)
+    return theta.flatten()
+
+
 def _loss(theta, model, data, method='cosine', sigma_k=None,
           pattern_descriptor=None, pattern_idx=None,
           ridge_weight=0):
@@ -277,7 +335,20 @@ def _loss(theta, model, data, method='cosine', sigma_k=None,
 def _nn_least_squares(A, y, ridge_weight=0, V=None):
     """ non-negative least squares
     essentially scipy.optimize.nnls extended to accept a ridge_regression
-    regularisation and/or a precision matrix V to define a different loss
+    regularisation and/or a covariance matrix V.
+
+    The algorithm is discribed in detail here:
+    Bro, R., & Jong, S. D. (1997). A fast non-negativity-constrained
+    least squares algorithm. Journal of Chemometrics, 11, 9.
+
+
+    This is an active set algorithm which is somewhat optimized by
+    precomputing A^T V^-1 A and A^T V y such that during the optimization
+    only matricies of rank r need to be inverted.
+
+    This is tested against the scipy solution for ridge_weight=0 and V=None.
+    For other V the validation comes from fitting the same models using
+    general optimization.
     """
     assert A.shape[0] == y.shape[0]
     assert y.ndim == 1
@@ -287,14 +358,18 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
         w = A.T @ y
         ATA = A.T @ A + ridge_weight * np.eye(A.shape[1])
     else:
+        V_A = np.array([scipy.sparse.linalg.cg(V, A[:, i],
+                                               atol=10 ** -9)[0]
+                        for i in range(A.shape[1])])
+        y_V_A = V_A @ y
         w = A.T @ V @ y
-        ATA = A.T @ V @ A + ridge_weight * np.eye(A.shape[1])
+        ATA = A.T @ V_A.T + ridge_weight * np.eye(A.shape[1])
     while np.max(w) > 100 * np.finfo(np.float).eps:
         p[np.argmax(w)] = True
         if V is None:
             s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ y)
         else:
-            s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ V @ y)
+            s_p = np.linalg.solve(ATA[p][:, p], y_V_A[p])
         while np.any(s_p < 0):
             alphas = x[p] / (x[p] - s_p)
             i_alpha = np.argmin(alphas)
@@ -305,12 +380,12 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
             if V is None:
                 s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ y)
             else:
-                s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ V @ y)
+                s_p = np.linalg.solve(ATA[p][:, p], y_V_A[p])
         x[p] = s_p
         if V is None:
             w = A.T @ y - ATA @ x
         else:
-            w = A.T @ V @ y - ATA @ x
+            w = y_V_A - ATA @ x
     if V is None:
         loss = np.sum((y - A @ x) ** 2)
     else:
