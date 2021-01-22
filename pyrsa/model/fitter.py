@@ -7,6 +7,7 @@ Parameter fitting methods for models
 import numpy as np
 import scipy.optimize as opt
 import scipy.sparse
+from scipy.optimize import nnls
 from pyrsa.rdm import compare
 from pyrsa.util.matrix import get_v
 from pyrsa.util.pooling import pool_rdm
@@ -271,3 +272,47 @@ def _loss(theta, model, data, method='cosine', sigma_k=None,
         pred = pred.subsample_pattern(pattern_descriptor, pattern_idx)
     return -np.mean(compare(pred, data, method=method, sigma_k=sigma_k)) \
         + np.sum(theta * theta) * ridge_weight
+
+
+def _nn_least_squares(A, y, ridge_weight=0, V=None):
+    """ non-negative least squares
+    essentially scipy.optimize.nnls extended to accept a ridge_regression
+    regularisation and/or a precision matrix V to define a different loss
+    """
+    assert A.shape[0] == y.shape[0]
+    assert y.ndim == 1
+    x = np.zeros(A.shape[1])
+    p = np.zeros(A.shape[1], np.bool)
+    if V is None:
+        w = A.T @ y
+        ATA = A.T @ A + ridge_weight * np.eye(A.shape[1])
+    else:
+        w = A.T @ V @ y
+        ATA = A.T @ V @ A + ridge_weight * np.eye(A.shape[1])
+    while np.max(w) > 100 * np.finfo(np.float).eps:
+        p[np.argmax(w)] = True
+        if V is None:
+            s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ y)
+        else:
+            s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ V @ y)
+        while np.any(s_p < 0):
+            alphas = x[p] / (x[p] - s_p)
+            i_alpha = np.argmin(alphas)
+            alpha = alphas[i_alpha]
+            x[p] = x[p] + alpha * (x[p] - s_p)
+            x[p][i_alpha] = 0
+            p[p][i_alpha] = False
+            if V is None:
+                s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ y)
+            else:
+                s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ V @ y)
+        x[p] = s_p
+        if V is None:
+            w = A.T @ y - ATA @ x
+        else:
+            w = A.T @ V @ y - ATA @ x
+    if V is None:
+        loss = np.sum((y - A @ x) ** 2)
+    else:
+        loss = (y - A @ x).T @ V @ (y - A @ x)
+    return x, loss

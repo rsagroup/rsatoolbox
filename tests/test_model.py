@@ -6,6 +6,7 @@
 import unittest
 import pyrsa.model as model
 import numpy as np
+from numpy.testing import assert_allclose
 
 
 class TestModel(unittest.TestCase):
@@ -238,3 +239,50 @@ class TestConsistency(unittest.TestCase):
                 eval_m_w, eval_m_w_linear,
                 places=4, msg='regression fit differs from optimization fit!'
                 + '\nfor %s' % i_method)
+
+
+class TestNNLS(unittest.TestCase):
+    """ Tests that the non-negative least squares give results consistent
+    with other solutions where they apply
+    """
+
+    def test_nnls_scipy(self):
+        from scipy.optimize import nnls
+        from pyrsa.model.fitter import _nn_least_squares
+        A = np.random.rand(10, 3)
+        b = A @ np.array([1, -0.1, -0.1])
+        x_scipy, loss_scipy = nnls(A, b)
+        x_pyrsa, loss_pyrsa = _nn_least_squares(A, b)
+        assert_allclose(
+            x_scipy, x_pyrsa,
+            err_msg='non-negative-least squares different from scipy')
+        self.assertAlmostEqual(
+            loss_scipy, np.sqrt(loss_pyrsa),
+            places=5, msg='non-negative-least squares different from scipy')
+
+    def test_nnls_eye(self):
+        from pyrsa.model.fitter import _nn_least_squares
+        A = np.random.rand(10, 3)
+        b = A @ np.array([1, -0.1, -0.1])
+        x_pyrsa, loss_pyrsa = _nn_least_squares(A, b)
+        x_pyrsa_v, loss_pyrsa_v = _nn_least_squares(A, b, V=np.eye(10))
+        assert_allclose(
+            x_pyrsa, x_pyrsa_v,
+            err_msg='non-negative-least squares changes with V=np.eye')
+        self.assertAlmostEqual(
+            loss_pyrsa_v, loss_pyrsa,
+            places=5, msg='nnls loss changes with np.eye')
+
+    def test_nnls_eye_ridge(self):
+        from pyrsa.model.fitter import _nn_least_squares
+        A = np.random.rand(10, 3)
+        b = A @ np.array([1, -0.1, -0.1])
+        x_pyrsa, loss_pyrsa = _nn_least_squares(A, b, ridge_weight=1)
+        x_pyrsa_v, loss_pyrsa_v = _nn_least_squares(A, b, ridge_weight=1,
+                                                    V=np.eye(10))
+        assert_allclose(
+            x_pyrsa, x_pyrsa_v,
+            err_msg='non-negative-least squares changes with V=np.eye')
+        self.assertAlmostEqual(
+            loss_pyrsa_v, loss_pyrsa,
+            places=5, msg='nnls loss changes with np.eye')
