@@ -174,8 +174,7 @@ def rdm_comparison_scatterplot(rdms,
 
     if show_marginal_distributions:
         _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins,
-                                        highlight_categories, category_idxs, colors,
-                                        cmap)
+                                        highlight_categories, category_idxs, colors)
 
     if show_identity_line:
         _do_show_identity_line(reference_axis, scatter_axes)
@@ -277,7 +276,7 @@ def _do_show_identity_line(reference_axis, scatter_axes):
 
 
 def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins,
-                                    highlight_categories, category_idxs, colors, cmap):
+                                    highlight_categories, category_idxs, colors):
 
     # Add marginal distributions along the x axis
     reference_hist = None
@@ -288,14 +287,24 @@ def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_
         else:
             hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis, sharey=reference_hist)
 
-        # if highlight_categories is not None:
-        #     colours = _colours_within_and_between_categories(
-        #         rdm_for_col, highlight_categories, category_idxs, colors)
-        # else:
-        #     colours
+        # Plot all dissims
+        hist_axis.hist(rdm_for_col.get_vectors().flatten(), histtype='step', fill=False,
+                       orientation='vertical', bins=hist_bins, color=_default_colour)
 
-        hist_axis.hist(rdm_for_col.get_vectors().flatten(), histtype='step', fill=False, orientation='vertical',
-                       bins=hist_bins)
+        if highlight_categories is not None:
+            # Plot within dissims
+            within_category_idxs = _get_within_category_idxs(highlight_categories, category_idxs, rdm_for_col.n_cond)
+            for category_name, idxs in within_category_idxs.items():
+                hist_axis.hist(rdm_for_col.dissimilarities[idxs], histtype='step', fill=False,
+                               orientation='vertical', bins=hist_bins, color=colors[category_name])
+
+            # Plot between dissims
+            between_category_idxs = _get_between_category_idxs(category_idxs, highlight_categories, rdm_for_col.n_cond)
+            colours_between = _colours_between_categories(highlight_categories, colors)
+            for categories, idxs in between_category_idxs.items():
+                hist_axis.hist(rdm_for_col.dissimilarities[idxs], histtype='step', fill=False,
+                               orientation='vertical', bins=hist_bins, color=colours_between[categories])
+
         hist_axis.xaxis.set_visible(False)
         hist_axis.yaxis.set_visible(False)
         hist_axis.set_frame_on(False)
@@ -310,8 +319,25 @@ def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_
             reference_hist = hist_axis
         else:
             hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0], sharey=reference_axis, sharex=reference_hist)
+
+        # Plot all dissims
         hist_axis.hist(rdm_for_row.get_vectors().flatten(), histtype='step', fill=False, orientation='horizontal',
                        bins=hist_bins)
+
+        if highlight_categories is not None:
+            # Plot within dissims
+            within_category_idxs = _get_within_category_idxs(highlight_categories, category_idxs, rdm_for_row.n_cond)
+            for category_name, idxs in within_category_idxs.items():
+                hist_axis.hist(rdm_for_row.dissimilarities[idxs], histtype='step', fill=False,
+                               orientation='horizontal', bins=hist_bins, color=colors[category_name])
+
+            # Plot between dissims
+            between_category_idxs = _get_between_category_idxs(category_idxs, highlight_categories, rdm_for_row.n_cond)
+            colours_between = _colours_between_categories(highlight_categories, colors)
+            for categories, idxs in between_category_idxs.items():
+                hist_axis.hist(rdm_for_row.dissimilarities[idxs], histtype='step', fill=False,
+                               orientation='horizontal', bins=hist_bins, color=colours_between[categories])
+
         hist_axis.xaxis.set_visible(False)
         hist_axis.yaxis.set_visible(False)
         hist_axis.set_frame_on(False)
@@ -319,50 +345,27 @@ def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_
     reference_hist.set_xlim(hist_axis.get_xlim()[::-1])
 
 
-# TODO: Better in theory to prepare all the data for each plot before doing any plotting, but this may
-#  be more trouble than it's worth.
-def _split_dissimilarities_within_between(
-        dissimilarities_for_row: array,
-        dissimilarities_for_col: array,
+def _get_within_category_idxs(
         highlight_categories: List[str],
         category_idxs: Dict[str, List[int]],
-        # TODO: this should be calculable, but maybe it's not worth it
-        n_cond: int):
-    """
-    Splits dissimilarities into within/between category dissimilarities for highlighted categories.
-    Args:
-        dissimilarities_for_row:
-        dissimilarities_for_col:
-        highlight_categories:
-        category_idxs:
-        n_cond:
+        n_cond: int) -> Dict[str, List[int]]:
 
-    Returns:
-
-    """
-
-    # Within categories
-
-    # category name -> (xs, ys)
-    within_category_dissims: Dict[str, Tuple[List[float], List[float]]] = dict()
+    # category name -> [idxs]
+    within_category_idxs: Dict[str, List[int]] = dict()
 
     for category_name in highlight_categories:
         # Get UTV binary mask for within-category dissims
         square_mask = square_category_binary_mask(category_idxs=category_idxs[category_name], size=n_cond)
         # We don't use diagonal entries, but they must be 0 for squareform to work
         fill_diagonal(square_mask, False)  # in place
-        within_category_idxs = squareform(square_mask)[np.newaxis]
+        within_category_idxs[category_name] = squareform(square_mask)[np.newaxis]
 
-        within_category_dissims[category_name] = (
-            dissimilarities_for_col[within_category_idxs],  # x
-            dissimilarities_for_row[within_category_idxs],  # y
-        )
+    return within_category_idxs
 
-    # Between categories
 
-    # {category1, category2} -> (xs, ys)
-    between_category_dissims: Dict[frozenset, Tuple[List[float], List[float]]] = dict()
-
+def _get_between_category_idxs(category_idxs, highlight_categories, n_cond) -> Dict[frozenset, List[int]]:
+    # {category1, category2} -> [idxs]
+    between_category_idxs: Dict[frozenset, List[int]] = dict()
     exhausted_categories = []
     for category_1_name in highlight_categories:
         for category_2_name in highlight_categories:
@@ -373,17 +376,51 @@ def _split_dissimilarities_within_between(
             if category_2_name in exhausted_categories:
                 continue
 
-            between_category_idxs = squareform(
+            between_category_idxs[frozenset({category_1_name, category_2_name})] = squareform(
                 square_between_category_binary_mask(category_1_idxs=category_idxs[category_1_name],
                                                     category_2_idxs=category_idxs[category_2_name],
                                                     size=n_cond))[np.newaxis]
-            between_category_dissims[frozenset({category_1_name, category_2_name})] = (
-                dissimilarities_for_col[between_category_idxs],  # x
-                dissimilarities_for_row[between_category_idxs],  # y
-            )
-
         exhausted_categories.append(category_1_name)
+    return between_category_idxs
 
+
+# TODO: take idxs as argument
+def _split_dissimilarities_within_between(
+        dissimilarities_for_row: array,
+        dissimilarities_for_col: array,
+        highlight_categories: List[str],
+        category_idxs: Dict[str, List[int]],
+        # TODO: this should be calculable, but maybe it's not worth it
+        n_cond: int):
+    """
+    Splits dissimilarities into within/between category dissimilarities for highlighted categories.
+    """
+
+    # Within categories
+    within_category_idxs = _get_within_category_idxs(highlight_categories=highlight_categories,
+                                                     category_idxs=category_idxs,
+                                                     n_cond=n_cond)
+    # category name -> (xs, ys)
+    within_category_dissims: Dict[str, Tuple[List[float], List[float]]] = {
+        category_name: (
+            dissimilarities_for_col[idxs],  # x
+            dissimilarities_for_row[idxs],  # y
+        )
+        for category_name, idxs in within_category_idxs.items()
+    }
+
+    # Between categories
+    between_category_idxs = _get_between_category_idxs(category_idxs=category_idxs,
+                                                       highlight_categories=highlight_categories,
+                                                       n_cond=n_cond)
+    # {category1, category2} -> (xs, ys)
+    between_category_dissims: Dict[frozenset, Tuple[List[float], List[float]]] = {
+        categories: (
+                dissimilarities_for_col[idxs],  # x
+                dissimilarities_for_row[idxs],  # y
+        )
+        for categories, idxs in between_category_idxs.items()
+    }
     return within_category_dissims, between_category_dissims
 
 
