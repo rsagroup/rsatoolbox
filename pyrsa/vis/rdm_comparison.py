@@ -113,53 +113,12 @@ def rdm_comparison_scatterplot(rdms,
                 sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx],
                                                  sharex=reference_axis, sharey=reference_axis)
 
-            # First plot dissimilarities within all stimuli
-            full_marker_size = rcParams["lines.markersize"] ** 2
-            sub_axis.scatter(x=rdm_for_col.get_vectors(),
-                             y=rdm_for_row.get_vectors(),
-                             color=_default_colour,
-                             s=full_marker_size,
-                             cmap=None)
-
-            if highlight_category_selector is not None:
-
-                within_category_idxs = _get_within_category_idxs(highlight_categories=highlight_categories,
-                                                                 category_idxs=category_idxs,
-                                                                 n_cond=rdms_x.n_cond)
-
-                between_category_idxs = _get_between_category_idxs(category_idxs=category_idxs,
-                                                                   highlight_categories=highlight_categories,
-                                                                   n_cond=rdms_x.n_cond)
-
-                within_category_dissims, between_category_dissims = _split_dissimilarities_within_between(
-                    dissimilarities_for_row=rdm_for_row.get_vectors(),
-                    dissimilarities_for_col=rdm_for_col.get_vectors(),
-                    within_category_idxs=within_category_idxs,
-                    between_category_idxs=between_category_idxs,
-                )
-
-                # Plot between highlighted categories
-                colours_between = _colours_between_categories(highlight_categories, colors)
-                for categories in between_category_idxs.keys():
-                    sub_axis.scatter(x=between_category_dissims[categories][0],
-                                     y=between_category_dissims[categories][1],
-                                     color=colours_between[categories],
-                                     # Slightly smaller, so the points for all still shows
-                                     s=full_marker_size * 0.5,
-                                     cmap=None)
-
-                # Plot within highlighted categories
-                for category_name in within_category_idxs.keys():
-                    sub_axis.scatter(x=within_category_dissims[category_name][0],
-                                     y=within_category_dissims[category_name][1],
-                                     color=colors[category_name],
-                                     # Slightly smaller still, so the points for all and between still show
-                                     s=full_marker_size * 0.3,
-                                     cmap=None)
+            _do_scatter_plot(sub_axis, rdm_for_row, rdm_for_col, highlight_categories, category_idxs,
+                             highlight_category_selector, colors)
 
             scatter_axes.append(sub_axis)
 
-            _do_format_sub_axes(sub_axis, is_bottom_row, is_leftmost_col)
+            _format_sub_axes(sub_axis, is_bottom_row, is_leftmost_col)
 
     if show_marginal_distributions:
         _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins,
@@ -169,7 +128,7 @@ def rdm_comparison_scatterplot(rdms,
         _do_show_identity_line(reference_axis, scatter_axes)
 
     if axlim is not None:
-        _do_set_axes_limits(axlim, reference_axis)
+        _set_axes_limits(axlim, reference_axis)
 
     return fig
 
@@ -214,7 +173,7 @@ def _handle_args_rdms(rdms):
     return rdms_x, rdms_y
 
 
-def _do_format_sub_axes(sub_axis, is_bottom_row: bool, is_leftmost_col: bool):
+def _format_sub_axes(sub_axis, is_bottom_row: bool, is_leftmost_col: bool):
     # Square axes
     # sub_axis.set_aspect('equal', adjustable='box')
 
@@ -229,7 +188,7 @@ def _do_format_sub_axes(sub_axis, is_bottom_row: bool, is_leftmost_col: bool):
         pyplot.setp(sub_axis.get_yticklabels(), visible=False)
 
 
-def _do_set_axes_limits(axlim, reference_axis):
+def _set_axes_limits(axlim, reference_axis):
     reference_axis.set_xlim(axlim[0], axlim[1])
     reference_axis.set_ylim(axlim[0], axlim[1])
 
@@ -252,6 +211,53 @@ def _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions):
         height_ratios=grid_height_ratios,
     )
     return gridspec
+
+
+def _do_scatter_plot(sub_axis, rdm_for_row, rdm_for_col, highlight_categories, category_idxs,
+                     highlight_category_selector, colors):
+
+    # First plot dissimilarities within all stimuli
+    full_marker_size = rcParams["lines.markersize"] ** 2
+    sub_axis.scatter(x=rdm_for_col.get_vectors(),
+                     y=rdm_for_row.get_vectors(),
+                     color=_default_colour,
+                     s=full_marker_size,
+                     cmap=None)
+    if highlight_category_selector is not None:
+
+        within_category_idxs = _get_within_category_idxs(highlight_categories=highlight_categories,
+                                                         category_idxs=category_idxs,
+                                                         n_cond=rdm_for_row.n_cond)
+
+        between_category_idxs = _get_between_category_idxs(category_idxs=category_idxs,
+                                                           highlight_categories=highlight_categories,
+                                                           n_cond=rdm_for_row.n_cond)
+
+        within_category_dissims, between_category_dissims = _split_dissimilarities_within_between(
+            dissimilarities_for_row=rdm_for_row.get_vectors(),
+            dissimilarities_for_col=rdm_for_col.get_vectors(),
+            within_category_idxs=within_category_idxs,
+            between_category_idxs=between_category_idxs,
+        )
+
+        # Plot between highlighted categories
+        colours_between = _colours_between_categories(highlight_categories, colors)
+        for categories in between_category_idxs.keys():
+            sub_axis.scatter(x=between_category_dissims[categories][0],
+                             y=between_category_dissims[categories][1],
+                             color=colours_between[categories],
+                             # Slightly smaller, so the points for all still shows
+                             s=full_marker_size * 0.5,
+                             cmap=None)
+
+        # Plot within highlighted categories
+        for category_name in within_category_idxs.keys():
+            sub_axis.scatter(x=within_category_dissims[category_name][0],
+                             y=within_category_dissims[category_name][1],
+                             color=colors[category_name],
+                             # Slightly smaller still, so the points for all and between still show
+                             s=full_marker_size * 0.3,
+                             cmap=None)
 
 
 def _do_show_identity_line(reference_axis, scatter_axes):
