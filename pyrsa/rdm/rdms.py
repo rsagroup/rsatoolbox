@@ -361,7 +361,10 @@ class RDMs:
         """Reorder the patterns by sorting a descriptor
 
         Pass keyword arguments that correspond to descriptors,
-        with value 'alpha'.
+        with value indicating the sort type. Supported methods:
+            'alpha': sort alphabetically (using np.sort)
+            list/np.array: specify the new order explicitly. Values should
+                correspond to the descriptor values
 
         Example:
             Sorts the condition descriptor alphabetically:
@@ -375,6 +378,15 @@ class RDMs:
             if method == 'alpha':
                 descriptor = self.pattern_descriptors[dname]
                 self.reorder(np.argsort(descriptor))
+            elif isinstance(method, (list, np.ndarray)):
+                # in this case, `method` is the desired descriptor order
+                new_order = method
+                descriptor = self.pattern_descriptors[dname]
+                if not set(descriptor).issubset(new_order):
+                    raise ValueError(f'Expected {method} to be a permutation \
+                            or subset of {descriptor}')
+                # convert to indices to use `reorder` method
+                self.reorder([list(descriptor).index(x) for x in new_order])
             else:
                 raise ValueError(f'Unknown sorting method: {method}')
 

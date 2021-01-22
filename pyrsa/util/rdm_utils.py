@@ -25,7 +25,7 @@ def batch_to_vectors(rdms):
     if rdms.ndim == 2:
         vectors = rdms
         n_rdm = rdms.shape[0]
-        n_cond = _get_n_from_reduced_vectors(rdms.shape[1])
+        n_cond = _get_n_from_length(rdms.shape[1])
     elif rdms.ndim == 3:
         matrices = rdms
         n_rdm = rdms.shape[0]
@@ -36,7 +36,7 @@ def batch_to_vectors(rdms):
     elif rdms.ndim == 1:
         vectors = np.array([rdms])
         n_rdm = 1
-        n_cond = _get_n_from_reduced_vectors(vectors.shape[1])
+        n_cond = _get_n_from_length(vectors.shape[1])
     return vectors, n_rdm, n_cond
 
 
@@ -56,7 +56,7 @@ def batch_to_matrices(rdms):
     if rdms.ndim == 2:
         vectors = rdms
         n_rdm = vectors.shape[0]
-        n_cond = _get_n_from_reduced_vectors(rdms.shape[1])
+        n_cond = _get_n_from_length(rdms.shape[1])
         matrices = np.ndarray((n_rdm, n_cond, n_cond))
         for idx in np.arange(n_rdm):
             matrices[idx, :, :] = squareform(vectors[idx, :])
@@ -67,18 +67,32 @@ def batch_to_matrices(rdms):
     return matrices, n_rdm, n_cond
 
 
-def _get_n_from_reduced_vectors(shape):
+def _get_n_from_reduced_vectors(x):
     """
     calculates the size of the RDM from the vector representation
 
     Args:
-        **shape**(int): length of the vector representation
+        **shape**(np.ndarray): vector representation
 
     Returns:
         int: n: number of conditions
 
     """
-    return int(np.ceil(np.sqrt(shape * 2)))
+    return int(np.ceil(np.sqrt(x.shape[1] * 2)))
+
+
+def _get_n_from_length(n):
+    """
+    calculates the size of the RDM from the vector length
+
+    Args:
+        **x**(np.ndarray): stack of RDM vectors (2D)
+
+    Returns:
+        int: n: size of the RDM
+
+    """
+    return int(np.ceil(np.sqrt(n * 2)))
 
 
 def add_pattern_index(rdms, pattern_descriptor):

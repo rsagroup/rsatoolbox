@@ -324,7 +324,7 @@ def t_tests(evaluations, variances, dof=1):
         evaluations = np.mean(evaluations, axis=-1)
     C = pairwise_contrast(np.arange(n_model))
     diffs = C @ evaluations
-    t = diffs / np.sqrt(np.maximum(variances, 0))
+    t = diffs / np.sqrt(np.maximum(variances, np.finfo(float).eps))
     t = batch_to_matrices(np.array([t]))[0][0]
     p = 2 * (1 - stats.t.cdf(np.abs(t), dof))
     return p
@@ -351,7 +351,7 @@ def t_test_0(evaluations, variances, dof=1):
     evaluations = np.mean(evaluations, 0)
     while evaluations.ndim > 1:
         evaluations = np.mean(evaluations, axis=-1)
-    t = evaluations / np.sqrt(variances)
+    t = evaluations / np.sqrt(np.maximum(variances, np.finfo(float).eps))
     p = 1 - stats.t.cdf(t, dof)
     return p
 
@@ -386,7 +386,8 @@ def t_test_nc(evaluations, variances, noise_ceil, dof=1):
         evaluations = np.mean(evaluations, axis=-1)
     p = np.empty(len(evaluations))
     for i, eval_i in enumerate(evaluations):
-        t = (eval_i - noise_ceil) / np.sqrt(variances[i])
+        t = (eval_i - noise_ceil) / np.sqrt(
+            np.maximum(variances[i], np.finfo(float).eps))
         p[i] = 2 * (1 - stats.t.cdf(np.abs(t), dof))
     return p
 
