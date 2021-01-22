@@ -8,7 +8,7 @@ Created on 2020-09-17
 
 from typing import Tuple, List, Union, Dict, Optional
 
-from numpy import fill_diagonal, zeros_like, array
+from numpy import fill_diagonal, array
 from matplotlib import pyplot, rcParams
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -83,6 +83,12 @@ def rdm_comparison_scatterplot(rdms,
     category_idxs: Optional[Dict[str, List[int]]] = _handle_args_highlight_categories(highlight_category_selector, highlight_categories, rdms_x)
     if cmap is None:
         cmap = _default_cmap
+    if colors is None and highlight_categories is not None:
+        # TODO: different colours
+        colors = {
+            highlight_category: _default_colour
+            for highlight_category in highlight_categories
+        }
 
     n_rdms_x, n_rdms_y = len(rdms_x), len(rdms_y)
 
@@ -116,12 +122,6 @@ def rdm_comparison_scatterplot(rdms,
                 sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx],
                                                  sharex=reference_axis, sharey=reference_axis)
 
-            # Decide how to colour scatter points
-            if highlight_category_selector is not None:
-                dissimilarity_colours = _colours_within_and_between_categories(rdm_for_col, highlight_categories, category_idxs, colors)
-            else:
-                dissimilarity_colours = _default_colour
-
             # First plot dissimilarities within all stimuli
             full_marker_size = rcParams["lines.markersize"] ** 2
             sub_axis.scatter(x=rdm_for_col.get_vectors(),
@@ -130,13 +130,44 @@ def rdm_comparison_scatterplot(rdms,
                              s=full_marker_size,
                              cmap=cmap)
 
-            # Then plot highlighted categories
-            sub_axis.scatter(x=rdm_for_col.get_vectors(),
-                             y=rdm_for_row.get_vectors(),
-                             c=dissimilarity_colours,
-                             # Slightly smaller, so the dist for all still shows
-                             s=full_marker_size * 0.5,
-                             cmap=cmap)
+            if highlight_category_selector is not None:
+                within_category_dissims, between_category_dissims = _split_dissimilarities_within_between(
+                    dissimilarities_for_row=rdm_for_row.get_vectors(),
+                    dissimilarities_for_col=rdm_for_col.get_vectors(),
+                    highlight_categories=highlight_categories,
+                    category_idxs=category_idxs,
+                    n_cond=rdms_x.n_cond)
+
+                # Decide how to colour scatter points
+                colours_between = _colours_between_categories(highlight_categories, colors)
+
+                # Plot between highlighted categories
+                exhausted_categories = []
+                for category_1_name in highlight_categories:
+                    for category_2_name in highlight_categories:
+                        # Only between once
+                        if category_1_name == category_2_name:
+                            continue
+                        if category_2_name in exhausted_categories:
+                            continue
+                        between = frozenset({category_1_name, category_2_name})
+                        sub_axis.scatter(x=between_category_dissims[between][0],
+                                         y=between_category_dissims[between][1],
+                                         c=colours_between[between],
+                                         # Slightly smaller, so the points for all still shows
+                                         s=full_marker_size * 0.5,
+                                         cmap=cmap)
+                    exhausted_categories.append(category_1_name)
+
+                # Plot within highlighted categories
+                for category_name in highlight_categories:
+                    sub_axis.scatter(x=within_category_dissims[category_name][0],
+                                     y=within_category_dissims[category_name][1],
+                                     c=colors[category_name],
+                                     # Slightly smaller still, so the points for all and between still show
+                                     s=full_marker_size * 0.3,
+                                     cmap=cmap)
+
             scatter_axes.append(sub_axis)
 
             _do_format_sub_axes(sub_axis, is_bottom_row, is_leftmost_col)
@@ -256,6 +287,13 @@ def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_
             reference_hist = hist_axis
         else:
             hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis, sharey=reference_hist)
+
+        # if highlight_categories is not None:
+        #     colours = _colours_within_and_between_categories(
+        #         rdm_for_col, highlight_categories, category_idxs, colors)
+        # else:
+        #     colours
+
         hist_axis.hist(rdm_for_col.get_vectors().flatten(), histtype='step', fill=False, orientation='vertical',
                        bins=hist_bins)
         hist_axis.xaxis.set_visible(False)
@@ -281,73 +319,89 @@ def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_
     reference_hist.set_xlim(hist_axis.get_xlim()[::-1])
 
 
-def _colours_within_and_between_categories(rdm, highlight_categories, category_idxs, colors):
+# TODO: Better in theory to prepare all the data for each plot before doing any plotting, but this may
+#  be more trouble than it's worth.
+def _split_dissimilarities_within_between(
+        dissimilarities_for_row: array,
+        dissimilarities_for_col: array,
+        highlight_categories: List[str],
+        category_idxs: Dict[str, List[int]],
+        # TODO: this should be calculable, but maybe it's not worth it
+        n_cond: int):
     """
-
+    Splits dissimilarities into within/between category dissimilarities for highlighted categories.
     Args:
-        rdm:
+        dissimilarities_for_row:
+        dissimilarities_for_col:
         highlight_categories:
         category_idxs:
-        colors:
+        n_cond:
 
     Returns:
 
     """
-    # Initialise some things
-
-    # List of ints. Each refers to a colour for the dissimilarity point in the scatter graph. So all dissims
-    # within category 1 get an int, all within category 2 get a different int, all between categories 1 and
-    # 2 get a third int, and so on for more categories. A final int (0) is reserved for remaining points.
-    dissimilarity_colours = zeros_like(rdm.get_vectors().flatten(), dtype=int)
-    # Counter to be incremented and guarantee unique int for each kind of dissim
-    colour_indicator = 1
-    # Dictionary mapping colour_indicator values against categories for lookup against user-specified
-    # colours later
-    indicator_categories = dict()
 
     # Within categories
+
+    # category name -> (xs, ys)
+    within_category_dissims: Dict[str, Tuple[List[float], List[float]]] = dict()
+
     for category_name in highlight_categories:
-        square_mask = square_category_binary_mask(category_idxs=category_idxs[category_name], size=rdm.n_cond)
-        # We don't use diagonal entries, but they must be 0 for squareform to work
-        fill_diagonal(square_mask, False)
         # Get UTV binary mask for within-category dissims
-        within_category_idxs = squareform(square_mask)
-        dissimilarity_colours[within_category_idxs] = colour_indicator
-        # within-category indicators mark just their categories
-        indicator_categories[colour_indicator] = [category_name]
-        # Set to this category colour
-        colour_indicator += 1
+        square_mask = square_category_binary_mask(category_idxs=category_idxs[category_name], size=n_cond)
+        # We don't use diagonal entries, but they must be 0 for squareform to work
+        fill_diagonal(square_mask, False)  # in place
+        within_category_idxs = squareform(square_mask)[np.newaxis]
+
+        within_category_dissims[category_name] = (
+            dissimilarities_for_col[within_category_idxs],  # x
+            dissimilarities_for_row[within_category_idxs],  # y
+        )
+
     # Between categories
+
+    # {category1, category2} -> (xs, ys)
+    between_category_dissims: Dict[frozenset, Tuple[List[float], List[float]]] = dict()
+
     exhausted_categories = []
     for category_1_name in highlight_categories:
         for category_2_name in highlight_categories:
             # Don't do between a category and itself
-            if (category_1_name == category_2_name):
+            if category_1_name == category_2_name:
                 continue
-            # Don't double-count between-category dissims
+            # Don't double-count between-category dissims; just restrict to UTV
             if category_2_name in exhausted_categories:
                 continue
+
             between_category_idxs = squareform(
                 square_between_category_binary_mask(category_1_idxs=category_idxs[category_1_name],
                                                     category_2_idxs=category_idxs[category_2_name],
-                                                    size=rdm.n_cond))
-            dissimilarity_colours[between_category_idxs] = colour_indicator
-            # between-category indicators mark category pairs
-            indicator_categories[colour_indicator] = {category_1_name, category_2_name}
-            colour_indicator += 1
+                                                    size=n_cond))[np.newaxis]
+            between_category_dissims[frozenset({category_1_name, category_2_name})] = (
+                dissimilarities_for_col[between_category_idxs],  # x
+                dissimilarities_for_row[between_category_idxs],  # y
+            )
+
         exhausted_categories.append(category_1_name)
 
-    if colors is not None:
-        # Use colour selector to pick out user-specified colours
-        dissimilarity_colours = [
-            _blend_rgb_colours(*(
-                colors[cat]
-                for cat in indicator_categories[indicator]
-            ))
-            for indicator in dissimilarity_colours
-        ]
+    return within_category_dissims, between_category_dissims
 
-    return dissimilarity_colours
+
+def _colours_between_categories(highlight_categories, colours):
+
+    # {category1, category2} -> colour
+    between_category_colours: Dict[frozenset, _Colour] = dict()
+
+    exhausted_categories = []
+    for category_1_name in highlight_categories:
+        for category_2_name in highlight_categories:
+            between_category_colours[frozenset({category_1_name, category_2_name})] = _blend_rgb_colours(
+                colours[category_1_name],
+                colours[category_2_name]
+            )
+        exhausted_categories.append(category_1_name)
+
+    return between_category_colours
 
 
 def _blend_rgb_colours(c1, c2=None):
