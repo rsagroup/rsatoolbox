@@ -66,7 +66,7 @@ def fit_select(model, data, method='cosine', pattern_idx=None,
 
 
 def fit_optimize(model, data, method='cosine', pattern_idx=None,
-                 pattern_descriptor=None, sigma_k=None):
+                 pattern_descriptor=None, sigma_k=None, ridge_weight=0):
     """
     fitting theta using optimization
     currently allowed for ModelWeighted only
@@ -91,14 +91,15 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
         return _loss(theta, model, data, method=method,
                      pattern_idx=pattern_idx,
                      pattern_descriptor=pattern_descriptor,
-                     sigma_k=sigma_k)
+                     sigma_k=sigma_k, ridge_weight=ridge_weight)
     theta0 = np.random.rand(model.n_param)
     theta = opt.minimize(_loss_opt, theta0)
     return theta.x
 
 
-def fit_optimize_positive(model, data, method='cosine', pattern_idx=None,
-                 pattern_descriptor=None, sigma_k=None):
+def fit_optimize_positive(
+        model, data, method='cosine', pattern_idx=None,
+        pattern_descriptor=None, sigma_k=None, ridge_weight=0):
     """
     fitting theta using optimization enforcing positive weights
     currently allowed for ModelWeighted only
@@ -123,7 +124,7 @@ def fit_optimize_positive(model, data, method='cosine', pattern_idx=None,
         return _loss(theta ** 2, model, data, method=method,
                      pattern_idx=pattern_idx,
                      pattern_descriptor=pattern_descriptor,
-                     sigma_k=sigma_k)
+                     sigma_k=sigma_k, ridge_weight=ridge_weight)
     theta0 = np.random.rand(model.n_param)
     theta = opt.minimize(_loss_opt, theta0)
     return theta.x ** 2
@@ -242,7 +243,8 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
 
 
 def _loss(theta, model, data, method='cosine', sigma_k=None,
-          pattern_descriptor=None, pattern_idx=None):
+          pattern_descriptor=None, pattern_idx=None,
+          ridge_weight=0):
     """Method for calculating a loss for a model and parameter combination
 
     Args:
@@ -257,6 +259,7 @@ def _loss(theta, model, data, method='cosine', sigma_k=None,
         sigma_k(matrix): pattern-covariance matrix
             used only for whitened distances (ending in _cov)
             to compute the covariance matrix for rdms
+        ridge_weight(float): weight for a ridge regularisation
 
     Returns:
 
@@ -266,4 +269,5 @@ def _loss(theta, model, data, method='cosine', sigma_k=None,
     pred = model.predict_rdm(theta)
     if not (pattern_idx is None or pattern_descriptor is None):
         pred = pred.subsample_pattern(pattern_descriptor, pattern_idx)
-    return -np.mean(compare(pred, data, method=method, sigma_k=sigma_k))
+    return -np.mean(compare(pred, data, method=method, sigma_k=sigma_k)) \
+        + np.sum(theta * theta)
