@@ -83,6 +83,20 @@ def _get_n_from_reduced_vectors(x):
     return int(np.ceil(np.sqrt(x.shape[1] * 2)))
 
 
+def _get_n_from_length(n):
+    """
+    calculates the size of the RDM from the vector length
+
+    Args:
+        **x**(np.ndarray): stack of RDM vectors (2D)
+
+    Returns:
+        int: n: size of the RDM
+
+    """
+    return int(np.ceil(np.sqrt(n * 2)))
+
+
 def add_pattern_index(rdms, pattern_descriptor):
     """
     adds index if pattern_descriptor is None

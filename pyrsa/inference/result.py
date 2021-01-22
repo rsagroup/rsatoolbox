@@ -10,6 +10,8 @@ from pyrsa.util.file_io import write_dict_hdf5
 from pyrsa.util.file_io import write_dict_pkl
 from pyrsa.util.file_io import read_dict_hdf5
 from pyrsa.util.file_io import read_dict_pkl
+from pyrsa.util.file_io import remove_file
+from pyrsa.util.inference_util import extract_variances
 
 
 class Result:
@@ -37,7 +39,8 @@ class Result:
 
     """
 
-    def __init__(self, models, evaluations, method, cv_method, noise_ceiling):
+    def __init__(self, models, evaluations, method, cv_method, noise_ceiling,
+                 variances=None, dof=1):
         if isinstance(models, pyrsa.model.Model):
             models = [models]
         assert len(models) == evaluations.shape[1], 'evaluations shape does' \
@@ -48,8 +51,23 @@ class Result:
         self.method = method
         self.cv_method = cv_method
         self.noise_ceiling = np.array(noise_ceiling)
+        self.variances = variances
+        self.dof = dof
+        if variances is not None:
+            # if the variances only refer to the models this should have the
+            # same number of entries as the models list.
+            if variances.ndim == 0:
+                nc_included = False
+            else:
+                nc_included = variances.shape[-1] != len(models)
+            self.model_var, self.diff_var, self.noise_ceil_var = \
+                extract_variances(variances, nc_included)
+        else:
+            self.model_var = None
+            self.diff_var = None
+            self.noise_ceil_var = None
 
-    def save(self, filename, file_type='hdf5'):
+    def save(self, filename, file_type='hdf5', overwrite=False):
         """ saves the results into a file.
 
         Args:
@@ -58,9 +76,12 @@ class Result:
             file_type(String): Type of file to create:
                 hdf5: hdf5 file
                 pkl: pickle file
+            overwrite(Boolean): overwrites file if it already exists
 
         """
         result_dict = self.to_dict()
+        if overwrite:
+            remove_file(filename)
         if file_type == 'hdf5':
             write_dict_hdf5(filename, result_dict)
         elif file_type == 'pkl':
@@ -76,6 +97,8 @@ class Result:
         """
         result_dict = {}
         result_dict['evaluations'] = self.evaluations
+        result_dict['dof'] = self.dof
+        result_dict['variances'] = self.variances
         result_dict['noise_ceiling'] = self.noise_ceiling
         result_dict['method'] = self.method
         result_dict['cv_method'] = self.cv_method
@@ -118,6 +141,14 @@ def result_from_dict(result_dict):
         result(Result): the recreated object
 
     """
+    if 'variances' in result_dict.keys():
+        variances = result_dict['variances']
+    else:
+        variances = None
+    if 'dof' in result_dict.keys():
+        dof = result_dict['dof']
+    else:
+        dof = None
     evaluations = result_dict['evaluations']
     method = result_dict['method']
     cv_method = result_dict['cv_method']
@@ -127,4 +158,5 @@ def result_from_dict(result_dict):
         key = 'model_%d' % i_model
         models[i_model] = pyrsa.model.model_from_dict(
             result_dict['models'][key])
-    return Result(models, evaluations, method, cv_method, noise_ceiling)
+    return Result(models, evaluations, method, cv_method, noise_ceiling,
+                  variances=variances, dof=dof)

@@ -21,6 +21,7 @@ from pyrsa.util.file_io import write_dict_hdf5
 from pyrsa.util.file_io import write_dict_pkl
 from pyrsa.util.file_io import read_dict_hdf5
 from pyrsa.util.file_io import read_dict_pkl
+from pyrsa.util.file_io import remove_file
 
 
 class RDMs:
@@ -308,7 +309,7 @@ class RDMs:
                                                  rdm.rdm_descriptors)
         self.n_rdm = self.n_rdm + rdm.n_rdm
 
-    def save(self, filename, file_type='hdf5'):
+    def save(self, filename, file_type='hdf5', overwrite=False):
         """ saves the RDMs object into a file
 
         Args:
@@ -317,9 +318,12 @@ class RDMs:
             file_type(String): Type of file to create:
                 hdf5: hdf5 file
                 pkl: pickle file
+            overwrite(Boolean): overwrites file if it already exists
 
         """
         rdm_dict = self.to_dict()
+        if overwrite:
+            remove_file(filename)
         if file_type == 'hdf5':
             write_dict_hdf5(filename, rdm_dict)
         elif file_type == 'pkl':
@@ -357,7 +361,10 @@ class RDMs:
         """Reorder the patterns by sorting a descriptor
 
         Pass keyword arguments that correspond to descriptors,
-        with value 'alpha'. 
+        with value indicating the sort type. Supported methods:
+            'alpha': sort alphabetically (using np.sort)
+            list/np.array: specify the new order explicitly. Values should
+                correspond to the descriptor values
 
         Example:
             Sorts the condition descriptor alphabetically:
@@ -371,6 +378,15 @@ class RDMs:
             if method == 'alpha':
                 descriptor = self.pattern_descriptors[dname]
                 self.reorder(np.argsort(descriptor))
+            elif isinstance(method, (list, np.ndarray)):
+                # in this case, `method` is the desired descriptor order
+                new_order = method
+                descriptor = self.pattern_descriptors[dname]
+                if not set(descriptor).issubset(new_order):
+                    raise ValueError(f'Expected {method} to be a permutation \
+                            or subset of {descriptor}')
+                # convert to indices to use `reorder` method
+                self.reorder([list(descriptor).index(x) for x in new_order])
             else:
                 raise ValueError(f'Unknown sorting method: {method}')
 
@@ -415,10 +431,26 @@ def load_rdm(filename, file_type=None):
     return rdms_from_dict(rdm_dict)
 
 
-def rank_transform(rdms):
-    """ applyes a rank_transform and generates a new RDMs object"""
+def rank_transform(rdms, method='average'):
+    """ applies a rank_transform and generates a new RDMs object
+    This assigns a rank to each dissimilarity estimate in the RDM,
+    deals with rank ties and saves ranks as new dissimilarity estimates.
+    As an effect, all non-diagonal entries of the RDM will
+    range from 1 to (n_dim²-n_dim)/2, if the RDM has the dimensions
+    n_dim x n_dim.
+
+    Args:
+        rdms(RDMs): RDMs object
+        method(String):
+            controls how ranks are assigned to equal values
+            other options are: ‘average’, ‘min’, ‘max’, ‘dense’, ‘ordinal’
+
+    Returns:
+        rdms_new(RDMs): RDMs object with rank transformed dissimilarities
+
+    """
     dissimilarities = rdms.get_vectors()
-    dissimilarities = np.array([rankdata(dissimilarities[i])
+    dissimilarities = np.array([rankdata(dissimilarities[i], method=method)
                                 for i in range(rdms.n_rdm)])
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=rdms.dissimilarity_measure,
@@ -447,6 +479,61 @@ def concat(rdms):
     for rdm_new in rdms[1:]:
         rdm.append(rdm_new)
     return rdm
+
+
+def permute_rdms(rdms, p=None):
+    """ Permute rows, columns and corresponding pattern descriptors
+    of RDM matrices according to a permutation vector
+
+    Args:
+        p (numpy.ndarray):
+           permutation vector (values must be unique integers
+           from 0 to n_cond of RDM matrix).
+           If p = None, a random permutation vector is created.
+
+    Returns:
+        rdm_p(pyrsa.rdm.RDMs): the rdm object with a permuted matrix
+            and pattern descriptors
+
+    """
+    if p is None:
+        p = np.random.permutation(rdms.n_cond)
+        print('No permutation vector specified,'
+              + ' performing random permutation.')
+
+    assert p.dtype == 'int', "permutation vector must have integer entries."
+    assert min(p) == 0 and max(p) == rdms.n_cond-1, \
+        "permutation vector must have entries ranging from 0 to n_cond"
+    assert len(np.unique(p)) == rdms.n_cond, \
+        "permutation vector must only have unique integer entries"
+
+    rdm_mats = rdms.get_matrices()
+    descriptors = rdms.descriptors.copy()
+    rdm_descriptors = rdms.rdm_descriptors.copy()
+    pattern_descriptors = rdms.pattern_descriptors.copy()
+
+    # To easily reverse permutation later
+    p_inv = np.arange(len(p))[np.argsort(p)]
+    descriptors.update({'p_inv': p_inv})
+    rdm_mats = rdm_mats[:, p, :]
+    rdm_mats = rdm_mats[:, :, p]
+    stims = np.array(pattern_descriptors['stim'])
+    pattern_descriptors.update({'stim': list(stims[p].astype(np.str_))})
+
+    rdms_p = RDMs(
+        dissimilarities=rdm_mats,
+        descriptors=descriptors,
+        rdm_descriptors=rdm_descriptors,
+        pattern_descriptors=pattern_descriptors)
+    return rdms_p
+
+
+def inverse_permute_rdms(rdms):
+    """ Gimmick function to reverse the effect of permute_rdms() """
+
+    p_inv = rdms.descriptors['p_inv']
+    rdms_p = permute_rdms(rdms, p=p_inv)
+    return rdms_p
 
 
 def get_categorical_rdm(category_vector, category_name='category'):

@@ -7,6 +7,3 @@ tqdm
 h5py
 matplotlib
 joblib
-jupyter
-nbsphinx
-nbsphinx-link
