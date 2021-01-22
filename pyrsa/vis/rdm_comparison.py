@@ -24,7 +24,6 @@ _Colour = Tuple[float, float, float]
 
 
 _default_colour = "#107ab0"  # xkcd:nice blue
-_default_cmap   = None
 
 
 def rdm_comparison_scatterplot(rdms,
@@ -33,10 +32,8 @@ def rdm_comparison_scatterplot(rdms,
                                highlight_category_selector: Union[str, List[int]] = None,
                                highlight_categories: List = None,
                                colors: Dict[str, _Colour] = None,
-                               cmap = None,
                                axlim: Tuple[float, float] = None,
                                hist_bins: int = 30,
-                               **scatter_kwargs,
                                ):
     """
     Plot dissimilarities for 2 or more RDMs
@@ -64,10 +61,6 @@ def rdm_comparison_scatterplot(rdms,
             interpolated midpoints between category colours.
             If None (the default), default colours will be selected.
             Only used if `highlight_categories` is not None.
-        cmap: (Optional. matplotlib colormap)
-            Specify matplotlib colormap for use in selecting category colours.
-            If None (the default), default cmap will be used.
-            Only used if `highlight_categories` is not None.
         axlim (Optional. Tuple[float, float]):
             Set the axis limits for the figure.
             If None or not supplied, axis limits will be automatically determined.
@@ -81,8 +74,6 @@ def rdm_comparison_scatterplot(rdms,
 
     rdms_x, rdms_y = _handle_args_rdms(rdms)
     category_idxs: Optional[Dict[str, List[int]]] = _handle_args_highlight_categories(highlight_category_selector, highlight_categories, rdms_x)
-    if cmap is None:
-        cmap = _default_cmap
     if colors is None and highlight_categories is not None:
         # TODO: different colours
         colors = {
@@ -128,7 +119,7 @@ def rdm_comparison_scatterplot(rdms,
                              y=rdm_for_row.get_vectors(),
                              color=_default_colour,
                              s=full_marker_size,
-                             cmap=cmap)
+                             cmap=None)
 
             if highlight_category_selector is not None:
 
@@ -155,7 +146,7 @@ def rdm_comparison_scatterplot(rdms,
                                      color=colours_between[categories],
                                      # Slightly smaller, so the points for all still shows
                                      s=full_marker_size * 0.5,
-                                     cmap=cmap)
+                                     cmap=None)
 
                 # Plot within highlighted categories
                 for category_name in within_category_idxs.keys():
@@ -164,7 +155,7 @@ def rdm_comparison_scatterplot(rdms,
                                      color=colors[category_name],
                                      # Slightly smaller still, so the points for all and between still show
                                      s=full_marker_size * 0.3,
-                                     cmap=cmap)
+                                     cmap=None)
 
             scatter_axes.append(sub_axis)
 
@@ -439,3 +430,39 @@ def _blend_rgb_colours(c1, c2=None):
             (c1[1]+c2[1])/2,  # G
             (c1[2]+c2[2])/2,  # B
         )
+
+
+# TODO: remove this
+if __name__ == '__main__':
+
+    import numpy as np
+    from scipy.io import loadmat
+    from pyrsa.rdm import concat
+
+    condition_descriptors = {
+        'type': (["A"] * 23) + (["B"] * 23) + (["C"] * 46)
+    }
+
+    matlab_data = loadmat('/Users/cai/Dox/Dev/pyrsa/pyrsa-caiw-hackathon-fork/demos/92imageData/92_brainRDMs.mat')['RDMs']
+    n_rdms = len(matlab_data[0])
+    rdms = RDMs(np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
+                pattern_descriptors=condition_descriptors,
+                rdm_descriptors={'name': np.array([f"RDM{i}" for i in range(4)])}
+                )
+
+    rdms_a = concat([rdms[0], rdms[1]])
+    rdms_b = concat([rdms[2], rdms[3]])
+
+    rdm_comparison_scatterplot((rdms_a, rdms_b),
+                               show_marginal_distributions=True,
+                               show_identity_line=True,
+                               highlight_category_selector='type',
+                               highlight_categories=["A", "B", "C"],
+                               colors={
+                                   "A": (1, 0, 0),
+                                   "B": (0, 1, 0),
+                                   "C": (0, 0, 1),
+                               }
+                               )
+
+    pyplot.show()
