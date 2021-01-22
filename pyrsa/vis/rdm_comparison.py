@@ -133,6 +133,11 @@ def rdm_comparison_scatterplot(rdms,
             _do_scatter_plot(sub_axis, rdm_for_row, rdm_for_col, highlight_categories, category_idxs,
                              highlight_category_selector, colors)
 
+            if is_bottom_row:
+                sub_axis.set_xlabel(f"{rdm_for_col.rdm_descriptors['name'][0]} dissimilarity")
+            if is_leftmost_col:
+                sub_axis.set_ylabel(f"{rdm_for_row.rdm_descriptors['name'][0]} dissimilarity")
+
             scatter_axes.append(sub_axis)
 
             _format_sub_axes(sub_axis, is_bottom_row, is_leftmost_col)
@@ -239,6 +244,7 @@ def _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions, legend_hei
             ncols=grid_n_cols,
             width_ratios=grid_width_ratios,
             height_ratios=grid_height_ratios,
+            wspace=.3, hspace=.3,
             top=1-_legend_linespacing, left=_legend_linespacing,
             bottom=legend_height,
         )
