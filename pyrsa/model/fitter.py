@@ -270,4 +270,4 @@ def _loss(theta, model, data, method='cosine', sigma_k=None,
     if not (pattern_idx is None or pattern_descriptor is None):
         pred = pred.subsample_pattern(pattern_descriptor, pattern_idx)
     return -np.mean(compare(pred, data, method=method, sigma_k=sigma_k)) \
-        + np.sum(theta * theta)
+        + np.sum(theta * theta) * ridge_weight

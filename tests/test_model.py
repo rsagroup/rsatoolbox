@@ -207,7 +207,7 @@ class TestConsistency(unittest.TestCase):
         from pyrsa.model import ModelInterpolate, ModelWeighted
         from pyrsa.model.fitter import fit_regress, fit_optimize_positive
         from pyrsa.rdm import concat, compare
-        rdms = self.rdms.subsample_pattern('index', [0,1,1,3,4,5])
+        rdms = self.rdms.subsample_pattern('index', [0, 1, 1, 3, 4, 5])
         model_rdms = concat([rdms[0], rdms[1]])
         model_weighted = ModelWeighted(
             'm_weighted',
