@@ -126,44 +126,42 @@ def rdm_comparison_scatterplot(rdms,
             full_marker_size = rcParams["lines.markersize"] ** 2
             sub_axis.scatter(x=rdm_for_col.get_vectors(),
                              y=rdm_for_row.get_vectors(),
-                             c=_default_colour,
+                             color=_default_colour,
                              s=full_marker_size,
                              cmap=cmap)
 
             if highlight_category_selector is not None:
+
+                within_category_idxs = _get_within_category_idxs(highlight_categories=highlight_categories,
+                                                                 category_idxs=category_idxs,
+                                                                 n_cond=rdms_x.n_cond)
+
+                between_category_idxs = _get_between_category_idxs(category_idxs=category_idxs,
+                                                                   highlight_categories=highlight_categories,
+                                                                   n_cond=rdms_x.n_cond)
+
                 within_category_dissims, between_category_dissims = _split_dissimilarities_within_between(
                     dissimilarities_for_row=rdm_for_row.get_vectors(),
                     dissimilarities_for_col=rdm_for_col.get_vectors(),
-                    highlight_categories=highlight_categories,
-                    category_idxs=category_idxs,
-                    n_cond=rdms_x.n_cond)
-
-                # Decide how to colour scatter points
-                colours_between = _colours_between_categories(highlight_categories, colors)
+                    within_category_idxs=within_category_idxs,
+                    between_category_idxs=between_category_idxs,
+                )
 
                 # Plot between highlighted categories
-                exhausted_categories = []
-                for category_1_name in highlight_categories:
-                    for category_2_name in highlight_categories:
-                        # Only between once
-                        if category_1_name == category_2_name:
-                            continue
-                        if category_2_name in exhausted_categories:
-                            continue
-                        between = frozenset({category_1_name, category_2_name})
-                        sub_axis.scatter(x=between_category_dissims[between][0],
-                                         y=between_category_dissims[between][1],
-                                         c=colours_between[between],
-                                         # Slightly smaller, so the points for all still shows
-                                         s=full_marker_size * 0.5,
-                                         cmap=cmap)
-                    exhausted_categories.append(category_1_name)
+                colours_between = _colours_between_categories(highlight_categories, colors)
+                for categories in between_category_idxs.keys():
+                    sub_axis.scatter(x=between_category_dissims[categories][0],
+                                     y=between_category_dissims[categories][1],
+                                     color=colours_between[categories],
+                                     # Slightly smaller, so the points for all still shows
+                                     s=full_marker_size * 0.5,
+                                     cmap=cmap)
 
                 # Plot within highlighted categories
-                for category_name in highlight_categories:
+                for category_name in within_category_idxs.keys():
                     sub_axis.scatter(x=within_category_dissims[category_name][0],
                                      y=within_category_dissims[category_name][1],
-                                     c=colors[category_name],
+                                     color=colors[category_name],
                                      # Slightly smaller still, so the points for all and between still show
                                      s=full_marker_size * 0.3,
                                      cmap=cmap)
@@ -384,22 +382,16 @@ def _get_between_category_idxs(category_idxs, highlight_categories, n_cond) -> D
     return between_category_idxs
 
 
-# TODO: take idxs as argument
 def _split_dissimilarities_within_between(
         dissimilarities_for_row: array,
         dissimilarities_for_col: array,
-        highlight_categories: List[str],
-        category_idxs: Dict[str, List[int]],
-        # TODO: this should be calculable, but maybe it's not worth it
-        n_cond: int):
+        within_category_idxs,
+        between_category_idxs):
     """
     Splits dissimilarities into within/between category dissimilarities for highlighted categories.
     """
 
     # Within categories
-    within_category_idxs = _get_within_category_idxs(highlight_categories=highlight_categories,
-                                                     category_idxs=category_idxs,
-                                                     n_cond=n_cond)
     # category name -> (xs, ys)
     within_category_dissims: Dict[str, Tuple[List[float], List[float]]] = {
         category_name: (
@@ -410,9 +402,6 @@ def _split_dissimilarities_within_between(
     }
 
     # Between categories
-    between_category_idxs = _get_between_category_idxs(category_idxs=category_idxs,
-                                                       highlight_categories=highlight_categories,
-                                                       n_cond=n_cond)
     # {category1, category2} -> (xs, ys)
     between_category_dissims: Dict[frozenset, Tuple[List[float], List[float]]] = {
         categories: (
