@@ -43,7 +43,8 @@ def rdm_comparison_scatterplot(rdms,
     Args:
         rdms (RDMs object or list-like of 2 RDMs objects):
             If one RDMs object supplied, each RDM within is compared against each other
-            If two RDMs objects supplied (as list, tuple, etc.), each RDM in the first is compared against each RDM in the second
+            If two RDMs objects supplied (as list, tuple, etc.), each RDM in the first is compared against each RDM in
+            the second
         show_marginal_distributions (bool):
             True (default): Show marginal distributions.
             False: Don't.
@@ -79,7 +80,9 @@ def rdm_comparison_scatterplot(rdms,
     """
 
     rdms_x, rdms_y = _handle_args_rdms(rdms)
-    category_idxs: Optional[Dict[str, List[int]]] = _handle_args_highlight_categories(highlight_category_selector, highlight_categories, rdms_x)
+    category_idxs: Optional[Dict[str, List[int]]] = _handle_args_highlight_categories(highlight_category_selector,
+                                                                                      highlight_categories,
+                                                                                      rdms_x)
     show_legend = _handle_args_legend(show_legend, highlight_categories)
 
     if colors is None and highlight_categories is not None:
@@ -158,7 +161,8 @@ def rdm_comparison_scatterplot(rdms,
     return fig
 
 
-def _handle_args_highlight_categories(highlight_category_selector, highlight_categories, reference_rdms) -> Optional[Dict[str, List[int]]]:
+def _handle_args_highlight_categories(highlight_category_selector, highlight_categories, reference_rdms
+                                      ) -> Optional[Dict[str, List[int]]]:
     # Handle category highlighting args
     _msg_arg_highlight = "Arguments `highlight_category_selector` and `highlight_categories` must be compatible."
     try:
@@ -494,15 +498,15 @@ def _colours_between_categories(highlight_categories, colours):
     return between_category_colours
 
 
-def _blend_rgb_colours(c1, c2=None):
-    if c2 is None:
-        return c1
-    else:
+def _blend_rgb_colours(color, other_colour, method: str = "midpoint"):
+    if method == "midpoint":
         return (
-            (c1[0]+c2[0])/2,  # R
-            (c1[1]+c2[1])/2,  # G
-            (c1[2]+c2[2])/2,  # B
+            (color[0] + other_colour[0]) / 2,  # R
+            (color[1] + other_colour[1]) / 2,  # G
+            (color[2] + other_colour[2]) / 2,  # B
         )
+    else:
+        raise NotImplementedError()
 
 
 if __name__ == '__main__':
@@ -515,7 +519,8 @@ if __name__ == '__main__':
         'type': (["A"] * 23) + (["B"] * 23) + (["C"] * 46)
     }
 
-    matlab_data = loadmat('/Users/cai/Dox/Dev/pyrsa/pyrsa-caiw-hackathon-fork/demos/92imageData/92_brainRDMs.mat')['RDMs']
+    matlab_data = loadmat(
+        '/Users/cai/Dox/Dev/pyrsa/pyrsa-caiw-hackathon-fork/demos/92imageData/92_brainRDMs.mat')['RDMs']
     n_rdms = len(matlab_data[0])
     rdms = RDMs(np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
                 pattern_descriptors=condition_descriptors,
@@ -528,7 +533,7 @@ if __name__ == '__main__':
     rdm_comparison_scatterplot((rdms_a, rdms_b),
                                show_marginal_distributions=True,
                                show_identity_line=True,
-                               show_legend=True,
+                               show_legend=False,
                                highlight_category_selector='type',
                                highlight_categories=["A", "B", "C"],
                                colors={
