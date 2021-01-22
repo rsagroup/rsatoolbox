@@ -6,6 +6,7 @@ Created on 2020-09-17
 @author: caiw
 """
 
+from math import comb
 from typing import Tuple, List, Union, Dict, Optional
 
 from numpy import fill_diagonal, array
@@ -22,13 +23,14 @@ from pyrsa.util.rdm_utils import category_condition_idxs
 
 _Colour = Tuple[float, float, float]
 
-
 _default_colour = "#107ab0"  # xkcd:nice blue
+_legend_linespacing = 0.02
 
 
 def rdm_comparison_scatterplot(rdms,
                                show_marginal_distributions: bool = True,
                                show_identity_line: bool = True,
+                               show_legend: bool = True,
                                highlight_category_selector: Union[str, List[int]] = None,
                                highlight_categories: List = None,
                                colors: Dict[str, _Colour] = None,
@@ -48,6 +50,10 @@ def rdm_comparison_scatterplot(rdms,
         show_identity_line (bool):
             True (default): Show identity line in each graph.
             False: Don't.
+        show_legend (bool):
+            True (default): Show a coloured legend for highlighted groups.
+            False: Don't.
+            Only honoured alongside `highlight_categories`.
         highlight_category_selector (Optional. str or List[int]):
             EITHER: A RDMs.pattern_descriptor defining category labelling for conditions.
                 OR: A list of ints providing category labels for each condition.
@@ -74,6 +80,8 @@ def rdm_comparison_scatterplot(rdms,
 
     rdms_x, rdms_y = _handle_args_rdms(rdms)
     category_idxs: Optional[Dict[str, List[int]]] = _handle_args_highlight_categories(highlight_category_selector, highlight_categories, rdms_x)
+    show_legend = _handle_args_legend(show_legend, highlight_categories)
+
     if colors is None and highlight_categories is not None:
         # TODO: different colours
         colors = {
@@ -83,7 +91,16 @@ def rdm_comparison_scatterplot(rdms,
 
     n_rdms_x, n_rdms_y = len(rdms_x), len(rdms_y)
 
-    gridspec = _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions)
+    if show_legend:
+        legend_height = _legend_linespacing * (
+            # Within-category lines
+            len(highlight_category_selector) +
+            # Between-category lines
+            comb(len(highlight_category_selector), 2)
+        )
+    else:
+        legend_height = None
+    gridspec = _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions, legend_height)
 
     fig: Figure = pyplot.figure(figsize=(8, 8))
 
@@ -130,6 +147,9 @@ def rdm_comparison_scatterplot(rdms,
     if axlim is not None:
         _set_axes_limits(axlim, reference_axis)
 
+    if show_legend:
+        _do_show_legend(highlight_categories, colors)
+
     return fig
 
 
@@ -149,6 +169,15 @@ def _handle_args_highlight_categories(highlight_category_selector, highlight_cat
     except AssertionError as exc:
         raise ValueError(_msg_arg_highlight) from exc
     return category_idxs
+
+
+def _handle_args_legend(show_legend, highlight_categories) -> bool:
+    _msg_arg_legend = "Cannot show legend when `highlight_categories` is None."
+    if show_legend:
+        if highlight_categories is None:
+            # Can't show the legend without highlighted categories
+            show_legend = False
+    return show_legend
 
 
 def _handle_args_rdms(rdms):
@@ -193,7 +222,7 @@ def _set_axes_limits(axlim, reference_axis):
     reference_axis.set_ylim(axlim[0], axlim[1])
 
 
-def _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions):
+def _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions, legend_height):
     grid_n_rows = n_rdms_y
     grid_n_cols = n_rdms_x
     grid_width_ratios = tuple(6 for _ in range(grid_n_cols))
@@ -204,12 +233,22 @@ def _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions):
         grid_n_cols += 1
         grid_width_ratios = (1, *grid_width_ratios)
         grid_height_ratios = (*grid_height_ratios, 1)
-    gridspec = GridSpec(
-        nrows=grid_n_rows,
-        ncols=grid_n_cols,
-        width_ratios=grid_width_ratios,
-        height_ratios=grid_height_ratios,
-    )
+    if legend_height is not None:
+        gridspec = GridSpec(
+            nrows=grid_n_rows,
+            ncols=grid_n_cols,
+            width_ratios=grid_width_ratios,
+            height_ratios=grid_height_ratios,
+            top=1-_legend_linespacing, left=_legend_linespacing,
+            bottom=legend_height,
+        )
+    else:
+        gridspec = GridSpec(
+            nrows=grid_n_rows,
+            ncols=grid_n_cols,
+            width_ratios=grid_width_ratios,
+            height_ratios=grid_height_ratios,
+        )
     return gridspec
 
 
@@ -340,6 +379,23 @@ def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_
     reference_hist.set_xlim(hist_axis.get_xlim()[::-1])
 
 
+def _do_show_legend(highlight_categories, colors):
+    colours_between = _colours_between_categories(highlight_categories, colors)
+    legend_text = [("All dissimilarities", _default_colour)]
+    for category_name, colour in colors.items():
+        legend_text.append((f"Within-{category_name} dissimilarities", colour))
+    for categories, colour in colours_between.items():
+        assert len(categories) == 2
+        category_1, category_2 = tuple(categories)
+        legend_text.append((f"Between {category_1}–{category_2} dissimilarities", colour))
+    legend_line_i = 1
+    for t, c in sorted(legend_text, key=lambda p: p[0]):
+        pyplot.figtext(x=_legend_linespacing, y=(len(legend_text) - legend_line_i + 1) * _legend_linespacing,
+                       s=t, color=c, horizontalalignment='left')
+        legend_line_i += 1
+    pyplot.subplots_adjust(bottom=_legend_linespacing * (len(legend_text) + 1))
+
+
 def _get_within_category_idxs(
         highlight_categories: List[str],
         category_idxs: Dict[str, List[int]],
@@ -418,7 +474,12 @@ def _colours_between_categories(highlight_categories, colours):
     exhausted_categories = []
     for category_1_name in highlight_categories:
         for category_2_name in highlight_categories:
-            between_category_colours[frozenset({category_1_name, category_2_name})] = _blend_rgb_colours(
+            if category_1_name == category_2_name:
+                continue
+            if category_2_name in exhausted_categories:
+                continue
+            categories = frozenset({category_1_name, category_2_name})
+            between_category_colours[categories] = _blend_rgb_colours(
                 colours[category_1_name],
                 colours[category_2_name]
             )
@@ -462,6 +523,7 @@ if __name__ == '__main__':
     rdm_comparison_scatterplot((rdms_a, rdms_b),
                                show_marginal_distributions=True,
                                show_identity_line=True,
+                               show_legend=True,
                                highlight_category_selector='type',
                                highlight_categories=["A", "B", "C"],
                                colors={
