@@ -505,7 +505,6 @@ def _blend_rgb_colours(c1, c2=None):
         )
 
 
-# TODO: remove this
 if __name__ == '__main__':
 
     import numpy as np
