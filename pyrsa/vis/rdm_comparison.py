@@ -17,7 +17,8 @@ from scipy.spatial.distance import squareform
 from scipy.special import comb
 
 from pyrsa.rdm import RDMs
-from pyrsa.util.matrix import square_category_binary_mask, square_between_category_binary_mask
+from pyrsa.util.matrix import square_category_binary_mask, \
+    square_between_category_binary_mask
 from pyrsa.util.rdm_utils import category_condition_idxs
 
 
@@ -31,7 +32,7 @@ def rdm_comparison_scatterplot(rdms,
                                show_marginal_distributions: bool = True,
                                show_identity_line: bool = True,
                                show_legend: bool = True,
-                               highlight_category_selector: Union[str, List[int]] = None,
+                               highlight_selector: Union[str, List[int]] = None,
                                highlight_categories: List = None,
                                colors: Dict[str, _Colour] = None,
                                axlim: Tuple[float, float] = None,
@@ -42,9 +43,10 @@ def rdm_comparison_scatterplot(rdms,
 
     Args:
         rdms (RDMs object or list-like of 2 RDMs objects):
-            If one RDMs object supplied, each RDM within is compared against each other
-            If two RDMs objects supplied (as list, tuple, etc.), each RDM in the first is compared against each RDM in
-            the second
+            If one RDMs object supplied, each RDM within is compared against
+            each other.
+            If two RDMs objects supplied (as list, tuple, etc.), each RDM in the
+            first is compared against each RDM in the second
         show_marginal_distributions (bool):
             True (default): Show marginal distributions.
             False: Don't.
@@ -55,22 +57,27 @@ def rdm_comparison_scatterplot(rdms,
             True (default): Show a coloured legend for highlighted groups.
             False: Don't.
             Only honoured alongside `highlight_categories`.
-        highlight_category_selector (Optional. str or List[int]):
-            EITHER: A RDMs.pattern_descriptor defining category labelling for conditions.
+        highlight_selector (Optional. str or List[int]):
+            EITHER: A RDMs.pattern_descriptor defining category labelling for
+                    conditions.
                 OR: A list of ints providing category labels for each condition.
-            If None or not supplied, no categories will be highlighted, in which case `highlight_categories` must also
-            be None.
+            If None or not supplied, no categories will be highlighted, in which
+            case `highlight_categories` must also be None.
         highlight_categories (Optional. List):
-            List of category labels to highlight. Must be compatible with `highlight_category_selector`.
-            Colours within each and between each pair of categories will be highlighted.
+            List of category labels to highlight. Must be compatible with
+            `highlight_selector`.
+            Colours within each and between each pair of categories will be
+            highlighted.
         colors: (Optional. Dict):
-            Dict mapping category labels to RGB 3-tuples of floats (values range 0–1).  Between-category colours will be
-            interpolated midpoints between category colours.
+            Dict mapping category labels to RGB 3-tuples of floats (values range
+            0–1).  Between-category colours will be interpolated midpoints
+            between category colours.
             If None (the default), default colours will be selected.
             Only used if `highlight_categories` is not None.
         axlim (Optional. Tuple[float, float]):
             Set the axis limits for the figure.
-            If None or not supplied, axis limits will be automatically determined.
+            If None or not supplied, axis limits will be automatically
+            determined.
         hist_bins (int, default 30):
             The number of bins to use in the histogram.
 
@@ -80,9 +87,10 @@ def rdm_comparison_scatterplot(rdms,
     """
 
     rdms_x, rdms_y = _handle_args_rdms(rdms)
-    category_idxs: Optional[Dict[str, List[int]]] = _handle_args_highlight_categories(highlight_category_selector,
-                                                                                      highlight_categories,
-                                                                                      rdms_x)
+    category_idxs: Optional[Dict[str, List[int]]]
+    category_idxs = _handle_args_highlight_categories(highlight_selector,
+                                                      highlight_categories,
+                                                      rdms_x)
     show_legend = _handle_args_legend(show_legend, highlight_categories)
 
     if colors is None and highlight_categories is not None:
@@ -97,57 +105,69 @@ def rdm_comparison_scatterplot(rdms,
     if show_legend:
         legend_height = _legend_linespacing * (
             # Within-category lines
-            len(highlight_category_selector) +
-            # Between-category lines
-            comb(len(highlight_category_selector), 2)
+                len(highlight_selector) +
+                # Between-category lines
+                comb(len(highlight_selector), 2)
         )
     else:
         legend_height = None
-    gridspec = _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions, legend_height)
+    gridspec = _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions,
+                                legend_height)
 
     fig: Figure = pyplot.figure(figsize=(8, 8))
 
-    # To share x and y axes when using gridspec you need to specify which axis to use as references.
-    # The reference axes will be those in the first column and those in the last row.
+    # To share x and y axes when using gridspec you need to specify which axis
+    # to use as references. The reference axes will be those in the first column
+    # and those in the last row.
     reference_axis = None
     # Remember axes for scatter plots now so we can draw to them all later
     scatter_axes: List[Axes] = []
     for scatter_col_idx, rdm_for_col in enumerate(rdms_x):
         is_leftmost_col = (scatter_col_idx == 0)
         if show_marginal_distributions:
-            # distributions show in the first column, so need to bump the column index
+            # distributions show in the first column, so need to bump the column
+            # index
             scatter_col_idx += 1
-        # Since matplotlib ordering is left-to-right, top-to-bottom, we need to process the rows in reverse to get the
-        # correct reference axis.
+        # Since matplotlib ordering is left-to-right, top-to-bottom, we need to
+        # process the rows in reverse to get the correct reference axis.
         for scatter_row_idx in reversed(range(n_rdms_y)):
             is_bottom_row = (scatter_row_idx == n_rdms_y - 1)
 
-            # RDMs objects aren't iterators, so while we can do `for r in rdms`, we can't do `reversed(rdms)`.
+            # RDMs objects aren't iterators, so while we can do `for r in rdms`,
+            # we can't do `reversed(rdms)`.
             # Hence we have to pull the rdm out by its index.
             rdm_for_row = rdms_y[scatter_row_idx]
 
             if reference_axis is None:
-                sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx])
+                sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx,
+                                                          scatter_col_idx])
                 reference_axis = sub_axis
             else:
-                sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx, scatter_col_idx],
-                                                 sharex=reference_axis, sharey=reference_axis)
+                sub_axis: Axes = fig.add_subplot(gridspec[scatter_row_idx,
+                                                          scatter_col_idx],
+                                                 sharex=reference_axis,
+                                                 sharey=reference_axis)
 
-            _do_scatter_plot(sub_axis, rdm_for_row, rdm_for_col, highlight_categories, category_idxs,
-                             highlight_category_selector, colors)
+            _do_scatter_plot(sub_axis, rdm_for_row, rdm_for_col,
+                             highlight_categories, category_idxs,
+                             highlight_selector, colors)
 
             if is_bottom_row:
-                sub_axis.set_xlabel(f"{rdm_for_col.rdm_descriptors['name'][0]} dissimilarity")
+                sub_axis.set_xlabel(f"{rdm_for_col.rdm_descriptors['name'][0]}"
+                                    f" dissimilarity")
             if is_leftmost_col:
-                sub_axis.set_ylabel(f"{rdm_for_row.rdm_descriptors['name'][0]} dissimilarity")
+                sub_axis.set_ylabel(f"{rdm_for_row.rdm_descriptors['name'][0]}"
+                                    f" dissimilarity")
 
             scatter_axes.append(sub_axis)
 
             _format_sub_axes(sub_axis, is_bottom_row, is_leftmost_col)
 
     if show_marginal_distributions:
-        _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins,
-                                        highlight_categories, category_idxs, colors)
+        _do_show_marginal_distributions(fig, reference_axis, gridspec,
+                                        rdms_x, rdms_y, hist_bins,
+                                        highlight_categories, category_idxs,
+                                        colors)
 
     if show_identity_line:
         _do_show_identity_line(reference_axis, scatter_axes)
@@ -161,19 +181,23 @@ def rdm_comparison_scatterplot(rdms,
     return fig
 
 
-def _handle_args_highlight_categories(highlight_category_selector, highlight_categories, reference_rdms
+def _handle_args_highlight_categories(highlight_category_selector,
+                                      highlight_categories,
+                                      reference_rdms
                                       ) -> Optional[Dict[str, List[int]]]:
     # Handle category highlighting args
-    _msg_arg_highlight = "Arguments `highlight_category_selector` and `highlight_categories` must be compatible."
+    _msg_arg_highlight = "Arguments `highlight_selector` and " \
+                         "`highlight_categories` must be compatible."
     try:
         if highlight_category_selector is None:
             assert highlight_categories is None
-            # If we get here we'll never use this value, but we need to satisfy the static analyser that it's
-            # initialised under all code paths..
+            # If we get here we'll never use this value, but we need to satisfy
+            # the static analyser that it's initialised under all code paths..
             category_idxs = None
         else:
             assert highlight_categories is not None
-            category_idxs = category_condition_idxs(reference_rdms, highlight_category_selector)
+            category_idxs = category_condition_idxs(reference_rdms,
+                                                    highlight_category_selector)
             assert all(c in category_idxs.keys() for c in highlight_categories)
     except AssertionError as exc:
         raise ValueError(_msg_arg_highlight) from exc
@@ -231,7 +255,8 @@ def _set_axes_limits(axlim, reference_axis):
     reference_axis.set_ylim(axlim[0], axlim[1])
 
 
-def _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions, legend_height):
+def _set_up_gridspec(n_rdms_x, n_rdms_y,
+                     show_marginal_distributions, legend_height):
     grid_n_rows = n_rdms_y
     grid_n_cols = n_rdms_x
     grid_width_ratios = tuple(6 for _ in range(grid_n_cols))
@@ -262,8 +287,8 @@ def _set_up_gridspec(n_rdms_x, n_rdms_y, show_marginal_distributions, legend_hei
     return gridspec
 
 
-def _do_scatter_plot(sub_axis, rdm_for_row, rdm_for_col, highlight_categories, category_idxs,
-                     highlight_category_selector, colors):
+def _do_scatter_plot(sub_axis, rdm_for_row, rdm_for_col, highlight_categories,
+                     category_idxs, highlight_category_selector, colors):
 
     # First plot dissimilarities within all stimuli
     full_marker_size = rcParams["lines.markersize"] ** 2
@@ -274,15 +299,17 @@ def _do_scatter_plot(sub_axis, rdm_for_row, rdm_for_col, highlight_categories, c
                      cmap=None)
     if highlight_category_selector is not None:
 
-        within_category_idxs = _get_within_category_idxs(highlight_categories=highlight_categories,
-                                                         category_idxs=category_idxs,
-                                                         n_cond=rdm_for_row.n_cond)
+        within_category_idxs = _get_within_category_idxs(
+            highlight_categories=highlight_categories,
+            category_idxs=category_idxs,
+            n_cond=rdm_for_row.n_cond)
 
-        between_category_idxs = _get_between_category_idxs(category_idxs=category_idxs,
-                                                           highlight_categories=highlight_categories,
-                                                           n_cond=rdm_for_row.n_cond)
+        between_category_idxs = _get_between_category_idxs(
+            category_idxs=category_idxs,
+            highlight_categories=highlight_categories,
+            n_cond=rdm_for_row.n_cond)
 
-        within_category_dissims, between_category_dissims = _split_dissimilarities_within_between(
+        dissims_within, dissims_between = _split_dissimilarities_within_between(
             dissimilarities_for_row=rdm_for_row.get_vectors(),
             dissimilarities_for_col=rdm_for_col.get_vectors(),
             within_category_idxs=within_category_idxs,
@@ -290,28 +317,32 @@ def _do_scatter_plot(sub_axis, rdm_for_row, rdm_for_col, highlight_categories, c
         )
 
         # Plot between highlighted categories
-        colours_between = _colours_between_categories(highlight_categories, colors)
+        colours_between = _colours_between_categories(highlight_categories,
+                                                      colors)
         for categories in between_category_idxs.keys():
-            sub_axis.scatter(x=between_category_dissims[categories][0],
-                             y=between_category_dissims[categories][1],
+            sub_axis.scatter(x=dissims_between[categories][0],
+                             y=dissims_between[categories][1],
                              color=colours_between[categories],
-                             # Slightly smaller, so the points for all still shows
+                             # Slightly smaller, so the points for all still
+                             # shows
                              s=full_marker_size * 0.5,
                              cmap=None)
 
         # Plot within highlighted categories
         for category_name in within_category_idxs.keys():
-            sub_axis.scatter(x=within_category_dissims[category_name][0],
-                             y=within_category_dissims[category_name][1],
+            sub_axis.scatter(x=dissims_within[category_name][0],
+                             y=dissims_within[category_name][1],
                              color=colors[category_name],
-                             # Slightly smaller still, so the points for all and between still show
+                             # Slightly smaller still, so the points for all and
+                             # between still show
                              s=full_marker_size * 0.3,
                              cmap=None)
 
 
 def _do_show_identity_line(reference_axis, scatter_axes):
     for ax in scatter_axes:
-        # Prevent autoscale, else plotting from the origin causes the axes to rescale
+        # Prevent autoscale, else plotting from the origin causes the axes to
+        # rescale
         ax.autoscale(False)
         ax.plot([reference_axis.get_xlim()[0], reference_axis.get_xlim()[1]],
                 [reference_axis.get_ylim()[0], reference_axis.get_ylim()[1]],
@@ -319,35 +350,51 @@ def _do_show_identity_line(reference_axis, scatter_axes):
                 "0.5", zorder=-1)
 
 
-def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_y, hist_bins,
-                                    highlight_categories, category_idxs, colors):
+def _do_show_marginal_distributions(fig, reference_axis, gridspec,
+                                    rdms_x, rdms_y, hist_bins,
+                                    highlight_categories, category_idxs,
+                                    colors):
 
     # Add marginal distributions along the x axis
     reference_hist = None
     for col_idx, rdm_for_col in enumerate(rdms_x):
         if reference_hist is None:
-            hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis)
+            hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1],
+                                              sharex=reference_axis)
             reference_hist = hist_axis
         else:
-            hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1], sharex=reference_axis, sharey=reference_hist)
+            hist_axis: Axes = fig.add_subplot(gridspec[-1, col_idx + 1],
+                                              sharex=reference_axis,
+                                              sharey=reference_hist)
 
         # Plot all dissims
-        hist_axis.hist(rdm_for_col.get_vectors().flatten(), histtype='step', fill=False,
-                       orientation='vertical', bins=hist_bins, color=_default_colour)
+        hist_axis.hist(rdm_for_col.get_vectors().flatten(),
+                       histtype='step',
+                       fill=False,
+                       orientation='vertical',
+                       bins=hist_bins,
+                       color=_default_colour)
 
         if highlight_categories is not None:
             # Plot within dissims
-            within_category_idxs = _get_within_category_idxs(highlight_categories, category_idxs, rdm_for_col.n_cond)
+            within_category_idxs = _get_within_category_idxs(
+                highlight_categories, category_idxs, rdm_for_col.n_cond)
             for category_name, idxs in within_category_idxs.items():
-                hist_axis.hist(rdm_for_col.dissimilarities[idxs], histtype='step', fill=False,
-                               orientation='vertical', bins=hist_bins, color=colors[category_name])
+                hist_axis.hist(rdm_for_col.dissimilarities[idxs],
+                               histtype='step', fill=False,
+                               orientation='vertical', bins=hist_bins,
+                               color=colors[category_name])
 
             # Plot between dissims
-            between_category_idxs = _get_between_category_idxs(category_idxs, highlight_categories, rdm_for_col.n_cond)
-            colours_between = _colours_between_categories(highlight_categories, colors)
+            between_category_idxs = _get_between_category_idxs(
+                category_idxs, highlight_categories, rdm_for_col.n_cond)
+            colours_between = _colours_between_categories(highlight_categories,
+                                                          colors)
             for categories, idxs in between_category_idxs.items():
-                hist_axis.hist(rdm_for_col.dissimilarities[idxs], histtype='step', fill=False,
-                               orientation='vertical', bins=hist_bins, color=colours_between[categories])
+                hist_axis.hist(rdm_for_col.dissimilarities[idxs],
+                               histtype='step', fill=False,
+                               orientation='vertical', bins=hist_bins,
+                               color=colours_between[categories])
 
         hist_axis.xaxis.set_visible(False)
         hist_axis.yaxis.set_visible(False)
@@ -359,28 +406,39 @@ def _do_show_marginal_distributions(fig, reference_axis, gridspec, rdms_x, rdms_
     reference_hist = None
     for row_idx, rdm_for_row in enumerate(rdms_y):
         if reference_hist is None:
-            hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0], sharey=reference_axis)
+            hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0],
+                                              sharey=reference_axis)
             reference_hist = hist_axis
         else:
-            hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0], sharey=reference_axis, sharex=reference_hist)
+            hist_axis: Axes = fig.add_subplot(gridspec[row_idx, 0],
+                                              sharey=reference_axis,
+                                              sharex=reference_hist)
 
         # Plot all dissims
-        hist_axis.hist(rdm_for_row.get_vectors().flatten(), histtype='step', fill=False, orientation='horizontal',
+        hist_axis.hist(rdm_for_row.get_vectors().flatten(), histtype='step',
+                       fill=False, orientation='horizontal',
                        bins=hist_bins)
 
         if highlight_categories is not None:
             # Plot within dissims
-            within_category_idxs = _get_within_category_idxs(highlight_categories, category_idxs, rdm_for_row.n_cond)
+            within_category_idxs = _get_within_category_idxs(
+                highlight_categories, category_idxs, rdm_for_row.n_cond)
             for category_name, idxs in within_category_idxs.items():
-                hist_axis.hist(rdm_for_row.dissimilarities[idxs], histtype='step', fill=False,
-                               orientation='horizontal', bins=hist_bins, color=colors[category_name])
+                hist_axis.hist(rdm_for_row.dissimilarities[idxs],
+                               histtype='step', fill=False,
+                               orientation='horizontal', bins=hist_bins,
+                               color=colors[category_name])
 
             # Plot between dissims
-            between_category_idxs = _get_between_category_idxs(category_idxs, highlight_categories, rdm_for_row.n_cond)
-            colours_between = _colours_between_categories(highlight_categories, colors)
+            between_category_idxs = _get_between_category_idxs(
+                category_idxs, highlight_categories, rdm_for_row.n_cond)
+            colours_between = _colours_between_categories(
+                highlight_categories, colors)
             for categories, idxs in between_category_idxs.items():
-                hist_axis.hist(rdm_for_row.dissimilarities[idxs], histtype='step', fill=False,
-                               orientation='horizontal', bins=hist_bins, color=colours_between[categories])
+                hist_axis.hist(rdm_for_row.dissimilarities[idxs],
+                               histtype='step', fill=False,
+                               orientation='horizontal', bins=hist_bins,
+                               color=colours_between[categories])
 
         hist_axis.xaxis.set_visible(False)
         hist_axis.yaxis.set_visible(False)
@@ -397,12 +455,16 @@ def _do_show_legend(highlight_categories, colors):
     for categories, colour in colours_between.items():
         assert len(categories) == 2
         category_1, category_2 = tuple(categories)
-        legend_text.append((f"Between {category_1}–{category_2} dissimilarities", colour))
-    legend_line_i = 1
+        legend_text.append((
+            f"Between {category_1}–{category_2} dissimilarities",
+            colour
+        ))
+    line_i = 1
     for t, c in sorted(legend_text, key=lambda p: p[0]):
-        pyplot.figtext(x=_legend_linespacing, y=(len(legend_text) - legend_line_i + 1) * _legend_linespacing,
+        pyplot.figtext(x=_legend_linespacing,
+                       y=(len(legend_text) - line_i + 1) * _legend_linespacing,
                        s=t, color=c, horizontalalignment='left')
-        legend_line_i += 1
+        line_i += 1
     pyplot.subplots_adjust(bottom=_legend_linespacing * (len(legend_text) + 1))
 
 
@@ -412,21 +474,24 @@ def _get_within_category_idxs(
         n_cond: int) -> Dict[str, List[int]]:
 
     # category name -> [idxs]
-    within_category_idxs: Dict[str, List[int]] = dict()
+    idxs_within: Dict[str, List[int]] = dict()
 
     for category_name in highlight_categories:
         # Get UTV binary mask for within-category dissims
-        square_mask = square_category_binary_mask(category_idxs=category_idxs[category_name], size=n_cond)
-        # We don't use diagonal entries, but they must be 0 for squareform to work
+        square_mask = square_category_binary_mask(
+            category_idxs=category_idxs[category_name], size=n_cond)
+        # We don't use diagonal entries, but they must be 0 for squareform to
+        # work
         fill_diagonal(square_mask, False)  # in place
-        within_category_idxs[category_name] = squareform(square_mask)[np.newaxis]
+        idxs_within[category_name] = squareform(square_mask)[np.newaxis]
 
-    return within_category_idxs
+    return idxs_within
 
 
-def _get_between_category_idxs(category_idxs, highlight_categories, n_cond) -> Dict[frozenset, List[int]]:
+def _get_between_category_idxs(category_idxs, highlight_categories, n_cond
+                               ) -> Dict[frozenset, List[int]]:
     # {category1, category2} -> [idxs]
-    between_category_idxs: Dict[frozenset, List[int]] = dict()
+    idxs_between: Dict[frozenset, List[int]] = dict()
     exhausted_categories = []
     for category_1_name in highlight_categories:
         for category_2_name in highlight_categories:
@@ -437,12 +502,14 @@ def _get_between_category_idxs(category_idxs, highlight_categories, n_cond) -> D
             if category_2_name in exhausted_categories:
                 continue
 
-            between_category_idxs[frozenset({category_1_name, category_2_name})] = squareform(
-                square_between_category_binary_mask(category_1_idxs=category_idxs[category_1_name],
-                                                    category_2_idxs=category_idxs[category_2_name],
-                                                    size=n_cond))[np.newaxis]
+            categories = frozenset({category_1_name, category_2_name})
+            idxs_between[categories] = squareform(
+                square_between_category_binary_mask(
+                    category_1_idxs=category_idxs[category_1_name],
+                    category_2_idxs=category_idxs[category_2_name],
+                    size=n_cond))[np.newaxis]
         exhausted_categories.append(category_1_name)
-    return between_category_idxs
+    return idxs_between
 
 
 def _split_dissimilarities_within_between(
@@ -451,12 +518,14 @@ def _split_dissimilarities_within_between(
         within_category_idxs,
         between_category_idxs):
     """
-    Splits dissimilarities into within/between category dissimilarities for highlighted categories.
+    Splits dissimilarities into within/between category dissimilarities for
+    highlighted categories.
     """
 
     # Within categories
     # category name -> (xs, ys)
-    within_category_dissims: Dict[str, Tuple[List[float], List[float]]] = {
+    within_category_dissims: Dict[str, Tuple[List[float], List[float]]]
+    within_category_dissims = {
         category_name: (
             dissimilarities_for_col[idxs],  # x
             dissimilarities_for_row[idxs],  # y
@@ -466,7 +535,8 @@ def _split_dissimilarities_within_between(
 
     # Between categories
     # {category1, category2} -> (xs, ys)
-    between_category_dissims: Dict[frozenset, Tuple[List[float], List[float]]] = {
+    between_category_dissims: Dict[frozenset, Tuple[List[float], List[float]]]
+    between_category_dissims = {
         categories: (
                 dissimilarities_for_col[idxs],  # x
                 dissimilarities_for_row[idxs],  # y
@@ -509,6 +579,7 @@ def _blend_rgb_colours(color, other_colour, method: str = "midpoint"):
         raise NotImplementedError()
 
 
+# TODO: this will go in the final Pull Request, it's just for local testing
 if __name__ == '__main__':
 
     import numpy as np
@@ -520,11 +591,14 @@ if __name__ == '__main__':
     }
 
     matlab_data = loadmat(
-        '/Users/cai/Dox/Dev/pyrsa/pyrsa-caiw-hackathon-fork/demos/92imageData/92_brainRDMs.mat')['RDMs']
+        # Replace with your toolbox location
+        '/Users/cai/Dox/Dev/pyrsa/pyrsa-caiw-hackathon-fork/'
+        'demos/92imageData/92_brainRDMs.mat')['RDMs']
     n_rdms = len(matlab_data[0])
     rdms = RDMs(np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
                 pattern_descriptors=condition_descriptors,
-                rdm_descriptors={'name': np.array([f"RDM{i}" for i in range(4)])}
+                rdm_descriptors={'name': np.array([f"RDM{i}"
+                                                   for i in range(4)])}
                 )
 
     rdms_a = concat([rdms[0], rdms[1]])
@@ -534,7 +608,7 @@ if __name__ == '__main__':
                                show_marginal_distributions=True,
                                show_identity_line=True,
                                show_legend=False,
-                               highlight_category_selector='type',
+                               highlight_selector='type',
                                highlight_categories=["A", "B", "C"],
                                colors={
                                    "A": (1, 0, 0),
