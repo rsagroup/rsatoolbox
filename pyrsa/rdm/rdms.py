@@ -460,7 +460,7 @@ def rank_transform(rdms, method='average'):
     return rdms_new
 
 
-def concat(rdms):
+def concat(*args):
     """ concatenates rdm objects
     requires that the rdms have the same shape
     descriptor and pattern descriptors are taken from the first rdms object
@@ -468,15 +468,23 @@ def concat(rdms):
     the rdm index is reinitialized
 
     Args:
-        rdms(list of pyrsa.rdm.RDMs): RDMs objects to be concatenated
+        rdms(iterable of pyrsa.rdm.RDMs): RDMs objects to be concatenated
+        or multiple RDMs as separate arguments
 
     Returns:
         pyrsa.rdm.RDMs: concatenated rdms object
 
     """
-    rdm = rdms[0]
-    assert isinstance(rdm, RDMs), 'rdms should be a list of RDMs objects'
-    for rdm_new in rdms[1:]:
+    if len(args) == 1:
+        if isinstance(args[0], RDMs):
+            rdms_list = [args[0]]
+        else:
+            rdms_list = list(args[0])
+    else:
+        rdms_list = list(args)
+    rdm = rdms_list[0]
+    assert isinstance(rdm, RDMs), 'Supply list of RDMs objects, or RDMs objects as separate arguments'
+    for rdm_new in rdms_list[1:]:
         rdm.append(rdm_new)
     return rdm
 

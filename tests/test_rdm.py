@@ -261,6 +261,40 @@ class TestRDM(unittest.TestCase):
         assert rdms.n_rdm == 16
         assert len(rdms.rdm_descriptors['session'] == 16)
 
+    def test_concat_varargs_multiple_rdms(self):
+        from pyrsa.rdm import concat
+        dis = np.zeros((8, 10))
+        dis2 = np.random.rand(8, 10)
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms1 = rsr.RDMs(dissimilarities=dis,
+                         pattern_descriptors=pattern_des,
+                         dissimilarity_measure=mes,
+                         descriptors=des,
+                         rdm_descriptors=rdm_des)
+        rdms2 = rsr.RDMs(dissimilarities=dis2,
+                         pattern_descriptors=pattern_des,
+                         dissimilarity_measure=mes,
+                         descriptors=des,
+                         rdm_descriptors=rdm_des)
+        assert concat((rdms1, rdms2)) == concat(rdms1, rdms2)
+
+    def test_concat_varargs_one_rdm(self):
+        from pyrsa.rdm import concat
+        dis = np.zeros((8, 10))
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des,
+                        rdm_descriptors=rdm_des)
+        assert concat(rdms) == rdms
+
     def test_categorical_rdm(self):
         from pyrsa.rdm import get_categorical_rdm
         category_vector = [1, 2, 2, 3]
