@@ -13,6 +13,38 @@ from pyrsa.util.pooling import pool_rdm
 from pyrsa.util.rdm_utils import _parse_input_rdms
 
 
+class Fitter:
+    """Object to specify a fitting function and parameters
+
+    Effectively this gives the user a convenient way to specify fitting
+    functions with different settings than the defaults.
+
+    Create this object with the fitting function to use and additional
+    keyword arguments for settings you wish to change. The resulting
+    object then behaves as the fitting function itself with the
+    keyword arguments set to the different values provided at object
+    creation.
+
+    Example:
+        generate Fitter-object for ridge regression:
+            fit = pyrsa.model.Fitter(pyrsa.model.fit_regress, ridge_weight=1)
+        the resulting object 'fit' now does the same as
+        pyrsa.model.fit_regress when run with the additional argument
+        ridge_weight=1, i.e. the following two lines now yield equal results:
+            fit(model, data)
+            pyrsa.model.fit_regress(model, data, ridge_weight=1)
+
+    For a general introduction to flexible models see demo_flex.
+    """
+
+    def __init__(self, fit_fun, **kwargs):
+        self.fit_fun = fit_fun
+        self.kwargs = kwargs
+
+    def __call__(self, model, data, *args, **more_args):
+        return self.fit_fun(model, data, *args, **more_args, **self.kwargs)
+
+
 def fit_mock(model, data, method='cosine', pattern_idx=None,
              pattern_descriptor=None, sigma_k=None):
     """ formally acceptable fitting method which always returns a vector of
