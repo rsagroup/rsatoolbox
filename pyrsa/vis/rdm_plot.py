@@ -11,7 +11,7 @@ from pyrsa.vis.colors import rdm_colormap
 
 
 def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
-             cmap=None, rdm_descriptor=None, dpi=300, filename=None,
+             cmap=None, rdm_descriptor=None, dpi=None, filename=None,
              show_colorbar=False):
     """shows an rdm object
 
@@ -37,7 +37,8 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None,
         whether to display a colorbar next to each RDM
 
     """
-    plt.figure(dpi=dpi)
+    if dpi:
+        plt.gcf().set_dpi(dpi)
     if cmap is None:
         cmap = rdm_colormap()
     if do_rank_transform:
