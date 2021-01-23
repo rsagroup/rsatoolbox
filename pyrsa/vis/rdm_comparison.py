@@ -6,7 +6,6 @@ Created on 2020-09-17
 @author: caiw
 """
 
-from math import comb
 from typing import Tuple, List, Union, Dict, Optional
 
 from numpy import fill_diagonal, array
@@ -15,6 +14,7 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 from scipy.spatial.distance import squareform
+from scipy.special import comb
 
 from pyrsa.rdm import RDMs
 from pyrsa.util.matrix import square_category_binary_mask, square_between_category_binary_mask
