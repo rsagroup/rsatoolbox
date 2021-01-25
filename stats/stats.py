@@ -591,7 +591,7 @@ def run_flex(idx, start_idx, simulation_folder='sim_flex',
         ['interpolate_mean', None],
         ['interpolate_average', None],
         ['interpolate_full', None]]
-    
+
     variation = 'both'
     boot = 'fancy'
     layer = 8
@@ -875,10 +875,10 @@ def summarize_flex(simulation_folder='sim_flex'):
     pairs = []
     i_layer = 8
     n_voxel = 100
-    n_subj=20
-    n_rep=4
-    sd=0.05
-    variation='both'
+    n_subj = 20
+    n_rep = 4
+    sd = 0.05
+    variation = 'both'
     duration = 1
     pause = 1
     endzeros = 25
@@ -897,7 +897,7 @@ def summarize_flex(simulation_folder='sim_flex'):
             res_string = '_'.join(split[:-1])
         boot_type, rdm_type, model_type, rdm_comparison, \
             noise_type, n_stim = parse_results(res_string)
-            
+
         data_labels = data_labels.append(
             {'layer': i_layer,
              'n_voxel': n_voxel, 'n_subj': n_subj,
@@ -930,7 +930,7 @@ def summarize_flex(simulation_folder='sim_flex'):
                     no_nan_idx = \
                         ~np.any(np.any(np.any(
                             np.isnan(res.evaluations),
-                            axis=-1), axis=-1),axis=-1)
+                            axis=-1), axis=-1), axis=-1)
                 if np.any(no_nan_idx):
                     for i in range(12):
                         for j in range(12):
@@ -979,10 +979,10 @@ def summarize_boot_cv(simulation_folder='boot_cv'):
             i_rep = int(split[1])
             res = pyrsa.inference.load_results(results, 'hdf5')
             means[i, :, i_sim, i_rep] = np.mean(np.mean(np.mean(
-                res.evaluations, 0), 1),1)
+                res.evaluations, 0), 1), 1)
             variances[i, :, :, i_sim, i_rep] = res.variances
             eval_ok = ~np.any(np.any(np.any(np.isnan(res.evaluations),
-                                    axis=-1), axis=-1), axis=-1)
+                                     axis=-1), axis=-1), axis=-1)
             evals_nonan = np.mean(np.mean(res.evaluations[eval_ok], -1), -1)
             variances_raw[i, :, :, i_sim, i_rep] = np.cov(evals_nonan.T)
     np.save(os.path.join(simulation_folder, 'var.npy'), variances)
@@ -1154,7 +1154,7 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
     rdm_type = 'crossnobis'
     rdm_comparison = 'corr'
     boot_type = 'crossval'
-    
+
     model = dnn.get_default_model()
     ecoset_path = pathlib.Path(ecoset_path).expanduser()
     res_path = os.path.join(simulation_folder, f'cv_{n_cv}')
@@ -1199,7 +1199,7 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
                     model=model, layer=layer,
                     stimulus=stim_list[i_stim]))
         U_shape = np.array(U_complete[0].shape)
-    
+
         # get new sampling locations if necessary
         weight_file = os.path.join(simulation_folder,
                                    'weights%04d.npy' % i)
@@ -1233,7 +1233,7 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
             np.save(weight_file, weights)
         if not os.path.isfile(indices_file):
             np.save(indices_file, indices_space)
-    
+
         # extract new dnn activations
         Utrue = []
         for i_subj in range(n_subj):
@@ -1247,7 +1247,7 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
                 * np.sqrt(Utrue_subj.size)
             Utrue.append(Utrue_subj)
         Utrue = np.array(Utrue)
-    
+
         # run the fmri simulation
         U = []
         residuals = []
@@ -1279,7 +1279,7 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
             U.append(np.array(Usamps))
         residuals = np.array(residuals)
         U = np.array(U)
-    
+
         # calculate RDMs
         data = []
         desc = {'stim': np.tile(np.arange(n_stim), n_repeat),
@@ -1307,13 +1307,13 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
                             bootstrap=boot_type, n_cv=n_cv)
     print(full_path)
     results.save(full_path)
-    
+
 
 def fix_boot_cv(simulation_folder='boot_cv', ecoset_path='~/ecoset/val/'):
     """runs single flexible model simulations to allow parallelization
     """
     n_cvs = [1, 2, 4, 8, 16, 32]
-    indices = np.random.permutation(len(n_cvs)* 100 * 10)
+    indices = np.random.permutation(len(n_cvs) * 100 * 10)
     for idx in indices:
         cv_idx = int(np.floor(idx / 1000))
         i_rep = int(np.floor((idx % 1000) / 10))
@@ -1356,4 +1356,3 @@ if __name__ == '__main__':
             fix_boot_cv()
         else:
             fix_boot_cv(ecoset_path=args.path)
-
