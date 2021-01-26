@@ -223,7 +223,6 @@ def dual_bootstrap(models, data, method='cosine', fitter=None,
         matrix -= np.mean(matrix, 0, keepdims=True)
         variances = np.einsum('ijk,ilk->kjl', matrix, matrix) \
             / (matrix.shape[0] - 1)
-        variances = variances[:-2, :-2]
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
                     variances=variances, dof=dof)
