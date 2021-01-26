@@ -403,5 +403,33 @@ class TestSave(unittest.TestCase):
         assert rdms_loaded.descriptors['subj'] == 0
 
 
+class TestRDMLists(unittest.TestCase):
+    """ checking that descriptors stay lists if they are specified as such"""
+
+    def setUp(self):
+        import pyrsa as rsa
+        dissimilarities = np.random.rand(3, 15)
+        des = {'session': 0, 'subj': np.arange(7)}
+        rdm_des = {'test': ['a', np.arange(5), None]}
+        pattern_des = {'test': [np.arange(1), np.arange(2), np.arange(3),
+                                np.arange(4), np.arange(5), np.arange(6)],
+                       'test2': [1, 2, 3, 4, 5, 6],
+                       'test3': [np.arange(1), np.arange(2), np.arange(1),
+                                 np.arange(1), np.arange(1), 'b']}
+        self.test_rdm = rsa.rdm.RDMs(
+            dissimilarities=dissimilarities,
+            dissimilarity_measure='test',
+            descriptors=des,
+            rdm_descriptors=rdm_des,
+            pattern_descriptors=pattern_des
+            )
+
+    def test_rdm3d_init(self):
+        assert isinstance(self.test_rdm.rdm_des['test'], list)
+        assert isinstance(self.test_rdm.pattern_des['test'], list)
+        assert isinstance(self.test_rdm.pattern_des['test2'], list)
+        assert isinstance(self.test_rdm.pattern_des['test3'], list)
+
+
 if __name__ == '__main__':
     unittest.main()
