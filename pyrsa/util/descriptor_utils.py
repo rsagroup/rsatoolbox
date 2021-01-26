@@ -10,6 +10,7 @@ Some of these methods may convert numpy-array descriptors to list-types.
 """
 
 import numpy as np
+from collections.abc import Iterable
 
 
 def bool_index(descriptor, value):
@@ -32,6 +33,33 @@ def bool_index(descriptor, value):
         index = np.any(index, axis=0)
     else:
         index = np.array([d == value for d in descriptor])
+    return index
+
+
+def num_index(descriptor, value):
+    """
+    creates a boolean index vector where a descriptor has a value
+
+    Args:
+        descriptor (list-like): descriptor vector
+        value:                  value or list of values to mark
+
+    Returns:
+        numpy.ndarray:
+            bool_index: boolean index vector where descriptor == value
+
+    """
+    index = []
+    if (isinstance(value, list) or
+            isinstance(value, tuple) or
+            isinstance(value, np.ndarray)):
+        for j in range(len(descriptor)):
+            if descriptor[j] in value:
+                index.append(j)
+    else:
+        for j in range(len(descriptor)):
+            if descriptor[j] == value:
+                index.append(j)
     return index
 
 
@@ -87,8 +115,8 @@ def check_descriptor_length(descriptor, n_element):
     """
     for k, v in descriptor.items():
         if isinstance(v, str):
-            descriptor[k] = [v]
-        if len(v) != n_element:
+            v = [v]
+        if isinstance(v, Iterable) and len(v) != n_element:
             return False
     return True
 
@@ -107,9 +135,10 @@ def subset_descriptor(descriptor, indices):
     """
     extracted_descriptor = {}
     for k, v in descriptor.items():
-        extracted_descriptor[k] = [v[index] for index in indices]
-        if len(np.array(extracted_descriptor[k]).shape) == 0:
-            extracted_descriptor[k] = [extracted_descriptor[k]]
+        if isinstance(indices, Iterable):
+            extracted_descriptor[k] = [v[index] for index in indices]
+        else:
+            extracted_descriptor[k] = [v[indices]]
     return extracted_descriptor
 
 

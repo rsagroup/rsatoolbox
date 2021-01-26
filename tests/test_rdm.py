@@ -259,7 +259,7 @@ class TestRDM(unittest.TestCase):
                          rdm_descriptors=rdm_des)
         rdms = concat((rdms1, rdms2))
         assert rdms.n_rdm == 16
-        assert len(rdms.rdm_descriptors['session'] == 16)
+        assert len(rdms.rdm_descriptors['session']) == 16
 
     def test_categorical_rdm(self):
         from pyrsa.rdm import get_categorical_rdm
@@ -425,10 +425,10 @@ class TestRDMLists(unittest.TestCase):
             )
 
     def test_rdm3d_init(self):
-        assert isinstance(self.test_rdm.rdm_des['test'], list)
-        assert isinstance(self.test_rdm.pattern_des['test'], list)
-        assert isinstance(self.test_rdm.pattern_des['test2'], list)
-        assert isinstance(self.test_rdm.pattern_des['test3'], list)
+        assert isinstance(self.test_rdm.rdm_descriptors['test'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['test'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['test2'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['test3'], list)
 
 
 if __name__ == '__main__':

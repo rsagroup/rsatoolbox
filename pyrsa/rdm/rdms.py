@@ -60,6 +60,9 @@ class RDMs:
         if rdm_descriptors is None:
             self.rdm_descriptors = {}
         else:
+            for k, v in rdm_descriptors.items():
+                if not isinstance(v, Iterable) or isinstance(v, str):
+                    rdm_descriptors[k] = [v]
             check_descriptor_length_error(rdm_descriptors,
                                           'rdm_descriptors',
                                           self.n_rdm)
@@ -67,6 +70,9 @@ class RDMs:
         if pattern_descriptors is None:
             self.pattern_descriptors = {}
         else:
+            for k, v in pattern_descriptors.items():
+                if not isinstance(v, Iterable) or isinstance(v, str):
+                    pattern_descriptors[k] = [v]
             check_descriptor_length_error(pattern_descriptors,
                                           'pattern_descriptors',
                                           self.n_cond)
@@ -111,8 +117,7 @@ class RDMs:
         allows indexing with []
         and iterating over RDMs with `for rdm in rdms:`
         """
-        idx = np.array(idx)
-        dissimilarities = self.dissimilarities[idx].reshape(
+        dissimilarities = self.dissimilarities[np.array(idx)].reshape(
             -1, self.dissimilarities.shape[1])
         rdm_descriptors = subset_descriptor(self.rdm_descriptors, idx)
         rdms = RDMs(dissimilarities,
@@ -197,13 +202,19 @@ class RDMs:
         if by is None:
             by = 'index'
         desc = self.pattern_descriptors[by]  # desc is list-like
+        selection = []
         if (
                 isinstance(value, list) or
                 isinstance(value, tuple) or
                 isinstance(value, np.ndarray)):
-            selection = np.array([index for index, d in enumerate(desc) if d in value])
+            for i in value:
+                for j in range(len(desc)):
+                    if desc[j] == i:
+                        selection.append(j)
         else:
-            selection = np.array([index for index, d in enumerate(desc) if d == value])
+            for j in range(len(desc)):
+                if desc[j] == i:
+                    selection.append(j)
         selection = np.sort(selection)
         dissimilarities = self.get_matrices()
         for i_rdm in range(self.n_rdm):
@@ -265,13 +276,19 @@ class RDMs:
         if by is None:
             by = 'index'
         desc = self.rdm_descriptors[by]
+        selection = []
         if (
                 isinstance(value, list) or
                 isinstance(value, tuple) or
                 isinstance(value, np.ndarray)):
-            selection = np.array([index for index, d in enumerate(desc) if d in value])
+            for i in value:
+                for j in range(len(desc)):
+                    if desc[j] == i:
+                        selection.append(j)
         else:
-            selection = np.array([index for index, d in enumerate(desc) if d == value])
+            for j in range(len(desc)):
+                if desc[j] == i:
+                    selection.append(j)
         dissimilarities = self.dissimilarities[selection, :]
         descriptors = self.descriptors
         pattern_descriptors = self.pattern_descriptors
