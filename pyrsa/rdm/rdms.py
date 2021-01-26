@@ -8,15 +8,15 @@ Definition of RSA RDMs class and subclasses
 
 import numpy as np
 from scipy.stats import rankdata
+from collections.abc import Iterable
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
-from pyrsa.util.descriptor_utils import bool_index
+from pyrsa.util.descriptor_utils import bool_index, num_index
 from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import append_descriptor
 from pyrsa.util.data_utils import extract_dict
-from collections.abc import Iterable
 from pyrsa.util.file_io import write_dict_hdf5
 from pyrsa.util.file_io import write_dict_pkl
 from pyrsa.util.file_io import read_dict_hdf5
@@ -168,8 +168,14 @@ class RDMs:
         """
         if by is None:
             by = 'index'
-        selection = bool_index(self.pattern_descriptors[by], value)
-        dissimilarities = self.get_matrices()[:, selection][:, :, selection]
+        selection = num_index(self.pattern_descriptors[by], value)
+        ix, iy = np.triu_indices(self.n_cond, 1)
+        selection_x = bool_index(
+            [self.pattern_descriptors[by][idx] for idx in ix], value)
+        selection_y = bool_index(
+            [self.pattern_descriptors[by][idx] for idx in iy], value)
+        selection_xy = selection_x & selection_y
+        dissimilarities = self.dissimilarities[:, selection_xy]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
             self.pattern_descriptors, selection)
@@ -247,7 +253,7 @@ class RDMs:
         """
         if by is None:
             by = 'index'
-        selection = bool_index(self.rdm_descriptors[by], value)
+        selection = num_index(self.rdm_descriptors[by], value)
         dissimilarities = self.dissimilarities[selection, :]
         descriptors = self.descriptors
         pattern_descriptors = self.pattern_descriptors
