@@ -174,7 +174,7 @@ class RDMs:
             [self.pattern_descriptors[by][idx] for idx in ix], value)
         selection_y = bool_index(
             [self.pattern_descriptors[by][idx] for idx in iy], value)
-        selection_xy = selection_x & selection_y
+        selection_xy = np.array(selection_x) & np.array(selection_y)
         dissimilarities = self.dissimilarities[:, selection_xy]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(

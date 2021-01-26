@@ -29,8 +29,7 @@ def bool_index(descriptor, value):
     if (isinstance(value, list) or
             isinstance(value, tuple) or
             isinstance(value, np.ndarray)):
-        index = np.array([[d == v for d in descriptor] for v in value])
-        index = np.any(index, axis=0)
+        index = [(d in value) for d in descriptor]
     else:
         index = np.array([d == value for d in descriptor])
     return index
