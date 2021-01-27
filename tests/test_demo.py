@@ -243,7 +243,8 @@ class TestDemos(unittest.TestCase):
             models_flex, rdms_data, train_set, test_set,
             ceil_set=ceil_set, method='corr')
         # plot results
-        pyrsa.vis.plot_model_comparison(results_3_cv)
+        pyrsa.vis.plot_model_comparison(results_3_cv, error_bars=None,
+                                        test_type=None)
 
         results_3_full = pyrsa.inference.bootstrap_crossval(
             models_flex, rdms_data, k_pattern=4, k_rdm=2, method='corr', N=5)
