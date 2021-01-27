@@ -170,10 +170,9 @@ class RDMs:
             by = 'index'
         selection = num_index(self.pattern_descriptors[by], value)
         ix, iy = np.triu_indices(self.n_cond, 1)
-        selection_x = bool_index(
-            [self.pattern_descriptors[by][idx] for idx in ix], value)
-        selection_y = bool_index(
-            [self.pattern_descriptors[by][idx] for idx in iy], value)
+        pattern_in_value = [p in value for p in self.pattern_descriptors[by]]
+        selection_x = [pattern_in_value[idx] for idx in ix]
+        selection_y = [pattern_in_value[idx] for idx in iy]
         selection_xy = np.array(selection_x) & np.array(selection_y)
         dissimilarities = self.dissimilarities[:, selection_xy]
         descriptors = self.descriptors

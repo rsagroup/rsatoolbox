@@ -31,7 +31,7 @@ def bool_index(descriptor, value):
             isinstance(value, np.ndarray)):
         index = [(d in value) for d in descriptor]
     else:
-        index = np.array([d == value for d in descriptor])
+        index = [d == value for d in descriptor]
     return index
 
 
