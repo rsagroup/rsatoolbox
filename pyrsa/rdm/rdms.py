@@ -168,6 +168,8 @@ class RDMs:
         """
         if by is None:
             by = 'index'
+        if not isinstance(value, Iterable):
+            value = [value]
         selection = num_index(self.pattern_descriptors[by], value)
         ix, iy = np.triu_indices(self.n_cond, 1)
         pattern_in_value = np.array(
