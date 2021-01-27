@@ -80,7 +80,7 @@ class RDMs:
         if 'index' not in self.pattern_descriptors.keys():
             self.pattern_descriptors['index'] = list(range(self.n_cond))
         if 'index' not in self.rdm_descriptors.keys():
-            self.rdm_descriptors['index'] = np.arange(self.n_rdm)
+            self.rdm_descriptors['index'] = list(range(self.n_rdm))
         self.dissimilarity_measure = dissimilarity_measure
 
     def __repr__(self):
@@ -170,10 +170,9 @@ class RDMs:
             by = 'index'
         selection = num_index(self.pattern_descriptors[by], value)
         ix, iy = np.triu_indices(self.n_cond, 1)
-        pattern_in_value = [p in value for p in self.pattern_descriptors[by]]
-        selection_x = [pattern_in_value[idx] for idx in ix]
-        selection_y = [pattern_in_value[idx] for idx in iy]
-        selection_xy = np.array(selection_x) & np.array(selection_y)
+        pattern_in_value = np.array(
+            [p in value for p in self.pattern_descriptors[by]])
+        selection_xy = pattern_in_value[ix] & pattern_in_value[iy]
         dissimilarities = self.dissimilarities[:, selection_xy]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
@@ -218,7 +217,7 @@ class RDMs:
                         selection.append(j)
         else:
             for j in range(len(desc)):
-                if desc[j] == i:
+                if desc[j] == value:
                     selection.append(j)
         selection = np.sort(selection)
         dissimilarities = self.get_matrices()
@@ -292,7 +291,7 @@ class RDMs:
                         selection.append(j)
         else:
             for j in range(len(desc)):
-                if desc[j] == i:
+                if desc[j] == value:
                     selection.append(j)
         dissimilarities = self.dissimilarities[selection, :]
         descriptors = self.descriptors

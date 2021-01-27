@@ -156,7 +156,7 @@ def append_descriptor(descriptor, desc_new):
     for k, v in descriptor.items():
         assert k in desc_new.keys(), f'appended descriptors misses key {k}'
         descriptor[k] = list(v) + list(desc_new[k])
-    descriptor['index'] = np.arange(len(descriptor['index']))
+    descriptor['index'] = list(range(len(descriptor['index'])))
     return descriptor
 
 

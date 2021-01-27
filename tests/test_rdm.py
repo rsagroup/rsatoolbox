@@ -424,11 +424,70 @@ class TestRDMLists(unittest.TestCase):
             pattern_descriptors=pattern_des
             )
 
-    def test_rdm3d_init(self):
+    def test_rdm_init_list(self):
+        assert isinstance(self.test_rdm.rdm_descriptors['index'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['index'], list)
         assert isinstance(self.test_rdm.rdm_descriptors['test'], list)
         assert isinstance(self.test_rdm.pattern_descriptors['test'], list)
         assert isinstance(self.test_rdm.pattern_descriptors['test2'], list)
         assert isinstance(self.test_rdm.pattern_descriptors['test3'], list)
+
+    def test_rdm_subset_list(self):
+        sub_rdm = self.test_rdm.subset('index', 0)
+        sub_rdm2 = self.test_rdm.subset('index', [0, 1])
+        assert isinstance(self.test_rdm.rdm_descriptors['index'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['index'], list)
+        assert isinstance(self.test_rdm.rdm_descriptors['test'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['test'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['test2'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['test3'], list)
+        assert isinstance(sub_rdm.rdm_descriptors['index'], list)
+        assert isinstance(sub_rdm.pattern_descriptors['index'], list)
+        assert isinstance(sub_rdm.rdm_descriptors['test'], list)
+        assert isinstance(sub_rdm.pattern_descriptors['test'], list)
+        assert isinstance(sub_rdm.pattern_descriptors['test2'], list)
+        assert isinstance(sub_rdm.pattern_descriptors['test3'], list)
+        assert isinstance(sub_rdm2.rdm_descriptors['index'], list)
+        assert isinstance(sub_rdm2.pattern_descriptors['index'], list)
+        assert isinstance(sub_rdm2.rdm_descriptors['test'], list)
+        assert isinstance(sub_rdm2.pattern_descriptors['test'], list)
+        assert isinstance(sub_rdm2.pattern_descriptors['test2'], list)
+        assert isinstance(sub_rdm2.pattern_descriptors['test3'], list)
+
+    def test_rdm_subsample_list(self):
+        sub_rdm = self.test_rdm.subsample('index', 0)
+        sub_rdm2 = self.test_rdm.subsample('index', [0, 1, 1])
+        assert isinstance(self.test_rdm.rdm_descriptors['index'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['index'], list)
+        assert isinstance(self.test_rdm.rdm_descriptors['test'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['test'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['test2'], list)
+        assert isinstance(self.test_rdm.pattern_descriptors['test3'], list)
+        assert isinstance(sub_rdm.rdm_descriptors['index'], list)
+        assert isinstance(sub_rdm.pattern_descriptors['index'], list)
+        assert isinstance(sub_rdm.rdm_descriptors['test'], list)
+        assert isinstance(sub_rdm.pattern_descriptors['test'], list)
+        assert isinstance(sub_rdm.pattern_descriptors['test2'], list)
+        assert isinstance(sub_rdm.pattern_descriptors['test3'], list)
+        assert isinstance(sub_rdm2.rdm_descriptors['index'], list)
+        assert isinstance(sub_rdm2.pattern_descriptors['index'], list)
+        assert isinstance(sub_rdm2.rdm_descriptors['test'], list)
+        assert isinstance(sub_rdm2.pattern_descriptors['test'], list)
+        assert isinstance(sub_rdm2.pattern_descriptors['test2'], list)
+        assert isinstance(sub_rdm2.pattern_descriptors['test3'], list)
+        self.assertEqual(sub_rdm2.n_rdm, 3)
+
+    def test_rdm_append_list(self):
+        from copy import deepcopy
+        long_rdm = deepcopy(self.test_rdm)
+        long_rdm.append(long_rdm)
+        assert isinstance(long_rdm.rdm_descriptors['index'], list)
+        assert isinstance(long_rdm.pattern_descriptors['index'], list)
+        assert isinstance(long_rdm.rdm_descriptors['test'], list)
+        assert isinstance(long_rdm.pattern_descriptors['test'], list)
+        assert isinstance(long_rdm.pattern_descriptors['test2'], list)
+        assert isinstance(long_rdm.pattern_descriptors['test3'], list)
+        self.assertEqual(long_rdm.n_rdm, 6)
 
 
 if __name__ == '__main__':
