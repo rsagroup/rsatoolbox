@@ -78,7 +78,7 @@ class RDMs:
                                           self.n_cond)
             self.pattern_descriptors = pattern_descriptors
         if 'index' not in self.pattern_descriptors.keys():
-            self.pattern_descriptors['index'] = np.arange(self.n_cond)
+            self.pattern_descriptors['index'] = list(range(self.n_cond))
         if 'index' not in self.rdm_descriptors.keys():
             self.rdm_descriptors['index'] = np.arange(self.n_rdm)
         self.dissimilarity_measure = dissimilarity_measure
