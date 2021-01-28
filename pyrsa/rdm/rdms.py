@@ -207,20 +207,16 @@ class RDMs:
         """
         if by is None:
             by = 'index'
-        desc = self.pattern_descriptors[by]  # desc is list-like
-        selection = []
+        desc = np.array(self.pattern_descriptors[by])  # desc is list-like
         if (
                 isinstance(value, list) or
                 isinstance(value, tuple) or
                 isinstance(value, np.ndarray)):
-            for i in value:
-                for j in range(len(desc)):
-                    if desc[j] == i:
-                        selection.append(j)
+            selection = [np.asarray(desc == i).nonzero()[0]
+                         for i in value]
+            selection = np.concatenate(selection)
         else:
-            for j in range(len(desc)):
-                if desc[j] == value:
-                    selection.append(j)
+            selection = np.where(desc == value)[0]
         selection = np.sort(selection)
         dissimilarities = self.get_matrices()
         for i_rdm in range(self.n_rdm):

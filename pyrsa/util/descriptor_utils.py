@@ -26,12 +26,14 @@ def bool_index(descriptor, value):
             bool_index: boolean index vector where descriptor == value
 
     """
-    if (isinstance(value, list) or
-            isinstance(value, tuple) or
-            isinstance(value, np.ndarray)):
-        index = [(d in value) for d in descriptor]
+    descriptor = np.array(descriptor)
+    if (type(value) is list or
+            type(value) is tuple or
+            type(value) is np.ndarray):
+        index = np.array([descriptor == v for v in value])
+        index = np.any(index, axis=0)
     else:
-        index = [d == value for d in descriptor]
+        index = np.array(descriptor == value)
     return index
 
 
