@@ -1134,7 +1134,7 @@ def _resolve_idx(idx):
 
 
 def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
-                simulation_folder='boot_cv'):
+                simulation_folder='boot_cv', N=1000):
     layer = 8
     n_voxel = 100
     n_subj = 20
@@ -1157,14 +1157,17 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
 
     model = dnn.get_default_model()
     ecoset_path = pathlib.Path(ecoset_path).expanduser()
-    res_path = os.path.join(simulation_folder, f'cv_{n_cv}')
+    res_path = os.path.join(simulation_folder, f'cv_{n_cv}_{N}')
     if not os.path.isdir(res_path):
         os.makedirs(res_path)
     res_file = 'res%04d_%03d.hdf5' % (i, i_rep)
     full_path = os.path.join(res_path, res_file)
     if os.path.isfile(full_path):
+        print('Already finished:')
         print(full_path)
         return
+    print('Starting:')
+    print(full_path)
     # get stimulus list or save one if there is none yet
     stim_file = os.path.join(simulation_folder, 'stim%04d.txt' % i)
     if os.path.isfile(stim_file):
@@ -1304,7 +1307,9 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
     # rdms_true = pyrsa.rdm.calc_rdm(dat_true)
     # run inference & save it
     results = run_inference(models, rdms, method=rdm_comparison,
-                            bootstrap=boot_type, n_cv=n_cv)
+                            bootstrap=boot_type, n_cv=n_cv, N=N,
+                            boot_noise_ceil=False)
+    print('Now finished:')
     print(full_path)
     results.save(full_path)
 
@@ -1312,7 +1317,8 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
 def fix_boot_cv(simulation_folder='boot_cv', ecoset_path='~/ecoset/val/'):
     """runs single flexible model simulations to allow parallelization
     """
-    n_cvs = [1, 2, 4, 8, 16, 32]
+    n_cvs = [1, 2, 4, 8, 16, 32, 2, 2, 2, 2]
+    n_boot = [1000, 1000, 1000, 1000, 1000, 1000, 2000, 4000, 8000, 16000]
     indices = np.random.permutation(len(n_cvs) * 100 * 10)
     for idx in indices:
         cv_idx = int(np.floor(idx / 1000))
@@ -1320,7 +1326,7 @@ def fix_boot_cv(simulation_folder='boot_cv', ecoset_path='~/ecoset/val/'):
         i = int(idx % 10)
         boot_cv_sim(i=i, i_rep=i_rep, n_cv=n_cvs[cv_idx],
                     ecoset_path=ecoset_path,
-                    simulation_folder=simulation_folder)
+                    simulation_folder=simulation_folder, N=n_boot[cv_idx])
 
 
 if __name__ == '__main__':
