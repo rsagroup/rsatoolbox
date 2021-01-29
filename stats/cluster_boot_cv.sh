@@ -2,7 +2,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=24:00:00
+#SBATCH --time=1:00:00
 #SBATCH --mem=4GB
 #SBATCH --job-name=boot_cv
 #SBATCH --mail-type=END
@@ -13,11 +13,10 @@ index=$SLURM_ARRAY_TASK_ID
 job=$SLURM_JOB_ID
 ppn=$SLURM_JOB_CPUS_PER_NODE
 
-module purge
-module load anaconda3/5.3.1
+overlay_ext3=/scratch/hhs4/anaconda/overlay-25GB-500K.ext3
 
-source activate RSA
-
-which python
-
-~/.conda/envs/RSA/bin/python stats.py -p /scratch/hhs4/ecoset/val boot_cv $index
+singularity \
+    exec --overlay $overlay_ext3:ro \
+    /scratch/work/public/singularity/centos-7.8.2003.sif \
+    /bin/bash -c "conda activate /ext3/.env/rsa \
+                  python stats.py -p /scratch/hhs4/ecoset/val boot_cv 1"
