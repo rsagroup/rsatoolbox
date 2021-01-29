@@ -1163,11 +1163,11 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
     res_file = 'res%04d_%03d.hdf5' % (i, i_rep)
     full_path = os.path.join(res_path, res_file)
     if os.path.isfile(full_path):
-        print('Already finished:')
-        print(full_path)
+        print('Already finished:', flush=True)
+        print(full_path, flush=True)
         return
-    print('Starting:')
-    print(full_path)
+    print('Starting:', flush=True)
+    print(full_path, flush=True)
     # get stimulus list or save one if there is none yet
     stim_file = os.path.join(simulation_folder, 'stim%04d.txt' % i)
     if os.path.isfile(stim_file):
@@ -1309,8 +1309,8 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
     results = run_inference(models, rdms, method=rdm_comparison,
                             bootstrap=boot_type, n_cv=n_cv, N=N,
                             boot_noise_ceil=False)
-    print('Now finished:')
-    print(full_path)
+    print('Now finished:', flush=True)
+    print(full_path, flush=True)
     results.save(full_path)
 
 
