@@ -18,5 +18,5 @@ overlay_ext3=/scratch/hhs4/anaconda/overlay-25GB-500K.ext3
 singularity \
     exec --overlay $overlay_ext3:ro \
     /scratch/work/public/singularity/cuda11.1-cudnn8-devel-ubuntu18.04.sif \
-    /bin/bash -c "/ext3/miniconda3/bin/activate /ext3/.env/rsa/ \
+    /bin/bash -c "/ext3/miniconda3/bin/activate /ext3/.env/rsa/; \
                   python stats.py -p /scratch/hhs4/ecoset/val boot_cv 1"
