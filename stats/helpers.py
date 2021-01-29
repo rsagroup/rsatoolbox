@@ -196,15 +196,15 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
     elif bootstrap == 'crossval':
         results = pyrsa.inference.bootstrap_crossval(
             model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm,
-            n_cv=n_cv)
+            n_cv=n_cv, N=N)
     elif bootstrap == 'crossval_pattern':
         results = pyrsa.inference.bootstrap_crossval(
             model, rdms, method=method, k_rdm=1, k_pattern=k_pattern,
-            n_cv=n_cv)
+            n_cv=n_cv, N=N)
     elif bootstrap == 'crossval_rdms':
         results = pyrsa.inference.bootstrap_crossval(
             model, rdms, method=method, k_pattern=1, k_rdm=k_rdm,
-            n_cv=n_cv)
+            n_cv=n_cv, N=N)
     elif bootstrap == 'fancy':
         results = pyrsa.inference.eval_fancy(
             model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm,
