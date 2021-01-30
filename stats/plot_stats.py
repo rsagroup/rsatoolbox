@@ -887,13 +887,32 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
          'selection: both',
          'selection: weighted',
          'linear combination'], rotation=90)
-    plt.plot([-0.5, 9.5], [1, ], 'k--')
+    plt.plot([-0.5, 9.5], [1, 1], 'k--')
+
+    plt.figure()
+    g5 = sns.histplot(data=data_df, stat="count", multiple="stack",
+                      x='std_relative', hue='model_type')
+    plt.xticks([0.8, 0.9, 1, 1.1, 1.2, 1.3])
+    plt.xlabel('Relative Uncertainty')
+    sns.despine(trim=True, offset=5)
+    g5.legend(
+        ['f:f',
+         'f:a',
+         'f:w',
+         's:f',
+         's:a',
+         's:b',
+         's:w',
+         'lin'],
+        frameon=False, title='Model Type',
+        bbox_to_anchor=(1.0, 0.5), loc=6)
 
     if savefig:
         g1.fig.savefig('figures/flex_snr.pdf', bbox_inches='tight')
         g2.fig.savefig('figures/flex_true_perf.pdf', bbox_inches='tight')
         g3.fig.savefig('figures/flex_best.pdf', bbox_inches='tight')
         g4.fig.savefig('figures/flex_calibration.pdf', bbox_inches='tight')
+        g5.figure.savefig('figures/flex_hist.pdf', bbox_inches='tight')
 
 
 def plot_boot_cv(simulation_folder='boot_cv', savefig=False):
