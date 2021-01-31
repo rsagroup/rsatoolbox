@@ -50,7 +50,7 @@ def _write_to_group(group, dictionary):
 
 
 def read_dict_hdf5(file):
-    """ writes a nested dictionary containing strings & arrays as data into
+    """ reads a nested dictionary containing strings & arrays as data from
     a hdf5 file
 
     Args:
@@ -109,20 +109,24 @@ def read_dict_pkl(file):
     Returns:
         dictionary(dict): the loaded dict
 
-
     """
     if isinstance(file, str):
         file = open(file, 'rb')
     data = pickle.load(file)
     return data
 
+
 def remove_file(file):
     """ Deletes file from OS if it exists
-    
+
     Args:
-        file: a filename or opened readable file
+        file (str, Path):
+            a filename or opened readable file
 
     """
-    if isinstance(file, str) and os.path.exists(file):
+    from pathlib import Path
+    if isinstance(file, (str, Path)) and os.path.exists(file):
         os.remove(file)
+    elif hasattr(file, 'name') and os.path.exists(file.name):
+        file.truncate(0)
     return

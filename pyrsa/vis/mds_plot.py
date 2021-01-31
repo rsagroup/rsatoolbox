@@ -4,6 +4,13 @@
 Dimensional reduction transformations and visualizations (with potential
 integrations of additional plotting options)
 
+<<<<<<< HEAD
++ rdm_dimension_reduction: dimension reduction base function of RDMs class
++ mds:                     multi-dimensional scaling of RDMs class
++ weighted_mds:            weighted multi-dimensional scaling of RDMs class
+
+=======
+>>>>>>> master
 @author: baihan
 """
 

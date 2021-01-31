@@ -6,6 +6,7 @@ Definition of RSA RDMs class and subclasses
 @author: baihan
 """
 
+import os
 import numpy as np
 from scipy.stats import rankdata
 from pyrsa.util.rdm_utils import batch_to_vectors
@@ -148,7 +149,7 @@ class RDMs:
         matrices, _, _ = batch_to_matrices(self.dissimilarities)
         return matrices
 
-    def subset_pattern(self, by, value):
+    def subset_pattern_slow(self, by, value):
         """ Returns a smaller RDMs with patterns with certain descriptor values
 
         Args:
@@ -165,6 +166,39 @@ class RDMs:
             by = 'index'
         selection = bool_index(self.pattern_descriptors[by], value)
         dissimilarities = self.get_matrices()[:, selection][:, :, selection]
+        descriptors = self.descriptors
+        pattern_descriptors = extract_dict(
+            self.pattern_descriptors, selection)
+        rdm_descriptors = self.rdm_descriptors
+        dissimilarity_measure = self.dissimilarity_measure
+        rdms = RDMs(dissimilarities=dissimilarities,
+                    descriptors=descriptors,
+                    rdm_descriptors=rdm_descriptors,
+                    pattern_descriptors=pattern_descriptors,
+                    dissimilarity_measure=dissimilarity_measure)
+        return rdms
+
+    def subset_pattern(self, by, value):
+        """ Returns a smaller RDMs with patterns with certain descriptor values
+
+        Args:
+            by(String): the descriptor by which the subset selection
+                        is made from pattern_descriptors
+            value:      the value by which the subset selection is made
+                        from pattern_descriptors
+
+        Returns:
+            RDMs object, with fewer patterns
+
+        """
+        if by is None:
+            by = 'index'
+        selection = bool_index(self.pattern_descriptors[by], value)
+        ix, iy = np.triu_indices(self.n_cond, 1)
+        selection_x = bool_index(self.pattern_descriptors[by][ix], value)
+        selection_y = bool_index(self.pattern_descriptors[by][iy], value)
+        selection_xy = selection_x & selection_y
+        dissimilarities = self.dissimilarities[:, selection_xy]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
             self.pattern_descriptors, selection)
@@ -321,6 +355,9 @@ class RDMs:
             overwrite(Boolean): overwrites file if it already exists
 
         """
+        if isinstance(filename, str):
+            if os.path.isfile(filename):
+                os.remove(filename)
         rdm_dict = self.to_dict()
         if overwrite:
             remove_file(filename)
@@ -361,7 +398,7 @@ class RDMs:
         """Reorder the patterns by sorting a descriptor
 
         Pass keyword arguments that correspond to descriptors,
-        with value 'alpha'. 
+        with value 'alpha'.
 
         Example:
             Sorts the condition descriptor alphabetically:
@@ -547,8 +584,8 @@ def get_categorical_rdm(category_vector, category_name='category'):
                                for idx in range(len(category_vector[i_cat]))]
                 rdm_list.append(np.any(comparisons))
             else:
-                rdm_list.append(
-                    category_vector[i_cat] != category_vector[j_cat])
+                rdm_list.append(category_vector[i_cat]
+                                != category_vector[j_cat])
     rdm = RDMs(np.array(rdm_list, dtype=np.float),
                pattern_descriptors={category_name: np.array(category_vector)})
     return rdm

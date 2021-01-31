@@ -5,7 +5,7 @@ calculation of noise ceilings
 """
 
 import numpy as np
-from pyrsa.util.inference_util import pool_rdm
+from pyrsa.util.pooling import pool_rdm
 from pyrsa.rdm import compare
 from .crossvalsets import sets_leave_one_out_rdm
 

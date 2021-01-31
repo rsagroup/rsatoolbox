@@ -6,9 +6,9 @@ Comparison methods for comparing two RDMs objects
 import numpy as np
 import scipy.stats
 from scipy.stats._stats import _kendall_dis
-from pyrsa.util.matrix import pairwise_contrast_sparse
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
-from pyrsa.util.matrix import row_col_indicator_g
+from pyrsa.util.rdm_utils import _parse_input_rdms
+from pyrsa.util.matrix import row_col_indicator_g, get_v
 
 
 def compare(rdm1, rdm2, method='cosine', sigma_k=None):
@@ -272,11 +272,11 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None, nan_idx=None):
     """
     if nan_idx is not None:
         n_cond = _get_n_from_reduced_vectors(nan_idx)
-        v = _get_v(n_cond, sigma_k)
+        v = get_v(n_cond, sigma_k)
         v = v[nan_idx[0]][:, nan_idx[0]]
     else:
         n_cond = _get_n_from_reduced_vectors(vector1)
-        v = _get_v(n_cond, sigma_k)
+        v = get_v(n_cond, sigma_k)
     # compute V^-1 vector1/2 for all vectors by solving Vx = vector1/2
     vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
                           for i in range(vector1.shape[0])])
@@ -450,52 +450,3 @@ def _count_rank_tie(ranks):
     return ((cnt * (cnt - 1) // 2).sum(),
             (cnt * (cnt - 1.) * (cnt - 2)).sum(),
             (cnt * (cnt - 1.) * (2*cnt + 5)).sum())
-
-
-def _get_v(n_cond, sigma_k):
-    """ get the rdm covariance from sigma_k """
-    # calculate Xi
-    c_mat = pairwise_contrast_sparse(np.arange(n_cond))
-    if sigma_k is None:
-        xi = c_mat @ c_mat.transpose()
-    else:
-        sigma_k = scipy.sparse.csr_matrix(sigma_k)
-        xi = c_mat @ sigma_k @ c_mat.transpose()
-    # calculate V
-    v = xi.multiply(xi).tocsc()
-    return v
-
-
-def _parse_input_rdms(rdm1, rdm2):
-    """Gets the vector representation of input RDMs, raises an error if
-    the two RDMs objects have different dimensions
-
-    Args:
-        rdm1 (pyrsa.rdm.RDMs):
-            first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
-            second set of RDMs
-
-    """
-    if not isinstance(rdm1, np.ndarray):
-        vector1 = rdm1.get_vectors()
-    else:
-        if len(rdm1.shape) == 1:
-            vector1 = rdm1.reshape(1, -1)
-        else:
-            vector1 = rdm1
-    if not isinstance(rdm2, np.ndarray):
-        vector2 = rdm2.get_vectors()
-    else:
-        if len(rdm2.shape) == 1:
-            vector2 = rdm2.reshape(1, -1)
-        else:
-            vector2 = rdm2
-    if not vector1.shape[1] == vector2.shape[1]:
-        raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
-    nan_idx = ~np.isnan(vector1)
-    vector1_no_nan = vector1[nan_idx].reshape(vector1.shape[0], -1)
-    vector2_no_nan = vector2[~np.isnan(vector2)].reshape(vector2.shape[0], -1)
-    if not vector1_no_nan.shape[1] == vector2_no_nan.shape[1]:
-        raise ValueError('rdm1 and rdm2 have different nan positions')
-    return vector1_no_nan, vector2_no_nan, nan_idx

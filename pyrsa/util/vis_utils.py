@@ -7,12 +7,12 @@
 
 @author: baihan
 
-Notice: 
+Notice:
 
-The functions of MDS in this module are modified from 
+The functions of MDS in this module are modified from
 the Python package scikit-learn, originally written by
-Nelle Varoquaux <nelle.varoquaux@gmail.com> under BSD 
-licence <https://en.wikipedia.org/wiki/BSD_licenses>. 
+Nelle Varoquaux <nelle.varoquaux@gmail.com> under BSD
+licence <https://en.wikipedia.org/wiki/BSD_licenses>.
 We modified the MDS function to include an additional
 functionality of having an important matrix as an input.
 """
@@ -26,6 +26,7 @@ from sklearn.utils import check_random_state, check_array, check_symmetric
 from sklearn.isotonic import IsotonicRegression
 from scipy.spatial.distance import squareform
 from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
+
 
 def weight_to_matrices(x):
     """converts a *stack* of weights in vector or matrix form into matrix form

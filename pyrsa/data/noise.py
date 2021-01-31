@@ -4,7 +4,6 @@
 Functions for estimating the precision matrix based on the covariance of
 either the residuals (temporal based precision matrix) or of the measurements
 (instance based precision matrix)
-
 """
 
 from collections.abc import Iterable
@@ -123,9 +122,11 @@ def cov_from_residuals(residuals, dof=None):
             if dof is None:
                 s_shrink.append(cov_from_residuals(residuals[i]))
             elif isinstance(dof, Iterable):
-                s_shrink.append(cov_from_residuals(residuals[i], dof[i]))
+                s_shrink.append(
+                    cov_from_residuals(residuals[i], dof[i]))
             else:
-                s_shrink.append(cov_from_residuals(residuals[i], dof))
+                s_shrink.append(
+                    cov_from_residuals(residuals[i], dof))
     else:
         if dof is None:
             dof = residuals.shape[0] - 1
@@ -182,23 +183,20 @@ def cov_from_measurements(dataset, obs_desc, dof=None):
     assert "Dataset" in str(type(dataset)), "Provided object is not a dataset"
     assert obs_desc in dataset.obs_descriptors.keys(), \
         "obs_desc not contained in the dataset's obs_descriptors"
-
-    tensor = dataset.get_measurements_tensor(obs_desc)
+    tensor, _ = dataset.get_measurements_tensor(obs_desc)
     if dof is None:
         dof = tensor.shape[0] * tensor.shape[2] - 1
     # calculate sample covariance matrix s
     s_mean, xt_x_mean = sample_covariance_3d(tensor)
     # apply shrinkage transform
     s_shrink = shrinkage_transform(s_mean, xt_x_mean, dof)
-
     return s_shrink
 
 
 def prec_from_measurements(dataset, obs_desc, dof=None):
     """
     Computes a covariance matrix for measurements, applies a shrinkage
-    transform to it and finds its multiplicative inverse
-    (= the precision matrix)
+    transform to it and finds its inverse, i.e. the precision matrix
 
     Args:
         residuals(numpy.ndarray or list of these): n_residuals x n_channels
