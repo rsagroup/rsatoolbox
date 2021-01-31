@@ -58,8 +58,8 @@ def num_index(descriptor, value):
             if d in value:
                 index.append(j)
     else:
-        for j in range(len(descriptor)):
-            if descriptor[j] == value:
+        for j, d in enumerate(descriptor):
+            if d == value:
                 index.append(j)
     return index
 

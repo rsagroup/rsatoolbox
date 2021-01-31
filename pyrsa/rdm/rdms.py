@@ -288,8 +288,8 @@ class RDMs:
                     if d == i:
                         selection.append(j)
         else:
-            for j in range(len(desc)):
-                if desc[j] == value:
+            for j, d in enumerate(desc):
+                if d == value:
                     selection.append(j)
         dissimilarities = self.dissimilarities[selection, :]
         descriptors = self.descriptors
