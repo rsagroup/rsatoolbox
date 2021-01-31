@@ -407,7 +407,6 @@ class TestRDMLists(unittest.TestCase):
     """ checking that descriptors stay lists if they are specified as such"""
 
     def setUp(self):
-        import pyrsa as rsa
         dissimilarities = np.random.rand(3, 15)
         des = {'session': 0, 'subj': np.arange(7)}
         rdm_des = {'test': ['a', np.arange(5), None]}

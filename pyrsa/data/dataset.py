@@ -11,7 +11,7 @@ import numpy as np
 from pyrsa.util.data_utils import get_unique_unsorted
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import subset_descriptor
-from pyrsa.util.descriptor_utils import bool_index, num_index
+from pyrsa.util.descriptor_utils import num_index
 from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import parse_input_descriptor
 from pyrsa.util.descriptor_utils import append_obs_descriptors

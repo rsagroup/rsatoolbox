@@ -12,7 +12,7 @@ from collections.abc import Iterable
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
-from pyrsa.util.descriptor_utils import bool_index, num_index
+from pyrsa.util.descriptor_utils import num_index
 from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import append_descriptor
@@ -284,8 +284,8 @@ class RDMs:
                 isinstance(value, tuple) or
                 isinstance(value, np.ndarray)):
             for i in value:
-                for j in range(len(desc)):
-                    if desc[j] == i:
+                for j, d in enumerate(desc):
+                    if d == i:
                         selection.append(j)
         else:
             for j in range(len(desc)):

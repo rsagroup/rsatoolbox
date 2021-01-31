@@ -54,8 +54,8 @@ def num_index(descriptor, value):
     if (isinstance(value, list) or
             isinstance(value, tuple) or
             isinstance(value, np.ndarray)):
-        for j in range(len(descriptor)):
-            if descriptor[j] in value:
+        for j, d in enumerate(descriptor):
+            if d in value:
                 index.append(j)
     else:
         for j in range(len(descriptor)):
