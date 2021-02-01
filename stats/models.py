@@ -38,7 +38,7 @@ def get_models(model_type, stimuli,
         'interpolate_both' : interpolation model both _full and _mean
         'weighted_avgfull' : weighted model of 4 rdms full and mean for
             zero and infinite smoothing
-        
+
     stimuli : images
         model inputs for conditions
     n_layer : int, optional
@@ -49,7 +49,7 @@ def get_models(model_type, stimuli,
     Returns
     -------
     models : list of pyrsa.model.Model
-        Models corresponding to the model possibilities 
+        Models corresponding to the model possibilities
 
     """
     n_stimuli = len(stimuli)
@@ -157,7 +157,7 @@ def get_models(model_type, stimuli,
                     stimuli=stimuli,
                     smoothing=smooth,
                     average=True)
-                rdm = pyrsa.rdm.RDMs(3 * rdm1.get_vectors() 
+                rdm = pyrsa.rdm.RDMs(3 * rdm1.get_vectors()
                                      + rdm2.get_vectors(),
                                      pattern_descriptors=pat_desc)
                 rdms.append(rdm)
@@ -226,7 +226,7 @@ def get_models(model_type, stimuli,
                     stimuli=stimuli,
                     smoothing=smooth,
                     average=True)
-                rdm = pyrsa.rdm.RDMs(3 * rdm1.get_vectors() 
+                rdm = pyrsa.rdm.RDMs(3 * rdm1.get_vectors()
                                      + rdm2.get_vectors(),
                                      pattern_descriptors=pat_desc)
                 rdms.append(rdm)
