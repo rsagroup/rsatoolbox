@@ -928,23 +928,27 @@ def plot_boot_cv(simulation_folder='boot_cv', savefig=False):
 
     # for plotting efficiency
     var_normdiag = np.einsum('ijjkl->ijkl', var_norm)
-    var_var = np.var(var_normdiag, -1).reshape(6, -1)
+    var_var = np.var(var_normdiag, -1).reshape(10, -1)
 
     # for plotting accuracy
     var_norm_plot = np.einsum('ijjk->ijk', np.nanmean(var_norm, -1)
-                              ).reshape(6, -1)
+                              ).reshape(10, -1)
     var_raw_plot = np.einsum('ijjk->ijk', np.nanmean(var_raw_norm, -1)
-                             ).reshape(6, -1)
+                             ).reshape(10, -1)
     x = np.repeat(np.arange(6), 120).reshape(6, -1) \
         + 0.2 * np.random.rand(6, 120) - 0.1
     # Plotting
     # variance estimation accurate
     f_acc = plt.figure()
-    with sns.axes_style("white", rc={"axes.linewidth": 2.5}):
-        sns.set_style("ticks", {"xtick.major.size": 8, "ytick.major.size": 8})
-        line_raw = plt.plot(x, var_raw_plot, 'c.',
+    with sns.axes_style("ticks"):
+        sns.set_context(rc={
+            "axes.linewidth": 2.5, "xtick.major.width": 2.5,
+            "ytick.major.width": 2.5,
+            "xtick.labelsize": 14, "ytick.labelsize": 14,
+            "xtick.major.size": 8, "ytick.major.size": 8})
+        line_raw = plt.plot(x, var_raw_plot[:6], 'c.',
                             markersize=5, linewidth=2)
-        line_norm = plt.plot(x, var_norm_plot, 'k.',
+        line_norm = plt.plot(x, var_norm_plot[:6], 'k.',
                              markersize=5, linewidth=2)
         plt.plot([-0.5, 5.5], [1, 1], 'k--')
         plt.xticks(np.arange(6), [1, 2, 4, 8, 16, 32], fontsize=16)
@@ -960,19 +964,25 @@ def plot_boot_cv(simulation_folder='boot_cv', savefig=False):
                    frameon=False, fontsize=16, markerscale=2)
     # more efficient
     f_eff = plt.figure()
-    with sns.axes_style("white", rc={"axes.linewidth": 2.5}):
-        sns.set_style("ticks", {"xtick.major.size": 8, "ytick.major.size": 8})
-        p_dat = plt.semilogy(x, var_var, 'k.')
-        l_line = plt.plot([0.5, 5.5], [0.064, 0.001], 'k--')
+    with sns.axes_style("ticks"):
+        sns.set_context(rc={
+            "axes.linewidth": 2.5, "xtick.major.width": 2.5,
+            "ytick.major.width": 2.5,
+            "xtick.labelsize": 14, "ytick.labelsize": 14,
+            "xtick.major.size": 8, "ytick.major.size": 8})
+        l_line = plt.plot([0.5, 5.5], np.log10([0.0064, 0.0001]), 'k--')
+        p_boot = plt.plot(x[2:], np.log10(var_var[6:]), 'k.')
+        p_dat = plt.plot(x, np.log10(var_var[:6]), '.', color='grey')
         plt.box('off')
-        plt.xticks(np.arange(5) + 1, [2, 4, 8, 16, 32], fontsize=16)
-        plt.yticks([0.001, 0.01, 0.1])
+        plt.xticks(np.arange(5) + 1, ['2000', '4000', '8000', '16000', '32000'])
+        plt.yticks(np.log10([0.0001, 0.001, 0.01]), [0.0001, 0.001, 0.01])
         sns.despine(trim=True, offset=5)
         plt.ylabel('variance of estimate', fontsize=18)
-        plt.xlabel('number of cv-assignments', fontsize=18)
-        plt.legend([p_dat[0], l_line[0]],
-                   ['results', 'expectation \nmore samples'],
-                   frameon=False, fontsize=16, markerscale=2)
+        plt.xlabel('number of crossvalidations', fontsize=18)
+        plt.legend([p_dat[0], p_boot[0], l_line[0]],
+                   ['increasing cv', 'increasing boot',
+                    'expectation \nmore samples'],
+                   frameon=False, fontsize=14, markerscale=2)
     if savefig:
         f_acc.savefig('figures/boot_cv_acc.pdf', bbox_inches='tight')
         f_eff.savefig('figures/boot_cv_eff.pdf', bbox_inches='tight')

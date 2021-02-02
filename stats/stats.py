@@ -520,9 +520,9 @@ def save_metric(idx, simulation_folder='sim_metric'):
     """
     rdm_comparisons = ['cosine', 'spearman', 'corr', 'kendall', 'tau-a',
                        'rho-a', 'corr_cov', 'cosine_cov']
-    variations = [None, 'stim', 'subj']  # , 'both']
+    variations = [None, 'stim', 'subj', 'both']
 
-    i_comp, i_var = np.unravel_index(idx, (8, 3))  # , 4))
+    i_comp, i_var = np.unravel_index(idx, (8, 4))
     rdm_comparison = rdm_comparisons[i_comp]
     variation = variations[i_var]
     sim_ecoset(layer=8, sd=0.05, n_stim_all=320,
@@ -608,7 +608,7 @@ def run_flex(idx, start_idx, simulation_folder='sim_flex',
     noise_type = 'residuals'
     k_pattern = None
     k_rdm = None
-    # check how far the simulation was processed
+
     fname_base = get_fname_base(simulation_folder=simulation_folder,
                                 layer=layer, n_voxel=n_vox,
                                 n_subj=n_subj,
@@ -965,13 +965,15 @@ def summarize_flex(simulation_folder='sim_flex'):
 
 def summarize_boot_cv(simulation_folder='boot_cv'):
     """ summarizes the bootstrap_cv results into var.npy and var_raw.npy"""
-    n_cvs = [1, 2, 4, 8, 16, 32]
-    means = np.zeros([6, 12, 10, 100]) * np.nan
-    variances = np.zeros([6, 12, 12, 10, 100]) * np.nan
-    variances_raw = np.zeros([6, 12, 12, 10, 100]) * np.nan
+    n_cvs = [1, 2, 4, 8, 16, 32, 2, 2, 2, 2]
+    n_boots = [1000, 1000, 1000, 1000, 1000, 1000, 2000, 4000, 8000, 16000]
+    means = np.zeros([10, 12, 10, 100]) * np.nan
+    variances = np.zeros([10, 12, 12, 10, 100]) * np.nan
+    variances_raw = np.zeros([10, 12, 12, 10, 100]) * np.nan
     for i, n_cv in enumerate(n_cvs):
+        n_boot = n_boots[i]
         for results in pathlib.Path(os.path.join(
-                simulation_folder, f'cv_{n_cv}/')).glob('res*'):
+                simulation_folder, f'cv_{n_cv}_{n_boot}/')).glob('res*'):
             sys.stdout.write(str(results) + '\n')
             res_string = os.path.split(results)[-1][3:-5]
             split = res_string.split('_')
@@ -980,7 +982,10 @@ def summarize_boot_cv(simulation_folder='boot_cv'):
             res = pyrsa.inference.load_results(results, 'hdf5')
             means[i, :, i_sim, i_rep] = np.mean(np.mean(np.mean(
                 res.evaluations, 0), 1), 1)
-            variances[i, :, :, i_sim, i_rep] = res.variances
+            if res.variances.shape[0] == 14:
+                variances[i, :, :, i_sim, i_rep] = res.variances[:-2, :-2]
+            else:
+                variances[i, :, :, i_sim, i_rep] = res.variances
             eval_ok = ~np.any(np.any(np.any(np.isnan(res.evaluations),
                                      axis=-1), axis=-1), axis=-1)
             evals_nonan = np.mean(np.mean(res.evaluations[eval_ok], -1), -1)
