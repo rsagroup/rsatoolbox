@@ -32,26 +32,26 @@ def bootstrap_sample(rdms, rdm_descriptor='index', pattern_descriptor='index'):
             subsampled dataset with equal number of groups in both patterns
             and measurements of the rdms
 
-        numpy.ndarray: rdm_sample
+        numpy.ndarray: rdm_idx
             sampled rdm indices
 
-        numpy.ndarray: pattern_sample
+        numpy.ndarray: pattern_idx
             sampled pattern descriptor indices
 
     """
     rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
     pattern_descriptor, pattern_select = \
         add_pattern_index(rdms, pattern_descriptor)
-    rdm_sample = np.random.randint(0, len(rdm_select) - 1,
-                                   size=len(rdm_select))
-    rdm_sample = rdm_select[rdm_sample]
-    rdms = rdms.subsample(rdm_descriptor, rdm_sample)
-    pattern_sample = np.random.randint(0, len(pattern_select) - 1,
-                                       size=len(pattern_select))
-    pattern_sample = pattern_select[pattern_sample]
+    rdm_idx = np.random.randint(0, len(rdm_select),
+                                size=len(rdm_select))
+    rdm_idx = rdm_select[rdm_idx]
+    rdms = rdms.subsample(rdm_descriptor, rdm_idx)
+    pattern_idx = np.random.randint(0, len(pattern_select),
+                                    size=len(pattern_select))
+    pattern_idx = pattern_select[pattern_idx]
     rdms = rdms.subsample_pattern(pattern_descriptor,
-                                  pattern_sample)
-    return rdms, rdm_sample, pattern_sample
+                                  pattern_idx)
+    return rdms, rdm_idx, pattern_idx
 
 
 def bootstrap_sample_rdm(rdms, rdm_descriptor='index'):
@@ -70,10 +70,10 @@ def bootstrap_sample_rdm(rdms, rdm_descriptor='index'):
             this value or none
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: rdm_sample
+        pyrsa.rdm.rdms.RDMs: rdm_idx
             subsampled dataset with equal number of groups of rdms
 
-        numpy.ndarray: rdm_sample
+        numpy.ndarray: rdm_idx
             sampled rdm indices
 
         numpy.ndarray: rdm_select
@@ -81,11 +81,11 @@ def bootstrap_sample_rdm(rdms, rdm_descriptor='index'):
 
     """
     rdm_select = np.unique(rdms.rdm_descriptors[rdm_descriptor])
-    rdm_sample = np.random.randint(0, len(rdm_select) - 1,
+    rdm_sample = np.random.randint(0, len(rdm_select),
                                    size=len(rdm_select))
-    rdm_sample = rdm_select[rdm_sample]
-    rdms = rdms.subsample(rdm_descriptor, rdm_sample)
-    return rdms, rdm_sample
+    rdm_idx = rdm_select[rdm_sample]
+    rdms = rdms.subsample(rdm_descriptor, rdm_idx)
+    return rdms, rdm_idx
 
 
 def bootstrap_sample_pattern(rdms, pattern_descriptor='index'):
@@ -103,17 +103,17 @@ def bootstrap_sample_pattern(rdms, pattern_descriptor='index'):
             be in or out of the sample as a whole
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: rdm_sample
+        pyrsa.rdm.rdms.RDMs: rdm_idx
             subsampled dataset with equal number of pattern groups
 
-        numpy.ndarray: pattern_sample
+        numpy.ndarray: pattern_idx
             sampled pattern descriptor index values for subsampling other rdms
     """
     pattern_descriptor, pattern_select = \
         add_pattern_index(rdms, pattern_descriptor)
-    pattern_sample = np.random.randint(0, len(pattern_select) - 1,
-                                       size=len(pattern_select))
-    pattern_sample = pattern_select[pattern_sample]
+    pattern_idx = np.random.randint(0, len(pattern_select),
+                                    size=len(pattern_select))
+    pattern_idx = pattern_select[pattern_idx]
     rdms = rdms.subsample_pattern(pattern_descriptor,
-                                  pattern_sample)
-    return rdms, pattern_sample
+                                  pattern_idx)
+    return rdms, pattern_idx

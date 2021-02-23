@@ -1,5 +1,6 @@
 # IDEs
 .vscode/
+.idea/
 
 # MAC
 .DS_Store
@@ -109,4 +110,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-Icon[]
+Icon[
+]
+
+# nbsphinx_link copies
+docs/source/92imageData/
+docs/source/rdms_inferring/

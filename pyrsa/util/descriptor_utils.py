@@ -3,7 +3,7 @@
 """
 Descriptor handling
 
-@author: heiko
+@author: adkipnis
 """
 
 import numpy as np
@@ -70,22 +70,25 @@ def parse_input_descriptor(descriptors):
     return descriptors
 
 
-def check_descriptor_length(descriptor, n):
+def check_descriptor_length(descriptor, n_element):
     """
     Checks whether the entries of a descriptor dictionary have the right length
 
     Args:
         descriptor(dict): the descriptor dictionary
-        n: the correct length of the descriptors
+        n_element: the correct length of the descriptors
 
     Returns:
         bool
 
     """
     for k, v in descriptor.items():
-        v = np.array(v)
+        v = np.asarray(v)
+        if not v.shape:
+            # 0-d array happens e.g. when casting str to array
+            v = v.flatten()
         descriptor[k] = v
-        if v.shape[0] != n:
+        if v.shape[0] != n_element:
             return False
     return True
 
@@ -127,25 +130,47 @@ def append_descriptor(descriptor, desc_new):
     """
     for k, v in descriptor.items():
         assert k in desc_new.keys(), f'appended descriptors misses key {k}'
-        descriptor[k] = np.concatenate((v, desc_new[k]), axis=0)
+        d_new = np.array(desc_new[k])
+        v = np.array(v)
+        if not v.shape:
+            v = v.flatten()
+        if not d_new.shape:
+            descriptor[k] = np.concatenate((v, d_new.flatten()), axis=0)
+        else:
+            descriptor[k] = np.concatenate((v, d_new), axis=0)
     descriptor['index'] = np.arange(len(descriptor['index']))
     return descriptor
 
 
-def check_descriptor_length_error(descriptor, name, n):
+def check_descriptor_length_error(descriptor, name, n_element):
     """
     Raises an error if the given descriptor does not have the right length
 
     Args:
         descriptor(dict/None): the descriptor dictionary
         name(String): Descriptor name used for error message
-        n: the desired descriptor length
+        n_element: the desired descriptor length
 
     Returns:
         ---
 
     """
     if descriptor is not None:
-        if not check_descriptor_length(descriptor, n):
+        if not check_descriptor_length(descriptor, n_element):
             raise AttributeError(
                 name + " have mismatched dimension with measurements.")
+
+
+def append_obs_descriptors(dict_orig, dict_addit):
+    """
+    Merge two dictionaries of observation descriptors with matching keys and
+    numpy arrays as values.
+    """
+    assert list(dict_orig.keys()) == list(dict_addit.keys()), \
+        "Provided observationdescriptors have different keys."
+    dict_merged = {}
+    keys = list(dict_orig.keys())
+    for k in keys:
+        values = np.array(np.append(dict_orig[k], dict_addit[k]))
+        dict_merged.update({k: values})
+    return dict_merged

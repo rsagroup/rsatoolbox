@@ -5,10 +5,12 @@ from .rdms import rank_transform
 from .rdms import load_rdm
 from .rdms import rdms_from_dict
 from .calc import calc_rdm
+from .calc import calc_rdm_movie
 from .calc import calc_rdm_euclid
 from .calc import calc_rdm_mahalanobis
 from .calc import calc_rdm_crossnobis
 from .calc import calc_rdm_correlation
+from .calc_unbalanced import calc_rdm_unbalanced
 from .compare import compare
 from .compare import compare_correlation
 from .compare import compare_cosine
