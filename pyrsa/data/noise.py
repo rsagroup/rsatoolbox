@@ -85,3 +85,17 @@ def prec_from_residuals(residuals, dof=None):
     else:
         cov = np.linalg.inv(cov)
     return cov
+
+
+def covariance(d,diag=False,shrink=False):
+    """ function to compute variance with different priors:
+    diagonal variance only, or using shrinkage
+    """
+    if shrink: 
+        cov = cov_from_residuals(d)
+    else:
+        cov = np.cov(d.T)
+    if diag:
+        cov = np.diag(np.diagonal(cov))
+    cov = np.linalg.inv(cov)
+    return cov

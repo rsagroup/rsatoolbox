@@ -27,7 +27,39 @@ from helpers import parse_results
 from helpers import load_comp
 from models import get_models
 from allen_models import get_allen_models
+from pyrsa.data import covariance
 
+def npy2tempdim(d):
+    dnew = np.ndarray((d.shape[0],d.shape[1],d[0][0].shape[0]))
+    for i in np.arange(d.shape[0]):
+        for j in np.arange(d.shape[1]):
+            dnew[i,j,:] = np.float64(d[i][j])
+    return dnew
+
+def truc(d):
+    dcopy = d.copy()
+    for i,r in enumerate(d):
+        for j,c in enumerate(r):
+            dcopy[i,j] = c[0:8]
+    return npy2tempdim(dcopy[:,:-1]) 
+
+def seq2mean(d):
+    return d.mean(axis=2)
+
+def trial2fold(labels, verbose=False):
+    dic = {}
+    fold = []
+    for l in labels:
+        if l in dic:
+            dic[l] += 1
+        else:
+            dic[l] = 0
+        fold.append(dic[l])
+    if verbose:
+        return np.array(fold),dic
+    else:
+        return np.array(fold)
+    
 def run_allen(idx, allen_path=None, start_idx=0):
     """ master script for running the allen simulations. Each call to
     this script will run one repetition of the comparisons, i.e. 100
@@ -79,12 +111,8 @@ def run_allen(idx, allen_path=None, start_idx=0):
 def sim_allen(layer=2, sd=0.05, n_stim_all=320,
                n_voxel=100, n_subj=10, n_stim=40, n_repeat=2,
                simulation_folder='sim_allen', n_sim=100,
-               duration=1, pause=1, endzeros=25,
-               use_cor_noise=True, resolution=2,
-               sigma_noise=1, ar_coeff=0.5,
                allen_path=None, variation=None,
-               model_type='fixed_average',
-               rdm_comparison='cosine', n_layer=12, k_pattern=None,
+               rdm_comparison='cosine', k_pattern=None,
                k_rdm=None, rdm_type='crossnobis',
                noise_type='residuals', boot_type='both',
                start_idx=0, smoothing=None):
