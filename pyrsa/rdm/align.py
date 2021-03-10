@@ -63,7 +63,7 @@ def _align(dissim, method):
     """
     n_rdms, n_conds = dissim.shape
     if method == 'evidence':
-        weights = (dissim ** 2).clip(0.2)
+        weights = (dissim ** 2).clip(0.2 ** 2)
     elif method == 'setsize':
         setsize = np.isfinite(dissim).sum(axis=1)
         weights = np.tile(1 / setsize, [n_conds, 1]).T
