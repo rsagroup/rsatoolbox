@@ -36,7 +36,7 @@ def download(exp_id, folder='allen_data'):
             U[i] = np.mean(resp, 1)
         np.savez(filename, stimulus=stimulus, U=U)
         # remove file after U download to save space
-        os.remove(nwb_filename % exp_id)
+        # os.remove(nwb_filename % exp_id)
     else:
         d_dict = np.load(filename)
         stimulus = d_dict['stimulus']
