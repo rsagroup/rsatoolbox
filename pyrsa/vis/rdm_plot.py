@@ -76,8 +76,9 @@ def show_rdm(
         imshow argument
     vmax : float
         imshow argument
-    **kwarg : any remaining arguments are passed to _add_descriptor_x_labels,
-        _add_descriptor_y_labels
+    size : float
+    offset : int
+    linewidth : float
     """
 
     if show_colorbar and not show_colorbar in ("panel", "figure"):
@@ -159,7 +160,7 @@ def show_rdm(
                     continue
                 except:
                     raise
-                if col_ind == 0:
+                if col_ind == 0 and pattern_descriptor:
                     _add_descriptor_y_labels(
                         rdm,
                         pattern_descriptor,
@@ -169,7 +170,7 @@ def show_rdm(
                         offset=offset,
                         linewidth=linewidth
                     )
-                if row_ind == 0:
+                if row_ind == 0 and pattern_descriptor:
                     _add_descriptor_x_labels(
                         rdm,
                         pattern_descriptor,
@@ -256,7 +257,8 @@ def show_rdm_panel(
     return image
 
 
-def _add_descriptor_x_labels(rdm, descriptor, ax=None, **kwarg):
+def _add_descriptor_x_labels(rdm, descriptor, ax=None, num_pattern_groups=None,
+        size=None, offset=None, linewidth=None):
     if ax is None:
         ax = plt.gca()
     _add_descriptor_labels(
@@ -265,11 +267,15 @@ def _add_descriptor_x_labels(rdm, descriptor, ax=None, **kwarg):
         axis=ax.xaxis,
         other_axis=ax.yaxis,
         horizontalalignment="center",
-        **kwarg,
+        num_pattern_groups=num_pattern_groups,
+        size=size,
+        offset=offset,
+        linewidth=linewidth
     )
 
 
-def _add_descriptor_y_labels(rdm, descriptor, ax=None, **kwarg):
+def _add_descriptor_y_labels(rdm, descriptor, ax=None, num_pattern_groups=None,
+        size=None, offset=None, linewidth=None):
     if ax is None:
         ax = plt.gca()
     _add_descriptor_labels(
@@ -278,7 +284,10 @@ def _add_descriptor_y_labels(rdm, descriptor, ax=None, **kwarg):
         axis=ax.yaxis,
         other_axis=ax.xaxis,
         horizontalalignment="right",
-        **kwarg,
+        num_pattern_groups=num_pattern_groups,
+        size=size,
+        offset=offset,
+        linewidth=linewidth
     )
 
 
@@ -294,52 +303,50 @@ def _add_descriptor_labels(
     linewidth=None,
 ):
     """ adds a descriptor as ticklabels to the axis (XAxis or YAxis instance)"""
-    if descriptor is not None:
-        desc = rdm.pattern_descriptors[descriptor]
-        if isinstance(desc[0], vis.Icon):
-            # annotated labels with Icon
-            if linewidth > 0:
-                axis.set_tick_params(length=0, which="minor")
-            # TODO - work out sizing from pixel size transform
-            for group_ind in range(num_pattern_groups, 0, -1):
-                position = offset * group_ind
-                ticks = np.arange(group_ind - 1, rdm.n_cond, num_pattern_groups)
-                if isinstance(axis, matplotlib.axis.XAxis):
-                    [
-                        this_desc.x_tick_label(
-                            this_x,
-                            size,
-                            offset=position,
-                            linewidth=linewidth,
-                            ax=axis.axes,
-                        )
-                        for (this_x, this_desc) in zip(ticks, desc[ticks])
-                    ]
-                elif isinstance(axis, matplotlib.axis.YAxis):
-                    [
-                        this_desc.y_tick_label(
-                            this_y,
-                            size,
-                            offset=position,
-                            linewidth=linewidth,
-                            ax=axis.axes,
-                        )
-                        for (this_y, this_desc) in zip(ticks, desc[ticks])
-                    ]
-                else:
-                    raise TypeError("expected axis to be XAxis or YAxis instance")
-        else:
-            # vanilla matplotlib-based
-            axis.set_ticklabels(
-                desc,
-                verticalalignment="center",
-                horizontalalignment=horizontalalignment,
-                minor=True,
-            )
+    desc = rdm.pattern_descriptors[descriptor]
+    if isinstance(desc[0], vis.Icon):
+        # annotated labels with Icon
+        if linewidth > 0:
+            axis.set_tick_params(length=0, which="minor")
+        for group_ind in range(num_pattern_groups, 0, -1):
+            position = offset * group_ind
+            ticks = np.arange(group_ind - 1, rdm.n_cond, num_pattern_groups)
             if isinstance(axis, matplotlib.axis.XAxis):
-                plt.setp(
-                    axis.get_ticklabels(minor=True),
-                    rotation=60,
-                    ha="right",
-                    rotation_mode="anchor",
-                )
+                [
+                    this_desc.x_tick_label(
+                        this_x,
+                        size,
+                        offset=position,
+                        linewidth=linewidth,
+                        ax=axis.axes,
+                    )
+                    for (this_x, this_desc) in zip(ticks, desc[ticks])
+                ]
+            elif isinstance(axis, matplotlib.axis.YAxis):
+                [
+                    this_desc.y_tick_label(
+                        this_y,
+                        size,
+                        offset=position,
+                        linewidth=linewidth,
+                        ax=axis.axes,
+                    )
+                    for (this_y, this_desc) in zip(ticks, desc[ticks])
+                ]
+            else:
+                raise TypeError("expected axis to be XAxis or YAxis instance")
+    else:
+        # vanilla matplotlib-based
+        axis.set_ticklabels(
+            desc,
+            verticalalignment="center",
+            horizontalalignment=horizontalalignment,
+            minor=True,
+        )
+        if isinstance(axis, matplotlib.axis.XAxis):
+            plt.setp(
+                axis.get_ticklabels(minor=True),
+                rotation=60,
+                ha="right",
+                rotation_mode="anchor",
+            )
