@@ -33,7 +33,9 @@ def show_rdm(
     style=RDM_STYLE,
     vmin=None,
     vmax=None,
-    **kwarg,
+    size=None,
+    offset=None,
+    linewidth=0.5
 ):
     """Heatmap figure for RDMs instance, with one panel per RDM.
 
@@ -122,6 +124,8 @@ def show_rdm(
         gridlines = np.arange(
             num_pattern_groups - 0.5, rdm.n_cond + 0.5, num_pattern_groups
         )
+    if num_pattern_groups is None or num_pattern_groups == 0:
+        num_pattern_groups = 1
     # we don't necessarily have the same number of RDMs as panels, so need to stop the
     # loop when we've plotted all the RDMs
     rdms_gen = (this_rdm for this_rdm in rdm)
@@ -161,7 +165,9 @@ def show_rdm(
                         pattern_descriptor,
                         ax=panel,
                         num_pattern_groups=num_pattern_groups,
-                        **kwarg,
+                        size=size,
+                        offset=offset,
+                        linewidth=linewidth
                     )
                 if row_ind == 0:
                     _add_descriptor_x_labels(
@@ -169,7 +175,9 @@ def show_rdm(
                         pattern_descriptor,
                         ax=panel,
                         num_pattern_groups=num_pattern_groups,
-                        **kwarg,
+                        size=size,
+                        offset=offset,
+                        linewidth=linewidth
                     )
                 if show_colorbar == "panel":
                     cb = _rdm_colorbar(
@@ -281,15 +289,11 @@ def _add_descriptor_labels(
     other_axis,
     horizontalalignment="center",
     num_pattern_groups=None,
-    size=0.5,
-    offset=7,
+    size=None,
+    offset=None,
     linewidth=None,
 ):
     """ adds a descriptor as ticklabels to the axis (XAxis or YAxis instance)"""
-    if linewidth is None:
-        linewidth = 0.5
-    if num_pattern_groups is None or num_pattern_groups == 0:
-        num_pattern_groups = 1
     if descriptor is not None:
         desc = rdm.pattern_descriptors[descriptor]
         if isinstance(desc[0], vis.Icon):
