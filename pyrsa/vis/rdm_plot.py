@@ -20,7 +20,7 @@ RDM_STYLE = os.path.join(MODULE_DIR, 'rdm.mplstyle')
 def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None, cmap=None,
         rdm_descriptor=None, n_column=None, n_row=None, show_colorbar=None,
         gridlines=[], num_pattern_groups=None, figsize=None, nanmask=None,
-        style=RDM_STYLE, **kwarg):
+        style=RDM_STYLE, vmin=None, vmax=None, **kwarg):
     """shows an rdm object
 
     Parameters
@@ -43,12 +43,27 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None, cmap=None,
     """
 
 
+    if show_colorbar and not show_colorbar in ('panel', 'figure'):
+        raise ValueError(f'show_colorbar can be None, panel or figure, got: {show_colorbar}')
+    if do_rank_transform:
+        rdm = rank_transform(rdm)
+        if not all(var is None for var in [vmin, vmax]):
+            raise ValueError('manual limits (vmin, vmax) unsupported when do_rank_transform')
+    if nanmask is None:
+        nanmask = np.eye(rdm.n_cond, dtype=bool)
     n_panel = rdm.n_rdm
     if show_colorbar == 'figure':
         n_panel += 1
+        # need to keep track of global CB limits
+        if any(var is None for var in [vmin,vmax]):
+            # need to load the RDMs here (expensive)
+            rdmat = rdm.get_matrices()
+            if vmin is None:
+                vmin = rdmat[:, (nanmask == False)].min()
+            if vmax is None:
+                vmax = rdmat[:, (nanmask == False)].max()
     if n_column is None and n_row is None:
         n_column = np.ceil(np.sqrt(n_panel))
-        n_row = np.ceil((1 + n_panel) / n_column)
     if n_row is None:
         n_row = np.ceil(n_panel / n_column)
     if n_column is None:
@@ -60,12 +75,8 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None, cmap=None,
         # scale with number of RDMs, up to a point (the intersection of A4 and us
         # letter)
         figsize = (min(2 * n_column, 8.3), min(2 * n_row, 11))
-    if nanmask is None:
-        nanmask = np.eye(rdm.n_cond, dtype=bool)
     if cmap is None:
         cmap = rdm_colormap()
-    if do_rank_transform:
-        rdm = rank_transform(rdm)
     if not np.any(gridlines) and num_pattern_groups:
         # grid by pattern groups if they exist and explicit grid setting does not
         gridlines = np.arange(num_pattern_groups-.5, rdm.n_cond+.5,
@@ -83,7 +94,8 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None, cmap=None,
                 try:
                     image = show_rdm_panel(next(rdms_gen), ax=panel, cmap=cmap,
                             nanmask=nanmask,
-                            rdm_descriptor=rdm_descriptor, gridlines=gridlines, **kwarg)
+                            rdm_descriptor=rdm_descriptor, gridlines=gridlines,
+                            vmin=vmin, vmax=vmax)
                 except StopIteration:
                     # hide empty panels
                     panel.set_visible(False)
@@ -97,16 +109,32 @@ def show_rdm(rdm, do_rank_transform=False, pattern_descriptor=None, cmap=None,
                     _add_descriptor_x_labels(rdm, pattern_descriptor, ax=panel,
                             num_pattern_groups=num_pattern_groups, **kwarg)
                 if show_colorbar == 'panel':
-                    cb = fig.colorbar(mappable=image, ax=panel, shrink=.25, aspect=5,
-                            anchor=(0., 1.),
-                            ticks=matplotlib.ticker.LinearLocator(numticks=3))
-                    cb.ax.set_title(rdm.dissimilarity_measure, loc='left',
-                            fontdict=dict(fontweight='normal'))
-    # TODO - handle show_colorbar=='figure'
+                    cb = _rdm_colorbar(mappable=image, fig=fig, ax=panel,
+                            title=rdm.dissimilarity_measure)
+        if show_colorbar == 'figure':
+            # key challenge is to obtain a similarly-sized colorbar to the 'panel' case
+            # BUT positioned centered on the reserved subplot axes
+            cbax_parent = ax_array[-1,-1]
+            cbax_parent_orgpos = cbax_parent.get_position(original=True)
+            # use last instance of 'image' (should all be yoked at this point)
+            cb = _rdm_colorbar(mappable=image, fig=fig, ax=cbax_parent,
+                    title=rdm.dissimilarity_measure)
+            cbax_pos = cb.ax.get_position()
+            # halfway through panel, less the width/height of the colorbar itself
+            x0 = cbax_parent_orgpos.x0 + cbax_parent_orgpos.width/2 - cbax_pos.width/2
+            y0 = cbax_parent_orgpos.y0 + cbax_parent_orgpos.height/2 - cbax_pos.height/2
+            cb.ax.set_position([x0, y0, cbax_pos.width, cbax_pos.height])
     return fig
 
+def _rdm_colorbar(mappable=None, fig=None, ax=None, title=None):
+    cb = fig.colorbar(mappable=mappable, ax=ax, shrink=.25, aspect=5,
+            ticks=matplotlib.ticker.LinearLocator(numticks=3))
+    cb.ax.set_title(title, loc='left',
+            fontdict=dict(fontweight='normal'))
+    return cb
+
 def show_rdm_panel(rdm, ax=None, cmap=None, nanmask=None, rdm_descriptor=None,
-        gridlines=[], **kwarg):
+        gridlines=[], vmin=None, vmax=None):
     if ax is None:
         ax = plt.gca()
     if rdm.n_rdm > 1:
@@ -114,7 +142,7 @@ def show_rdm_panel(rdm, ax=None, cmap=None, nanmask=None, rdm_descriptor=None,
     rdmat = rdm.get_matrices()[0,:,:]
     if np.any(nanmask):
         rdmat[nanmask] = np.nan
-    image = ax.imshow(rdmat, cmap=cmap)
+    image = ax.imshow(rdmat, cmap=cmap, vmin=vmin, vmax=vmax)
     ax.set_xlim(-0.5, rdm.n_cond - 0.5)
     ax.set_ylim(rdm.n_cond - 0.5, -0.5)
     ax.xaxis.set_ticks(gridlines)
