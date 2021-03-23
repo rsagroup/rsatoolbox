@@ -160,6 +160,14 @@ def show_rdm(
                     continue
                 except:
                     raise
+                if show_colorbar == "panel":
+                    # needs to happen before labels because it resizes the axis
+                    cb = _rdm_colorbar(
+                        mappable=image,
+                        fig=fig,
+                        ax=panel,
+                        title=rdm.dissimilarity_measure,
+                    )
                 if col_ind == 0 and pattern_descriptor:
                     _add_descriptor_y_labels(
                         rdm,
@@ -179,13 +187,6 @@ def show_rdm(
                         size=size,
                         offset=offset,
                         linewidth=linewidth
-                    )
-                if show_colorbar == "panel":
-                    cb = _rdm_colorbar(
-                        mappable=image,
-                        fig=fig,
-                        ax=panel,
-                        title=rdm.dissimilarity_measure,
                     )
         if show_colorbar == "figure":
             # key challenge is to obtain a similarly-sized colorbar to the 'panel' case
@@ -308,9 +309,21 @@ def _add_descriptor_labels(
         # annotated labels with Icon
         if linewidth > 0:
             axis.set_tick_params(length=0, which="minor")
-        for group_ind in range(num_pattern_groups, 0, -1):
-            position = offset * group_ind
-            ticks = np.arange(group_ind - 1, rdm.n_cond, num_pattern_groups)
+        # TODO - ultimately change API to something like spacing where 1=tight, .9
+        # slightly overlapping, 1.1 slightly padded etc
+        im_width_pix = max(this_desc.final_image.width for this_desc in desc)
+        im_height_pix = max(this_desc.final_image.height for this_desc in desc)
+        im_max_pix = max(im_width_pix, im_height_pix)
+        if size is None:
+            ax_size_pix = np.diff(axis.axes.transAxes.transform(np.array([[0.,0.],[1,1]])), axis=0)
+            n_to_fit = np.ceil(rdm.n_cond / num_pattern_groups)
+            size = ((ax_size_pix / n_to_fit) / im_max_pix).min()
+        im_max_resized = im_max_pix * size
+        if offset is None:
+            offset = im_max_resized
+        for group_ind in range(num_pattern_groups-1, -1, -1):
+            position = im_max_resized * .2 + offset * group_ind
+            ticks = np.arange(group_ind, rdm.n_cond, num_pattern_groups)
             if isinstance(axis, matplotlib.axis.XAxis):
                 [
                     this_desc.x_tick_label(
