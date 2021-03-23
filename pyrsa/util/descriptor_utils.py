@@ -9,8 +9,8 @@ Some of these methods may convert numpy-array descriptors to list-types.
 @author: adkipnis
 """
 
-import numpy as np
 from collections.abc import Iterable
+import numpy as np
 
 
 def bool_index(descriptor, value):
@@ -51,9 +51,7 @@ def num_index(descriptor, value):
 
     """
     index = []
-    if (isinstance(value, list) or
-            isinstance(value, tuple) or
-            isinstance(value, np.ndarray)):
+    if isinstance(value, (list, tuple, np.ndarray)):
         for j, d in enumerate(descriptor):
             if d in value:
                 index.append(j)

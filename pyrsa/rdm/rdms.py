@@ -208,10 +208,7 @@ class RDMs:
         if by is None:
             by = 'index'
         desc = np.array(self.pattern_descriptors[by])  # desc is list-like
-        if (
-                isinstance(value, list) or
-                isinstance(value, tuple) or
-                isinstance(value, np.ndarray)):
+        if isinstance(value, (list, tuple, np.ndarray)):
             selection = [np.asarray(desc == i).nonzero()[0]
                          for i in value]
             selection = np.concatenate(selection)
@@ -279,10 +276,7 @@ class RDMs:
             by = 'index'
         desc = self.rdm_descriptors[by]
         selection = []
-        if (
-                isinstance(value, list) or
-                isinstance(value, tuple) or
-                isinstance(value, np.ndarray)):
+        if isinstance(value, (list, tuple, np.ndarray)):
             for i in value:
                 for j, d in enumerate(desc):
                     if d == i:
