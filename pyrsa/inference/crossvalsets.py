@@ -144,7 +144,7 @@ def sets_k_fold(rdms, k_rdm=None, k_pattern=None, random=True,
             pattern_descriptor=pattern_descriptor, random=random)
         ceil_new = test_new.copy()
         for i_pattern in range(k_pattern):
-            test_new[i_pattern][0] = rdms_test.subsample_pattern(
+            test_new[i_pattern][0] = rdms_test.subset_pattern(
                 by=pattern_descriptor,
                 value=test_new[i_pattern][1])
         train_set += train_new
