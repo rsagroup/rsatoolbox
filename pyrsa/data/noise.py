@@ -53,20 +53,27 @@ def sample_covariance_3d(tensor):
     assert isinstance(tensor, np.ndarray), "input must be ndarray"
     assert len(tensor.shape) == 3, "input must have 3 dimensions"
 
+    tensor -= np.mean(tensor, axis=2, keepdims=True)
+    tensor = tensor.transpose(0, 2, 1).reshape(
+        tensor.shape[0]*tensor.shape[2], tensor.shape[1])
+    xt_x = np.einsum('ij, ik-> ijk', tensor, tensor)
+    s = np.mean(xt_x, axis=0)
+    return s, xt_x
+    
     # calculate sample covariance matrix s for each slice of the tensor
-    einsum_superset = []
-    cov_superset = []
-    for slice_num in range(tensor.shape[2]):
-        array_slice = tensor[:, :, slice_num]
-        s, xt_x = sample_covariance(array_slice)
-        einsum_superset.append(xt_x)
-        cov_superset.append(s)
+    # einsum_superset = []
+    # cov_superset = []
+    # for slice_num in range(tensor.shape[2]):
+    #     array_slice = tensor[:, :, slice_num]
+    #     s, xt_x = sample_covariance(array_slice)
+    #     einsum_superset.append(xt_x)
+    #     cov_superset.append(s)
 
-    # get expected value of the covariance matrix estimates
-    einsum_tensor = np.stack(einsum_superset, axis=0)
-    xt_x_mean = np.mean(einsum_tensor, axis=0)
-    s_mean = np.mean(xt_x_mean, axis=0)
-    return s_mean, xt_x_mean
+    # # get expected value of the covariance matrix estimates
+    # einsum_tensor = np.stack(einsum_superset, axis=0)
+    # xt_x_mean = np.mean(einsum_tensor, axis=0)
+    # s_mean = np.mean(xt_x_mean, axis=0)
+    # return s_mean, xt_x_mean
 
 
 def shrinkage_transform(s, xt_x, dof):
