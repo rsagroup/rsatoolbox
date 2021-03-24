@@ -117,16 +117,16 @@ def cov_from_residuals(residuals, dof=None, method='shrinkage'):
 
     """
     if not isinstance(residuals, np.ndarray) or len(residuals.shape) > 2:
-        s_shrink = []
+        cov_mat = []
         for i in range(len(residuals)):
             if dof is None:
-                s_shrink.append(cov_from_residuals(
+                cov_mat.append(cov_from_residuals(
                     residuals[i], method=method))
             elif isinstance(dof, Iterable):
-                s_shrink.append(cov_from_residuals(
+                cov_mat.append(cov_from_residuals(
                     residuals[i], method=method, dof=dof[i]))
             else:
-                s_shrink.append(cov_from_residuals(
+                cov_mat.append(cov_from_residuals(
                     residuals[i], method=method, dof=dof))
     else:
         if dof is None:
