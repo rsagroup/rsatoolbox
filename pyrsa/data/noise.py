@@ -124,10 +124,10 @@ def cov_from_residuals(residuals, dof=None, method='shrinkage'):
                     residuals[i], method=method))
             elif isinstance(dof, Iterable):
                 s_shrink.append(cov_from_residuals(
-                    residuals[i], method=method, dof[i]))
+                    residuals[i], method=method, dof=dof[i]))
             else:
                 s_shrink.append(cov_from_residuals(
-                    residuals[i], method=method, dof))
+                    residuals[i], method=method, dof=dof))
     else:
         if dof is None:
             dof = residuals.shape[0] - 1
