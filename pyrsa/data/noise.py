@@ -100,7 +100,7 @@ def shrinkage_transform(s, xt_x, dof):
     return s_shrink
 
 
-def cov_from_residuals(residuals, dof=None):
+def cov_from_residuals(residuals, dof=None, method='shrinkage'):
     """
     Computes a covariance matrix for residuals and applies a shrinkage
     transform
@@ -130,9 +130,14 @@ def cov_from_residuals(residuals, dof=None):
             dof = residuals.shape[0] - 1
         # calculate sample covariance matrix s
         s, xt_x = sample_covariance(residuals)
-        # apply shrinkage transform
-        s_shrink = shrinkage_transform(s, xt_x, dof)
-    return s_shrink
+        if method == 'shrinkage':
+            # apply shrinkage transform
+            cov_mat = shrinkage_transform(s, xt_x, dof)
+        elif method == 'diag':
+            cov_mat = np.diag(np.diag(s)) * xt_x.shape[0] / dof
+        elif method == 'full':
+            cov_mat = s * xt_x.shape[0] / dof
+    return cov_mat
 
 
 def prec_from_residuals(residuals, dof=None):
@@ -162,7 +167,7 @@ def prec_from_residuals(residuals, dof=None):
     return prec
 
 
-def cov_from_measurements(dataset, obs_desc, dof=None):
+def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage'):
     """
     Computes a covariance matrix for measurements and applies a shrinkage
     transform
@@ -183,15 +188,20 @@ def cov_from_measurements(dataset, obs_desc, dof=None):
         "obs_desc not contained in the dataset's obs_descriptors"
     tensor, _ = dataset.get_measurements_tensor(obs_desc)
     if dof is None:
-        dof = tensor.shape[0] * tensor.shape[2] - 1
+        dof = tensor.shape[0] * (tensor.shape[2] - 1)
     # calculate sample covariance matrix s
     s_mean, xt_x_mean = sample_covariance_3d(tensor)
-    # apply shrinkage transform
-    s_shrink = shrinkage_transform(s_mean, xt_x_mean, dof)
-    return s_shrink
+    if method == 'shrinkage':
+        # apply shrinkage transform
+        cov_mat = shrinkage_transform(s_mean, xt_x_mean, dof)
+    elif method == 'diag':
+        cov_mat = np.diag(np.diag(s_mean)) * xt_x_mean.shape[0] / dof
+    elif method == 'full':
+        cov_mat = s_mean * xt_x_mean.shape[0] / dof
+    return cov_mat
 
 
-def prec_from_measurements(dataset, obs_desc, dof=None):
+def prec_from_measurements(dataset, obs_desc, dof=None, method='shrinkage'):
     """
     Computes a covariance matrix for measurements, applies a shrinkage
     transform to it and finds its inverse, i.e. the precision matrix
@@ -207,7 +217,7 @@ def prec_from_measurements(dataset, obs_desc, dof=None):
         numpy.ndarray (or list): sigma_p: precision matrix over channels
 
     """
-    cov = cov_from_measurements(dataset, obs_desc, dof=dof)
+    cov = cov_from_measurements(dataset, obs_desc, dof=dof, method=method)
     prec = np.zeros(cov.shape)
     if not isinstance(cov, np.ndarray) or len(cov.shape) > 2:
         for i in range(len(cov)):
