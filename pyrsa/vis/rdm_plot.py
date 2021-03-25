@@ -26,16 +26,15 @@ def show_rdm(
     n_column=None,
     n_row=None,
     show_colorbar=None,
-    gridlines=[],
+    gridlines=None,
     num_pattern_groups=None,
     figsize=None,
     nanmask=None,
     style=RDM_STYLE,
     vmin=None,
     vmax=None,
-    size=None,
-    offset=None,
-    linewidth=0.5
+    icon_spacing=1.0,
+    linewidth=0.5,
 ):
     """Heatmap figure for RDMs instance, with one panel per RDM.
 
@@ -50,8 +49,8 @@ def show_rdm(
     cmap : color map
         colormap or identifier for a colormap to be used
         conventions as for matplotlib colormaps
-    rdm_descriptor : str
-        name of a rdm descriptor which will be used as a title per RDM
+    rdm_descriptor : str or key into rdm_descriptor
+        key for rdm_descriptor to use as panel title, or str for direct labeling
     n_column : int
         number of columns in subplot arrangement
     n_row : int
@@ -71,13 +70,14 @@ def show_rdm(
     nanmask : np.array
         boolean mask defining RDM parts to suppress (by default, the diagonals)
     style : str
-        path to mplstyle file
+        path to mplstyle file (default pyrsa/vis/rdm.mplstyle)
     vmin : float
         imshow argument
     vmax : float
         imshow argument
-    size : float
-    offset : int
+    icon_spacing : float
+        control spacing of image labels - 1. means no gap, 1.1 means pad 10%, .9 means
+        overlap 10% etc
     linewidth : float
     """
 
@@ -174,9 +174,8 @@ def show_rdm(
                         pattern_descriptor,
                         ax=panel,
                         num_pattern_groups=num_pattern_groups,
-                        size=size,
-                        offset=offset,
-                        linewidth=linewidth
+                        icon_spacing=icon_spacing,
+                        linewidth=linewidth,
                     )
                 if row_ind == 0 and pattern_descriptor:
                     _add_descriptor_x_labels(
@@ -184,9 +183,8 @@ def show_rdm(
                         pattern_descriptor,
                         ax=panel,
                         num_pattern_groups=num_pattern_groups,
-                        size=size,
-                        offset=offset,
-                        linewidth=linewidth
+                        icon_spacing=icon_spacing,
+                        linewidth=linewidth,
                     )
         if show_colorbar == "figure":
             # key challenge is to obtain a similarly-sized colorbar to the 'panel' case
@@ -258,8 +256,9 @@ def show_rdm_panel(
     return image
 
 
-def _add_descriptor_x_labels(rdm, descriptor, ax=None, num_pattern_groups=None,
-        size=None, offset=None, linewidth=None):
+def _add_descriptor_x_labels(
+    rdm, descriptor, ax=None, num_pattern_groups=None, icon_spacing=None, linewidth=None
+):
     if ax is None:
         ax = plt.gca()
     _add_descriptor_labels(
@@ -269,14 +268,14 @@ def _add_descriptor_x_labels(rdm, descriptor, ax=None, num_pattern_groups=None,
         other_axis=ax.yaxis,
         horizontalalignment="center",
         num_pattern_groups=num_pattern_groups,
-        size=size,
-        offset=offset,
-        linewidth=linewidth
+        icon_spacing=icon_spacing,
+        linewidth=linewidth,
     )
 
 
-def _add_descriptor_y_labels(rdm, descriptor, ax=None, num_pattern_groups=None,
-        size=None, offset=None, linewidth=None):
+def _add_descriptor_y_labels(
+    rdm, descriptor, ax=None, num_pattern_groups=None, icon_spacing=None, linewidth=None
+):
     if ax is None:
         ax = plt.gca()
     _add_descriptor_labels(
@@ -286,9 +285,8 @@ def _add_descriptor_y_labels(rdm, descriptor, ax=None, num_pattern_groups=None,
         other_axis=ax.xaxis,
         horizontalalignment="right",
         num_pattern_groups=num_pattern_groups,
-        size=size,
-        offset=offset,
-        linewidth=linewidth
+        icon_spacing=icon_spacing,
+        linewidth=linewidth,
     )
 
 
@@ -299,8 +297,7 @@ def _add_descriptor_labels(
     other_axis,
     horizontalalignment="center",
     num_pattern_groups=None,
-    size=None,
-    offset=None,
+    icon_spacing=None,
     linewidth=None,
 ):
     """ adds a descriptor as ticklabels to the axis (XAxis or YAxis instance)"""
@@ -309,20 +306,18 @@ def _add_descriptor_labels(
         # annotated labels with Icon
         if linewidth > 0:
             axis.set_tick_params(length=0, which="minor")
-        # TODO - ultimately change API to something like spacing where 1=tight, .9
-        # slightly overlapping, 1.1 slightly padded etc
         im_width_pix = max(this_desc.final_image.width for this_desc in desc)
         im_height_pix = max(this_desc.final_image.height for this_desc in desc)
-        im_max_pix = max(im_width_pix, im_height_pix)
-        if size is None:
-            ax_size_pix = np.diff(axis.axes.transAxes.transform(np.array([[0.,0.],[1,1]])), axis=0)
-            n_to_fit = np.ceil(rdm.n_cond / num_pattern_groups)
-            size = ((ax_size_pix / n_to_fit) / im_max_pix).min()
-        im_max_resized = im_max_pix * size
-        if offset is None:
-            offset = im_max_resized
-        for group_ind in range(num_pattern_groups-1, -1, -1):
-            position = im_max_resized * .2 + offset * group_ind
+        im_max_pix = max(im_width_pix, im_height_pix) * icon_spacing
+        n_to_fit = np.ceil(rdm.n_cond / num_pattern_groups)
+        axis.figure.canvas.draw()
+        extent = axis.axes.get_window_extent(axis.figure.canvas.get_renderer())
+        ax_size_pix = max((extent.width, extent.height))
+        size = (ax_size_pix / n_to_fit) / im_max_pix
+        # from proportion of original size to figure pixels
+        offset = im_max_pix * size
+        for group_ind in range(num_pattern_groups - 1, -1, -1):
+            position = offset * 0.2 + offset * group_ind
             ticks = np.arange(group_ind, rdm.n_cond, num_pattern_groups)
             if isinstance(axis, matplotlib.axis.XAxis):
                 [
@@ -363,3 +358,5 @@ def _add_descriptor_labels(
                 ha="right",
                 rotation_mode="anchor",
             )
+
+    return
