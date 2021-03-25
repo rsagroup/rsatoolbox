@@ -14,6 +14,7 @@ from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import num_index
+from pyrsa.util.descriptor_utils import bool_index
 from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import append_descriptor
@@ -154,18 +155,15 @@ class RDMs:
         matrices, _, _ = batch_to_matrices(self.dissimilarities)
         return matrices
 
-    def subset_pattern_slow(self, by, value):
+    def subset_pattern(self, by, value):
         """ Returns a smaller RDMs with patterns with certain descriptor values
-
         Args:
             by(String): the descriptor by which the subset selection
                         is made from pattern_descriptors
             value:      the value by which the subset selection is made
                         from pattern_descriptors
-
         Returns:
             RDMs object, with fewer patterns
-
         """
         if by is None:
             by = 'index'
@@ -189,55 +187,18 @@ class RDMs:
                     dissimilarity_measure=dissimilarity_measure)
         return rdms
 
-    def subset_pattern(self, by, value):
-        """ Returns a smaller RDMs with patterns with certain descriptor values
-
-        Args:
-            by(String): the descriptor by which the subset selection
-                        is made from pattern_descriptors
-            value:      the value by which the subset selection is made
-                        from pattern_descriptors
-
-        Returns:
-            RDMs object, with fewer patterns
-
-        """
-        if by is None:
-            by = 'index'
-        selection = bool_index(self.pattern_descriptors[by], value)
-        ix, iy = np.triu_indices(self.n_cond, 1)
-        selection_x = bool_index(self.pattern_descriptors[by][ix], value)
-        selection_y = bool_index(self.pattern_descriptors[by][iy], value)
-        selection_xy = selection_x & selection_y
-        dissimilarities = self.dissimilarities[:, selection_xy]
-        descriptors = self.descriptors
-        pattern_descriptors = extract_dict(
-            self.pattern_descriptors, selection)
-        rdm_descriptors = self.rdm_descriptors
-        dissimilarity_measure = self.dissimilarity_measure
-        rdms = RDMs(dissimilarities=dissimilarities,
-                    descriptors=descriptors,
-                    rdm_descriptors=rdm_descriptors,
-                    pattern_descriptors=pattern_descriptors,
-                    dissimilarity_measure=dissimilarity_measure)
-        return rdms
-
     def subsample_pattern(self, by, value):
         """ Returns a subsampled RDMs with repetitions if values are repeated
-
         This function now generates Nans where the off-diagonal 0s would
         appear. These values are trivial to predict for models and thus
         need to be marked and excluded from the evaluation.
-
         Args:
             by(String): the descriptor by which the subset selection
                         is made from descriptors
             value:      the value(s) by which the subset selection is made
                         from descriptors
-
         Returns:
             RDMs object, with subsampled patterns
-
         """
         if by is None:
             by = 'index'
