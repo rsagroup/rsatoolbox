@@ -8,6 +8,7 @@ import h5py
 import pickle
 import numpy as np
 import os
+from collections.abc import Iterable
 
 
 def write_dict_hdf5(file, dictionary):
@@ -45,6 +46,9 @@ def _write_to_group(group, dictionary):
             _write_to_group(subgroup, value)
         elif value is None:
             group[key] = h5py.Empty("f")
+        elif isinstance(value, Iterable):
+            if isinstance(value[0], str):
+                group.attrs[key] = value
         else:
             group[key] = value
 

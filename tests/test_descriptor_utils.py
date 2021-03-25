@@ -58,15 +58,10 @@ class TestDescriptorUtils(unittest.TestCase):
         assert check_descriptor_length(descriptors, 1)
 
     def test_subset_descriptor(self):
-        import numpy as np
         from pyrsa.util.descriptor_utils import subset_descriptor
         descriptors = {'foo': ['bar', 'bar2']}
         self.assertEqual(
                 subset_descriptor(descriptors, 0),
-                {'foo': ['bar']}
-                )
-        self.assertEqual(
-                subset_descriptor(descriptors, np.array([True, False])),
                 {'foo': ['bar']}
                 )
         self.assertEqual(
