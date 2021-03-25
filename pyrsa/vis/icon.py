@@ -71,11 +71,24 @@ class Icon:
 
     """
 
-    def __init__(self, image=None, string=None, color=None, marker=None,
-                 cmap=None, border_type=None, border_width=2,
-                 make_square=False, circ_cut=None, resolution=None,
-                 marker_front=True, markeredgewidth=2,
-                 font_size=None, font_name=None, font_color=None):
+    def __init__(
+        self,
+        image=None,
+        string=None,
+        color=None,
+        marker=None,
+        cmap=None,
+        border_type=None,
+        border_width=2,
+        make_square=False,
+        circ_cut=None,
+        resolution=None,
+        marker_front=True,
+        markeredgewidth=2,
+        font_size=None,
+        font_name=None,
+        font_color=None,
+    ):
         self.font_size = font_size
         self.font_name = font_name
         self.string = string
@@ -125,7 +138,7 @@ class Icon:
         if string is None or isinstance(string, str):
             self._string = string
         else:
-            raise ValueError('String must be a string')
+            raise ValueError("String must be a string")
 
     @property
     def color(self):
@@ -192,14 +205,14 @@ class Icon:
     def circ_cut(self, circ_cut):
         if circ_cut is None:
             self._circ_cut = None
-        elif circ_cut == 'cut':
+        elif circ_cut == "cut":
             self._circ_cut = 1
-        elif circ_cut == 'cosine':
+        elif circ_cut == "cosine":
             self._circ_cut = 0
         elif circ_cut <= 1 and circ_cut >= 0:
             self._circ_cut = circ_cut
         else:
-            raise ValueError('circ_cut must be in [0,1]')
+            raise ValueError("circ_cut must be in [0,1]")
         self.recompute_final_image()
 
     def recompute_final_image(self):
@@ -223,17 +236,15 @@ class Icon:
             im = PIL.Image.fromarray((im * 255).astype(np.uint8))
         else:  # we hope it is a PIL image or equivalent
             im = self._image
-        im = im.convert('RGBA')
+        im = im.convert("RGBA")
         if self.make_square:
             new_size = max(im.width, im.height)
             im = im.resize((new_size, new_size), PIL.Image.NEAREST)
         if self.resolution is not None:
             if self.resolution.size == 1:
-                im = im.resize((self.resolution, self.resolution),
-                               PIL.Image.NEAREST)
+                im = im.resize((self.resolution, self.resolution), PIL.Image.NEAREST)
             else:
-                im = im.resize(self.resolution,
-                               PIL.Image.NEAREST)
+                im = im.resize(self.resolution, PIL.Image.NEAREST)
         if self.circ_cut is not None:
             middle = np.array(im.size) / 2
             x = np.arange(im.size[0]) - middle[0] + 0.5
@@ -246,42 +257,38 @@ class Icon:
             alpha[r > 1] = 0
             alpha[r <= self.circ_cut] = 1
             val = (r > self.circ_cut) & (r <= 1)
-            alpha[val] = (
-                0.5 + 0.5 * np.cos(
-                    np.pi * (r[val] - self.circ_cut)
-                    / (1 - self.circ_cut)))
-            alpha = alpha.T * np.array(im.getchannel('A'))
+            alpha[val] = 0.5 + 0.5 * np.cos(
+                np.pi * (r[val] - self.circ_cut) / (1 - self.circ_cut)
+            )
+            alpha = alpha.T * np.array(im.getchannel("A"))
             alpha = PIL.Image.fromarray(np.uint8(alpha))
             im.putalpha(alpha)
         if self.color is not None:
             if self.border_type is None:
                 pass
-            elif self.border_type == 'alpha':
-                bg_alpha = np.array(im.getchannel('A'))
+            elif self.border_type == "alpha":
+                bg_alpha = np.array(im.getchannel("A"))
                 bg_alpha = bg_alpha > 0
                 bg_alpha = PIL.Image.fromarray(255 * np.uint8(bg_alpha))
-                bg = PIL.Image.new('RGBA', im.size, color=tuple(
-                    np.uint8(255 * self.color)))
+                bg = PIL.Image.new(
+                    "RGBA", im.size, color=tuple(np.uint8(255 * self.color))
+                )
                 bg.putalpha(bg_alpha)
                 im = PIL.Image.alpha_composite(bg, im)
-            elif self.border_type == 'pad':
+            elif self.border_type == "pad":
+                im = PIL.ImageOps.expand(im, border=self.border_width, fill=self.color)
+            elif self.border_type == "conv":
                 im = PIL.ImageOps.expand(
-                    im,
-                    border=self.border_width,
-                    fill=self.color)
-            elif self.border_type == 'conv':
-                im = PIL.ImageOps.expand(
-                    im,
-                    border=self.border_width,
-                    fill=(0, 0, 0, 0))
-                bg_alpha = im.getchannel('A')
-                bg_alpha = bg_alpha.filter(PIL.ImageFilter.BoxBlur(
-                    self.border_width))
+                    im, border=self.border_width, fill=(0, 0, 0, 0)
+                )
+                bg_alpha = im.getchannel("A")
+                bg_alpha = bg_alpha.filter(PIL.ImageFilter.BoxBlur(self.border_width))
                 bg_alpha = np.array(bg_alpha)
                 bg_alpha = 255 * np.uint8(bg_alpha > 0)
                 bg_alpha = PIL.Image.fromarray(bg_alpha)
-                bg = PIL.Image.new('RGBA', im.size, color=tuple(
-                    np.uint8(255 * self.color)))
+                bg = PIL.Image.new(
+                    "RGBA", im.size, color=tuple(np.uint8(255 * self.color))
+                )
                 bg.putalpha(bg_alpha)
                 im = PIL.Image.alpha_composite(bg, im)
         self.final_image = im
@@ -306,9 +313,7 @@ class Icon:
             size = 1
         if self.final_image is not None:
             imagebox = OffsetImage(self.final_image, zoom=size)
-            ab = AnnotationBbox(
-                imagebox, (x, y),  frameon=False,
-                pad=0)
+            ab = AnnotationBbox(imagebox, (x, y), frameon=False, pad=0)
             ax.add_artist(ab)
             zorder = ab.zorder
         else:
@@ -320,28 +325,53 @@ class Icon:
                 markersize = 50
             markersize = markersize * size
             if self.marker_front:
-                plt.plot(x, y, marker=self.marker, markeredgecolor=self.color,
-                         markerfacecolor=(0, 0, 0, 0), markersize=markersize,
-                         zorder=zorder + 0.1,
-                         markeredgewidth=self.markeredgewidth)
+                plt.plot(
+                    x,
+                    y,
+                    marker=self.marker,
+                    markeredgecolor=self.color,
+                    markerfacecolor=(0, 0, 0, 0),
+                    markersize=markersize,
+                    zorder=zorder + 0.1,
+                    markeredgewidth=self.markeredgewidth,
+                )
             else:
-                plt.plot(x, y, marker=self.marker, markeredgecolor=self.color,
-                         markerfacecolor=self.color, markersize=markersize,
-                         zorder=zorder - 0.1,
-                         markeredgewidth=self.markeredgewidth)
+                plt.plot(
+                    x,
+                    y,
+                    marker=self.marker,
+                    markeredgecolor=self.color,
+                    markerfacecolor=self.color,
+                    markersize=markersize,
+                    zorder=zorder - 0.1,
+                    markeredgewidth=self.markeredgewidth,
+                )
         if self.string is not None:
-            ax.annotate(self.string, (x, y),
-                        horizontalalignment='center',
-                        verticalalignment='center',
-                        zorder=zorder + 0.2,
-                        fontsize=self.font_size, fontname=self.font_name,
-                        color=self.font_color)
+            ax.annotate(
+                self.string,
+                (x, y),
+                horizontalalignment="center",
+                verticalalignment="center",
+                zorder=zorder + 0.2,
+                fontsize=self.font_size,
+                fontname=self.font_name,
+                color=self.font_color,
+            )
 
-    def _tick_label(self, x, y, size, ax=None, linewidth=None,
-            xybox=None, xycoords=None, box_alignment=None,
-                horizontalalignment=None,
-                verticalalignment=None,
-                rotation=None):
+    def _tick_label(
+        self,
+        x,
+        y,
+        size,
+        ax=None,
+        linewidth=None,
+        xybox=None,
+        xycoords=None,
+        box_alignment=None,
+        horizontalalignment=None,
+        verticalalignment=None,
+        rotation=None,
+    ):
 
         """
         uses the icon as a ticklabel at location x
@@ -353,8 +383,6 @@ class Icon:
                 the vertical position of the tick
             size (float)
                 scaling the size of the icon
-            offset (integer)
-                how far the icon should be from the axis in points
             ax (matplotlib axis)
                 the axis to put the label on
 
@@ -363,25 +391,27 @@ class Icon:
             ax = plt.gca()
         tickline_color = self.color
         if not np.any(tickline_color):
-            tickline_color = [.8, .8, .8]
+            tickline_color = [0.8, 0.8, 0.8]
         if self.final_image is not None:
-            imagebox = OffsetImage(self.final_image, zoom=size)
+            imagebox = OffsetImage(self.final_image, zoom=size, dpi_cor=True)
             ab = AnnotationBbox(
-                imagebox, (x, y),
+                imagebox,
+                (x, y),
                 xybox=xybox,
                 xycoords=xycoords,
                 box_alignment=box_alignment,
-                boxcoords='offset points',
-                bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
+                boxcoords="offset points",
+                bboxprops={"edgecolor": "none", "facecolor": "none"},
                 arrowprops={
-                    'linewidth': linewidth,
-                    'color': tickline_color,
-                    'arrowstyle': '-',
-                    'shrinkA': 0,
-                    'shrinkB': 1
-                    },
-                pad=0.,
-                annotation_clip=False)
+                    "linewidth": linewidth,
+                    "color": tickline_color,
+                    "arrowstyle": "-",
+                    "shrinkA": 0,
+                    "shrinkB": 1,
+                },
+                pad=0.0,
+                annotation_clip=False,
+            )
             zorder = ab.zorder
             ax.add_artist(ab)
         else:
@@ -400,60 +430,76 @@ class Icon:
             d.set_zorder(zorder_marker)
             d.set_alpha(0)
             if self.marker_front:
-                d.add_artist(plt.Line2D(
-                    [markersize / 2], [markersize / 2],
-                    marker=self.marker, markeredgecolor=self.color,
-                    markerfacecolor=(0, 0, 0, 0), markersize=markersize,
-                    markeredgewidth=self.markeredgewidth,
-                    transform=d.get_transform(),
-                    zorder=zorder_marker))
+                d.add_artist(
+                    plt.Line2D(
+                        [markersize / 2],
+                        [markersize / 2],
+                        marker=self.marker,
+                        markeredgecolor=self.color,
+                        markerfacecolor=(0, 0, 0, 0),
+                        markersize=markersize,
+                        markeredgewidth=self.markeredgewidth,
+                        transform=d.get_transform(),
+                        zorder=zorder_marker,
+                    )
+                )
             else:
-                d.add_artist(plt.Line2D(
-                    [markersize / 2], [markersize / 2],
-                    marker=self.marker, markeredgecolor=self.color,
-                    markerfacecolor=self.color, markersize=markersize,
-                    markeredgewidth=self.markeredgewidth,
-                    transform=d.get_transform(),
-                    zorder=zorder_marker))
+                d.add_artist(
+                    plt.Line2D(
+                        [markersize / 2],
+                        [markersize / 2],
+                        marker=self.marker,
+                        markeredgecolor=self.color,
+                        markerfacecolor=self.color,
+                        markersize=markersize,
+                        markeredgewidth=self.markeredgewidth,
+                        transform=d.get_transform(),
+                        zorder=zorder_marker,
+                    )
+                )
             ab_marker = AnnotationBbox(
-                d, (x, y),
+                d,
+                (x, y),
                 xybox=xybox,
                 xycoords=xycoords,
                 box_alignment=box_alignment,
-                boxcoords='offset points',
-                bboxprops={'edgecolor': 'none', 'facecolor': 'none'},
+                boxcoords="offset points",
+                bboxprops={"edgecolor": "none", "facecolor": "none"},
                 arrowprops={
-                    'linewidth': linewidth,
-                    'color': tickline_color,
-                    'arrowstyle': '-',
-                    'shrinkA': 0,
-                    'shrinkB': 1
-                    },
-                pad=0.,
-                annotation_clip=False)
+                    "linewidth": linewidth,
+                    "color": tickline_color,
+                    "arrowstyle": "-",
+                    "shrinkA": 0,
+                    "shrinkB": 1,
+                },
+                pad=0.0,
+                annotation_clip=False,
+            )
             ab_marker.set_zorder(zorder_marker)
             ab_marker.set_alpha(0)
             ax.add_artist(ab_marker)
         if self.string is not None:
             ax.annotate(
-                self.string, (x, y),
+                self.string,
+                (x, y),
                 xytext=xybox,
                 xycoords=xycoords,
-                textcoords='offset points',
+                textcoords="offset points",
                 horizontalalignment=horizontalalignment,
                 verticalalignment=verticalalignment,
                 arrowprops={
-                    'linewidth': linewidth,
-                    'color': tickline_color,
-                    'arrowstyle': '-',
-                    'shrinkA': 0,
-                    'shrinkB': 1
-                    },
+                    "linewidth": linewidth,
+                    "color": tickline_color,
+                    "arrowstyle": "-",
+                    "shrinkA": 0,
+                    "shrinkB": 1,
+                },
                 zorder=zorder + 0.2,
                 fontsize=self.font_size,
                 fontname=self.font_name,
                 color=self.font_color,
-                rotation=rotation)
+                rotation=rotation,
+            )
 
     def x_tick_label(self, x, size, offset, **kwarg):
         """
@@ -465,17 +511,23 @@ class Icon:
             size (float)
                 scaling the size of the icon
             offset (integer)
-                how far the icon should be from the axis in points
+                how far the icon should be from the axis in axis units
             ax (matplotlib axis)
                 the axis to put the label on
 
         """
-        self._tick_label(x=x, y=0, size=size, xybox=(0, -offset), xycoords=('data', 'axes fraction'),
-                box_alignment=(.5, 1),
-                horizontalalignment='center',
-                verticalalignment='bottom',
-                rotation=90,
-                **kwarg)
+        self._tick_label(
+            x=x,
+            y=0,
+            size=size,
+            xybox=(0, -offset),
+            xycoords=("data", "axes fraction"),
+            box_alignment=(0.5, 1),
+            horizontalalignment="center",
+            verticalalignment="bottom",
+            rotation=90,
+            **kwarg
+        )
 
     def y_tick_label(self, y, size, offset, **kwarg):
         """
@@ -487,22 +539,35 @@ class Icon:
             size (float)
                 scaling the size of the icon
             offset (integer)
-                how far the icon should be from the axis in points
+                how far the icon should be from the axis in axis units
             ax (matplotlib axis)
                 the axis to put the label on
 
         """
-        self._tick_label(x=0, y=y, size=size, xybox=(-offset, 0), xycoords=('axes fraction', 'data'),
-                box_alignment=(1, .5),
-                horizontalalignment='right',
-                verticalalignment='center',
-                rotation=0,
-                **kwarg)
+        self._tick_label(
+            x=0,
+            y=y,
+            size=size,
+            xybox=(-offset, 0),
+            xycoords=("axes fraction", "data"),
+            box_alignment=(1, 0.5),
+            horizontalalignment="right",
+            verticalalignment="center",
+            rotation=0,
+            **kwarg
+        )
 
 
-def icons_from_folder(folder, resolution=None, color=None,
-                      cmap=None, border_type=None, border_width=2,
-                      make_square=False, circ_cut=None):
+def icons_from_folder(
+    folder,
+    resolution=None,
+    color=None,
+    cmap=None,
+    border_type=None,
+    border_width=2,
+    make_square=False,
+    circ_cut=None,
+):
     """ generates a dictionary of Icons for all images in a folder
 
     """
@@ -511,11 +576,20 @@ def icons_from_folder(folder, resolution=None, color=None,
         try:
             im = PIL.Image.open(filename)
             icons[filename] = Icon(
-                image=im, color=color, resolution=resolution,
-                cmap=cmap, border_type=border_type,
+                image=im,
+                color=color,
+                resolution=resolution,
+                cmap=cmap,
+                border_type=border_type,
                 border_width=border_width,
-                make_square=make_square, circ_cut=circ_cut)
-        except (FileNotFoundError, UnidentifiedImageError, IsADirectoryError,
-                PermissionError):
+                make_square=make_square,
+                circ_cut=circ_cut,
+            )
+        except (
+            FileNotFoundError,
+            UnidentifiedImageError,
+            IsADirectoryError,
+            PermissionError,
+        ):
             pass
     return icons
