@@ -59,55 +59,68 @@ def sample_covariance_3d(tensor):
     xt_x = np.einsum('ij, ik-> ijk', tensor, tensor)
     s = np.mean(xt_x, axis=0)
     return s, xt_x
-    
-    # calculate sample covariance matrix s for each slice of the tensor
-    # einsum_superset = []
-    # cov_superset = []
-    # for slice_num in range(tensor.shape[2]):
-    #     array_slice = tensor[:, :, slice_num]
-    #     s, xt_x = sample_covariance(array_slice)
-    #     einsum_superset.append(xt_x)
-    #     cov_superset.append(s)
-
-    # # get expected value of the covariance matrix estimates
-    # einsum_tensor = np.stack(einsum_superset, axis=0)
-    # xt_x_mean = np.mean(einsum_tensor, axis=0)
-    # s_mean = np.mean(xt_x_mean, axis=0)
-    # return s_mean, xt_x_mean
 
 
-def shrinkage_transform(s, xt_x, dof):
+def shrinkage_transform(s, xt_x, dof, target='eye'):
     """
     Computes an optimal shrinkage estimate of a sample covariance matrix
-    as described by Ledoit and Wolfe (2004): "A well-conditioned
+    as described by the following publications:
+
+    Ledoit and Wolfe (2004): "A well-conditioned
     estimator for large-dimensional covariance matrices"
 
+    or
+
+    Schäfer, J., & Strimmer, K. (2005). "A Shrinkage Approach to Large-Scale
+    Covariance Matrix Estimation and Implications for Functional Genomics.""
+
     Args:
-        residuals(numpy.ndarray or list of these): n_residuals x n_channels
-            matrix of residuals
+        s(numpy.ndarray): covariance estimate
+        xt_x(numpy.ndarray): sample wise xTx product to compute variances etc.
         dof(int or list of int): degrees of freedom for covariance estimation
             defaults to n_res - 1, should be corrected for the number
             of regressors in a GLM if applicable.
+        target(str):
+            switch to choose the shrinkage target
+            'eye': multiple of the identity as a target. This is the simpler
+                estimate described by Ledoit and Wolfe
+            'diag': diagonal matrix as target. This is described by
+                Schäfer & Strimmer. results in a matrix with correct diagonal
+                and shrunk off-diagonal values
 
     Returns:
-        numpy.ndarray (or list): sigma_p: covariance matrix over channels
+        numpy.ndarray: shrunk covariance estimate
 
     """
-    # calculate the scalar estimators to find the optimal shrinkage:
-    # m, d^2, b^2 as in Ledoit & Wolfe paper
-    m = np.sum(np.diag(s)) / s.shape[0]
-    d2 = np.sum((s - m * np.eye(s.shape[0])) ** 2)
-    b2 = np.sum((xt_x - s) ** 2) / xt_x.shape[0] / xt_x.shape[0]
-    b2 = min(d2, b2)
-    # shrink covariance matrix
-    s_shrink = b2 / d2 * m * np.eye(s.shape[0]) \
-        + (d2-b2) / d2 * s
-    # correction for degrees of freedom
-    s_shrink = s_shrink * xt_x.shape[0] / dof
+    if target == 'eye':
+        # calculate the scalar estimators to find the optimal shrinkage:
+        # m, d^2, b^2 as in Ledoit & Wolfe paper
+        m = np.sum(np.diag(s)) / s.shape[0]
+        d2 = np.sum((s - m * np.eye(s.shape[0])) ** 2)
+        b2 = np.sum((xt_x - s) ** 2) / xt_x.shape[0] / xt_x.shape[0]
+        b2 = min(d2, b2)
+        # shrink covariance matrix
+        s_shrink = b2 / d2 * m * np.eye(s.shape[0]) \
+            + (d2-b2) / d2 * s
+        # correction for degrees of freedom
+        s_shrink = s_shrink * xt_x.shape[0] / dof
+    elif target == 'diag':
+        s = s * xt_x.shape[0] / dof
+        var = np.diag(s)
+        std = np.sqrt(var)
+        xt_x_standard = xt_x / np.expand_dims(std, 0) / np.expand_dims(std, 1)
+        xt_x_mean = np.mean(xt_x_standard, 0, keepdims=True)
+        var_hat = xt_x.shape[0] / dof ** 2 / (xt_x.shape[0]-1) \
+            * np.sum((xt_x_standard - xt_x_mean) ** 2, axis=0)
+        mask = ~np.eye(s.shape[0], dtype=np.bool)
+        lamb = np.sum(var_hat[mask]) / np.sum(xt_x_mean[0][mask] ** 2)
+        lamb = max(min(lamb, 1), 0)
+        scaling = np.eye(s.shape[0]) + (1-lamb) * mask
+        s_shrink = s * scaling
     return s_shrink
 
 
-def cov_from_residuals(residuals, dof=None, method='shrinkage'):
+def cov_from_residuals(residuals, dof=None, method='shrinkage_diag'):
     """
     Computes a covariance matrix for residuals and applies a shrinkage
     transform
@@ -140,9 +153,10 @@ def cov_from_residuals(residuals, dof=None, method='shrinkage'):
             dof = residuals.shape[0] - 1
         # calculate sample covariance matrix s
         s, xt_x = sample_covariance(residuals)
-        if method == 'shrinkage':
-            # apply shrinkage transform
-            cov_mat = shrinkage_transform(s, xt_x, dof)
+        if method == 'shrinkage_eye':
+            cov_mat = shrinkage_transform(s, xt_x, dof, target='eye')
+        elif method == 'shrinkage_diag':
+            cov_mat = shrinkage_transform(s, xt_x, dof, target='diag')
         elif method == 'diag':
             cov_mat = np.diag(np.diag(s)) * xt_x.shape[0] / dof
         elif method == 'full':
@@ -150,7 +164,7 @@ def cov_from_residuals(residuals, dof=None, method='shrinkage'):
     return cov_mat
 
 
-def prec_from_residuals(residuals, dof=None):
+def prec_from_residuals(residuals, dof=None, method='shrinkage_diag'):
     """
     Computes a covariance matrix for residuals, applies a shrinkage
     transform to it and finds its multiplicative inverse
@@ -167,7 +181,7 @@ def prec_from_residuals(residuals, dof=None):
         numpy.ndarray (or list): sigma_p: precision matrix over channels
 
     """
-    cov = cov_from_residuals(residuals=residuals, dof=dof)
+    cov = cov_from_residuals(residuals=residuals, dof=dof, method=method)
     if not isinstance(cov, np.ndarray) or len(cov.shape) > 2:
         prec = [None] * len(cov)
         for i in range(len(cov)):
@@ -177,7 +191,7 @@ def prec_from_residuals(residuals, dof=None):
     return prec
 
 
-def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage'):
+def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
     """
     Computes a covariance matrix for measurements and applies a shrinkage
     transform
@@ -201,9 +215,10 @@ def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage'):
         dof = tensor.shape[0] * (tensor.shape[2] - 1)
     # calculate sample covariance matrix s
     s_mean, xt_x_mean = sample_covariance_3d(tensor)
-    if method == 'shrinkage':
-        # apply shrinkage transform
-        cov_mat = shrinkage_transform(s_mean, xt_x_mean, dof)
+    if method == 'shrinkage_eye':
+        cov_mat = shrinkage_transform(s_mean, xt_x_mean, dof, target='eye')
+    elif method == 'shrinkage_diag':
+        cov_mat = shrinkage_transform(s_mean, xt_x_mean, dof, target='diag')
     elif method == 'diag':
         cov_mat = np.diag(np.diag(s_mean)) * xt_x_mean.shape[0] / dof
     elif method == 'full':
@@ -211,7 +226,7 @@ def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage'):
     return cov_mat
 
 
-def prec_from_measurements(dataset, obs_desc, dof=None, method='shrinkage'):
+def prec_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
     """
     Computes a covariance matrix for measurements, applies a shrinkage
     transform to it and finds its inverse, i.e. the precision matrix
