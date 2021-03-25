@@ -173,7 +173,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
     diff = _calc_pairwise_differences(measurements)
-    rdm = np.einsum('ij,ij->i', diff, diff)
+    rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='euclidean',
                rdm_descriptors=deepcopy(dataset.descriptors))
