@@ -127,6 +127,10 @@ class TestCalcRDM(unittest.TestCase):
         rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
                            method='mahalanobis')
         assert rdm.n_cond == 6
+        noise = np.linalg.inv(np.cov(np.random.randn(10, 5).T))
+        rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
+                           method='mahalanobis', noise=noise)
+        assert rdm.n_cond == 6
 
     def test_calc_crossnobis(self):
         rdm = rsr.calc_rdm_crossnobis(self.test_data,
