@@ -236,7 +236,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
             - 2 * kernel
         rdm = _extract_triu_(rdm) / measurements.shape[1]
         rdm = RDMs(dissimilarities=np.array([rdm]),
-                   dissimilarity_measure='euclidean',
+                   dissimilarity_measure='mahalanobis',
                    rdm_descriptors=deepcopy(dataset.descriptors))
         rdm.pattern_descriptors[descriptor] = desc
         rdm.descriptors['noise'] = noise
