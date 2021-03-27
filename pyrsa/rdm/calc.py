@@ -11,7 +11,7 @@ import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
 from pyrsa.data import average_dataset_by
-from pyrsa.util.matrix import pairwise_contrast_sparse
+from pyrsa.util.rdm_utils import _extract_triu_
 
 
 def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
@@ -494,8 +494,3 @@ def _check_noise(noise, n_channel):
     else:
         raise ValueError('noise(s) must have shape n_channel x n_channel')
     return noise
-
-
-def _extract_triu_(X):
-    mask = np.triu(np.ones_like(X, dtype=bool), k=1)
-    return X[mask]
