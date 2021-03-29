@@ -127,6 +127,10 @@ class TestCalcRDM(unittest.TestCase):
         rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
                            method='mahalanobis')
         assert rdm.n_cond == 6
+        noise = np.linalg.inv(np.cov(np.random.randn(10, 5).T))
+        rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
+                           method='mahalanobis', noise=noise)
+        assert rdm.n_cond == 6
 
     def test_calc_crossnobis(self):
         rdm = rsr.calc_rdm_crossnobis(self.test_data,
@@ -270,16 +274,19 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.rdm_descriptors['time'][0] == 0.0
 
     def test_calc_rdm_movie_crossnobis_no_descriptors(self):
-        rdm = rsr.calc_rdm_crossnobis(self.test_data_time_balanced,
-                                      descriptor='conds')
+        rdm = rsr.calc_rdm_movie(
+            self.test_data_time_balanced,
+            method='crossnobis', time_descriptor='time',
+            descriptor='conds')
         assert rdm.n_cond == 5
 
     def test_calc_rdm_movie_crossnobis_noise(self):
         noise = np.random.randn(10, 5)
         noise = np.matmul(noise.T, noise)
-        rdm = rsr.calc_rdm_crossnobis(self.test_data_time_balanced,
-                                      descriptor='conds',
-                                      noise=noise)
+        rdm = rsr.calc_rdm_movie(
+            self.test_data_time_balanced,
+            method='crossnobis', time_descriptor='time',
+            descriptor='conds', noise=noise)
         assert rdm.n_cond == 5
 
     def test_calc_rdm_movie_rdm_movie_poisson(self):
