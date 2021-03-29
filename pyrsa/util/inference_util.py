@@ -196,9 +196,9 @@ def all_tests(evaluations, noise_ceil, test_type='t-test',
         else:
             noise_lower_bs = noise_ceil[0].reshape(1, 1)
         p_pairwise = pair_tests(evaluations)
-        p_zero = ((evaluations < 0).sum(axis=0) + 1) / evaluations.shape[0]
+        p_zero = ((evaluations <= 0).sum(axis=0) + 1) / evaluations.shape[0]
         diffs = noise_lower_bs - evaluations
-        p_noise = ((diffs < 0).sum(axis=0) + 1) / evaluations.shape[0]
+        p_noise = ((diffs <= 0).sum(axis=0) + 1) / evaluations.shape[0]
     elif test_type == 'ranksum':
         noise_c = np.mean(noise_ceil[0])
         p_pairwise = ranksum_pair_test(evaluations)

@@ -56,18 +56,18 @@ class MeadowsIOTests(TestCase):
         self.assertEqual(rdms.descriptors.get('task_name'), 'arrangement')
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
         self.assertEqual(
-            rdms.rdm_descriptors.get('participants').tolist(),
+            rdms.rdm_descriptors.get('participants'),
             ['able-fly', 'clean-koi', 'cuddly-bunny']
         )
         self.assertEqual(rdms.dissimilarity_measure, 'euclidean')
         conds = rdms.pattern_descriptors.get('conds')
         assert_array_equal(conds[:2], ['stim118', 'stim117'])
         assert_array_almost_equal(
-            rdms.dissimilarities[0, :2], ## 'able-fly'
+            rdms.dissimilarities[0, :2],  # 'able-fly'
             [0.0165981067918494, 0.0123233998529090]
         )
         assert_array_almost_equal(
-            rdms.dissimilarities[1, :2], ## 'clean-koy'
+            rdms.dissimilarities[1, :2],  # 'clean-koy'
             [0.00773234353884765, 0.00589909056106329]
         )
 

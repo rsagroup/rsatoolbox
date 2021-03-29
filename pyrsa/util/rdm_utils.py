@@ -78,7 +78,7 @@ def _get_n_from_reduced_vectors(x):
         int: n: size of the RDM
 
     """
-    return int(np.ceil(np.sqrt(x.shape[1] * 2)))
+    return max(int(np.ceil(np.sqrt(x.shape[1] * 2))), 1)
 
 
 def _get_n_from_length(n):
@@ -110,3 +110,17 @@ def add_pattern_index(rdms, pattern_descriptor):
     pattern_select = rdms.pattern_descriptors[pattern_descriptor]
     pattern_select = np.unique(pattern_select)
     return pattern_descriptor, pattern_select
+
+
+def _extract_triu_(X):
+    """ extracts the upper triangular vector as a masked view
+
+    Args:
+        X (numpy.ndarray): 2D symmetric matrix
+
+    Returns:
+        vector version of X
+
+    """
+    mask = np.triu(np.ones_like(X, dtype=bool), k=1)
+    return X[mask]
