@@ -387,6 +387,7 @@ class Icon:
                 the axis to put the label on
 
         """
+        ret_val = {}
         if ax is None:
             ax = plt.gca()
         tickline_color = self.color
@@ -394,7 +395,7 @@ class Icon:
             tickline_color = [0.8, 0.8, 0.8]
         if self.final_image is not None:
             imagebox = OffsetImage(self.final_image, zoom=size, dpi_cor=True)
-            ab = AnnotationBbox(
+            ret_val['image'] = AnnotationBbox(
                 imagebox,
                 (x, y),
                 xybox=xybox,
@@ -412,8 +413,8 @@ class Icon:
                 pad=0.0,
                 annotation_clip=False,
             )
-            zorder = ab.zorder
-            ax.add_artist(ab)
+            zorder = ret_val['image'].zorder
+            ax.add_artist(ret_val['image'])
         else:
             zorder = 0
         if self.marker:
@@ -457,7 +458,7 @@ class Icon:
                         zorder=zorder_marker,
                     )
                 )
-            ab_marker = AnnotationBbox(
+            rev_val['marker'] = AnnotationBbox(
                 d,
                 (x, y),
                 xybox=xybox,
@@ -475,31 +476,32 @@ class Icon:
                 pad=0.0,
                 annotation_clip=False,
             )
-            ab_marker.set_zorder(zorder_marker)
-            ab_marker.set_alpha(0)
-            ax.add_artist(ab_marker)
+            rev_val['marker'].set_zorder(zorder_marker)
+            rev_val['marker'].set_alpha(0)
+            ax.add_artist(rev_val['marker'])
         if self.string is not None:
-            ax.annotate(
-                self.string,
-                (x, y),
-                xytext=xybox,
-                xycoords=xycoords,
-                textcoords="offset points",
-                horizontalalignment=horizontalalignment,
-                verticalalignment=verticalalignment,
-                arrowprops={
-                    "linewidth": linewidth,
-                    "color": tickline_color,
-                    "arrowstyle": "-",
-                    "shrinkA": 0,
-                    "shrinkB": 1,
-                },
-                zorder=zorder + 0.2,
-                fontsize=self.font_size,
-                fontname=self.font_name,
-                color=self.font_color,
-                rotation=rotation,
-            )
+            ret_val['string'] = ax.annotate(
+                    self.string,
+                    (x, y),
+                    xytext=xybox,
+                    xycoords=xycoords,
+                    textcoords="offset points",
+                    horizontalalignment=horizontalalignment,
+                    verticalalignment=verticalalignment,
+                    arrowprops={
+                        "linewidth": linewidth,
+                        "color": tickline_color,
+                        "arrowstyle": "-",
+                        "shrinkA": 0,
+                        "shrinkB": 1,
+                        },
+                    zorder=zorder + 0.2,
+                    fontsize=self.font_size,
+                    fontname=self.font_name,
+                    color=self.font_color,
+                    rotation=rotation,
+                    )
+        return ret_val
 
     def x_tick_label(self, x, size, offset, **kwarg):
         """
@@ -516,7 +518,7 @@ class Icon:
                 the axis to put the label on
 
         """
-        self._tick_label(
+        return self._tick_label(
             x=x,
             y=0,
             size=size,
@@ -544,7 +546,7 @@ class Icon:
                 the axis to put the label on
 
         """
-        self._tick_label(
+        return self._tick_label(
             x=0,
             y=y,
             size=size,
