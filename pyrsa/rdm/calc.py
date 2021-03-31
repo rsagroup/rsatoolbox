@@ -6,11 +6,12 @@ Calculation of RDMs from datasets
 """
 
 from collections.abc import Iterable
+from copy import deepcopy
 import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
 from pyrsa.data import average_dataset_by
-from pyrsa.util.matrix import pairwise_contrast_sparse
+from pyrsa.util.rdm_utils import _extract_triu_
 
 
 def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
@@ -39,16 +40,25 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
         rdms = []
         for i_dat in range(len(dataset)):
             if noise is None:
-                rdms.append(calc_rdm(dataset[i_dat], method=method,
-                                     descriptor=descriptor))
+                rdms.append(calc_rdm(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor,
+                    cv_descriptor=cv_descriptor,
+                    prior_lambda=prior_lambda, prior_weight=prior_weight))
             elif isinstance(noise, np.ndarray) and noise.ndim == 2:
-                rdms.append(calc_rdm(dataset[i_dat], method=method,
-                                     descriptor=descriptor,
-                                     noise=noise))
+                rdms.append(calc_rdm(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor,
+                    noise=noise,
+                    cv_descriptor=cv_descriptor,
+                    prior_lambda=prior_lambda, prior_weight=prior_weight))
             elif isinstance(noise, Iterable):
-                rdms.append(calc_rdm(dataset[i_dat], method=method,
-                                     descriptor=descriptor,
-                                     noise=noise[i_dat]))
+                rdms.append(calc_rdm(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor,
+                    noise=noise[i_dat],
+                    cv_descriptor=cv_descriptor,
+                    prior_lambda=prior_lambda, prior_weight=prior_weight))
         rdm = concat(rdms)
     else:
         if method == 'euclidean':
@@ -74,9 +84,10 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
     return rdm
 
 
-def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
-             cv_descriptor=None, prior_lambda=1, prior_weight=0.1,
-             time_descriptor = 'time', bins=None):
+def calc_rdm_movie(
+        dataset, method='euclidean', descriptor=None, noise=None,
+        cv_descriptor=None, prior_lambda=1, prior_weight=0.1,
+        time_descriptor='time', bins=None):
     """
     calculates an RDM movie from an input TemporalDataset
 
@@ -105,16 +116,19 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
         rdms = []
         for i_dat, _ in enumerate(dataset):
             if noise is None:
-                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
-                                     descriptor=descriptor))
+                rdms.append(calc_rdm_movie(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor))
             elif isinstance(noise, np.ndarray) and noise.ndim == 2:
-                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
-                                     descriptor=descriptor,
-                                     noise=noise))
+                rdms.append(calc_rdm_movie(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor,
+                    noise=noise))
             elif isinstance(noise, Iterable):
-                rdms.append(calc_rdm_movie(dataset[i_dat], method=method,
-                                     descriptor=descriptor,
-                                     noise=noise[i_dat]))
+                rdms.append(calc_rdm_movie(
+                    dataset[i_dat], method=method,
+                    descriptor=descriptor,
+                    noise=noise[i_dat]))
         rdm = concat(rdms)
     else:
         if bins is not None:
@@ -129,8 +143,9 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
         for dat in splited_data:
             dat_single = dat.convert_to_dataset(time_descriptor)
             rdms.append(calc_rdm(dat_single, method=method,
-                                 descriptor=descriptor,noise=noise,
-                                 cv_descriptor=cv_descriptor, prior_lambda=prior_lambda,
+                                 descriptor=descriptor, noise=noise,
+                                 cv_descriptor=cv_descriptor,
+                                 prior_lambda=prior_lambda,
                                  prior_weight=prior_weight))
 
         rdm = concat(rdms)
@@ -140,27 +155,24 @@ def calc_rdm_movie(dataset, method='euclidean', descriptor=None, noise=None,
 
 def calc_rdm_euclid(dataset, descriptor=None):
     """
-    calculates an RDM from an input dataset using euclidean distance
-    If multiple instances of the same condition are found in the dataset
-    they are averaged.
-
     Args:
         dataset (pyrsa.data.DatasetBase):
             The dataset the RDM is computed from
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
             defaults to one row/column per row in the dataset
-
     Returns:
         pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
-
     """
+
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
-    diff = _calc_pairwise_differences(measurements)
-    rdm = np.einsum('ij,ij->i', diff, diff) / measurements.shape[1]
+    sum_sq_measurements = np.sum(measurements**2, axis=1, keepdims=True)
+    rdm = sum_sq_measurements + sum_sq_measurements.T \
+        - 2 * np.dot(measurements, measurements.T)
+    rdm = _extract_triu_(rdm) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='euclidean',
-               descriptors=dataset.descriptors)
+               rdm_descriptors=deepcopy(dataset.descriptors))
     rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
@@ -188,7 +200,7 @@ def calc_rdm_correlation(dataset, descriptor=None):
     rdm = 1 - np.einsum('ik,jk', ma, ma)
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='correlation',
-               descriptors=dataset.descriptors)
+               rdm_descriptors=deepcopy(dataset.descriptors))
     rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
@@ -219,15 +231,13 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     else:
         measurements, desc, descriptor = _parse_input(dataset, descriptor)
         noise = _check_noise(noise, dataset.n_channel)
-        # calculate difference @ precision @ difference for all pairs
-        # first calculate the difference vectors diff and precision @ diff
-        # then calculate the inner product
-        diff = _calc_pairwise_differences(measurements)
-        diff2 = (noise @ diff.T).T
-        rdm = np.einsum('ij,ij->i', diff, diff2) / measurements.shape[1]
+        kernel = measurements @ noise @ measurements.T
+        rdm = np.expand_dims(np.diag(kernel), 0) + np.expand_dims(np.diag(kernel), 1)\
+            - 2 * kernel
+        rdm = _extract_triu_(rdm) / measurements.shape[1]
         rdm = RDMs(dissimilarities=np.array([rdm]),
-                   dissimilarity_measure='Mahalanobis',
-                   descriptors=dataset.descriptors)
+                   dissimilarity_measure='mahalanobis',
+                   rdm_descriptors=deepcopy(dataset.descriptors))
         rdm.pattern_descriptors[descriptor] = desc
         rdm.descriptors['noise'] = noise
     return rdm
@@ -273,6 +283,8 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
 
     """
     noise = _check_noise(noise, dataset.n_channel)
+    if noise is None:
+        noise = np.eye(dataset.n_channel)
     if descriptor is None:
         raise ValueError('descriptor must be a string! Crossvalidation' +
                          'requires multiple measurements to be grouped')
@@ -282,7 +294,6 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
         cv_descriptor = 'cv_desc'
     dataset.sort_by(descriptor)
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
-    weights = []
     rdms = []
     if noise is None or (isinstance(noise, np.ndarray) and noise.ndim == 2):
         for i_fold in range(len(cv_folds)):
@@ -294,23 +305,9 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
                 average_dataset_by(data_train, descriptor)
             measurements_test, _, _ = \
                 average_dataset_by(data_test, descriptor)
-            n_cond = measurements_train.shape[0]
-            rdm = np.empty(int(n_cond * (n_cond-1) / 2))
-            k = 0
-            for i_cond in range(n_cond - 1):
-                for j_cond in range(i_cond + 1, n_cond):
-                    diff_train = measurements_train[i_cond] \
-                        - measurements_train[j_cond]
-                    diff_test = measurements_test[i_cond] \
-                        - measurements_test[j_cond]
-                    if noise is None:
-                        rdm[k] = np.sum(diff_train * diff_test)
-                    else:
-                        rdm[k] = np.sum(diff_train
-                                        * np.matmul(noise, diff_test))
-                    k += 1
+            rdm = _calc_rdm_crossnobis_single(
+                measurements_train, measurements_test, noise)
             rdms.append(rdm)
-            weights.append(data_test.n_obs)
     else:  # a list of noises was provided
         measurements = []
         variances = []
@@ -320,17 +317,16 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
             variances.append(np.linalg.inv(noise[i_fold]))
         for i_fold in range(len(cv_folds)):
             for j_fold in range(i_fold + 1, len(cv_folds)):
-                if i_fold != j_fold:
-                    rdm = _calc_rdm_crossnobis_single(
-                        measurements[i_fold], measurements[j_fold],
-                        np.linalg.inv(variances[i_fold]
-                                      + variances[j_fold]))
-                    rdms.append(rdm)
+                rdm = _calc_rdm_crossnobis_single(
+                    measurements[i_fold], measurements[j_fold],
+                    np.linalg.inv(variances[i_fold]
+                                  + variances[j_fold]))
+                rdms.append(rdm)
     rdms = np.array(rdms)
-    rdm = np.einsum('ij->j', rdms)
+    rdm = np.einsum('ij->j', rdms) / rdms.shape[0]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='crossnobis',
-               descriptors=dataset.descriptors)
+               rdm_descriptors=deepcopy(dataset.descriptors))
     _, desc, _ = average_dataset_by(dataset, descriptor)
     rdm.pattern_descriptors[descriptor] = desc
     rdm.descriptors['noise'] = noise
@@ -359,13 +355,14 @@ def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
     measurements = (measurements + prior_lambda * prior_weight) \
-        / (prior_lambda * prior_weight)
-    diff = _calc_pairwise_differences(measurements)
-    diff_log = _calc_pairwise_differences(np.log(measurements))
-    rdm = np.einsum('ij,ij->i', diff, diff_log) / measurements.shape[1]
+        / (1 + prior_weight)
+    kernel = measurements @ np.log(measurements).T
+    rdm = np.expand_dims(np.diag(kernel), 0) + np.expand_dims(np.diag(kernel), 1)\
+        - kernel - kernel.T
+    rdm = _extract_triu_(rdm) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='poisson',
-               descriptors=dataset.descriptors)
+               rdm_descriptors=deepcopy(dataset.descriptors))
     rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
@@ -411,37 +408,27 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
         measurements_test, _, _ = average_dataset_by(data_test, descriptor)
         measurements_train = (measurements_train
                               + prior_lambda * prior_weight) \
-            / (prior_lambda * prior_weight)
+            / (1 + prior_weight)
         measurements_test = (measurements_test
                              + prior_lambda * prior_weight) \
-            / (prior_lambda * prior_weight)
-        diff = _calc_pairwise_differences(measurements_train)
-        diff_log = _calc_pairwise_differences(np.log(measurements_test))
-        rdm = np.einsum('ij,ij->i', diff, diff_log) \
-            / measurements_train.shape[1]
+            / (1 + prior_weight)
+        kernel = measurements_train @ np.log(measurements_test).T
+        rdm = np.expand_dims(np.diag(kernel), 0) + np.expand_dims(np.diag(kernel), 1)\
+            - kernel - kernel.T
+        rdm = _extract_triu_(rdm) / measurements_train.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='poisson_cv',
-               descriptors=dataset.descriptors)
+               rdm_descriptors=deepcopy(dataset.descriptors))
     _, desc, _ = average_dataset_by(dataset, descriptor)
     rdm.pattern_descriptors[descriptor] = desc
     return rdm
 
 
-def _calc_rdm_crossnobis_single_sparse(measurements1, measurements2, noise):
-    c_matrix = pairwise_contrast_sparse(np.arange(measurements1.shape[0]))
-    diff_1 = c_matrix @ measurements1
-    diff_2 = c_matrix @ measurements2
-    diff_2 = noise @ diff_2.transpose()
-    rdm = np.einsum('kj,jk->k', diff_1, diff_2) / measurements1.shape[1]
-    return rdm
-
-
 def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
-    diff_1 = _calc_pairwise_differences(measurements1)
-    diff_2 = _calc_pairwise_differences(measurements2)
-    diff_2 = noise @ diff_2.transpose()
-    rdm = np.einsum('kj,jk->k', diff_1, diff_2) / measurements1.shape[1]
-    return rdm
+    kernel = measurements1 @ noise @ measurements2.T
+    rdm = np.expand_dims(np.diag(kernel), 0) + np.expand_dims(np.diag(kernel), 1)\
+        - kernel - kernel.T
+    return _extract_triu_(rdm) / measurements1.shape[1]
 
 
 def _gen_default_cv_descriptor(dataset, descriptor):
