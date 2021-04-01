@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from pyrsa.rdm.rdms import RDMs
 
 
-def expand(
+def from_partials(
     list_of_rdms: List[RDMs],
     all_patterns: Optional[List[str]]=None,
     descriptor: str='conds') -> RDMs:
