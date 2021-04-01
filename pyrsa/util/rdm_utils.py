@@ -145,3 +145,17 @@ def _parse_input_rdms(rdm1, rdm2):
     if not vector1_no_nan.shape[1] == vector2_no_nan.shape[1]:
         raise ValueError('rdm1 and rdm2 have different nan positions')
     return vector1_no_nan, vector2_no_nan, nan_idx
+
+
+def _extract_triu_(X):
+    """ extracts the upper triangular vector as a masked view
+
+    Args:
+        X (numpy.ndarray): 2D symmetric matrix
+
+    Returns:
+        vector version of X
+
+    """
+    mask = np.triu(np.ones_like(X, dtype=bool), k=1)
+    return X[mask]
