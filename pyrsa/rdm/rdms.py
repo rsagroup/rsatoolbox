@@ -5,13 +5,11 @@ Definition of RSA RDMs class and subclasses
 
 @author: baihan
 """
-from collections import Counter
 from copy import deepcopy
+from collections.abc import Iterable
 import numpy as np
 from scipy.stats import rankdata
-from collections.abc import Iterable
-from scipy.spatial.distance import squareform
-from pyrsa.rdm.align import _mean, _align
+from pyrsa.rdm.combine import _mean
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -20,7 +18,6 @@ from pyrsa.util.descriptor_utils import subset_descriptor
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import append_descriptor
 from pyrsa.util.data_utils import extract_dict
-from collections.abc import Iterable
 from pyrsa.util.file_io import write_dict_hdf5
 from pyrsa.util.file_io import write_dict_pkl
 from pyrsa.util.file_io import read_dict_hdf5
@@ -404,123 +401,26 @@ class RDMs:
             else:
                 raise ValueError(f'Unknown sorting method: {method}')
 
-    @classmethod
-    def expand(cls, list_of_rdms, all_patterns=None, descriptor='conds'):
-        """Make larger RDMs with missing values where needed
 
-        Any object-level descriptors will be turned into rdm_descriptors
-        if they do not match across objects.
-
-        Args:
-            list_of_rdms (list): List of RDMs objects
-            all_patterns (list, optional): The full list of pattern
-                descriptors. Defaults to None, in which case the full
-                list is the union of all input rdms' values for the
-                pattern descriptor chosen.
-            descriptor (str, optional): The pattern descriptor on the basis
-                of which to expand. Defaults to 'conds'.
-
-        Returns:
-            RDMs: Object containing all input rdms on the larger scale,
-                with missing values where required
-        """
-
-        def pdescs(rdms, descriptor):
-            return list(rdms.pattern_descriptors.get(descriptor, []))
-
-        if all_patterns is None:
-            all_patterns = []
-            for rdms in list_of_rdms:
-                all_patterns += pdescs(rdms, descriptor)
-            all_patterns = list(dict.fromkeys(all_patterns).keys())
-
-        n_rdm_objs = len(list_of_rdms)
-        n_rdms = sum([rdms.n_rdm for rdms in list_of_rdms])
-        n_patterns = len(all_patterns)
-
-        desc_tuples = []
-        rdm_desc_names = []
-        for rdms in list_of_rdms:
-            desc_tuples += list(rdms.descriptors.items())
-            rdm_desc_names += list(rdms.rdm_descriptors.keys())
-        descriptors = dict(
-            [d for d, c in Counter(desc_tuples).items() if c == n_rdm_objs]
-        )
-        desc_diff_names = set(
-            [d[0] for d, c in Counter(desc_tuples).items() if c != n_rdm_objs]
-        )
-        rdm_desc_names = set(rdm_desc_names + list(desc_diff_names))
-        rdm_descriptors = dict([(n, [None]*n_rdms) for n in rdm_desc_names])
-
-        measure = None
-        vector_len = int(n_patterns * (n_patterns-1) / 2)
-        vectors = np.full((n_rdms, vector_len), np.nan)
-        rdm_id = 0
-        for rdms in list_of_rdms:
-            measure = rdms.dissimilarity_measure
-            pidx = [all_patterns.index(i) for i in pdescs(rdms, descriptor)]
-            for rdm_local_id, utv in enumerate(rdms.dissimilarities):
-                rdm = np.full((len(all_patterns), len(all_patterns)), np.nan)
-                rdm[np.ix_(pidx, pidx)] = squareform(utv, checks=False)
-                vectors[rdm_id, :] = squareform(rdm, checks=False)
-                for name in rdm_descriptors.keys():
-                    if name in rdms.rdm_descriptors:
-                        val = rdms.rdm_descriptors[name][rdm_local_id]
-                        rdm_descriptors[name][rdm_id] = val
-                    elif name in rdms.descriptors:
-                        rdm_descriptors[name][rdm_id] = rdms.descriptors[name]
-                rdm_id += 1
-
-        return RDMs(
-            dissimilarities=vectors,
-            dissimilarity_measure=measure,
-            descriptors=descriptors,
-            rdm_descriptors=rdm_descriptors,
-            pattern_descriptors=dict([(descriptor, all_patterns)])
-        )
-
-    def align(self, method='evidence'):
-        """Bring RDMs closer together
-
-        Iteratively scales RDMs based on pairs in-common.
-        Also adds an RDM descriptor with the weights used.
-
-        Args:
-            method (str, optional): One of 'evidence', 'setsize' or
-                'simple'. Defaults to 'evidence'.
-
-        Returns:
-            RDMs: RDMs object with the aligned RDMs
-        """
-        aligned, weights = _align(self.dissimilarities, method)
-        rdm_descriptors = deepcopy(self.rdm_descriptors)
-        if weights is not None:
-            rdm_descriptors['weights'] = weights
-        return RDMs(
-            dissimilarities=aligned,
-            dissimilarity_measure=self.dissimilarity_measure,
-            descriptors=deepcopy(self.descriptors),
-            rdm_descriptors=rdm_descriptors,
-            pattern_descriptors=deepcopy(self.pattern_descriptors)
-        )
-
-    def mean(self, weights='stored'):
+    def mean(self, weights=None):
         """Average rdm of all rdms contained
 
         Args:
             weights (str or ndarray, optional): One of:
-                'stored': Use the weights contained in `rdm_descriptor` "weights"
-                ndarray: Weights array of the shape of RDMs.dissimilarities
                 None: No weighting applied
+                str: Use the weights contained in the `rdm_descriptor` with this name
+                ndarray: Weights array of the shape of RDMs.dissimilarities
 
         Returns:
             `pyrsa.rdm.rdms.RDMs`: New RDMs object with one vector
         """
-        if weights == 'stored':
-            weights = self.rdm_descriptors.get('weights')
-        new_descriptors = dict(
-            [(k, v) for (k, v) in self.descriptors.items() if k != 'weights']
-        )
+        if str(weights) in self.rdm_descriptors:
+            new_descriptors = dict(
+                [(k, v) for (k, v) in self.descriptors.items() if k != weights]
+            )
+            weights = self.rdm_descriptors[weights]
+        else:
+            new_descriptors = deepcopy(self.descriptors)
         return RDMs(
             dissimilarities=np.array([_mean(self.dissimilarities, weights)]),
             dissimilarity_measure=self.dissimilarity_measure,

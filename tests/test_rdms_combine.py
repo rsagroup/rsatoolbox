@@ -1,4 +1,4 @@
-"""Unit tests for aligning and averaging partial RDMs
+"""Unit tests for rescaling and averaging partial RDMs
 """
 #pylint: disable=import-outside-toplevel, no-self-use
 from unittest import TestCase
@@ -12,14 +12,15 @@ def non_nan(vectors, row=0):
     return vectors[row, ~isnan(vectors[row, :])]
 
 
-class RdmsAlignTests(TestCase):
-    """Unit tests for aligning and averaging partial RDMs
+class RdmsCombineTests(TestCase):
+    """Unit tests for rescaling and averaging partial RDMs
     """
 
-    def test_align(self):
-        """The align method bring the RDMs as close together as possible
+    def test_rescale(self):
+        """The rescale function bring the RDMs as close together as possible
         """
         from pyrsa.rdm.rdms import RDMs
+        from pyrsa.rdm.combine import rescale
         partial=array([
             [  1,   2, nan,   3, nan, nan],
             [nan, nan, nan,   4,   5,   6],
@@ -27,40 +28,41 @@ class RdmsAlignTests(TestCase):
         partial_rdms = RDMs(
             dissimilarities=partial
         )
-        aligned_rdms = partial_rdms.align()
-        aligned = aligned_rdms.dissimilarities
-        assert_almost_equal(aligned[0, 3], aligned[1, 3], decimal=4)
+        rescaled_rdms = rescale(partial_rdms)
+        rescaled = rescaled_rdms.dissimilarities
+        assert_almost_equal(rescaled[0, 3], rescaled[1, 3], decimal=4)
         assert_almost_equal(
-            pearsonr(non_nan(partial), non_nan(aligned))[0],
+            pearsonr(non_nan(partial), non_nan(rescaled))[0],
             1,
             decimal=7
         )
-        actual_aligned = array([
+        actual_rescaled = array([
             [0.1438, 0.2877, nan, 0.4315,    nan,    nan],
             [   nan,    nan, nan, 0.4316, 0.5395, 0.6474]
         ])
-        assert_almost_equal(aligned, actual_aligned, decimal=4)
+        assert_almost_equal(rescaled, actual_rescaled, decimal=4)
         assert_array_equal(
-            aligned_rdms.rdm_descriptors.get('weights'),
+            rescaled_rdms.rdm_descriptors.get('rescalingWeights'),
             array([
                 [  1,   4, nan,    9,  nan,  nan],
                 [nan, nan, nan,   16,   25,   36],
             ])
         )
 
-    def test_align_setsize(self):
-        """The align method bring the RDMs as close together as possible
+    def test_rescale_setsize(self):
+        """The rescale function bring the RDMs as close together as possible
         """
         from pyrsa.rdm.rdms import RDMs
+        from pyrsa.rdm.combine import rescale
         partial_rdms = RDMs(
             dissimilarities=array([
                 [  1,   2, nan,   3, nan, nan],
                 [nan, nan, nan,   4,   5, nan],
             ])
         )
-        aligned_rdms = partial_rdms.align(method='setsize')
+        rescaled_rdms = rescale(partial_rdms, method='setsize')
         assert_almost_equal(
-            aligned_rdms.rdm_descriptors.get('weights'),
+            rescaled_rdms.rdm_descriptors.get('rescalingWeights'),
             array([
                 [0.3333, 0.3333, nan, 0.3333,  nan,  nan],
                 [   nan,    nan, nan,    0.5,   0.5, nan],
@@ -79,7 +81,7 @@ class RdmsAlignTests(TestCase):
             ])
         )
         assert_almost_equal(
-            partial_rdms.mean(weights=None).dissimilarities,
+            partial_rdms.mean().dissimilarities,
             array([[ 1.5,  1.5, nan, 3.5, 5, 6]])
         )
 
@@ -102,9 +104,9 @@ class RdmsAlignTests(TestCase):
             array([[1.6667, 1.3333, nan, 3.6667, 5.0000, 6.0000]]),
             decimal=3
         )
-        partial_rdms.rdm_descriptors['weights'] = weights
+        partial_rdms.rdm_descriptors['theWeights'] = weights
         assert_almost_equal(
-            partial_rdms.mean(weights='stored').dissimilarities,
+            partial_rdms.mean(weights='theWeights').dissimilarities,
             array([[1.6667, 1.3333, nan, 3.6667, 5.0000, 6.0000]]),
             decimal=3
         )
