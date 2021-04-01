@@ -131,6 +131,39 @@ def resample(n_subj, n_stim, n_repeat, n_cell, folder='allen_data',
     return datasets
 
 
+def get_model_rdm(folder='allen_data', method='crossnobis', sim_type='cosine',
+                  targeted_structure='VISal', min_cell=20):
+    csv_file = folder + '.csv'
+    exp_df = pd.read_csv(csv_file)
+    exp_df = exp_df[exp_df.n_cell >= min_cell]
+    right_tar_df = exp_df[exp_df['targeted_structure'] == targeted_structure]
+    subs = np.unique(right_tar_df['donor_name'])
+    datasets = []
+    for i_subj, subj in enumerate(subs):
+        right_sub_df = right_tar_df[
+            right_tar_df['donor_name'] == subj]
+        for i_exp, exp_row in right_sub_df.iterrows():
+            exp_id = exp_row['id']
+            dat = np.load('allen_data/U_%d.npz' % exp_id)
+            U = dat['U']
+            stimulus = dat['stimulus']
+            dataset = pyrsa.data.Dataset(
+                U,
+                obs_descriptors={
+                    'stim': stimulus},
+                descriptors={
+                    'subj': i_subj,
+                    'targeted_structure': targeted_structure}
+                )
+            datasets.append(dataset)
+    # we don't have a cv_descriptor here
+    rdms = pyrsa.rdm.calc_rdm(datasets, method=method, descriptor='stim',
+                              cv_descriptor=None)
+    rdm = pyrsa.util.inference_util.pool_rdm(rdms)
+    return rdm
+
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
