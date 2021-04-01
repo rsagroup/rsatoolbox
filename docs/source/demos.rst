@@ -7,3 +7,4 @@ Demos
    :maxdepth: 2
 
    exercise_all
+   rescale_partials
