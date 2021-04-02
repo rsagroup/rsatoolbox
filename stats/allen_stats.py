@@ -12,7 +12,9 @@ import allensdk.brain_observatory.stimulus_info as stim_info
 import numpy as np
 import pandas as pd
 import os
+import tqdm
 import pyrsa
+from helpers import run_inference
 
 
 boc = BrainObservatoryCache(manifest_file='boc/manifest.json')
@@ -133,35 +135,89 @@ def resample(n_subj, n_stim, n_repeat, n_cell, folder='allen_data',
 
 def get_model_rdm(folder='allen_data', method='crossnobis', sim_type='cosine',
                   targeted_structure='VISal', min_cell=20):
-    csv_file = folder + '.csv'
-    exp_df = pd.read_csv(csv_file)
-    exp_df = exp_df[exp_df.n_cell >= min_cell]
-    right_tar_df = exp_df[exp_df['targeted_structure'] == targeted_structure]
-    subs = np.unique(right_tar_df['donor_name'])
-    datasets = []
-    for i_subj, subj in enumerate(subs):
-        right_sub_df = right_tar_df[
-            right_tar_df['donor_name'] == subj]
-        for i_exp, exp_row in right_sub_df.iterrows():
-            exp_id = exp_row['id']
-            dat = np.load('allen_data/U_%d.npz' % exp_id)
-            U = dat['U']
-            stimulus = dat['stimulus']
-            dataset = pyrsa.data.Dataset(
-                U,
-                obs_descriptors={
-                    'stim': stimulus},
-                descriptors={
-                    'subj': i_subj,
-                    'targeted_structure': targeted_structure}
-                )
-            datasets.append(dataset)
-    # we don't have a cv_descriptor here
-    rdms = pyrsa.rdm.calc_rdm(datasets, method=method, descriptor='stim',
-                              cv_descriptor=None)
-    rdm = pyrsa.util.inference_util.pool_rdm(rdms)
+    file_name = os.path.join(folder, method, sim_type)
+    os.makedirs(file_name, exist_ok=True)
+    file_name = os.path.join(
+        file_name, targeted_structure + '_' + str(min_cell) + '.hdf5')
+    if os.path.exists(file_name):
+        rdm = pyrsa.rdm.load_rdm(file_name)
+    else:
+        csv_file = folder + '.csv'
+        exp_df = pd.read_csv(csv_file)
+        exp_df = exp_df[exp_df.n_cell >= min_cell]
+        right_tar_df = exp_df[exp_df['targeted_structure'] == targeted_structure]
+        subs = np.unique(right_tar_df['donor_name'])
+        datasets = []
+        for i_subj, subj in enumerate(subs):
+            right_sub_df = right_tar_df[
+                right_tar_df['donor_name'] == subj]
+            for i_exp, exp_row in right_sub_df.iterrows():
+                exp_id = exp_row['id']
+                dat = np.load('allen_data/U_%d.npz' % exp_id)
+                U = dat['U']
+                stimulus = dat['stimulus']
+                dataset = pyrsa.data.Dataset(
+                    U,
+                    obs_descriptors={
+                        'stim': stimulus},
+                    descriptors={
+                        'subj': i_subj,
+                        'targeted_structure': targeted_structure}
+                    )
+                datasets.append(dataset)
+        # we don't have a cv_descriptor here
+        rdms = pyrsa.rdm.calc_rdm(datasets, method=method, descriptor='stim',
+                                  cv_descriptor=None)
+        rdm = pyrsa.util.inference_util.pool_rdm(rdms, method=sim_type)
+        rdm.save(file_name)
     return rdm
 
+
+def get_models(folder='allen_data', method='crossnobis', sim_type='cosine',
+               min_cell=20):
+    target_structures = ['VISl', 'VISpm', 'VISrl', 'VISp', 'VISam', 'VISal']
+    models = []
+    for target in target_structures:
+        rdm = get_model_rdm(
+            folder=folder, method=method, sim_type=sim_type,
+            targeted_structure=target, min_cell=min_cell)
+        models.append(pyrsa.model.ModelFixed(target, rdm))
+    return models
+
+
+def sim_allen(
+        idx, allen_folder='allen_data',
+        n_cell=20, n_subj=10, n_stim=40, n_repeat=20,
+        simulation_folder='sim_allen', n_sim=100,
+        rdm_comparison='cosine', rdm_type='crossnobis',
+        noise_type='eye', boot_type='both',
+        start_idx=0):
+    """ resamples the allen data and runs the RSA analysis on each sample
+    always resamples subjects, cells, stimuli and repeats
+    """
+    fname_base = os.path.join(simulation_folder, str(idx))
+    if not os.path.isdir(fname_base):
+        os.makedirs(fname_base)
+    res_name = os.path.join(fname_base, 'res_%03d.hdf5')
+    print(res_name, flush=True)
+    models = get_models(folder=allen_folder, method=rdm_type,
+                        sim_type=rdm_comparison, min_cell=n_cell)
+    for i in tqdm.trange(start_idx, n_sim):
+        data = resample(n_subj, n_stim, n_repeat, n_cell)
+        # calculate RDMs
+        if noise_type == 'eye':
+            noise = None
+        elif noise_type == 'residuals':
+            noise = []
+            for dataset in data:
+                noise.append(pyrsa.data.noise.prec_from_measurements(
+                    dataset, 'stim'))
+        rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
+                                  cv_descriptor=None, noise=noise)
+        # run analysis
+        results = run_inference(models, rdms, method=rdm_comparison,
+                                bootstrap=boot_type)
+        results.save(res_name % (i))
 
 
 if __name__ == '__main__':
