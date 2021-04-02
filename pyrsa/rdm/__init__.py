@@ -2,6 +2,8 @@ from .rdms import RDMs
 from .rdms import concat
 from .rdms import get_categorical_rdm
 from .rdms import rank_transform
+from .rdms import sqrt_transform
+from .rdms import positive_transform
 from .rdms import load_rdm
 from .rdms import rdms_from_dict
 from .calc import calc_rdm
