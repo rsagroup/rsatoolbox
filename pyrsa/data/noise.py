@@ -19,11 +19,11 @@ def sample_covariance(matrix):
             n_conditions x n_channels
 
     Returns:
-        s_mean (np.ndarray):
-            n_channels x n_channels sample covariance matrix
-        xt_x (np.ndarray):
-            Einstein summation form of the matrix product
-            from the 2d-array with itself
+        numpy.ndarray, numpy.ndarray:
+            s_mean: n_channels x n_channels sample covariance matrix
+            xt_x:
+                Einstein summation form of the matrix product
+                from the 2d-array with itself
 
     """
     assert isinstance(matrix, np.ndarray), "input must be ndarray"
@@ -42,12 +42,12 @@ def sample_covariance_3d(tensor):
     the estimated covariance matrices.
 
     Args:
-        tensor (np.ndarray):
+        tensor (numpy.ndarray):
             n_conditions x n_channels x n_measurements
 
     Returns:
-        s_mean (np.ndarray):
-            n_channels x n_channels expected sample covariance matrix
+         numpy.ndarray:
+            s_mean: n_channels x n_channels expected sample covariance matrix
 
     """
     assert isinstance(tensor, np.ndarray), "input must be ndarray"
@@ -122,8 +122,8 @@ def shrinkage_transform(s, xt_x, dof, target='eye'):
 
 def cov_from_residuals(residuals, dof=None, method='shrinkage_diag'):
     """
-    Computes a covariance matrix for residuals and applies a shrinkage
-    transform
+    Estimates a covariance matrix from measurements. Allows for shrinkage estimates.
+    Use 'method' to choose which estimation method is used.
 
     Args:
         residuals(numpy.ndarray or list of these): n_residuals x n_channels
@@ -131,6 +131,13 @@ def cov_from_residuals(residuals, dof=None, method='shrinkage_diag'):
         dof(int or list of int): degrees of freedom for covariance estimation
             defaults to n_res - 1, should be corrected for the number
             of regressors in a GLM if applicable.
+        method(str): which estimate to use:
+            'diag': provides a diagonal matrix, i.e. univariate noise normalizer
+            'full': computes the sample covariance without shrinkage
+            'shrinkage_eye': shrinks the data covariance towards a multiple
+                of the identity.
+            'shrinkage_diag': shrinks the covariance matrix towards the diagonal
+                covariance matrix.
 
     Returns:
         numpy.ndarray (or list): sigma_p: covariance matrix over channels
@@ -166,9 +173,9 @@ def cov_from_residuals(residuals, dof=None, method='shrinkage_diag'):
 
 def prec_from_residuals(residuals, dof=None, method='shrinkage_diag'):
     """
-    Computes a covariance matrix for residuals, applies a shrinkage
-    transform to it and finds its multiplicative inverse
-    (= the precision matrix)
+    Estimates the covariance matrix from residuals and finds its multiplicative
+    inverse (= the precision matrix)
+    Use 'method' to choose which estimation method is used.
 
     Args:
         residuals(numpy.ndarray or list of these): n_residuals x n_channels
@@ -176,6 +183,13 @@ def prec_from_residuals(residuals, dof=None, method='shrinkage_diag'):
         dof(int or list of int): degrees of freedom for covariance estimation
             defaults to n_res - 1, should be corrected for the number
             of regressors in a GLM if applicable.
+        method(str): which estimate to use:
+            'diag': provides a diagonal matrix, i.e. univariate noise normalizer
+            'full': computes the sample covariance without shrinkage
+            'shrinkage_eye': shrinks the data covariance towards a multiple
+                of the identity.
+            'shrinkage_diag': shrinks the covariance matrix towards the diagonal
+                covariance matrix.
 
     Returns:
         numpy.ndarray (or list): sigma_p: precision matrix over channels
@@ -193,8 +207,8 @@ def prec_from_residuals(residuals, dof=None, method='shrinkage_diag'):
 
 def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
     """
-    Computes a covariance matrix for measurements and applies a shrinkage
-    transform
+    Estimates a covariance matrix from measurements. Allows for shrinkage estimates.
+    Use 'method' to choose which estimation method is used.
 
     Args:
         dataset(data.Dataset):
@@ -202,6 +216,13 @@ def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
         dof(int or list of int): degrees of freedom for covariance estimation
             defaults to n_res - 1, should be corrected for the number
             of regressors in a GLM if applicable.
+        method(str): which estimate to use:
+            'diag': provides a diagonal matrix, i.e. univariate noise normalizer
+            'full': computes the sample covariance without shrinkage
+            'shrinkage_eye': shrinks the data covariance towards a multiple
+                of the identity.
+            'shrinkage_diag': shrinks the covariance matrix towards the diagonal
+                covariance matrix.
 
     Returns:
         numpy.ndarray (or list): sigma_p: covariance matrix over channels
@@ -228,8 +249,9 @@ def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
 
 def prec_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
     """
-    Computes a covariance matrix for measurements, applies a shrinkage
-    transform to it and finds its inverse, i.e. the precision matrix
+    Estimates the covariance matrix from measurements and finds its multiplicative
+    inverse (= the precision matrix)
+    Use 'method' to choose which estimation method is used.
 
     Args:
         residuals(numpy.ndarray or list of these): n_residuals x n_channels
@@ -237,6 +259,13 @@ def prec_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag')
         dof(int or list of int): degrees of freedom for covariance estimation
             defaults to n_res - 1, should be corrected for the number
             of regressors in a GLM if applicable.
+        method(str): which estimate to use:
+            'diag': provides a diagonal matrix, i.e. univariate noise normalizer
+            'full': computes the sample covariance without shrinkage
+            'shrinkage_eye': shrinks the data covariance towards a multiple
+                of the identity.
+            'shrinkage_diag': shrinks the covariance matrix towards the diagonal
+                covariance matrix.
 
     Returns:
         numpy.ndarray (or list): sigma_p: precision matrix over channels
