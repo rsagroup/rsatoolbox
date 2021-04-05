@@ -10,6 +10,7 @@ from allensdk.core.brain_observatory_cache import BrainObservatoryCache
 import allensdk.brain_observatory.natural_scenes as ns
 import allensdk.brain_observatory.stimulus_info as stim_info
 import numpy as np
+import json
 import pandas as pd
 import os
 import tqdm
@@ -207,17 +208,28 @@ def sim_allen(
         # calculate RDMs
         if noise_type == 'eye':
             noise = None
-        elif noise_type == 'residuals':
+        else:
             noise = []
             for dataset in data:
                 noise.append(pyrsa.data.noise.prec_from_measurements(
-                    dataset, 'stim'))
+                    dataset, 'stim', ))
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor=None, noise=noise)
         # run analysis
         results = run_inference(models, rdms, method=rdm_comparison,
                                 bootstrap=boot_type)
         results.save(res_name % (i))
+
+
+def run_allen(file_name='allen_tasks.csv'):
+
+
+def save_task_list(file_name='allen_tasks.csv'):
+    n_cell = [10, 20, 40]
+    n_subj = [5, 10, 20]
+    n_stim = [10, 20, 40]
+    n_repeat = [5, 10, 20, 40]
+    
 
 
 if __name__ == '__main__':
