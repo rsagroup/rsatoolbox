@@ -191,24 +191,23 @@ class RDMs:
 
     def subset_pattern(self, by, value):
         """ Returns a smaller RDMs with patterns with certain descriptor values
-
         Args:
             by(String): the descriptor by which the subset selection
                         is made from pattern_descriptors
             value:      the value by which the subset selection is made
                         from pattern_descriptors
-
         Returns:
             RDMs object, with fewer patterns
-
         """
         if by is None:
             by = 'index'
-        selection = bool_index(self.pattern_descriptors[by], value)
+        if not isinstance(value, Iterable):
+            value = [value]
+        selection = num_index(self.pattern_descriptors[by], value)
         ix, iy = np.triu_indices(self.n_cond, 1)
-        selection_x = bool_index(self.pattern_descriptors[by][ix], value)
-        selection_y = bool_index(self.pattern_descriptors[by][iy], value)
-        selection_xy = selection_x & selection_y
+        pattern_in_value = np.array(
+            [p in value for p in self.pattern_descriptors[by]])
+        selection_xy = pattern_in_value[ix] & pattern_in_value[iy]
         dissimilarities = self.dissimilarities[:, selection_xy]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
