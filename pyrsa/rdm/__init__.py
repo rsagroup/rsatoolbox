@@ -2,6 +2,8 @@ from .rdms import RDMs
 from .rdms import concat
 from .rdms import get_categorical_rdm
 from .rdms import rank_transform
+from .rdms import sqrt_transform
+from .rdms import positive_transform
 from .rdms import load_rdm
 from .rdms import rdms_from_dict
 from .calc import calc_rdm
@@ -11,6 +13,7 @@ from .calc import calc_rdm_mahalanobis
 from .calc import calc_rdm_crossnobis
 from .calc import calc_rdm_correlation
 from .calc import calc_rdm_euclid_save_memory
+from .calc_unbalanced import calc_rdm_unbalanced
 from .compare import compare
 from .compare import compare_correlation
 from .compare import compare_cosine

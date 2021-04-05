@@ -7,6 +7,7 @@ Collection of helper methods for data module
 """
 
 import numpy as np
+from collections.abc import Iterable
 
 
 def extract_dict(dictionary, indices):
@@ -14,7 +15,10 @@ def extract_dict(dictionary, indices):
     """
     extracted_dictionary = dictionary.copy()
     for k, v in dictionary.items():
-        extracted_dictionary[k] = np.array(v)[indices]
+        if isinstance(indices, Iterable):
+            extracted_dictionary[k] = [v[idx] for idx in indices]
+        else:
+            extracted_dictionary[k] = v[indices]
     return extracted_dictionary
 
 

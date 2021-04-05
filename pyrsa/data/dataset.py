@@ -11,7 +11,7 @@ import numpy as np
 from pyrsa.util.data_utils import get_unique_unsorted
 from pyrsa.util.descriptor_utils import check_descriptor_length_error
 from pyrsa.util.descriptor_utils import subset_descriptor
-from pyrsa.util.descriptor_utils import bool_index
+from pyrsa.util.descriptor_utils import num_index
 from pyrsa.util.descriptor_utils import format_descriptor
 from pyrsa.util.descriptor_utils import parse_input_descriptor
 from pyrsa.util.descriptor_utils import append_obs_descriptors
@@ -205,7 +205,8 @@ class Dataset(DatasetBase):
         unique_values = get_unique_unsorted(self.obs_descriptors[by])
         dataset_list = []
         for v in unique_values:
-            selection = (self.obs_descriptors[by] == v)
+            selection = [idx for idx, des in enumerate(self.obs_descriptors[by])
+                         if des == v]
             measurements = self.measurements[selection, :]
             descriptors = self.descriptors
             obs_descriptors = subset_descriptor(
@@ -230,7 +231,8 @@ class Dataset(DatasetBase):
         unique_values = get_unique_unsorted(self.channel_descriptors[by])
         dataset_list = []
         for v in unique_values:
-            selection = (self.channel_descriptors[by] == v)
+            selection = [i for i, val in enumerate(self.channel_descriptors[by])
+                         if val == v]
             measurements = self.measurements[:, selection]
             descriptors = self.descriptors.copy()
             descriptors[by] = v
@@ -257,7 +259,7 @@ class Dataset(DatasetBase):
             Dataset, with subset defined by the selected obs_descriptor
 
         """
-        selection = bool_index(self.obs_descriptors[by], value)
+        selection = num_index(self.obs_descriptors[by], value)
         measurements = self.measurements[selection, :]
         descriptors = self.descriptors
         obs_descriptors = subset_descriptor(
@@ -282,7 +284,7 @@ class Dataset(DatasetBase):
             Dataset, with subset defined by the selected channel_descriptor
 
         """
-        selection = bool_index(self.channel_descriptors[by], value)
+        selection = num_index(self.channel_descriptors[by], value)
         measurements = self.measurements[:, selection]
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors
@@ -335,7 +337,8 @@ class Dataset(DatasetBase):
         unique_values = get_unique_unsorted(self.obs_descriptors[by])
         measurements_list = []
         for v in unique_values:
-            selection = (self.obs_descriptors[by] == v)
+            selection = np.array([desc == v
+                                  for desc in self.obs_descriptors[by]])
             measurements_subset = self.measurements[selection, :]
             measurements_list.append(measurements_subset)
         measurements_tensor = np.stack(measurements_list, axis=0)
@@ -501,7 +504,7 @@ class TemporalDataset(Dataset):
         unique_values = get_unique_unsorted(self.obs_descriptors[by])
         dataset_list = []
         for v in unique_values:
-            selection = (self.obs_descriptors[by] == v)
+            selection = np.where(self.obs_descriptors[by] == v)[0]
             measurements = self.measurements[selection, :, :]
             descriptors = self.descriptors
             obs_descriptors = subset_descriptor(
@@ -530,7 +533,7 @@ class TemporalDataset(Dataset):
         unique_values = get_unique_unsorted(self.channel_descriptors[by])
         dataset_list = []
         for v in unique_values:
-            selection = (self.channel_descriptors[by] == v)
+            selection = np.where(self.channel_descriptors[by] == v)[0]
             measurements = self.measurements[:, selection, :]
             descriptors = self.descriptors.copy()
             descriptors[by] = v
@@ -560,7 +563,8 @@ class TemporalDataset(Dataset):
         time = get_unique_unsorted(self.time_descriptors[by])
         dataset_list = []
         for v in time:
-            selection = (self.time_descriptors[by] == v)
+            selection = [i for i, val in enumerate(self.time_descriptors[by])
+                         if val == v]
             measurements = self.measurements[:, :, selection]
             descriptors = self.descriptors
             obs_descriptors = self.obs_descriptors
@@ -634,7 +638,7 @@ class TemporalDataset(Dataset):
             TemporalDataset, with subset defined by the selected obs_descriptor
 
         """
-        selection = bool_index(self.obs_descriptors[by], value)
+        selection = num_index(self.obs_descriptors[by], value)
         measurements = self.measurements[selection, :, :]
         descriptors = self.descriptors
         obs_descriptors = subset_descriptor(
@@ -664,7 +668,7 @@ class TemporalDataset(Dataset):
             with subset defined by the selected channel_descriptor
 
         """
-        selection = bool_index(self.channel_descriptors[by], value)
+        selection = num_index(self.channel_descriptors[by], value)
         measurements = self.measurements[:, selection]
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors
@@ -698,7 +702,7 @@ class TemporalDataset(Dataset):
         time = get_unique_unsorted(self.time_descriptors[by])
         sel_time = [t for t in time if t <= t_to and t >= t_from]
 
-        selection = bool_index(self.time_descriptors[by], sel_time)
+        selection = num_index(self.time_descriptors[by], sel_time)
         measurements = self.measurements[:, :, selection]
         descriptors = self.descriptors
         obs_descriptors = self.obs_descriptors
@@ -752,7 +756,8 @@ class TemporalDataset(Dataset):
             obs_descriptors[key] = np.array([])
 
         for v in time:
-            selection = (self.time_descriptors[by] == v)
+            selection = [i for i, val in enumerate(self.time_descriptors[by])
+                         if val == v]
 
             measurements = np.concatenate((
                 measurements, self.measurements[:, :, selection].squeeze()),
@@ -766,7 +771,8 @@ class TemporalDataset(Dataset):
             for key in self.time_descriptors:
                 obs_descriptors[key] = np.concatenate((
                     obs_descriptors[key], np.repeat(
-                        self.time_descriptors[key][selection],
+                        [self.time_descriptors[key][s]
+                         for s in selection],
                         self.n_obs)),
                     axis=0)
 

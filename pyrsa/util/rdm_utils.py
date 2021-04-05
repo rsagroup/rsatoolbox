@@ -80,6 +80,19 @@ def _get_n_from_reduced_vectors(x):
     """
     return max(int(np.ceil(np.sqrt(x.shape[1] * 2))), 1)
 
+def _get_n_from_length(n):
+    """
+    calculates the size of the RDM from the vector length
+
+    Args:
+        **x**(np.ndarray): stack of RDM vectors (2D)
+
+    Returns:
+        int: n: size of the RDM
+
+    """
+    return int(np.ceil(np.sqrt(n * 2)))
+
 
 def add_pattern_index(rdms, pattern_descriptor):
     """
@@ -131,3 +144,17 @@ def _parse_input_rdms(rdm1, rdm2):
     if not vector1_no_nan.shape[1] == vector2_no_nan.shape[1]:
         raise ValueError('rdm1 and rdm2 have different nan positions')
     return vector1_no_nan, vector2_no_nan, nan_idx
+
+def _extract_triu_(X):
+    """ extracts the upper triangular vector as a masked view
+
+    Args:
+        X (numpy.ndarray): 2D symmetric matrix
+
+    Returns:
+        vector version of X
+
+    """
+    mask = np.triu(np.ones_like(X, dtype=bool), k=1)
+    return X[mask]
+
