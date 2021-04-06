@@ -95,6 +95,7 @@ def resample(n_subj, n_stim, n_repeat, n_cell, folder='allen_data',
     exp_df = exp_df[exp_df.n_cell >= n_cell]
     right_tar_df = exp_df[exp_df['targeted_structure'] == targeted_structure]
     subs = np.unique(right_tar_df['donor_name'])
+    n_subj = min(n_subj, len(subs))
     subj_idx = subs[np.random.permutation(len(subs))[:n_subj]]
     stim_idx = np.random.permutation(118)[:n_stim]
     U_all = np.empty((n_subj, n_stim, n_repeat, n_cell))
@@ -246,7 +247,7 @@ def run_allen(file_name='allen_tasks.csv', simulation_folder='sim_allen',
 
 def save_task_list(file_name='allen_tasks.csv'):
     n_cell = [10, 20, 40]
-    n_subj = [5, 10, 20]
+    n_subj = [5, 10, 15]
     n_stim = [10, 20, 40]
     n_repeat = [5, 10, 20, 40]
     noise_type = ['eye', 'diag', 'shrinkage_diag', 'shrinkage_eye']
