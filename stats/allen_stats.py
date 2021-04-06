@@ -121,7 +121,7 @@ def resample(n_subj, n_stim, n_repeat, n_cell, folder='allen_data',
     for i_subj in range(n_subj):
         v = np.var(U_pyrsa[i_subj], 0)  # variance to exclude constant cells
         dataset = pyrsa.data.Dataset(
-            U_pyrsa[i_subj, :, v > 0],
+            U_pyrsa[i_subj][:, v > 0],
             obs_descriptors={
                 'stim': stim},
             descriptors={
