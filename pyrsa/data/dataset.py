@@ -337,7 +337,8 @@ class Dataset(DatasetBase):
         unique_values = get_unique_unsorted(self.obs_descriptors[by])
         measurements_list = []
         for v in unique_values:
-            selection = (self.obs_descriptors[by] == v)
+            selection = np.array([desc == v
+                                  for desc in self.obs_descriptors[by]])
             measurements_subset = self.measurements[selection, :]
             measurements_list.append(measurements_subset)
         measurements_tensor = np.stack(measurements_list, axis=0)
