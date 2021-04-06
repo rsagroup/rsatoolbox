@@ -119,8 +119,9 @@ def resample(n_subj, n_stim, n_repeat, n_cell, folder='allen_data',
     stim = np.repeat(stim_idx, n_repeat)
     datasets = []
     for i_subj in range(n_subj):
+        v = np.var(U_pyrsa[i_subj], 0)  # variance to exclude constant cells
         dataset = pyrsa.data.Dataset(
-            U_pyrsa[i_subj],
+            U_pyrsa[i_subj, v > 0],
             obs_descriptors={
                 'stim': stim},
             descriptors={
@@ -200,10 +201,9 @@ def sim_allen(
     if not os.path.isdir(fname_base):
         os.makedirs(fname_base)
     res_name = os.path.join(fname_base, 'res_%03d.hdf5')
-    print(res_name, flush=True)
     models = get_models(folder=allen_folder, method=rdm_type,
                         sim_type=rdm_comparison, min_cell=n_cell)
-    for i in tqdm.trange(start_idx, n_sim):
+    for i in tqdm.trange(start_idx, n_sim, position=1):
         data = resample(n_subj, n_stim, n_repeat, n_cell)
         # calculate RDMs
         if noise_type == 'eye':
@@ -212,7 +212,7 @@ def sim_allen(
             noise = []
             for dataset in data:
                 noise.append(pyrsa.data.noise.prec_from_measurements(
-                    dataset, 'stim', ))
+                    dataset, 'stim', method=noise_type))
         rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
                                   cv_descriptor=None, noise=noise)
         # run analysis
@@ -221,7 +221,27 @@ def sim_allen(
         results.save(res_name % (i))
 
 
-def run_allen(file_name='allen_tasks.csv'):
+def run_allen(file_name='allen_tasks.csv', simulation_folder='sim_allen',
+              allen_folder='allen_data', n_sim=100):
+    task_df = pd.read_csv(file_name, index_col=0)
+    order = np.random.permutation(np.arange(len(task_df)))
+    for i_task in tqdm.tqdm(order, position=0):
+        row = task_df.iloc()[i_task]
+        fname_base = os.path.join(simulation_folder, str(row.name))
+        start_idx = 0
+        while os.path.isfile(os.path.join(fname_base, 'res_%03d.hdf5' % start_idx)):
+            start_idx += 1
+        if start_idx < n_sim:
+            sim_allen(
+                row.name, allen_folder=allen_folder,
+                n_cell=row.n_cell, n_subj=row.n_subj, n_stim=row.n_stim,
+                n_repeat=row.n_repeat,
+                simulation_folder=simulation_folder, n_sim=n_sim,
+                rdm_comparison=row.rdm_comparison, rdm_type='crossnobis',
+                noise_type=row.noise_type, boot_type='both',
+                start_idx=start_idx)
+        task_df.at[i_task, 'finished'] = 1
+        task_df.to_csv(file_name)
 
 
 def save_task_list(file_name='allen_tasks.csv'):
@@ -229,7 +249,14 @@ def save_task_list(file_name='allen_tasks.csv'):
     n_subj = [5, 10, 20]
     n_stim = [10, 20, 40]
     n_repeat = [5, 10, 20, 40]
-    
+    noise_type = ['eye', 'diag', 'shrink_diag', 'shrink_eye']
+    rdm_comparison = ['cosine', 'corr', 'corr_cov', 'cosine_cov']
+    grid = np.meshgrid(n_cell, n_subj, n_stim, n_repeat, noise_type, rdm_comparison, [0])
+    table = [i.flatten() for i in grid]
+    df = pd.DataFrame(table).transpose()
+    df.columns = ['n_cell', 'n_subj', 'n_stim', 'n_repeat', 'noise_type',
+                  'rdm_comparison', 'finished']
+    df.to_csv(file_name)
 
 
 if __name__ == '__main__':
@@ -239,10 +266,14 @@ if __name__ == '__main__':
                         help='where should the allen data be?',
                         default='allen_data')
     parser.add_argument('action', help='what to do?', type=str,
-                        choices=['download', 'nothing'],
+                        choices=['download', 'save_list', 'run', 'nothing'],
                         default='nothing', nargs='?')
     args = parser.parse_args()
     if args.action == 'download':
         download_all(args.folder)
+    elif args.action == 'save_list':
+        save_task_list()
+    elif args.action == 'run':
+        run_allen(allen_folder=args.folder)
     else:
         print('No action selected, I am done!')
