@@ -6,9 +6,7 @@ Definition of RSA RDMs class and subclasses
 @author: baihan
 """
 
-from copy import deepcopy
 import numpy as np
-from scipy.stats import rankdata
 from collections.abc import Iterable
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
