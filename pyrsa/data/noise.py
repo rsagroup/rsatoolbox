@@ -97,7 +97,7 @@ def shrinkage_transform(s, xt_x, dof, target='eye'):
         # m, d^2, b^2 as in Ledoit & Wolfe paper
         m = np.sum(np.diag(s)) / s.shape[0]
         d2 = np.sum((s - m * np.eye(s.shape[0])) ** 2)
-        b2 = np.sum((xt_x - s) ** 2) / xt_x.shape[0] / xt_x.shape[0]
+        b2 = np.sum(((xt_x - s) / xt_x.shape[0]) ** 2)
         b2 = min(d2, b2)
         # shrink covariance matrix
         s_shrink = b2 / d2 * m * np.eye(s.shape[0]) \
