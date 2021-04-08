@@ -306,7 +306,7 @@ if __name__ == '__main__':
                         help='where should the allen data be?',
                         default='allen_data')
     parser.add_argument('action', help='what to do?', type=str,
-                        choices=['download', 'save_list', 'run', 'nothing'],
+                        choices=['download', 'save_list', 'run', 'nothing', 'summarize'],
                         default='nothing', nargs='?')
     args = parser.parse_args()
     if args.action == 'download':
