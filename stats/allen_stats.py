@@ -260,6 +260,45 @@ def save_task_list(file_name='allen_tasks.csv'):
     df.to_csv(file_name)
 
 
+def summarize_allen(simulation_folder='sim_allen', file_name='allen_tasks.csv',
+                    out_file='allen_results.npz'):
+    task_df = pd.read_csv(file_name, index_col=0)
+    means = []
+    variances = []
+    for i, row in tqdm.tqdm(task_df.iterrows()):
+        fname_base = os.path.join(simulation_folder, str(row.name))
+        mean = np.nan * np.zeros((100, 6))
+        variance = np.nan * np.zeros((100, 6, 6))
+        if os.path.exists(fname_base):
+            for file in os.listdir(fname_base):
+                idx = int(file.split('_')[1].split('.')[0])  # res_XXX.hdf5
+                try:
+                    res = pyrsa.inference.load_results(os.path.join(fname_base, file),
+                                                       file_type='hdf5')
+                    if res.evaluations.ndim == 2:
+                        no_nan_idx = ~np.isnan(res.evaluations[:, 0])
+                    elif res.evaluations.ndim == 3:
+                        no_nan_idx = \
+                            ~np.isnan(res.evaluations[:, 0, 0])
+                    if np.any(no_nan_idx):
+                        m = np.mean(res.evaluations[no_nan_idx],
+                                    axis=0)
+                        while m.ndim > 1:
+                            m = np.mean(m, axis=-1)
+                        mean[idx] = m
+                        variance[idx] = res.variances
+                    else:
+                        raise OSError('no valid results')
+                except OSError:
+                    mean[idx] = np.nan
+                    variance[idx] = np.nan
+        means.append(mean)
+        variances.append(variance)
+    means = np.array(means)
+    variances = np.array(variances)
+    np.savez(out_file, means=means, variances=variances)
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
@@ -276,5 +315,7 @@ if __name__ == '__main__':
         save_task_list()
     elif args.action == 'run':
         run_allen(allen_folder=args.folder)
+    elif args.action == 'summarize':
+        summarize_allen()
     else:
         print('No action selected, I am done!')
