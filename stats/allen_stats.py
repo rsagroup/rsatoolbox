@@ -10,7 +10,6 @@ from allensdk.core.brain_observatory_cache import BrainObservatoryCache
 import allensdk.brain_observatory.natural_scenes as ns
 import allensdk.brain_observatory.stimulus_info as stim_info
 import numpy as np
-import json
 import pandas as pd
 import os
 import tqdm
@@ -194,18 +193,19 @@ def sim_allen(
         simulation_folder='sim_allen', n_sim=100,
         rdm_comparison='cosine', rdm_type='crossnobis',
         noise_type='eye', boot_type='both',
-        start_idx=0):
+        start_idx=0, targeted_structure='VISp'):
     """ resamples the allen data and runs the RSA analysis on each sample
     always resamples subjects, cells, stimuli and repeats
     """
-    fname_base = os.path.join(simulation_folder, str(idx))
+    fname_base = os.path.join(simulation_folder, '%05d' % idx)
     if not os.path.isdir(fname_base):
         os.makedirs(fname_base)
     res_name = os.path.join(fname_base, 'res_%03d.hdf5')
     models = get_models(folder=allen_folder, method=rdm_type,
                         sim_type=rdm_comparison, min_cell=n_cell)
     for i in tqdm.trange(start_idx, n_sim, position=1):
-        data = resample(n_subj, n_stim, n_repeat, n_cell)
+        data = resample(n_subj, n_stim, n_repeat, n_cell,
+                        targeted_structure=targeted_structure)
         # calculate RDMs
         if noise_type == 'eye':
             noise = None
@@ -252,12 +252,17 @@ def save_task_list(file_name='allen_tasks.csv'):
     n_repeat = [5, 10, 20, 40]
     noise_type = ['eye', 'diag', 'shrinkage_diag', 'shrinkage_eye']
     rdm_comparison = ['cosine', 'corr', 'corr_cov', 'cosine_cov']
+    targeted_structure = ['VISal', 'VISam', 'VISl', 'VISp', 'VISpm', 'VISrl']
     boot_type = ['both', 'fancyboot']
-    grid = np.meshgrid(boot_type, n_cell, n_subj, n_stim, n_repeat, noise_type, rdm_comparison, [0])
+    grid = np.meshgrid(boot_type, targeted_structure,
+                       noise_type, rdm_comparison,
+                       n_cell, n_subj, n_stim, n_repeat, [0])
     table = [i.flatten() for i in grid]
     df = pd.DataFrame(table).transpose()
-    df.columns = ['boot_type', 'n_cell', 'n_subj', 'n_stim', 'n_repeat',
-                  'noise_type', 'rdm_comparison', 'finished']
+    df.columns = ['boot_type', 'targeted_structure',
+                  'noise_type', 'rdm_comparison',
+                  'n_cell', 'n_subj', 'n_stim', 'n_repeat',
+                  'finished']
     df.to_csv(file_name)
 
 
