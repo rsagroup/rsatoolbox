@@ -239,7 +239,7 @@ def run_allen(file_name='allen_tasks.csv', simulation_folder='sim_allen',
                 n_repeat=row.n_repeat,
                 simulation_folder=simulation_folder, n_sim=n_sim,
                 rdm_comparison=row.rdm_comparison, rdm_type='crossnobis',
-                noise_type=row.noise_type, boot_type='both',
+                noise_type=row.noise_type, boot_type=row.boot_type,
                 start_idx=start_idx)
         task_df.at[i_task, 'finished'] = 1
         task_df.to_csv(file_name)
@@ -252,11 +252,12 @@ def save_task_list(file_name='allen_tasks.csv'):
     n_repeat = [5, 10, 20, 40]
     noise_type = ['eye', 'diag', 'shrinkage_diag', 'shrinkage_eye']
     rdm_comparison = ['cosine', 'corr', 'corr_cov', 'cosine_cov']
-    grid = np.meshgrid(n_cell, n_subj, n_stim, n_repeat, noise_type, rdm_comparison, [0])
+    boot_type = ['both', 'fancyboot']
+    grid = np.meshgrid(boot_type, n_cell, n_subj, n_stim, n_repeat, noise_type, rdm_comparison, [0])
     table = [i.flatten() for i in grid]
     df = pd.DataFrame(table).transpose()
-    df.columns = ['n_cell', 'n_subj', 'n_stim', 'n_repeat', 'noise_type',
-                  'rdm_comparison', 'finished']
+    df.columns = ['boot_type', 'n_cell', 'n_subj', 'n_stim', 'n_repeat',
+                  'noise_type', 'rdm_comparison', 'finished']
     df.to_csv(file_name)
 
 
