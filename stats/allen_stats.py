@@ -248,7 +248,7 @@ def run_allen(file_add=None,
 
 def save_task_list(file_add=None, targeted_structure=None):
     tasks_file, _, _ = _get_fnames(file_add)
-    n_cell = [10, 20, 40]
+    n_cell = [20, 40, 80]
     n_subj = [5, 10, 15]
     n_stim = [10, 20, 40]
     n_repeat = [10, 20, 40]
