@@ -222,9 +222,10 @@ def sim_allen(
         results.save(res_name % (i))
 
 
-def run_allen(file_name='allen_tasks.csv', simulation_folder='sim_allen',
+def run_allen(file_add=None,
               allen_folder='allen_data', n_sim=100):
-    task_df = pd.read_csv(file_name, index_col=0)
+    tasks_file, simulation_folder, _ = _get_fnames(file_add)
+    task_df = pd.read_csv(tasks_file, index_col=0)
     order = np.random.permutation(np.arange(len(task_df)))
     for i_task in tqdm.tqdm(order, position=0):
         row = task_df.iloc()[i_task]
@@ -242,17 +243,19 @@ def run_allen(file_name='allen_tasks.csv', simulation_folder='sim_allen',
                 noise_type=row.noise_type, boot_type=row.boot_type,
                 start_idx=start_idx)
         task_df.at[i_task, 'finished'] = 1
-        task_df.to_csv(file_name)
+        task_df.to_csv(tasks_file)
 
 
-def save_task_list(file_name='allen_tasks.csv'):
+def save_task_list(file_add=None, targeted_structure=None):
+    tasks_file, _, _ = _get_fnames(file_add)
     n_cell = [10, 20, 40]
     n_subj = [5, 10, 15]
     n_stim = [10, 20, 40]
-    n_repeat = [5, 10, 20, 40]
+    n_repeat = [10, 20, 40]
     noise_type = ['eye', 'diag', 'shrinkage_diag', 'shrinkage_eye']
     rdm_comparison = ['cosine', 'corr', 'corr_cov', 'cosine_cov']
-    targeted_structure = ['VISal', 'VISam', 'VISl', 'VISp', 'VISpm', 'VISrl']
+    if targeted_structure is None:
+        targeted_structure = ['VISal', 'VISam', 'VISl', 'VISp', 'VISpm', 'VISrl']
     boot_type = ['both', 'fancyboot']
     grid = np.meshgrid(boot_type, targeted_structure,
                        noise_type, rdm_comparison,
@@ -263,12 +266,12 @@ def save_task_list(file_name='allen_tasks.csv'):
                   'noise_type', 'rdm_comparison',
                   'n_cell', 'n_subj', 'n_stim', 'n_repeat',
                   'finished']
-    df.to_csv(file_name)
+    df.to_csv(tasks_file)
 
 
-def summarize_allen(simulation_folder='sim_allen', file_name='allen_tasks.csv',
-                    out_file='allen_results.npz'):
-    task_df = pd.read_csv(file_name, index_col=0)
+def summarize_allen(file_add):
+    tasks_file, simulation_folder, summary_file = _get_fnames(file_add)
+    task_df = pd.read_csv(tasks_file, index_col=0)
     means = []
     variances = []
     for i, row in tqdm.tqdm(task_df.iterrows()):
@@ -302,7 +305,19 @@ def summarize_allen(simulation_folder='sim_allen', file_name='allen_tasks.csv',
         variances.append(variance)
     means = np.array(means)
     variances = np.array(variances)
-    np.savez(out_file, means=means, variances=variances)
+    np.savez(summary_file, means=means, variances=variances)
+
+
+def _get_fnames(file_add):
+    if file_add is None:
+        tasks_file = 'allen_tasks.csv'
+        simulation_folder = 'sim_allen'
+        summary_file = 'allen_results.npz'
+    else:
+        tasks_file = 'allen_tasks_' + file_add + '.csv'
+        simulation_folder = 'sim_allen_' + file_add
+        summary_file = 'allen_results' + file_add + '.npz'
+    return tasks_file, simulation_folder, summary_file
 
 
 if __name__ == '__main__':
@@ -311,6 +326,12 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--folder', type=str,
                         help='where should the allen data be?',
                         default='allen_data')
+    parser.add_argument('-a', '--file_add', type=str,
+                        help='additional tag to file_names',
+                        default=None)
+    parser.add_argument('-t', '--targeted_structure', nargs='+',
+                        help='which target should be parsed',
+                        default=None)
     parser.add_argument('action', help='what to do?', type=str,
                         choices=['download', 'save_list', 'run', 'nothing', 'summarize'],
                         default='nothing', nargs='?')
@@ -318,10 +339,13 @@ if __name__ == '__main__':
     if args.action == 'download':
         download_all(args.folder)
     elif args.action == 'save_list':
-        save_task_list()
+        save_task_list(file_add=args.file_add,
+                       targeted_structure=args.targeted_structure)
     elif args.action == 'run':
-        run_allen(allen_folder=args.folder)
+        run_allen(
+            file_add=args.file_add,
+            allen_folder=args.folder)
     elif args.action == 'summarize':
-        summarize_allen()
+        summarize_allen(file_add=args.file_add)
     else:
         print('No action selected, I am done!')
