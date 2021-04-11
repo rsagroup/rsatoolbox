@@ -13,6 +13,7 @@ from matplotlib.ticker import FormatStrFormatter
 from matplotlib import rcParams
 import seaborn as sns
 import pandas as pd
+import scipy.stats
 from helpers import get_fname_base
 import pyrsa
 import pathlib
@@ -459,6 +460,10 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
     data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
                               'n_rep': 'int', 'sigma_noise': 'int'})
     data_df.loc[pd.isna(data_df['variation']), 'variation'] = 'none'
+    # for 100 observations we expect this much std even if we were perfect:
+    std_expected = np.std(np.sqrt(scipy.stats.f(1000, 100).rvs(100000)))
+    # this is the area marked by the gray rectangle in the plot
+    CI = [1 - std_expected, 1 + std_expected]
     with sns.axes_style('ticks'):
         sns.set_context('paper', font_scale=2)
         #### change in SNR ####
@@ -593,7 +598,10 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                            x='n_subj', y='std_relative', hue='n_stim',
                            kind='point', ci='sd', palette='Greens_d', dodge=.2,
                            order=[5, 10, 20, 40, 80])
-        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        plt.plot([-0.3, 4.3], [1, 1], 'k--')
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+                          facecolor='gray', zorder=-1, alpha=0.5)
+        g4_m.ax.add_patch(r)
         sns.despine(trim=True, offset=5)
         plt.title('RDM-bootstrap, no true variation')
         g4_m.add_legend(
@@ -606,7 +614,10 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                            x='n_stim', y='std_relative', hue='n_subj',
                            kind='point', ci='sd', palette='Blues_d', dodge=.2,
                            order=[10, 20, 40, 80, 160])
-        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        plt.plot([-0.3, 4.3], [1, 1], 'k--')
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+                          facecolor='gray', zorder=-1, alpha=0.5)
+        g5_m.ax.add_patch(r)
         sns.despine(trim=True, offset=5)
         plt.title('pattern-bootstrap, no true variation')
         g5_m.add_legend(
@@ -619,7 +630,10 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                            x='n_stim', y='std_relative', hue='n_subj',
                            kind='point', ci='sd', palette='Blues_d', dodge=.2,
                            order=[10, 20, 40, 80, 160])
-        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        plt.plot([-0.3, 4.3], [1, 1], 'k--')
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+                          facecolor='gray', zorder=-1, alpha=0.5)
+        g6_m.ax.add_patch(r)
         sns.despine(trim=True, offset=5)
         plt.title('pattern-bootstrap, stimulus variation')
         g6_m.add_legend(
@@ -632,7 +646,10 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                            x='n_subj', y='std_relative', hue='n_stim',
                            kind='point', ci='sd', palette='Greens_d', dodge=.2,
                            order=[5, 10, 20, 40, 80])
-        plt.plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        plt.plot([-0.3, 4.3], [1, 1], 'k--')
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+                          facecolor='gray', zorder=-1, alpha=0.5)
+        g7_m.ax.add_patch(r)
         sns.despine(trim=True, offset=5)
         plt.title('RDM-bootstrap, subject variation')
         g7_m.add_legend(
@@ -645,11 +662,17 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                            x='n_stim', y='std_relative', hue='n_subj',
                            kind='point', ci='sd', palette='Blues', dodge=.2,
                            order=[10, 20, 40, 80, 160])
-        g8_m.axes[0, 0].plot([0, plt.xlim()[1]], [1, 1], 'k--')
-        g8_m.axes[0, 1].plot([0, plt.xlim()[1]], [1, 1], 'k--')
+        g8_m.axes[0, 0].plot([-0.3, 4.3], [1, 1], 'k--')
+        g8_m.axes[0, 1].plot([-0.3, 4.3], [1, 1], 'k--')
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+                          facecolor='gray', zorder=-1, alpha=0.5)
+        g8_m.axes[0, 0].add_patch(r)
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+                          facecolor='gray', zorder=-1, alpha=0.5)
+        g8_m.axes[0, 1].add_patch(r)
         sns.despine(trim=True, offset=5)
         g8_m.axes[0, 0].set_title('double-bootstrap, both varied')
-        g8_m.axes[0, 1].set_title('bootstrap-formula, both varied')
+        g8_m.axes[0, 1].set_title('dual bootstrap, both varied')
         g8_m.add_legend(
             frameon=False, title='# of subjects',
             bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -667,6 +690,129 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             g8_m.fig.savefig('figures/std_rel_both.pdf', bbox_inches='tight')
             g9_m.fig.savefig('figures/SNR_vox_size.pdf', bbox_inches='tight')
             g10_m.fig.savefig('figures/SNR_variation.pdf', bbox_inches='tight')
+
+
+def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
+    labels = pd.read_csv(task_file, index_col=0)
+    results = np.load(result_file)
+    means = results['means']
+    variances = results['variances']
+    true_var = np.var(means, 1)
+    true_std = np.sqrt(true_var)
+    cov_estimate = np.mean(variances, 1)
+    var_estimate = np.einsum('ijj->ij', cov_estimate)
+    std_relative = np.sqrt(var_estimate / true_var)
+    snr = (np.var(np.mean(means, axis=1), axis=1)
+           / np.mean(np.var(means, axis=1), axis=1))
+    # seaborn based plotting
+    # create full data table
+    data_df = pd.DataFrame()
+    for i_model in range(means.shape[2]):
+        labels['true_std'] = true_std[:, i_model]
+        labels['var_estimate'] = var_estimate[:, i_model]
+        labels['std_relative'] = std_relative[:, i_model]
+        labels['model'] = i_model
+        labels['snr'] = snr
+        labels['log-snr'] = np.log10(snr)
+        data_df = data_df.append(labels)
+    data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
+                              'n_repeat': 'int', 'n_cell': 'int'})
+
+    # for 100 observations we expect this much std even if we were perfect:
+    std_expected = np.std(np.sqrt(scipy.stats.f(1000, 100).rvs(100000)))
+    # this is the area marked by the gray rectangle in the plot
+    CI = [1 - std_expected, 1 + std_expected]
+
+    g1_m = sns.catplot(data=data_df, legend=False,
+                       x='n_subj', y='std_relative', hue='n_stim',
+                       kind='point', ci='sd', palette='Greens_d', dodge=.2,
+                       order=[5, 10, 15])
+    plt.plot([-0.3, 2.3], [1, 1], 'k--')
+    r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
+                      facecolor='gray', zorder=-1, alpha=0.5)
+    g1_m.ax.add_patch(r)
+    sns.despine(trim=True, offset=5)
+    plt.title('double bootstrap')
+    g1_m.add_legend(
+        frameon=False, title='# of stimuli',
+        bbox_to_anchor=(1.0, 1.0), loc=2)
+    g1_m.set_xlabels('# of subjects')
+    g1_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+
+    g2_m = sns.catplot(data=data_df, col='rdm_comparison', legend=False,
+                       x='n_stim', y='std_relative', hue='n_subj',
+                       kind='point', ci='sd', palette='Blues', dodge=.2,
+                       order=[10, 20, 40])
+    for ax in g2_m.axes[0]:
+        ax.plot([-0.3, 2.3], [1, 1], 'k--')
+        r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
+                          facecolor='gray', zorder=-1, alpha=0.5)
+        ax.add_patch(r)
+    sns.despine(trim=True, offset=5)
+    g2_m.axes[0, 0].set_title('double-bootstrap')
+    g2_m.axes[0, 1].set_title('dual bootstrap')
+    g2_m.add_legend(
+        frameon=False, title='# of subjects',
+        bbox_to_anchor=(1.0, 1.0), loc=2)
+    g2_m.set_xlabels('# of stimuli')
+    g2_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+
+    g3_m = sns.catplot(data=data_df, legend=False,
+                       x='n_stim', y='log-snr', hue='n_subj',
+                       kind='point', ci='sd', palette='Greens_d', dodge=.2,
+                       order=[10, 20, 40])
+    g3_m.set_xlabels('# of stimuli')
+    g3_m.set_ylabels('signal to noise ratio')
+    plt.ylim([-3, 1])
+    plt.yticks([-3, -2, -1, 0, 1],
+               ['10^-3', '10^-2', '10^-1', '10^0', '10^1'])
+    sns.despine(trim=True, offset=5)
+    g3_m.add_legend(
+        frameon=False, title='# of subjects',
+        bbox_to_anchor=(1.0, 1.0), loc=2)
+
+    g4_m = sns.catplot(data=data_df, legend=False,
+                       x='n_cell', y='log-snr', hue='n_repeat',
+                       kind='point', ci='sd', palette='Reds_d', dodge=.2,
+                       order=[10, 20, 40])
+    g4_m.set_xlabels('# of cells per subject')
+    g4_m.set_ylabels('signal to noise ratio')
+    plt.ylim([-3, 1])
+    plt.yticks([-3, -2, -1, 0, 1],
+               ['10^-3', '10^-2', '10^-1', '10^0', '10^1'])
+    sns.despine(trim=True, offset=5)
+    g4_m.add_legend(
+        frameon=False, title='# of repeats',
+        bbox_to_anchor=(1.0, 1.0), loc=2)
+
+    g5_m = sns.catplot(data=data_df, legend=False,
+                       x='rdm_comparison', y='log-snr', hue='n_repeat',
+                       kind='point', ci='sd', palette='Reds_d', dodge=.2,
+                       order=['corr', 'corr_cov', 'cosine', 'cosine_cov'])
+    g5_m.set_xlabels('RDM comparison method')
+    g5_m.set_ylabels('signal to noise ratio')
+    plt.ylim([-3, 1])
+    plt.yticks([-3, -2, -1, 0, 1],
+               ['10^-3', '10^-2', '10^-1', '10^0', '10^1'])
+    sns.despine(trim=True, offset=5)
+    g5_m.add_legend(
+        frameon=False, title='# of repeats',
+        bbox_to_anchor=(1.0, 1.0), loc=2)
+
+
+    g6_m = sns.catplot(data=data_df, legend=False,
+                       x='targeted_structure', y='log-snr', hue='n_repeat',
+                       kind='point', ci='sd', palette='Reds_d', dodge=.2,
+                       order=['corr', 'corr_cov', 'cosine', 'cosine_cov'])
+    g6_m.set_xlabels('# of cells per subject')
+    g5_m.set_ylabels('signal to noise ratio')
+    plt.ylim([-3, 1])
+    plt.yticks([-3, -2, -1, 0, 1],
+               ['10^-3', '10^-2', '10^-1', '10^0', '10^1'])
+    sns.despine(trim=True, offset=5)
+    g5_m.add_legend(
+        frameon=False, title='# of repeats',
+        bbox_to_anchor=(1.0, 1.0), loc=2)
 
 
 def plot_metrics(simulation_folder='sim_metric', savefig=False):
