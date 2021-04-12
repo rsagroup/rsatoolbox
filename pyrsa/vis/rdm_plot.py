@@ -121,11 +121,14 @@ def show_rdm(
         figsize = (min(2 * n_column, 8.3), min(2 * n_row, 11))
     if cmap is None:
         cmap = rdm_colormap()
-    if not np.any(gridlines) and num_pattern_groups:
-        # grid by pattern groups if they exist and explicit grid setting does not
-        gridlines = np.arange(
-            num_pattern_groups - 0.5, rdm.n_cond + 0.5, num_pattern_groups
-        )
+    if not np.any(gridlines):
+        # empty list to disable gridlines
+        gridlines = []
+        if num_pattern_groups:
+            # grid by pattern groups if they exist and explicit grid setting does not
+            gridlines = np.arange(
+                num_pattern_groups - 0.5, rdm.n_cond + 0.5, num_pattern_groups
+            )
     if num_pattern_groups is None or num_pattern_groups == 0:
         num_pattern_groups = 1
     # we don't necessarily have the same number of RDMs as panels, so need to stop the
@@ -255,6 +258,9 @@ def show_rdm_panel(
     ax.yaxis.set_ticklabels([])
     ax.xaxis.set_ticks(np.arange(rdm.n_cond), minor=True)
     ax.yaxis.set_ticks(np.arange(rdm.n_cond), minor=True)
+    # hide minor ticks by default
+    ax.xaxis.set_tick_params(length=0, which="minor")
+    ax.yaxis.set_tick_params(length=0, which="minor")
     if rdm_descriptor in rdm.rdm_descriptors:
         ax.set_title(rdm.rdm_descriptors[rdm_descriptor][0])
     elif isinstance(rdm_descriptor, str):
@@ -310,8 +316,6 @@ def _add_descriptor_labels(
     desc = rdm.pattern_descriptors[descriptor]
     if isinstance(desc[0], vis.Icon):
         # annotated labels with Icon
-        if linewidth > 0:
-            axis.set_tick_params(length=0, which="minor")
         im_width_pix = max(this_desc.final_image.width for this_desc in desc)
         im_height_pix = max(this_desc.final_image.height for this_desc in desc)
         im_max_pix = max(im_width_pix, im_height_pix) * icon_spacing
@@ -352,6 +356,9 @@ def _add_descriptor_labels(
                 raise TypeError("expected axis to be XAxis or YAxis instance")
     else:
         # vanilla matplotlib-based
+        # need to ensure the minor ticks have some length
+        axis.set_tick_params(length=matplotlib.rcParams['xtick.minor.size'],
+                which="minor")
         label_handles = axis.set_ticklabels(
             desc,
             verticalalignment="center",
