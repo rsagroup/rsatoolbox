@@ -391,7 +391,8 @@ class Icon:
         if ax is None:
             ax = plt.gca()
         tickline_color = self.color
-        if not np.any(tickline_color):
+        # np.any chokes on str input so need to test for this first
+        if not (isinstance(tickline_color, str) or np.any(tickline_color)):
             tickline_color = [0.8, 0.8, 0.8]
         if self.final_image is not None:
             imagebox = OffsetImage(self.final_image, zoom=size, dpi_cor=True)
