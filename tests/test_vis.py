@@ -119,6 +119,13 @@ class Test_Icon(unittest.TestCase):
         ic = Icon(rdm)
         self.assertEqual(ic.final_image.size[0], 100)
 
+class Test_rdm_plot(unittest.TestCase):
+    def test_show_rdm_no_arg_no_error(self):
+        """regression test for crashes when gridlines is None (and needs to be set to []
+        internally to avoid breaking mpl"""
+        rdm = rsr.RDMs(np.random.rand(4, 190))
+        rsv.show_rdm(rdm)
+
 
 if __name__ == '__main__':
     unittest.main()
