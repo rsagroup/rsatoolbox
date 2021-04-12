@@ -6,6 +6,7 @@ Plot showing an RDMs object
 
 import os.path
 import inspect
+import collections
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -130,6 +131,10 @@ def show_rdm(
     # we don't necessarily have the same number of RDMs as panels, so need to stop the
     # loop when we've plotted all the RDMs
     rdms_gen = (this_rdm for this_rdm in rdm)
+    # return values are
+    # image, axis, colorbar, x_labels, y_labels
+    # some are global for figure, others local. Perhaps dicts indexed by axis is easiest
+    return_handles = collections.defaultdict(dict)
     with plt.style.context(style):
         fig, ax_array = plt.subplots(
             nrows=int(n_row),
@@ -144,7 +149,7 @@ def show_rdm(
         for row_ind, row in enumerate(ax_array):
             for col_ind, panel in enumerate(row):
                 try:
-                    image = show_rdm_panel(
+                    return_handles[panel]['image'] = show_rdm_panel(
                         next(rdms_gen),
                         ax=panel,
                         cmap=cmap,
@@ -162,14 +167,14 @@ def show_rdm(
                     raise
                 if show_colorbar == "panel":
                     # needs to happen before labels because it resizes the axis
-                    cb = _rdm_colorbar(
-                        mappable=image,
+                    return_handles[panel]['colorbar'] = _rdm_colorbar(
+                        mappable=return_handles[panel]['image'],
                         fig=fig,
                         ax=panel,
                         title=rdm.dissimilarity_measure,
                     )
                 if col_ind == 0 and pattern_descriptor:
-                    _add_descriptor_y_labels(
+                    return_handles[panel]['y_labels'] = add_descriptor_y_labels(
                         rdm,
                         pattern_descriptor,
                         ax=panel,
@@ -178,7 +183,7 @@ def show_rdm(
                         linewidth=linewidth,
                     )
                 if row_ind == 0 and pattern_descriptor:
-                    _add_descriptor_x_labels(
+                    return_handles[panel]['x_labels'] = add_descriptor_x_labels(
                         rdm,
                         pattern_descriptor,
                         ax=panel,
@@ -192,10 +197,10 @@ def show_rdm(
             cbax_parent = ax_array[-1, -1]
             cbax_parent_orgpos = cbax_parent.get_position(original=True)
             # use last instance of 'image' (should all be yoked at this point)
-            cb = _rdm_colorbar(
+            return_handles[fig]['colorbar'] = _rdm_colorbar(
                 mappable=image, fig=fig, ax=cbax_parent, title=rdm.dissimilarity_measure
             )
-            cbax_pos = cb.ax.get_position()
+            cbax_pos = return_handles[fig]['colorbar'].ax.get_position()
             # halfway through panel, less the width/height of the colorbar itself
             x0 = (
                 cbax_parent_orgpos.x0
@@ -207,8 +212,9 @@ def show_rdm(
                 + cbax_parent_orgpos.height / 2
                 - cbax_pos.height / 2
             )
-            cb.ax.set_position([x0, y0, cbax_pos.width, cbax_pos.height])
-    return fig
+            return_handles[fig]['colorbar'].ax.set_position([x0, y0, cbax_pos.width, cbax_pos.height])
+
+    return fig, ax_array, return_handles
 
 
 def _rdm_colorbar(mappable=None, fig=None, ax=None, title=None):
@@ -256,12 +262,12 @@ def show_rdm_panel(
     return image
 
 
-def _add_descriptor_x_labels(
+def add_descriptor_x_labels(
     rdm, descriptor, ax=None, num_pattern_groups=None, icon_spacing=None, linewidth=None
 ):
     if ax is None:
         ax = plt.gca()
-    _add_descriptor_labels(
+    return _add_descriptor_labels(
         rdm,
         descriptor,
         axis=ax.xaxis,
@@ -273,12 +279,12 @@ def _add_descriptor_x_labels(
     )
 
 
-def _add_descriptor_y_labels(
+def add_descriptor_y_labels(
     rdm, descriptor, ax=None, num_pattern_groups=None, icon_spacing=None, linewidth=None
 ):
     if ax is None:
         ax = plt.gca()
-    _add_descriptor_labels(
+    return _add_descriptor_labels(
         rdm,
         descriptor,
         axis=ax.yaxis,
@@ -316,22 +322,23 @@ def _add_descriptor_labels(
         size = (ax_size_pix / n_to_fit) / im_max_pix
         # from proportion of original size to figure pixels
         offset = im_max_pix * size
+        label_handles = []
         for group_ind in range(num_pattern_groups - 1, -1, -1):
             position = offset * 0.2 + offset * group_ind
             ticks = np.arange(group_ind, rdm.n_cond, num_pattern_groups)
             if isinstance(axis, matplotlib.axis.XAxis):
-                [
+                label_handles.append([
                     this_desc.x_tick_label(
                         this_x,
                         size,
                         offset=position,
                         linewidth=linewidth,
                         ax=axis.axes,
-                    )
+                        )
                     for (this_x, this_desc) in zip(ticks, desc[ticks])
-                ]
+                    ])
             elif isinstance(axis, matplotlib.axis.YAxis):
-                [
+                label_handles.append([
                     this_desc.y_tick_label(
                         this_y,
                         size,
@@ -340,12 +347,12 @@ def _add_descriptor_labels(
                         ax=axis.axes,
                     )
                     for (this_y, this_desc) in zip(ticks, desc[ticks])
-                ]
+                ])
             else:
                 raise TypeError("expected axis to be XAxis or YAxis instance")
     else:
         # vanilla matplotlib-based
-        axis.set_ticklabels(
+        label_handles = axis.set_ticklabels(
             desc,
             verticalalignment="center",
             horizontalalignment=horizontalalignment,
@@ -359,4 +366,4 @@ def _add_descriptor_labels(
                 rotation_mode="anchor",
             )
 
-    return
+    return label_handles
