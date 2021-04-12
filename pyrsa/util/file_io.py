@@ -8,6 +8,7 @@ import h5py
 import pickle
 import numpy as np
 import os
+from collections.abc import Iterable
 
 
 def write_dict_hdf5(file, dictionary):
@@ -45,6 +46,9 @@ def _write_to_group(group, dictionary):
             _write_to_group(subgroup, value)
         elif value is None:
             group[key] = h5py.Empty("f")
+        elif isinstance(value, Iterable):
+            if isinstance(value[0], str):
+                group.attrs[key] = value
         else:
             group[key] = value
 
@@ -115,3 +119,19 @@ def read_dict_pkl(file):
         file = open(file, 'rb')
     data = pickle.load(file)
     return data
+
+
+def remove_file(file):
+    """ Deletes file from OS if it exists
+
+    Args:
+        file (str, Path):
+            a filename or opened readable file
+
+    """
+    from pathlib import Path
+    if isinstance(file, (str, Path)) and os.path.exists(file):
+        os.remove(file)
+    elif hasattr(file, 'name') and os.path.exists(file.name):
+        file.truncate(0)
+    return
