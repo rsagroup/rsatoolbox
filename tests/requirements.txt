@@ -8,5 +8,4 @@ h5py
 matplotlib
 joblib
 parameterized
-nbsphinx
-nbsphinx-link
+
