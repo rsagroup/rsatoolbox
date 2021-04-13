@@ -1,5 +1,5 @@
 pyrsa.inference.noise\_ceiling module
-===============================
+=====================================
 
 .. automodule:: pyrsa.inference.noise_ceiling
    :members:

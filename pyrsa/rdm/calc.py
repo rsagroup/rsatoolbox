@@ -171,7 +171,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
         - 2 * np.dot(measurements, measurements.T)
     rdm = _extract_triu_(rdm) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
-               dissimilarity_measure='euclidean',
+               dissimilarity_measure='squared euclidean',
                rdm_descriptors=deepcopy(dataset.descriptors))
     rdm.pattern_descriptors[descriptor] = desc
     return rdm
@@ -236,7 +236,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
             - 2 * kernel
         rdm = _extract_triu_(rdm) / measurements.shape[1]
         rdm = RDMs(dissimilarities=np.array([rdm]),
-                   dissimilarity_measure='mahalanobis',
+                   dissimilarity_measure='squared mahalanobis',
                    rdm_descriptors=deepcopy(dataset.descriptors))
         rdm.pattern_descriptors[descriptor] = desc
         rdm.descriptors['noise'] = noise
