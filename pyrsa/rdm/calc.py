@@ -295,7 +295,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     dataset.sort_by(descriptor)
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     rdms = []
-    if noise is None or (isinstance(noise, np.ndarray) and noise.ndim == 2):
+    if (noise is None) or (isinstance(noise, np.ndarray) and noise.ndim == 2):
         for i_fold in range(len(cv_folds)):
             fold = cv_folds[i_fold]
             data_test = dataset.subset_obs(cv_descriptor, fold)
@@ -317,11 +317,13 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
             variances.append(np.linalg.inv(noise[i_fold]))
         for i_fold in range(len(cv_folds)):
             for j_fold in range(i_fold + 1, len(cv_folds)):
-                rdm = _calc_rdm_crossnobis_single(
-                    measurements[i_fold], measurements[j_fold],
-                    np.linalg.inv(variances[i_fold]
-                                  + variances[j_fold]))
-                rdms.append(rdm)
+                if i_fold != j_fold:
+                    rdm = _calc_rdm_crossnobis_single(
+                        measurements[i_fold], measurements[j_fold],
+                        np.linalg.inv(
+                            (variances[i_fold] + variances[j_fold]) / 2)
+                        )
+                    rdms.append(rdm)
     rdms = np.array(rdms)
     rdm = np.einsum('ij->j', rdms) / rdms.shape[0]
     rdm = RDMs(dissimilarities=np.array([rdm]),
