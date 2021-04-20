@@ -6,9 +6,11 @@ Definition of RSA RDMs class and subclasses
 @author: baihan
 """
 
+from copy import deepcopy
+from collections.abc import Iterable
 import os
 import numpy as np
-from collections.abc import Iterable
+from pyrsa.rdm.combine import _mean
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -212,6 +214,7 @@ class RDMs:
         dissimilarities = self.get_matrices()
         for i_rdm in range(self.n_rdm):
             np.fill_diagonal(dissimilarities[i_rdm], np.nan)
+        selection = np.sort(selection)
         dissimilarities = dissimilarities[:, selection][:, :, selection]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
@@ -395,6 +398,32 @@ class RDMs:
                 self.reorder([list(descriptor).index(x) for x in new_order])
             else:
                 raise ValueError(f'Unknown sorting method: {method}')
+
+    def mean(self, weights=None):
+        """Average rdm of all rdms contained
+
+        Args:
+            weights (str or ndarray, optional): One of:
+                None: No weighting applied
+                str: Use the weights contained in the `rdm_descriptor` with this name
+                ndarray: Weights array of the shape of RDMs.dissimilarities
+
+        Returns:
+            `pyrsa.rdm.rdms.RDMs`: New RDMs object with one vector
+        """
+        if str(weights) in self.rdm_descriptors:
+            new_descriptors = dict(
+                [(k, v) for (k, v) in self.descriptors.items() if k != weights]
+            )
+            weights = self.rdm_descriptors[weights]
+        else:
+            new_descriptors = deepcopy(self.descriptors)
+        return RDMs(
+            dissimilarities=np.array([_mean(self.dissimilarities, weights)]),
+            dissimilarity_measure=self.dissimilarity_measure,
+            descriptors=new_descriptors,
+            pattern_descriptors=deepcopy(self.pattern_descriptors)
+        )
 
 
 def rdms_from_dict(rdm_dict):

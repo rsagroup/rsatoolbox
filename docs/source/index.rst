@@ -18,6 +18,7 @@ Documentation
    distances.rst
    model.rst
    comparing.rst
+   operations.rst
    fitting.rst
    inference.rst
    visualization.rst
