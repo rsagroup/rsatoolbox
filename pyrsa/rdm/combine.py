@@ -81,7 +81,7 @@ def from_partials(
                     rdm_descriptors[name][rdm_id] = rdms.descriptors[name]
             rdm_id += 1
 
-    return pyrsa.rdm.rdms.RDMs(
+    return pyrsa.rdm.RDMs(
         dissimilarities=vectors,
         dissimilarity_measure=measure,
         descriptors=descriptors,
