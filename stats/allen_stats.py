@@ -17,13 +17,12 @@ import pyrsa
 from helpers import run_inference
 
 
-boc = BrainObservatoryCache(manifest_file='boc/manifest.json')
-nwb_filename = 'boc/ophys_experiment_data/%d.nwb'
-
-
-def download(exp_id, folder='allen_data'):
+def download(exp_id, folder='allen_data', boc=None):
     """ downloads a specific experiment and extracts the mean cell responses
     from the df/f traces for n frames after the exp_id"""
+    if boc is None:
+        boc = BrainObservatoryCache(manifest_file='boc/manifest.json')
+    nwb_filename = 'boc/ophys_experiment_data/%d.nwb'
     if not os.path.isdir(folder):
         os.mkdir(folder)
     filename = os.path.join(folder, 'U_%d.npz' % exp_id)
@@ -48,6 +47,7 @@ def download(exp_id, folder='allen_data'):
 
 
 def download_all(folder='allen_data'):
+    boc = BrainObservatoryCache(manifest_file='boc/manifest.json')
     csv_file = folder + '.csv'
     if not os.path.isfile(csv_file):
         experiments = boc.get_ophys_experiments(
@@ -61,7 +61,7 @@ def download_all(folder='allen_data'):
     exp_df['n_stim'] = np.nan
     exp_df['n_cell'] = np.nan
     for idx in order:
-        n_stim, n_cell = download(exp_df['id'][idx], folder=folder)
+        n_stim, n_cell = download(exp_df['id'][idx], folder=folder, boc=boc)
         print('downloaded %d: %d' % (idx, exp_df['id'][idx]))
         exp_df.at[idx, 'n_stim'] = n_stim
         exp_df.at[idx, 'n_cell'] = n_cell
@@ -135,6 +135,33 @@ def resample(n_subj, n_stim, n_repeat, n_cell, folder='allen_data',
     return datasets
 
 
+def get_all_data(folder='allen_data', targeted_structure='VISal', min_cell=20):
+    csv_file = folder + '.csv'
+    exp_df = pd.read_csv(csv_file)
+    exp_df = exp_df[exp_df.n_cell >= min_cell]
+    right_tar_df = exp_df[exp_df['targeted_structure'] == targeted_structure]
+    subs = np.unique(right_tar_df['donor_name'])
+    datasets = []
+    for i_subj, subj in enumerate(subs):
+        right_sub_df = right_tar_df[
+            right_tar_df['donor_name'] == subj]
+        for i_exp, exp_row in right_sub_df.iterrows():
+            exp_id = exp_row['id']
+            dat = np.load('allen_data/U_%d.npz' % exp_id)
+            U = dat['U']
+            stimulus = dat['stimulus']
+            dataset = pyrsa.data.Dataset(
+                U,
+                obs_descriptors={
+                    'stim': stimulus},
+                descriptors={
+                    'subj': i_subj,
+                    'targeted_structure': targeted_structure}
+                )
+            datasets.append(dataset)
+    return datasets
+
+
 def get_model_rdm(folder='allen_data', method='crossnobis', sim_type='cosine',
                   targeted_structure='VISal', min_cell=20):
     file_name = os.path.join(folder, method, sim_type)
@@ -144,29 +171,8 @@ def get_model_rdm(folder='allen_data', method='crossnobis', sim_type='cosine',
     if os.path.exists(file_name):
         rdm = pyrsa.rdm.load_rdm(file_name)
     else:
-        csv_file = folder + '.csv'
-        exp_df = pd.read_csv(csv_file)
-        exp_df = exp_df[exp_df.n_cell >= min_cell]
-        right_tar_df = exp_df[exp_df['targeted_structure'] == targeted_structure]
-        subs = np.unique(right_tar_df['donor_name'])
-        datasets = []
-        for i_subj, subj in enumerate(subs):
-            right_sub_df = right_tar_df[
-                right_tar_df['donor_name'] == subj]
-            for i_exp, exp_row in right_sub_df.iterrows():
-                exp_id = exp_row['id']
-                dat = np.load('allen_data/U_%d.npz' % exp_id)
-                U = dat['U']
-                stimulus = dat['stimulus']
-                dataset = pyrsa.data.Dataset(
-                    U,
-                    obs_descriptors={
-                        'stim': stimulus},
-                    descriptors={
-                        'subj': i_subj,
-                        'targeted_structure': targeted_structure}
-                    )
-                datasets.append(dataset)
+        datasets = get_all_data(folder=folder, min_cell=min_cell,
+                                targeted_structure=targeted_structure)
         # we don't have a cv_descriptor here
         rdms = pyrsa.rdm.calc_rdm(datasets, method=method, descriptor='stim',
                                   cv_descriptor=None)
@@ -306,6 +312,22 @@ def summarize_allen(file_add):
     means = np.array(means)
     variances = np.array(variances)
     np.savez(summary_file, means=means, variances=variances)
+
+
+def overall_ana(allen_folder='allen_data', rdm_comparison='cosine',
+                rdm_type='crossnobis', min_cell=1,
+                noise_type='eye', boot_type='both'):
+    models = get_models(folder='allen_data', method=rdm_type,
+                        sim_type=rdm_comparison, min_cell=1)
+    target_structures = ['VISl', 'VISpm', 'VISrl', 'VISp', 'VISam', 'VISal']
+    data_rdms = {}
+    for target in target_structures:
+        datasets = get_all_data(
+            folder=allen_folder, targeted_structure=target, min_cell=min_cell)
+        rdms = pyrsa.rdm.calc_rdm(datasets, method=rdm_type, descriptor='stim',
+                                  cv_descriptor=None)
+        data_rdms[target] = rdms
+        
 
 
 def _get_fnames(file_add):
