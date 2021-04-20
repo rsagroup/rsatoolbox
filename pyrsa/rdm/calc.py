@@ -10,6 +10,7 @@ from copy import deepcopy
 import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
+from pyrsa.rdm.combine import from_partials
 from pyrsa.data import average_dataset_by
 from pyrsa.util.rdm_utils import _extract_triu_
 
@@ -18,6 +19,10 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
              cv_descriptor=None, prior_lambda=1, prior_weight=0.1):
     """
     calculates an RDM from an input dataset
+
+    This should usually be called with the method and the descriptor argument
+    to specify the dissimilarity measure and which observations in the dataset
+    belong to which condition.
 
     Args:
         dataset (pyrsa.data.dataset.DatasetBase):
@@ -59,7 +64,10 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
                     noise=noise[i_dat],
                     cv_descriptor=cv_descriptor,
                     prior_lambda=prior_lambda, prior_weight=prior_weight))
-        rdm = concat(rdms)
+        if descriptor is None:
+            rdm = concat(rdms)
+        else:
+            rdm = from_partials(rdms, descriptor=descriptor)
     else:
         if method == 'euclidean':
             rdm = calc_rdm_euclid(dataset, descriptor)
@@ -81,6 +89,8 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
                                       prior_weight=prior_weight)
         else:
             raise(NotImplementedError)
+        if descriptor is not None:
+            rdm.sort_by(**{descriptor: 'alpha'})
     return rdm
 
 
