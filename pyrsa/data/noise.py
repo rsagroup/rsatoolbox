@@ -145,16 +145,16 @@ def cov_from_residuals(residuals, dof=None, method='shrinkage_diag'):
     """
     if not isinstance(residuals, np.ndarray) or len(residuals.shape) > 2:
         cov_mat = []
-        for i in range(len(residuals)):
+        for i, residual in enumerate(residuals):
             if dof is None:
                 cov_mat.append(cov_from_residuals(
-                    residuals[i], method=method))
+                    residual, method=method))
             elif isinstance(dof, Iterable):
                 cov_mat.append(cov_from_residuals(
-                    residuals[i], method=method, dof=dof[i]))
+                    residuals, method=method, dof=dof[i]))
             else:
                 cov_mat.append(cov_from_residuals(
-                    residuals[i], method=method, dof=dof))
+                    residual, method=method, dof=dof))
     else:
         if dof is None:
             dof = residuals.shape[0] - 1
@@ -278,12 +278,12 @@ def prec_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag')
     cov = cov_from_measurements(dataset, obs_desc, dof=dof, method=method)
     if not isinstance(cov, np.ndarray):
         prec = [None] * len(cov)
-        for i in range(len(cov)):
-            prec[i] = np.linalg.inv(cov[i])
+        for i, cov_i in enumerate(cov):
+            prec[i] = np.linalg.inv(cov_i)
     elif len(cov.shape) > 2:
         prec = np.zeros(cov.shape)
-        for i in range(len(cov)):
-            prec[i] = np.linalg.inv(cov[i])
+        for i, cov_i in enumerate(cov):
+            prec[i] = np.linalg.inv(cov_i)
     else:
         prec = np.linalg.inv(cov)
     return prec
