@@ -11,3 +11,4 @@ Demos
    demo_dissimilarities
    demo_unbalanced
    demo_temporal
+   rescale_partials

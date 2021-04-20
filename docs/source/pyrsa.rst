@@ -17,6 +17,7 @@ pyrsa.rdm
 .. toctree::
 
    pyrsa.rdm.calc
+   pyrsa.rdm.combine
    pyrsa.rdm.compare
    pyrsa.rdm.rdms
 
