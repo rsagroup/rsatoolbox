@@ -161,7 +161,7 @@ class TestDemos(unittest.TestCase):
 
         conv1_rdms = model_rdms.subset('brain_computational_model', 'conv1')
         plt.figure(figsize=(10, 10))
-        pyrsa.vis.show_rdm(conv1_rdms, do_rank_transform=True,
+        pyrsa.vis.show_rdm(conv1_rdms,
                            rdm_descriptor='measurement_model')
 
         conv1_rdms = model_rdms.subset('brain_computational_model', 'conv1')
@@ -197,7 +197,7 @@ class TestDemos(unittest.TestCase):
             rdms_matrix[:, i_rep, i_fwhm, i_noise, :].transpose())
 
         plt.figure(figsize=(10, 10))
-        pyrsa.vis.show_rdm(rdms_data, do_rank_transform=True)
+        pyrsa.vis.show_rdm(rdms_data)
 
         models = []
         for i_model in np.unique(model_names):
@@ -333,7 +333,6 @@ class TestDemos(unittest.TestCase):
             for x in rdms_data_binned.rdm_descriptors['time']]
 
         pyrsa.vis.show_rdm(rdms_data_binned,
-                           do_rank_transform=False,
                            pattern_descriptor='conds',
                            rdm_descriptor='time_formatted')
         from pyrsa.rdm import get_categorical_rdm
