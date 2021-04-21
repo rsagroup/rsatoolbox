@@ -20,11 +20,11 @@ sys.path.insert(0, os.path.abspath('../'))
 # -- Project information -----------------------------------------------------
 
 project = 'rsatoolbox'
-copyright = '2019, rsatoolbox authors'
+copyright = '2021, rsatoolbox authors'
 author = 'rsatoolbox authors'
 
 # The short X.Y version
-version = '3.0.0'
+version = '0.0.1'
 # The full version, including alpha/beta/rc tags
 release = version
 
