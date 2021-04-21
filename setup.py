@@ -14,9 +14,9 @@ with open('README.md', encoding='utf-8') as readmefile:
 
 setup(
     name='rsatoolbox',
-    version='3.0.0.post20201106',
-    description='Python Representational Similarity Analysis (RSA)',
-    url='https://github.com/rsagroup/pyrsa',
+    version='0.0.1',
+    description='Representational Similarity Analysis (RSA) in Python',
+    url='https://github.com/rsagroup/rsatoolbox',
     long_description=long_description,
     long_description_content_type='text/markdown',
     classifiers=[
@@ -29,7 +29,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
-    author='pyrsa authors',
+    author='rsatoolbox authors',
     author_email='',
     keywords='neuroscience ',
     packages=find_packages(),

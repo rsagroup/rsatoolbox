@@ -24,7 +24,7 @@ def write_dict_hdf5(file, dictionary):
         if os.path.exists(file):
             raise ValueError('File already exists!')
     file = h5py.File(file, 'a')
-    file.attrs['pyrsa_version'] = '3.0'
+    file.attrs['rsatoolbox_version'] = '0.0.1'
     _write_to_group(file, dictionary)
 
 
@@ -99,7 +99,7 @@ def write_dict_pkl(file, dictionary):
     """
     if isinstance(file, str):
         file = open(file, 'wb')
-    dictionary['pyrsa_version'] = '3.0'
+    dictionary['rsatoolbox_version'] = '0.0.1'
     pickle.dump(dictionary, file, protocol=-1)
 
 
