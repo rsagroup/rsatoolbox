@@ -18,4 +18,4 @@ A common use of the pyrsa toolbox involves the following steps:
 * Dataset, RDMs, Models, and results can be visualized using the ``pyrsa.vis`` subpackage.
 * For simulation of artificial data sets, you can used the ``pyrsa.sim.simulation`` module.
 
-For an example of a complete workflow, see the "getting started with RSA3.0" Notebook, :ref:`demos`.
+For an example of a complete workflow, see the "getting started with RSAtoolbox" Notebook, :ref:`demos`.

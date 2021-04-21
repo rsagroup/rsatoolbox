@@ -13,7 +13,7 @@ with open('README.md', encoding='utf-8') as readmefile:
 
 
 setup(
-    name='rsa3',
+    name='rsatoolbox',
     version='3.0.0.post20201106',
     description='Python Representational Similarity Analysis (RSA)',
     url='https://github.com/rsagroup/pyrsa',

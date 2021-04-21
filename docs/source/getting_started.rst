@@ -7,7 +7,7 @@ The easiest way to install pyrsa is with pip:
 
 .. code-block:: sh
 
-    pip install rsa3
+    pip install rsatoolbox
 
 To use pyrsa:
 
