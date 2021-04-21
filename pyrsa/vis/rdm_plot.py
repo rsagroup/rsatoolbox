@@ -27,7 +27,6 @@ RDM_STYLE = os.path.join(MODULE_DIR, "rdm.mplstyle")
 
 def show_rdm(
     rdm: pyrsa.rdm.RDMs,
-    do_rank_transform: bool = False,
     pattern_descriptor: typing.Any = None,
     cmap: typing.Union[str, matplotlib.colors.Colormap] = None,
     rdm_descriptor: typing.Any = None,
@@ -50,7 +49,6 @@ def show_rdm(
 
     Args:
         rdm (pyrsa.rdm.RDMs): RDMs object to be plotted.
-        do_rank_transform (bool): If True, perform rank transform before plotting.
         pattern_descriptor (typing.Any): Key into rdm.pattern_descriptors to use for axis
             labels.
         cmap (typing.Union[str, matplotlib.colors.Colormap]): colormap to be used (by
@@ -95,12 +93,6 @@ def show_rdm(
         raise ValueError(
             f"show_colorbar can be None, panel or figure, got: {show_colorbar}"
         )
-    if do_rank_transform:
-        rdm = pyrsa.rdm.rank_transform(rdm)
-        if not all(var is None for var in [vmin, vmax]):
-            raise ValueError(
-                "manual limits (vmin, vmax) unsupported when do_rank_transform"
-            )
     if nanmask is None:
         nanmask = np.eye(rdm.n_cond, dtype=bool)
     n_panel = rdm.n_rdm
