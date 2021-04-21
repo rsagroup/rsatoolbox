@@ -459,7 +459,7 @@ class Icon:
                         zorder=zorder_marker,
                     )
                 )
-            rev_val['marker'] = AnnotationBbox(
+            ret_val['marker'] = AnnotationBbox(
                 d,
                 (x, y),
                 xybox=xybox,
@@ -477,9 +477,9 @@ class Icon:
                 pad=0.0,
                 annotation_clip=False,
             )
-            rev_val['marker'].set_zorder(zorder_marker)
-            rev_val['marker'].set_alpha(0)
-            ax.add_artist(rev_val['marker'])
+            ret_val['marker'].set_zorder(zorder_marker)
+            ret_val['marker'].set_alpha(0)
+            ax.add_artist(ret_val['marker'])
         if self.string is not None:
             ret_val['string'] = ax.annotate(
                     self.string,
