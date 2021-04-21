@@ -41,7 +41,7 @@ def input_check_model(models, theta=None, fitter=None, N=1):
     if isinstance(models, Model):
         models = [models]
     elif not isinstance(models, Iterable):
-        raise ValueError('model should be a rsatoolbox.model.Model or a list of'
+        raise ValueError('model should be an rsatoolbox.model.Model or a list of'
                          + ' such objects')
     if N > 1:
         evaluations = np.zeros((N, len(models)))

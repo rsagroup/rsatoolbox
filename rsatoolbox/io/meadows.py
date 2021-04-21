@@ -13,7 +13,7 @@ from rsatoolbox.rdm.rdms import RDMs
 
 
 def load_rdms(fpath, sort=True):
-    """Read a Meadows results file and return any RDMs as a rsatoolbox object
+    """Read a Meadows results file and return any RDMs as an rsatoolbox object
 
     Args:
         fpath (str): path to .mat Meadows results file

@@ -344,7 +344,7 @@ class Dataset(DatasetBase):
 
     def odd_even_split(self, obs_desc):
         """
-        Perform a simple odd-even split on a rsatoolbox dataset. It will be
+        Perform a simple odd-even split on an rsatoolbox dataset. It will be
         partitioned into n different datasets, where n is the number of
         distinct values on dataset.obs_descriptors[obs_desc].
         The resulting list will be split into odd and even (index) subset.

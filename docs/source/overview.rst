@@ -8,8 +8,8 @@ Toolbox overview
 
     *Overview over subpackages and work flow in rsatoolbox.*
 
-The Figure above shows the most important subpackages (blue), classes (gray), modules (yellow) and auxillary materials (orange) of the rsatoolbox toolbox.
-A common use of the rsatoolbox toolbox involves the following steps:
+The Figure above shows the most important subpackages (blue), classes (gray), modules (yellow) and auxillary materials (orange) of the RSA toolbox.
+A common use of the RSA toolbox involves the following steps:
 
 * Extract the data that you want to analyzed. The data is stored in the format of a ``rsatoolbox.data.Dataset`` object, see :ref:`datasets`.
 * Use functions from the module ``rsatoolbox.rdm.calc`` to calculate a RDM from the data, with many options for different dissimilarity measures, see :ref:`distances`.
