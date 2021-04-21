@@ -9,7 +9,7 @@ import numpy as np
 
 class TestSearchlight(unittest.TestCase):
     def test__get_searchlight_neighbors(self):
-        from pyrsa.util.searchlight import _get_searchlight_neighbors
+        from rsatoolbox.util.searchlight import _get_searchlight_neighbors
 
         mask = np.zeros((5, 5, 5))
         center = [2, 2, 2]
@@ -22,7 +22,7 @@ class TestSearchlight(unittest.TestCase):
         assert np.mean(mask[tuple(neighbors)]) == 10/27
 
     def test_get_volume_searchlight(self):
-        from pyrsa.util.searchlight import get_volume_searchlight
+        from rsatoolbox.util.searchlight import get_volume_searchlight
 
         mask = np.array([[[False, False, False],
                         [False,  True, False],
@@ -42,7 +42,7 @@ class TestSearchlight(unittest.TestCase):
         assert len(neighbors) == 7
 
     def test_get_searchlight_RDMs(self):
-        from pyrsa.util.searchlight import get_searchlight_RDMs
+        from rsatoolbox.util.searchlight import get_searchlight_RDMs
 
         n_observations = 5
         n_voxels = 5

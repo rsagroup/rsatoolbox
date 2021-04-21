@@ -7,8 +7,8 @@ Test for visualization class
 """
 import unittest
 import numpy as np
-import pyrsa.vis as rsv
-import pyrsa.rdm as rsr
+import rsatoolbox.vis as rsv
+import rsatoolbox.rdm as rsr
 from scipy.spatial.distance import pdist
 
 
@@ -73,7 +73,7 @@ class TestVIS(unittest.TestCase):
 class Test_Icon(unittest.TestCase):
     def test_Icon_no_error(self):
         import PIL
-        from pyrsa.vis import Icon
+        from rsatoolbox.vis import Icon
         import matplotlib.pyplot as plt
 
         test_im = PIL.Image.fromarray(255 * np.random.rand(50, 100))
@@ -97,8 +97,8 @@ class Test_Icon(unittest.TestCase):
         self.assertEqual(ic2.image, test_im)
 
     def test_Icon_from_rdm(self):
-        from pyrsa.vis import Icon
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.vis import Icon
+        from rsatoolbox.rdm import RDMs
 
         rdm = RDMs(np.random.rand(1, 190))
         ic = Icon(rdm)
@@ -173,13 +173,13 @@ class Test_rdm_plot(unittest.TestCase):
 
 class Test_model_plot(unittest.TestCase):
     def test_y_label(self):
-        from pyrsa.vis.model_plot import _get_y_label
+        from rsatoolbox.vis.model_plot import _get_y_label
 
         y_label = _get_y_label("corr")
         self.assertIsInstance(y_label, str)
 
     def test_descr(self):
-        from pyrsa.vis.model_plot import _get_model_comp_descr
+        from rsatoolbox.vis.model_plot import _get_model_comp_descr
 
         descr = _get_model_comp_descr(
             "t-test",

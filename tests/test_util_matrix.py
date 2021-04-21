@@ -7,7 +7,7 @@ test_util_matrix
 """
 
 import unittest
-import pyrsa.util as rsu
+import rsatoolbox.util as rsu
 import numpy as np
 
 
