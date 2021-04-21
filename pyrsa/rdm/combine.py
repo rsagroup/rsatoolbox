@@ -34,8 +34,6 @@ def from_partials(
         RDMs: Object containing all input rdms on the larger scale,
             with missing values where required
     """
-    if len(list_of_rdms) == 1:
-        return list_of_rdms[0]
 
     def pdescs(rdms, descriptor):
         return list(rdms.pattern_descriptors.get(descriptor, []))
@@ -47,12 +45,10 @@ def from_partials(
 
     n_rdms = sum([rdms.n_rdm for rdms in list_of_rdms])
     n_patterns = len(all_patterns)
-    desc_tuples = []
     rdm_desc_names = []
     descriptors = deepcopy(list_of_rdms[0].descriptors)
     desc_diff_names = []
     for rdms in list_of_rdms[1:]:
-        desc_tuples += list(rdms.descriptors.items())
         rdm_desc_names += list(rdms.rdm_descriptors.keys())
         delete = []
         for k, v in descriptors.items():
