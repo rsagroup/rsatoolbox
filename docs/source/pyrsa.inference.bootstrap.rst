@@ -1,7 +1,7 @@
-pyrsa.inference.bootstrap module
+rsatoolbox.inference.bootstrap module
 ================================
 
-.. automodule:: pyrsa.inference.bootstrap
+.. automodule:: rsatoolbox.inference.bootstrap
    :members:
    :undoc-members:
    :show-inheritance:

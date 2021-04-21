@@ -1,7 +1,7 @@
-pyrsa.data.neurodataset module
+rsatoolbox.data.neurodataset module
 ==============================
 
-.. automodule:: pyrsa.data.neurodataset
+.. automodule:: rsatoolbox.data.neurodataset
    :members:
    :undoc-members:
    :show-inheritance:

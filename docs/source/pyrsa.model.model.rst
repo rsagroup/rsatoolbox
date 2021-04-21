@@ -1,7 +1,7 @@
-pyrsa.model.model module
+rsatoolbox.model.model module
 ========================
 
-.. automodule:: pyrsa.model.model
+.. automodule:: rsatoolbox.model.model
    :members:
    :undoc-members:
    :show-inheritance:

@@ -3,20 +3,20 @@
 Getting started
 ===============
 
-The easiest way to install pyrsa is with pip:
+The easiest way to install rsatoolbox is with pip:
 
 .. code-block:: sh
 
     pip install rsatoolbox
 
-To use pyrsa:
+To use rsatoolbox:
 
 .. code-block:: python
 
-    import numpy, pyrsa
-    data = pyrsa.data.Dataset(numpy.random.rand(10, 5))
-    rdms = pyrsa.rdm.calc_rdm(data)
-    pyrsa.vis.show_rdm(rdms)
+    import numpy, rsatoolbox
+    data = rsatoolbox.data.Dataset(numpy.random.rand(10, 5))
+    rdms = rsatoolbox.rdm.calc_rdm(data)
+    rsatoolbox.vis.show_rdm(rdms)
 
 Also make sure your setup meets the requirements to run the toolbox with the relevant toolboxes installed (see requirements.txt). 
 

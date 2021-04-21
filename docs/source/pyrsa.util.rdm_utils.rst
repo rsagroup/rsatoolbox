@@ -1,7 +1,7 @@
-pyrsa.util.rdm\_utils module
+rsatoolbox.util.rdm\_utils module
 ============================
 
-.. automodule:: pyrsa.util.rdm_utils
+.. automodule:: rsatoolbox.util.rdm_utils
    :members:
    :undoc-members:
    :show-inheritance:

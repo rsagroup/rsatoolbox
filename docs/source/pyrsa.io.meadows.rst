@@ -1,7 +1,7 @@
-pyrsa.io.meadows module
+rsatoolbox.io.meadows module
 =======================
 
-.. automodule:: pyrsa.io.meadows
+.. automodule:: rsatoolbox.io.meadows
    :members:
    :undoc-members:
    :show-inheritance:

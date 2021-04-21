@@ -1,7 +1,7 @@
-pyrsa.rdm.compare module
+rsatoolbox.rdm.compare module
 ========================
 
-.. automodule:: pyrsa.rdm.compare
+.. automodule:: rsatoolbox.rdm.compare
    :members:
    :undoc-members:
    :show-inheritance:

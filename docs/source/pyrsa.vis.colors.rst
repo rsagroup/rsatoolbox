@@ -1,7 +1,7 @@
-pyrsa.vis.colors module
+rsatoolbox.vis.colors module
 =======================
 
-.. automodule:: pyrsa.vis.colors
+.. automodule:: rsatoolbox.vis.colors
    :members:
    :undoc-members:
    :show-inheritance:

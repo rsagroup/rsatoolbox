@@ -1,7 +1,7 @@
-pyrsa.rdm.combine module
+rsatoolbox.rdm.combine module
 ========================
 
-.. automodule:: pyrsa.rdm.combine
+.. automodule:: rsatoolbox.rdm.combine
    :members:
    :undoc-members:
    :show-inheritance:

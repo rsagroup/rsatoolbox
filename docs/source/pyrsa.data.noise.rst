@@ -1,7 +1,7 @@
-pyrsa.data.noise module
+rsatoolbox.data.noise module
 =======================
 
-.. automodule:: pyrsa.data.noise
+.. automodule:: rsatoolbox.data.noise
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
-pyrsa.inference.result module
+rsatoolbox.inference.result module
 =============================
 
-.. automodule:: pyrsa.inference.result
+.. automodule:: rsatoolbox.inference.result
    :members:
    :undoc-members:
    :show-inheritance:

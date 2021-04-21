@@ -1,7 +1,7 @@
-pyrsa.inference.noise\_ceiling module
+rsatoolbox.inference.noise\_ceiling module
 =====================================
 
-.. automodule:: pyrsa.inference.noise_ceiling
+.. automodule:: rsatoolbox.inference.noise_ceiling
    :members:
    :undoc-members:
    :show-inheritance:

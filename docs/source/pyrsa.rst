@@ -1,72 +1,72 @@
 API reference
 =============
 
-pyrsa.data
+rsatoolbox.data
 ----------
 
 .. toctree::
 
-   pyrsa.data.dataset
-   pyrsa.data.computations
-   pyrsa.data.neurodataset
-   pyrsa.data.noise
+   rsatoolbox.data.dataset
+   rsatoolbox.data.computations
+   rsatoolbox.data.neurodataset
+   rsatoolbox.data.noise
 
-pyrsa.rdm
+rsatoolbox.rdm
 ---------
 
 .. toctree::
 
-   pyrsa.rdm.calc
-   pyrsa.rdm.combine
-   pyrsa.rdm.compare
-   pyrsa.rdm.rdms
+   rsatoolbox.rdm.calc
+   rsatoolbox.rdm.combine
+   rsatoolbox.rdm.compare
+   rsatoolbox.rdm.rdms
 
-pyrsa.model
+rsatoolbox.model
 -----------
 
 .. toctree::
 
-   pyrsa.model.model
-   pyrsa.model.fitter
+   rsatoolbox.model.model
+   rsatoolbox.model.fitter
 
-pyrsa.inference
+rsatoolbox.inference
 ---------------
 
 .. toctree::
 
-   pyrsa.inference.evaluate
-   pyrsa.inference.result
-   pyrsa.inference.bootstrap
-   pyrsa.inference.noise_ceiling
-   pyrsa.inference.crossvalsets
+   rsatoolbox.inference.evaluate
+   rsatoolbox.inference.result
+   rsatoolbox.inference.bootstrap
+   rsatoolbox.inference.noise_ceiling
+   rsatoolbox.inference.crossvalsets
 
-pyrsa.vis
+rsatoolbox.vis
 ---------
 
 .. toctree::
 
-   pyrsa.vis.mds_plot
-   pyrsa.vis.model_plot
-   pyrsa.vis.rdm_plot
-   pyrsa.vis.colors
+   rsatoolbox.vis.mds_plot
+   rsatoolbox.vis.model_plot
+   rsatoolbox.vis.rdm_plot
+   rsatoolbox.vis.colors
 
-pyrsa.io
+rsatoolbox.io
 --------
 
 .. toctree::
 
-   pyrsa.io.meadows
+   rsatoolbox.io.meadows
 
-pyrsa.util
+rsatoolbox.util
 ----------
 
 .. toctree::
 
-   pyrsa.util.data_utils
-   pyrsa.util.descriptor_utils
-   pyrsa.util.inference_util
-   pyrsa.util.rdm_utils
-   pyrsa.util.vis_utils
-   pyrsa.util.matrix
-   pyrsa.util.file_io
-   pyrsa.util.matrix
+   rsatoolbox.util.data_utils
+   rsatoolbox.util.descriptor_utils
+   rsatoolbox.util.inference_util
+   rsatoolbox.util.rdm_utils
+   rsatoolbox.util.vis_utils
+   rsatoolbox.util.matrix
+   rsatoolbox.util.file_io
+   rsatoolbox.util.matrix

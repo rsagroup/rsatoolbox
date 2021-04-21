@@ -1,7 +1,7 @@
-pyrsa.model.fitter module
+rsatoolbox.model.fitter module
 =========================
 
-.. automodule:: pyrsa.model.fitter
+.. automodule:: rsatoolbox.model.fitter
    :members:
    :undoc-members:
    :show-inheritance:

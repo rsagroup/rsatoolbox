@@ -1,7 +1,7 @@
-pyrsa.util.inference\_util module
+rsatoolbox.util.inference\_util module
 =================================
 
-.. automodule:: pyrsa.util.inference_util
+.. automodule:: rsatoolbox.util.inference_util
    :members:
    :undoc-members:
    :show-inheritance:

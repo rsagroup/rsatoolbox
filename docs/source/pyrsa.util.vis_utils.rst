@@ -1,7 +1,7 @@
-pyrsa.util.vis\_utils module
+rsatoolbox.util.vis\_utils module
 ============================
 
-.. automodule:: pyrsa.util.vis_utils
+.. automodule:: rsatoolbox.util.vis_utils
    :members:
    :undoc-members:
    :show-inheritance:

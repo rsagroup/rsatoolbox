@@ -1,7 +1,7 @@
-pyrsa.data.dataset module
+rsatoolbox.data.dataset module
 =========================
 
-.. automodule:: pyrsa.data.dataset
+.. automodule:: rsatoolbox.data.dataset
    :members:
    :undoc-members:
    :show-inheritance:

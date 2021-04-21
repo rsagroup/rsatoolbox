@@ -1,7 +1,7 @@
-pyrsa.util.matrix module
+rsatoolbox.util.matrix module
 ========================
 
-.. automodule:: pyrsa.util.matrix
+.. automodule:: rsatoolbox.util.matrix
    :members:
    :undoc-members:
    :show-inheritance:

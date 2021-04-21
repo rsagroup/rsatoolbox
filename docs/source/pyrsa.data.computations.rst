@@ -1,7 +1,7 @@
-pyrsa.data.computations module
+rsatoolbox.data.computations module
 ==============================
 
-.. automodule:: pyrsa.data.computations
+.. automodule:: rsatoolbox.data.computations
    :members:
    :undoc-members:
    :show-inheritance:

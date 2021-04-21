@@ -1,7 +1,7 @@
-pyrsa.rdm.calc module
+rsatoolbox.rdm.calc module
 =====================
 
-.. automodule:: pyrsa.rdm.calc
+.. automodule:: rsatoolbox.rdm.calc
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
-pyrsa.rdm.rdms module
+rsatoolbox.rdm.rdms module
 =====================
 
-.. automodule:: pyrsa.rdm.rdms
+.. automodule:: rsatoolbox.rdm.rdms
    :members:
    :undoc-members:
    :show-inheritance:

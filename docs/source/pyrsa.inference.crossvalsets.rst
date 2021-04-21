@@ -1,7 +1,7 @@
-pyrsa.inference.crossvalsets module
+rsatoolbox.inference.crossvalsets module
 ===================================
 
-.. automodule:: pyrsa.inference.crossvalsets
+.. automodule:: rsatoolbox.inference.crossvalsets
    :members:
    :undoc-members:
    :show-inheritance:

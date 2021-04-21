@@ -1,7 +1,7 @@
-pyrsa.inference.evaluate module
+rsatoolbox.inference.evaluate module
 ===============================
 
-.. automodule:: pyrsa.inference.evaluate
+.. automodule:: rsatoolbox.inference.evaluate
    :members:
    :undoc-members:
    :show-inheritance:
