@@ -7,8 +7,7 @@
 [![codecov](https://codecov.io/gh/rsagroup/rsatoolbox/branch/master/graph/badge.svg)](https://codecov.io/gh/rsagroup/rsatoolbox)
 
 
-Conceived during the RSA retreat 2019 in Blue Mountains,
-this version replaces the 2013 version of rsatoolbox previously at ilogue/rsatoolbox.
+Conceived during the RSA retreat 2019 in Blue Mountains.
 
 [Documentation](https://rsatoolbox.readthedocs.io/)
 
