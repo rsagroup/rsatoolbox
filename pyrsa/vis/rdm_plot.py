@@ -208,7 +208,7 @@ def show_rdm(
             cbax_parent_orgpos = cbax_parent.get_position(original=True)
             # use last instance of 'image' (should all be yoked at this point)
             return_handles[fig]["colorbar"] = _rdm_colorbar(
-                mappable=return_handles[panel]["image"],
+                mappable=return_handles[ax_array[0][0]]["image"],
                 fig=fig,
                 ax=cbax_parent,
                 title=rdm.dissimilarity_measure,
