@@ -516,11 +516,14 @@ def _add_descriptor_icons(
         list: Tick label handles.
     """
     # annotated labels with Icon
-    # work out sizing of icons
-    im_width_pix = max(this_desc.final_image.width for this_desc in descriptor_arr)
-    im_height_pix = max(this_desc.final_image.height for this_desc in descriptor_arr)
-    im_max_pix = max(im_width_pix, im_height_pix) * icon_spacing
     n_to_fit = np.ceil(n_cond / num_pattern_groups)
+    # work out sizing of icons
+    im_max_pix = 20.
+    if descriptor_arr[0].final_image:
+        # size by image
+        im_width_pix = max(this_desc.final_image.width for this_desc in descriptor_arr)
+        im_height_pix = max(this_desc.final_image.height for this_desc in descriptor_arr)
+        im_max_pix = max(im_width_pix, im_height_pix) * icon_spacing
     ax.figure.canvas.draw()
     extent = ax.get_window_extent(ax.figure.canvas.get_renderer())
     ax_size_pix = max((extent.width, extent.height))
