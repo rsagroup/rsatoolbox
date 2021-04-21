@@ -5,10 +5,10 @@ Definition of RSA RDMs class and subclasses
 
 @author: baihan
 """
-
-import numpy as np
-from scipy.stats import rankdata
+from copy import deepcopy
 from collections.abc import Iterable
+import numpy as np
+from pyrsa.rdm.combine import _mean
 from pyrsa.util.rdm_utils import batch_to_vectors
 from pyrsa.util.rdm_utils import batch_to_matrices
 from pyrsa.util.descriptor_utils import format_descriptor
@@ -218,6 +218,7 @@ class RDMs:
         dissimilarities = self.get_matrices()
         for i_rdm in range(self.n_rdm):
             np.fill_diagonal(dissimilarities[i_rdm], np.nan)
+        selection = np.sort(selection)
         dissimilarities = dissimilarities[:, selection][:, :, selection]
         descriptors = self.descriptors
         pattern_descriptors = extract_dict(
@@ -400,6 +401,33 @@ class RDMs:
                 raise ValueError(f'Unknown sorting method: {method}')
 
 
+    def mean(self, weights=None):
+        """Average rdm of all rdms contained
+
+        Args:
+            weights (str or ndarray, optional): One of:
+                None: No weighting applied
+                str: Use the weights contained in the `rdm_descriptor` with this name
+                ndarray: Weights array of the shape of RDMs.dissimilarities
+
+        Returns:
+            `pyrsa.rdm.rdms.RDMs`: New RDMs object with one vector
+        """
+        if str(weights) in self.rdm_descriptors:
+            new_descriptors = dict(
+                [(k, v) for (k, v) in self.descriptors.items() if k != weights]
+            )
+            weights = self.rdm_descriptors[weights]
+        else:
+            new_descriptors = deepcopy(self.descriptors)
+        return RDMs(
+            dissimilarities=np.array([_mean(self.dissimilarities, weights)]),
+            dissimilarity_measure=self.dissimilarity_measure,
+            descriptors=new_descriptors,
+            pattern_descriptors=deepcopy(self.pattern_descriptors)
+        )
+
+
 def rdms_from_dict(rdm_dict):
     """ creates a RDMs object from a dictionary
 
@@ -438,35 +466,6 @@ def load_rdm(filename, file_type=None):
     else:
         raise ValueError('filetype not understood')
     return rdms_from_dict(rdm_dict)
-
-
-def rank_transform(rdms, method='average'):
-    """ applies a rank_transform and generates a new RDMs object
-    This assigns a rank to each dissimilarity estimate in the RDM,
-    deals with rank ties and saves ranks as new dissimilarity estimates.
-    As an effect, all non-diagonal entries of the RDM will
-    range from 1 to (n_dim²-n_dim)/2, if the RDM has the dimensions
-    n_dim x n_dim.
-
-    Args:
-        rdms(RDMs): RDMs object
-        method(String):
-            controls how ranks are assigned to equal values
-            other options are: ‘average’, ‘min’, ‘max’, ‘dense’, ‘ordinal’
-
-    Returns:
-        rdms_new(RDMs): RDMs object with rank transformed dissimilarities
-
-    """
-    dissimilarities = rdms.get_vectors()
-    dissimilarities = np.array([rankdata(dissimilarities[i], method=method)
-                                for i in range(rdms.n_rdm)])
-    rdms_new = RDMs(dissimilarities,
-                    dissimilarity_measure=rdms.dissimilarity_measure,
-                    descriptors=rdms.descriptors,
-                    rdm_descriptors=rdms.rdm_descriptors,
-                    pattern_descriptors=rdms.pattern_descriptors)
-    return rdms_new
 
 
 def concat(rdms):

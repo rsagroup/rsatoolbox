@@ -10,6 +10,7 @@ from copy import deepcopy
 import numpy as np
 from pyrsa.rdm.rdms import RDMs
 from pyrsa.rdm.rdms import concat
+from pyrsa.rdm.combine import from_partials
 from pyrsa.data import average_dataset_by
 from pyrsa.util.rdm_utils import _extract_triu_
 
@@ -18,6 +19,10 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
              cv_descriptor=None, prior_lambda=1, prior_weight=0.1):
     """
     calculates an RDM from an input dataset
+
+    This should usually be called with the method and the descriptor argument
+    to specify the dissimilarity measure and which observations in the dataset
+    belong to which condition.
 
     Args:
         dataset (pyrsa.data.dataset.DatasetBase):
@@ -59,7 +64,10 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
                     noise=noise[i_dat],
                     cv_descriptor=cv_descriptor,
                     prior_lambda=prior_lambda, prior_weight=prior_weight))
-        rdm = concat(rdms)
+        if descriptor is None:
+            rdm = concat(rdms)
+        else:
+            rdm = from_partials(rdms, descriptor=descriptor)
     else:
         if method == 'euclidean':
             rdm = calc_rdm_euclid(dataset, descriptor)
@@ -81,6 +89,8 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
                                       prior_weight=prior_weight)
         else:
             raise(NotImplementedError)
+        if descriptor is not None:
+            rdm.sort_by(**{descriptor: 'alpha'})
     return rdm
 
 
@@ -171,7 +181,7 @@ def calc_rdm_euclid(dataset, descriptor=None):
         - 2 * np.dot(measurements, measurements.T)
     rdm = _extract_triu_(rdm) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
-               dissimilarity_measure='euclidean',
+               dissimilarity_measure='squared euclidean',
                rdm_descriptors=deepcopy(dataset.descriptors))
     rdm.pattern_descriptors[descriptor] = desc
     return rdm
@@ -236,7 +246,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
             - 2 * kernel
         rdm = _extract_triu_(rdm) / measurements.shape[1]
         rdm = RDMs(dissimilarities=np.array([rdm]),
-                   dissimilarity_measure='mahalanobis',
+                   dissimilarity_measure='squared mahalanobis',
                    rdm_descriptors=deepcopy(dataset.descriptors))
         rdm.pattern_descriptors[descriptor] = desc
         rdm.descriptors['noise'] = noise
@@ -295,7 +305,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     dataset.sort_by(descriptor)
     cv_folds = np.unique(np.array(dataset.obs_descriptors[cv_descriptor]))
     rdms = []
-    if noise is None or (isinstance(noise, np.ndarray) and noise.ndim == 2):
+    if (noise is None) or (isinstance(noise, np.ndarray) and noise.ndim == 2):
         for i_fold in range(len(cv_folds)):
             fold = cv_folds[i_fold]
             data_test = dataset.subset_obs(cv_descriptor, fold)
@@ -317,11 +327,13 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
             variances.append(np.linalg.inv(noise[i_fold]))
         for i_fold in range(len(cv_folds)):
             for j_fold in range(i_fold + 1, len(cv_folds)):
-                rdm = _calc_rdm_crossnobis_single(
-                    measurements[i_fold], measurements[j_fold],
-                    np.linalg.inv(variances[i_fold]
-                                  + variances[j_fold]))
-                rdms.append(rdm)
+                if i_fold != j_fold:
+                    rdm = _calc_rdm_crossnobis_single(
+                        measurements[i_fold], measurements[j_fold],
+                        np.linalg.inv(
+                            (variances[i_fold] + variances[j_fold]) / 2)
+                        )
+                    rdms.append(rdm)
     rdms = np.array(rdms)
     rdm = np.einsum('ij->j', rdms) / rdms.shape[0]
     rdm = RDMs(dissimilarities=np.array([rdm]),
