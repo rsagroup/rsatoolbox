@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import os
 import tqdm
+import matplotlib.pyplot as plt
 import pyrsa
 from helpers import run_inference
 
@@ -319,15 +320,42 @@ def overall_ana(allen_folder='allen_data', rdm_comparison='cosine',
                 noise_type='eye', boot_type='both'):
     models = get_models(folder='allen_data', method=rdm_type,
                         sim_type=rdm_comparison, min_cell=1)
-    target_structures = ['VISl', 'VISpm', 'VISrl', 'VISp', 'VISam', 'VISal']
+    models = [models[i] for i in (3, 0, 5, 2, 4, 1)]
+    target_structures = ['VISp', 'VISl', 'VISal', 'VISrl', 'VISam', 'VISpm']
     data_rdms = {}
+    results = []
     for target in target_structures:
         datasets = get_all_data(
             folder=allen_folder, targeted_structure=target, min_cell=min_cell)
         rdms = pyrsa.rdm.calc_rdm(datasets, method=rdm_type, descriptor='stim',
                                   cv_descriptor=None)
         data_rdms[target] = rdms
-        
+        results.append(pyrsa.inference.eval_fixed(models, rdms, method=rdm_comparison))
+        pyrsa.vis.plot_model_comparison(results[-1])
+    pair_sim = np.zeros((len(target_structures), len(target_structures)))
+    for i_target in range(len(target_structures)):
+        pair_sim[i_target] = np.mean(results[i_target].evaluations, -1)
+    plt.figure()
+    plt.imshow(pair_sim, cmap='bone')
+    cb = plt.colorbar()
+    if rdm_comparison == 'cosine':
+        cb.set_label('rdm cosine similarity', fontsize=14)
+    elif rdm_comparison == 'corr':
+        cb.set_label('rdm correlation', fontsize=14)
+    elif rdm_comparison == 'cosine_cov':
+        cb.set_label('whitened cosine similarity', fontsize=14)
+    elif rdm_comparison == 'corr_cov':
+        cb.set_label('whitened rdm correlation', fontsize=14)
+    plt.xticks(np.arange(len(target_structures)),
+               ['V1', 'L', 'AL', 'RL', 'AM', 'PM'],
+               fontsize=18)
+    plt.yticks(np.arange(len(target_structures)),
+               ['V1', 'L', 'AL', 'RL', 'AM', 'PM'],
+               fontsize=18)
+    plt.xlabel('model RDM', fontsize=16)
+    plt.ylabel('data RDM', fontsize=16)
+    plt.savefig('figures/allen_%s_%s.pdf' % (rdm_type, rdm_comparison),
+                bbox_inches='tight')
 
 
 def _get_fnames(file_add):
