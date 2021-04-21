@@ -4,18 +4,22 @@
 Plot showing an RDMs object
 """
 
+from __future__ import annotations
 import os.path
 import inspect
 import collections
 import typing
+from typing import TYPE_CHECKING
 import numpy as np
-import numpy.typing as npt
 import matplotlib
 import matplotlib.pyplot as plt
 import pyrsa.rdm
 from pyrsa import vis
 from pyrsa.vis.colors import rdm_colormap
-import pathlib
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+    import pathlib
 
 MODULE_DIR = os.path.dirname(inspect.getfile(inspect.currentframe()))
 RDM_STYLE = os.path.join(MODULE_DIR, "rdm.mplstyle")
