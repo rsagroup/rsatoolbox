@@ -7,14 +7,14 @@ Definition of RSA Dataset classes for neuroimaging or neural data
 """
 
 
-from pyrsa.data.dataset import DatasetBase
+from rsatoolbox.data.dataset import DatasetBase
 
 
 def preprocess_fmri(rawdata=None):
     """example of a preprocessing function
 
         Args:
-            rawdata (pyrsa.data.dataset.Dataset): the neural data
+            rawdata (rsatoolbox.data.dataset.Dataset): the neural data
 
         Returns:
             preprocessed neural data in format of measurements,

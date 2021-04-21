@@ -7,7 +7,7 @@ a testset
 """
 
 import numpy as np
-from pyrsa.util.inference_util import input_check_model
+from rsatoolbox.util.inference_util import input_check_model
 from .bootstrap import bootstrap_sample
 from .bootstrap import bootstrap_sample_rdm
 from .bootstrap import bootstrap_sample_pattern
@@ -22,8 +22,8 @@ def bootstrap_testset(models, data, method='cosine', fitter=None, N=1000,
     or selection if this is desired.
 
     Args:
-        models(pyrsa.model.Model): Models to be evaluated
-        data(pyrsa.rdm.RDMs): RDM data to use
+        models(rsatoolbox.model.Model): Models to be evaluated
+        data(rsatoolbox.rdm.RDMs): RDM data to use
         method(string): comparison method to use
         fitter(function): fitting function
         pattern_descriptor(string): descriptor to group patterns
@@ -78,8 +78,8 @@ def bootstrap_testset_pattern(models, data, method='cosine', fitter=None,
     or selection if this is desired.
 
     Args:
-        models(pyrsa.model.Model): Model to be evaluated
-        datat(pyrsa.rdm.RDMs): RDM data to use
+        models(rsatoolbox.model.Model): Model to be evaluated
+        datat(rsatoolbox.rdm.RDMs): RDM data to use
         method(string): comparison method to use
         fitter(function): fitting function for the model
         pattern_descriptor(string): descriptor to group patterns
@@ -122,8 +122,8 @@ def bootstrap_testset_rdm(models, data, method='cosine', fitter=None, N=1000,
     or selection if this is desired.
 
     Args:
-        model(pyrsa.model.Model): Model to be evaluated
-        datat(pyrsa.rdm.RDMs): RDM data to use
+        model(rsatoolbox.model.Model): Model to be evaluated
+        datat(rsatoolbox.rdm.RDMs): RDM data to use
         method(string): comparison method to use
         fitter(function): fitting function for the model
         pattern_descriptor(string): descriptor to group patterns

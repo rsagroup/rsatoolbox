@@ -4,7 +4,7 @@
 """
 
 import numpy as np
-from pyrsa.util.rdm_utils import add_pattern_index
+from rsatoolbox.util.rdm_utils import add_pattern_index
 
 
 def bootstrap_sample(rdms, rdm_descriptor='index', pattern_descriptor='index'):
@@ -16,7 +16,7 @@ def bootstrap_sample(rdms, rdm_descriptor='index', pattern_descriptor='index'):
     descriptors and in pattern_descriptors to group rdms instead.
 
     Args:
-        rdms(pyrsa.rdm.rdms.RDMs): Data to be used
+        rdms(rsatoolbox.rdm.rdms.RDMs): Data to be used
 
         rdm_descriptors(String):
             descriptor to group the samples by. For each unique value of
@@ -28,7 +28,7 @@ def bootstrap_sample(rdms, rdm_descriptor='index', pattern_descriptor='index'):
             be in or out of the sample as a whole
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: rdms
+        rsatoolbox.rdm.rdms.RDMs: rdms
             subsampled dataset with equal number of groups in both patterns
             and measurements of the rdms
 
@@ -62,7 +62,7 @@ def bootstrap_sample_rdm(rdms, rdm_descriptor='index'):
     If desired a descriptor name can be passed inrdm_descriptor to group rdms.
 
     Args:
-        rdms(pyrsa.rdm.rdms.RDMs): Data to be used
+        rdms(rsatoolbox.rdm.rdms.RDMs): Data to be used
 
         rdm_descriptors(String):
             descriptor to group the samples by. For each unique value of
@@ -70,7 +70,7 @@ def bootstrap_sample_rdm(rdms, rdm_descriptor='index'):
             this value or none
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: rdm_idx
+        rsatoolbox.rdm.rdms.RDMs: rdm_idx
             subsampled dataset with equal number of groups of rdms
 
         numpy.ndarray: rdm_idx
@@ -96,14 +96,14 @@ def bootstrap_sample_pattern(rdms, pattern_descriptor='index'):
     a descriptor name can be passed in pattern_descriptor to group patterns.
 
     Args:
-        rdms(pyrsa.rdm.rdms.RDMs): Data to be used
+        rdms(rsatoolbox.rdm.rdms.RDMs): Data to be used
 
         pattern_descriptors(string):
             descriptor to group the patterns by. Each group of patterns will
             be in or out of the sample as a whole
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: rdm_idx
+        rsatoolbox.rdm.rdms.RDMs: rdm_idx
             subsampled dataset with equal number of pattern groups
 
         numpy.ndarray: pattern_idx

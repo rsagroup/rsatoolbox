@@ -13,8 +13,8 @@ import PIL.ImageOps
 import PIL.ImageFilter
 from PIL import UnidentifiedImageError
 import os
-from pyrsa.rdm import RDMs
-from pyrsa.util.inference_util import pool_rdm
+from rsatoolbox.rdm import RDMs
+from rsatoolbox.util.inference_util import pool_rdm
 
 
 class Icon:

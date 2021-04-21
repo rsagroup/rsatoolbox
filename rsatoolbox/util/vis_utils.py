@@ -25,7 +25,7 @@ from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_random_state, check_array, check_symmetric
 from sklearn.isotonic import IsotonicRegression
 from scipy.spatial.distance import squareform
-from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
+from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
 
 def weight_to_matrices(x):
     """converts a *stack* of weights in vector or matrix form into matrix form

@@ -15,8 +15,8 @@ from matplotlib import cm
 import networkx as nx
 from networkx.algorithms.clique import find_cliques as maximal_cliques
 from scipy.spatial.distance import squareform
-from pyrsa.util.inference_util import all_tests
-from pyrsa.util.rdm_utils import batch_to_vectors
+from rsatoolbox.util.inference_util import all_tests
+from rsatoolbox.util.rdm_utils import batch_to_vectors
 
 
 def plot_model_comparison(result, sort=False, colors=None,
@@ -38,7 +38,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     construct confidence intervals and perform the significance tests.
 
     Args (All strings case insensitive):
-        result (pyrsa.inference.result.Result):
+        result (rsatoolbox.inference.result.Result):
             model evaluation result
         sort (Boolean or string):
             False (default): plot bars in the order passed

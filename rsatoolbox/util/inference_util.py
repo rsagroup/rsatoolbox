@@ -7,8 +7,8 @@ Inference module utilities
 import numpy as np
 import scipy.stats as stats
 from scipy.stats import rankdata, wilcoxon
-from pyrsa.model import Model
-from pyrsa.rdm import RDMs
+from rsatoolbox.model import Model
+from rsatoolbox.rdm import RDMs
 from .matrix import pairwise_contrast
 from .rdm_utils import batch_to_matrices
 from collections.abc import Iterable
@@ -19,7 +19,7 @@ def input_check_model(models, theta=None, fitter=None, N=1):
     generates an evaluation-matrix of fitting size.
 
     Args:
-        model : [list of] pyrsa.rdm.RDMs
+        model : [list of] rsatoolbox.rdm.RDMs
             the models to be evaluated
         theta : numpy.ndarray or list , optional
             Parameter(s) for the model(s). The default is None.
@@ -41,7 +41,7 @@ def input_check_model(models, theta=None, fitter=None, N=1):
     if isinstance(models, Model):
         models = [models]
     elif not isinstance(models, Iterable):
-        raise ValueError('model should be a pyrsa.model.Model or a list of'
+        raise ValueError('model should be a rsatoolbox.model.Model or a list of'
                          + ' such objects')
     if N > 1:
         evaluations = np.zeros((N, len(models)))
@@ -73,13 +73,13 @@ def pool_rdm(rdms, method='cosine'):
     rdm_descriptors of the generated rdms are empty
 
     Args:
-        rdms (pyrsa.rdm.RDMs):
+        rdms (rsatoolbox.rdm.RDMs):
             RDMs to be pooled
         method : String, optional
             Which comparison method to optimize for. The default is 'cosine'.
 
     Returns:
-        pyrsa.rdm.RDMs: the pooled RDM, i.e. a RDM with maximal performance
+        rsatoolbox.rdm.RDMs: the pooled RDM, i.e. a RDM with maximal performance
             under the chosen method
 
     """

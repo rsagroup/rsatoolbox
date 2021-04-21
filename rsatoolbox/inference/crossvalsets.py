@@ -5,8 +5,8 @@ generation of crossvalidation splits
 """
 
 import numpy as np
-from pyrsa.util.rdm_utils import add_pattern_index
-from pyrsa.util.inference_util import default_k_pattern, default_k_rdm
+from rsatoolbox.util.rdm_utils import add_pattern_index
+from rsatoolbox.util.inference_util import default_k_pattern, default_k_rdm
 
 
 def sets_leave_one_out_pattern(rdms, pattern_descriptor):
@@ -18,7 +18,7 @@ def sets_leave_one_out_pattern(rdms, pattern_descriptor):
     training-rdms. This is required for computing the noise-ceiling
 
     Args:
-        rdms(pyrsa.rdm.RDMs): rdms to use
+        rdms(rsatoolbox.rdm.RDMs): rdms to use
         pattern_descriptor(String): descriptor to select groups
 
     Returns:
@@ -52,7 +52,7 @@ def sets_leave_one_out_rdm(rdms, rdm_descriptor='index'):
     of rdm_descriptor out as a test set.\
 
     Args:
-        rdms(pyrsa.rdm.RDMs): rdms to use
+        rdms(rsatoolbox.rdm.RDMs): rdms to use
         rdm_descriptor(String): descriptor to select groups
 
     Returns:
@@ -93,7 +93,7 @@ def sets_k_fold(rdms, k_rdm=None, k_pattern=None, random=True,
     If a k is set to 1 the corresponding dimension is not crossvalidated.
 
     Args:
-        rdms(pyrsa.rdm.RDMs): rdms to use
+        rdms(rsatoolbox.rdm.RDMs): rdms to use
         pattern_descriptor(String): descriptor to select pattern groups
         rdm_descriptor(String): descriptor to select rdm groups
         k_rdm(int): number of rdm groups
@@ -159,7 +159,7 @@ def sets_k_fold_rdm(rdms, k_rdm=None, random=True, rdm_descriptor='index'):
     resulting in k_rdm * k_pattern (training, test) pairs.
 
     Args:
-        rdms(pyrsa.rdm.RDMs): rdms to use
+        rdms(rsatoolbox.rdm.RDMs): rdms to use
         rdm_descriptor(String): descriptor to select rdm groups
         k_rdm(int): number of rdm groups
         random(bool): whether the assignment shall be randomized
@@ -214,7 +214,7 @@ def sets_k_fold_pattern(rdms, pattern_descriptor='index',
     patterns instead.
 
     Args:
-        rdms(pyrsa.rdm.RDMs): rdms to use
+        rdms(rsatoolbox.rdm.RDMs): rdms to use
         pattern_descriptor(String): descriptor to select groups
         k(int): number of groups
         random(bool): whether the assignment shall be randomized
@@ -266,7 +266,7 @@ def sets_of_k_rdm(rdms, rdm_descriptor='index', k=5, random=False):
     patterns are added to the first groups such that those have k+1 patterns
 
     Args:
-        rdms(pyrsa.rdm.RDMs): rdms to use
+        rdms(rsatoolbox.rdm.RDMs): rdms to use
         pattern_descriptor(String): descriptor to select groups
         k(int): number of groups
         random(bool): whether the assignment shall be randomized
@@ -293,7 +293,7 @@ def sets_of_k_pattern(rdms, pattern_descriptor=None, k=5, random=False):
     patterns are added to the first groups such that those have k+1 patterns
 
     Args:
-        rdms(pyrsa.rdm.RDMs): rdms to use
+        rdms(rsatoolbox.rdm.RDMs): rdms to use
         pattern_descriptor(String): descriptor to select groups
         k(int): number of groups
         random(bool): whether the assignment shall be randomized
@@ -321,7 +321,7 @@ def sets_random(rdms, n_rdm=None, n_pattern=None, n_cv=2,
     If a n is set to 0 the corresponding dimension is not crossvalidated.
 
     Args:
-        rdms(pyrsa.rdm.RDMs): rdms to split
+        rdms(rsatoolbox.rdm.RDMs): rdms to split
         pattern_descriptor(String): descriptor to select pattern groups
         rdm_descriptor(String): descriptor to select rdm groups
         n_rdm(int): number of rdms per test set

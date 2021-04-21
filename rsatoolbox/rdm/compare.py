@@ -6,19 +6,19 @@ Comparison methods for comparing two RDMs objects
 import numpy as np
 import scipy.stats
 from scipy.stats._stats import _kendall_dis
-from pyrsa.util.matrix import pairwise_contrast_sparse
-from pyrsa.util.rdm_utils import _get_n_from_reduced_vectors
-from pyrsa.util.rdm_utils import _get_n_from_length
-from pyrsa.util.matrix import row_col_indicator_g
+from rsatoolbox.util.matrix import pairwise_contrast_sparse
+from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
+from rsatoolbox.util.rdm_utils import _get_n_from_length
+from rsatoolbox.util.matrix import row_col_indicator_g
 
 
 def compare(rdm1, rdm2, method='cosine', sigma_k=None):
     """calculates the similarity between two RDMs objects using a chosen method
 
     Args:
-        rdm1 (pyrsa.rdm.RDMs):
+        rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
+        rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
         method (string):
             which method to use, options are:
@@ -65,9 +65,9 @@ def compare_cosine(rdm1, rdm2):
     """calculates the cosine similarities between two RDMs objects
 
     Args:
-        rdm1 (pyrsa.rdm.RDMs):
+        rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
+        rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
     Returns:
         numpy.ndarray: dist
@@ -83,9 +83,9 @@ def compare_correlation(rdm1, rdm2):
     """calculates the correlations between two RDMs objects
 
     Args:
-        rdm1 (pyrsa.rdm.RDMs):
+        rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
+        rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
     Returns:
         numpy.ndarray: dist:
@@ -104,9 +104,9 @@ def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
     """calculates the cosine similarities between two RDMs objects
 
     Args:
-        rdm1 (pyrsa.rdm.RDMs):
+        rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
+        rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
     Returns:
         numpy.ndarray: dist:
@@ -123,9 +123,9 @@ def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
     with the covariance of the entries
 
     Args:
-        rdm1 (pyrsa.rdm.RDMs):
+        rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
+        rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
 
     Returns:
@@ -146,9 +146,9 @@ def compare_spearman(rdm1, rdm2):
     two RDMs objects
 
     Args:
-        rdm1 (pyrsa.rdm.RDMs):
+        rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
+        rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
     Returns:
         numpy.ndarray: dist:
@@ -169,9 +169,9 @@ def compare_rho_a(rdm1, rdm2):
     two RDMs objects without tie correction
 
     Args:
-        rdm1 (pyrsa.rdm.RDMs):
+        rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
+        rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
     Returns:
         numpy.ndarray: dist:
@@ -194,9 +194,9 @@ def compare_kendall_tau(rdm1, rdm2):
     We here use the implementation from scipy.
 
         Args:
-            rdm1 (pyrsa.rdm.RDMs):
+            rdm1 (rsatoolbox.rdm.RDMs):
                 first set of RDMs
-            rdm2 (pyrsa.rdm.RDMs):
+            rdm2 (rsatoolbox.rdm.RDMs):
                 second set of RDMs
         Returns:
             numpy.ndarray: dist:
@@ -212,9 +212,9 @@ def compare_kendall_tau_a(rdm1, rdm2):
     adequate when some models predict ties
 
         Args:
-            rdm1 (pyrsa.rdm.RDMs):
+            rdm1 (rsatoolbox.rdm.RDMs):
                 first set of RDMs
-            rdm2 (pyrsa.rdm.RDMs):
+            rdm2 (rsatoolbox.rdm.RDMs):
                 second set of RDMs
         Returns:
             numpy.ndarray: dist:
@@ -512,9 +512,9 @@ def _parse_input_rdms(rdm1, rdm2):
     the two RDMs objects have different dimensions
 
     Args:
-        rdm1 (pyrsa.rdm.RDMs):
+        rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
+        rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
 
     """

@@ -5,8 +5,8 @@ calculation of noise ceilings
 """
 
 import numpy as np
-from pyrsa.util.inference_util import pool_rdm
-from pyrsa.rdm import compare
+from rsatoolbox.util.inference_util import pool_rdm
+from rsatoolbox.rdm import compare
 from .crossvalsets import sets_leave_one_out_rdm
 
 
@@ -19,7 +19,7 @@ def cv_noise_ceiling(rdms, ceil_set, test_set, method='cosine',
     from ceil_set for training.
 
     Args:
-        rdms(pyrsa.rdm.RDMs): complete data
+        rdms(rsatoolbox.rdm.RDMs): complete data
         ceil_set(list): a list of the training RDMs with 2-tuple entries:
             (RDMs, pattern_idx)
         test_set(list): a list of the test RDMs with 2-tuple entries:
@@ -55,7 +55,7 @@ def boot_noise_ceiling(rdms, method='cosine', rdm_descriptor='index'):
     """ calculates a noise ceiling by leave one out & full set
 
     Args:
-        rdms(pyrsa.rdm.RDMs): data to calculate noise ceiling
+        rdms(rsatoolbox.rdm.RDMs): data to calculate noise ceiling
         method(string): comparison method to use
         rdm_descriptor(string): descriptor to group rdms
 

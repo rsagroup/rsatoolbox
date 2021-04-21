@@ -9,11 +9,11 @@ For information on available file types see the meadows
 from os.path import basename
 import numpy
 from scipy.io import loadmat
-from pyrsa.rdm.rdms import RDMs
+from rsatoolbox.rdm.rdms import RDMs
 
 
 def load_rdms(fpath, sort=True):
-    """Read a Meadows results file and return any RDMs as a pyrsa object
+    """Read a Meadows results file and return any RDMs as a rsatoolbox object
 
     Args:
         fpath (str): path to .mat Meadows results file

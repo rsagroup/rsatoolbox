@@ -8,11 +8,11 @@ Calculation of RDMs from datasets
 from collections.abc import Iterable
 from copy import deepcopy
 import numpy as np
-from pyrsa.rdm.rdms import RDMs
-from pyrsa.rdm.rdms import concat
-from pyrsa.rdm.combine import from_partials
-from pyrsa.data import average_dataset_by
-from pyrsa.util.rdm_utils import _extract_triu_
+from rsatoolbox.rdm.rdms import RDMs
+from rsatoolbox.rdm.rdms import concat
+from rsatoolbox.rdm.combine import from_partials
+from rsatoolbox.data import average_dataset_by
+from rsatoolbox.util.rdm_utils import _extract_triu_
 
 
 def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
@@ -25,7 +25,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
     belong to which condition.
 
     Args:
-        dataset (pyrsa.data.dataset.DatasetBase):
+        dataset (rsatoolbox.data.dataset.DatasetBase):
             The dataset the RDM is computed from
         method (String):
             a description of the dissimilarity measure (e.g. 'Euclidean')
@@ -38,7 +38,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             defaults to an identity matrix, i.e. euclidean distance
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
     if isinstance(dataset, Iterable):
@@ -102,7 +102,7 @@ def calc_rdm_movie(
     calculates an RDM movie from an input TemporalDataset
 
     Args:
-        dataset (pyrsa.data.dataset.TemporalDataset):
+        dataset (rsatoolbox.data.dataset.TemporalDataset):
             The dataset the RDM is computed from
         method (String):
             a description of the dissimilarity measure (e.g. 'Euclidean')
@@ -119,7 +119,7 @@ def calc_rdm_movie(
             of time-points for the i-th bin. Defaults to no binning.
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: RDMs object with RDM movie
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with RDM movie
     """
 
     if isinstance(dataset, Iterable):
@@ -166,13 +166,13 @@ def calc_rdm_movie(
 def calc_rdm_euclid(dataset, descriptor=None):
     """
     Args:
-        dataset (pyrsa.data.DatasetBase):
+        dataset (rsatoolbox.data.DatasetBase):
             The dataset the RDM is computed from
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
             defaults to one row/column per row in the dataset
     Returns:
-        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
     """
 
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
@@ -194,14 +194,14 @@ def calc_rdm_correlation(dataset, descriptor=None):
     they are averaged.
 
     Args:
-        dataset (pyrsa.data.DatasetBase):
+        dataset (rsatoolbox.data.DatasetBase):
             The dataset the RDM is computed from
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
             defaults to one row/column per row in the dataset
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
     ma, desc, descriptor = _parse_input(dataset, descriptor)
@@ -222,7 +222,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     they are averaged.
 
     Args:
-        dataset (pyrsa.data.dataset.DatasetBase):
+        dataset (rsatoolbox.data.dataset.DatasetBase):
             The dataset the RDM is computed from
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
@@ -233,7 +233,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
             default: identity matrix, i.e. euclidean distance
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
     if noise is None:
@@ -276,7 +276,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     according to the descriptor used to define the patterns.
 
     Args:
-        dataset (pyrsa.data.dataset.DatasetBase):
+        dataset (rsatoolbox.data.dataset.DatasetBase):
             The dataset the RDM is computed from
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
@@ -289,7 +289,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
             obs_descriptor which determines the cross-validation folds
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
     noise = _check_noise(noise, dataset.n_channel)
@@ -355,14 +355,14 @@ def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
     they are averaged.
 
     Args:
-        dataset (pyrsa.data.DatasetBase):
+        dataset (rsatoolbox.data.DatasetBase):
             The dataset the RDM is computed from
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
             defaults to one row/column per row in the dataset
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
     measurements, desc, descriptor = _parse_input(dataset, descriptor)
@@ -389,7 +389,7 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
     according to the descriptor used to define the patterns.
 
     Args:
-        dataset (pyrsa.data.DatasetBase):
+        dataset (rsatoolbox.data.DatasetBase):
             The dataset the RDM is computed from
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
@@ -398,7 +398,7 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
             to use for crossvalidation
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
     if descriptor is None:

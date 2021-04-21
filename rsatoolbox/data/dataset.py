@@ -8,18 +8,18 @@ Definition of RSA Dataset class and subclasses
 
 
 import numpy as np
-from pyrsa.util.data_utils import get_unique_unsorted
-from pyrsa.util.descriptor_utils import check_descriptor_length_error
-from pyrsa.util.descriptor_utils import subset_descriptor
-from pyrsa.util.descriptor_utils import num_index
-from pyrsa.util.descriptor_utils import format_descriptor
-from pyrsa.util.descriptor_utils import parse_input_descriptor
-from pyrsa.util.descriptor_utils import append_obs_descriptors
-from pyrsa.util.file_io import write_dict_hdf5
-from pyrsa.util.file_io import write_dict_pkl
-from pyrsa.util.file_io import read_dict_hdf5
-from pyrsa.util.file_io import read_dict_pkl
-from pyrsa.util.file_io import remove_file
+from rsatoolbox.util.data_utils import get_unique_unsorted
+from rsatoolbox.util.descriptor_utils import check_descriptor_length_error
+from rsatoolbox.util.descriptor_utils import subset_descriptor
+from rsatoolbox.util.descriptor_utils import num_index
+from rsatoolbox.util.descriptor_utils import format_descriptor
+from rsatoolbox.util.descriptor_utils import parse_input_descriptor
+from rsatoolbox.util.descriptor_utils import append_obs_descriptors
+from rsatoolbox.util.file_io import write_dict_hdf5
+from rsatoolbox.util.file_io import write_dict_pkl
+from rsatoolbox.util.file_io import read_dict_hdf5
+from rsatoolbox.util.file_io import read_dict_pkl
+from rsatoolbox.util.file_io import remove_file
 
 
 class DatasetBase:
@@ -64,7 +64,7 @@ class DatasetBase:
         """
         defines string which is printed for the object
         """
-        return (f'pyrsa.data.{self.__class__.__name__}(\n'
+        return (f'rsatoolbox.data.{self.__class__.__name__}(\n'
                 f'measurements = \n{self.measurements}\n'
                 f'descriptors = \n{self.descriptors}\n'
                 f'obs_descriptors = \n{self.obs_descriptors}\n'
@@ -82,7 +82,7 @@ class DatasetBase:
             measurements = self.measurements[:5, :]
         else:
             measurements = self.measurements
-        return (f'pyrsa.data.{self.__class__.__name__}\n'
+        return (f'rsatoolbox.data.{self.__class__.__name__}\n'
                 f'measurements = \n{measurements}\n...\n\n'
                 f'descriptors: \n{string_desc}\n\n'
                 f'obs_descriptors: \n{string_obs_desc}\n\n'
@@ -344,7 +344,7 @@ class Dataset(DatasetBase):
 
     def odd_even_split(self, obs_desc):
         """
-        Perform a simple odd-even split on a PyRSA dataset. It will be
+        Perform a simple odd-even split on a rsatoolbox dataset. It will be
         partitioned into n different datasets, where n is the number of
         distinct values on dataset.obs_descriptors[obs_desc].
         The resulting list will be split into odd and even (index) subset.
@@ -481,7 +481,7 @@ class TemporalDataset(Dataset):
             measurements = self.measurements[:5, :, :]
         else:
             measurements = self.measurements
-        return (f'pyrsa.data.{self.__class__.__name__}\n'
+        return (f'rsatoolbox.data.{self.__class__.__name__}\n'
                 f'measurements = \n{measurements}\n...\n\n'
                 f'descriptors: \n{string_desc}\n\n'
                 f'obs_descriptors: \n{string_obs_desc}\n\n'
@@ -864,11 +864,11 @@ def merge_subsets(dataset_list):
 
     Args:
         dataset_list (list):
-            List containing PyRSA datasets
+            List containing rsatoolbox datasets
 
     Returns:
         merged_dataset (Dataset):
-            PyRSA dataset created from all datasets in dataset_list
+            rsatoolbox dataset created from all datasets in dataset_list
     """
     assert isinstance(dataset_list, list), "Provided object is not a list."
     assert "Dataset" in str(type(dataset_list[0])), \

@@ -10,9 +10,9 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
 from joblib import Parallel, delayed
-from pyrsa.data.dataset import Dataset
-from pyrsa.rdm.calc import calc_rdm
-from pyrsa.rdm import RDMs
+from rsatoolbox.data.dataset import Dataset
+from rsatoolbox.rdm.calc import calc_rdm
+from rsatoolbox.rdm import RDMs
 
 def _get_searchlight_neighbors(mask, center, radius=3):
     """Return indices for searchlight where distance
@@ -98,16 +98,16 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
     Args:
         data_2d (2D numpy array): brain data, shape n_observations x n_channels (i.e. voxels/vertices)
         centers (1D numpy array): center indices for all searchlights as provided
-                                        by pyrsa.util.searchlight.get_volume_searchlight
+                                        by rsatoolbox.util.searchlight.get_volume_searchlight
         neighbors (list): list of lists with neighbor voxel indices for all searchlights
-                                        as provided by pyrsa.util.searchlight.get_volume_searchlight
+                                        as provided by rsatoolbox.util.searchlight.get_volume_searchlight
         events (1D numpy array): 1D array of length n_observations
         method (str, optional): distance metric,
-                                see pyrsa.rdm.calc for options. Defaults to 'correlation'.
+                                see rsatoolbox.rdm.calc for options. Defaults to 'correlation'.
         verbose (bool, optional): Defaults to True.
 
     Returns:
-        RDM [pyrsa.rdm.RDMs]: RDMs object with the RDM for each searchlight
+        RDM [rsatoolbox.rdm.RDMs]: RDMs object with the RDM for each searchlight
                               the RDM.rdm_descriptors['voxel_index']
                               describes the center voxel index each RDM is associated with
     """
@@ -169,10 +169,10 @@ def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', th
     """evaluates each searchlighth with the given model/models
 
     Args:
-        sl_RDM ([pyrsa.rdm.RDMs]): RDMs object as computed by pyrsa.util.searchlight.get_searchlight_RDMs
-        models ([pyrsa.model]: models to evaluate - can also be list of models
-        eval_function (pyrsa.inference evaluation-function): [description]
-        method (str, optional): see pyrsa.rdm.compare for specifics. Defaults to 'corr'.
+        sl_RDM ([rsatoolbox.rdm.RDMs]): RDMs object as computed by rsatoolbox.util.searchlight.get_searchlight_RDMs
+        models ([rsatoolbox.model]: models to evaluate - can also be list of models
+        eval_function (rsatoolbox.inference evaluation-function): [description]
+        method (str, optional): see rsatoolbox.rdm.compare for specifics. Defaults to 'corr'.
         n_jobs (int, optional): how many jobs to run. Defaults to 1.
 
     Returns:

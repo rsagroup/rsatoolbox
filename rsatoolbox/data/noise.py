@@ -216,7 +216,7 @@ def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
 
     Args:
         dataset(data.Dataset):
-            PyRSA Dataset object
+            rsatoolbox Dataset object
         dof(int or list of int): degrees of freedom for covariance estimation
             defaults to n_res - 1, should be corrected for the number
             of regressors in a GLM if applicable.

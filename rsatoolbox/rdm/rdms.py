@@ -8,20 +8,20 @@ Definition of RSA RDMs class and subclasses
 from copy import deepcopy
 from collections.abc import Iterable
 import numpy as np
-from pyrsa.rdm.combine import _mean
-from pyrsa.util.rdm_utils import batch_to_vectors
-from pyrsa.util.rdm_utils import batch_to_matrices
-from pyrsa.util.descriptor_utils import format_descriptor
-from pyrsa.util.descriptor_utils import num_index
-from pyrsa.util.descriptor_utils import subset_descriptor
-from pyrsa.util.descriptor_utils import check_descriptor_length_error
-from pyrsa.util.descriptor_utils import append_descriptor
-from pyrsa.util.data_utils import extract_dict
-from pyrsa.util.file_io import write_dict_hdf5
-from pyrsa.util.file_io import write_dict_pkl
-from pyrsa.util.file_io import read_dict_hdf5
-from pyrsa.util.file_io import read_dict_pkl
-from pyrsa.util.file_io import remove_file
+from rsatoolbox.rdm.combine import _mean
+from rsatoolbox.util.rdm_utils import batch_to_vectors
+from rsatoolbox.util.rdm_utils import batch_to_matrices
+from rsatoolbox.util.descriptor_utils import format_descriptor
+from rsatoolbox.util.descriptor_utils import num_index
+from rsatoolbox.util.descriptor_utils import subset_descriptor
+from rsatoolbox.util.descriptor_utils import check_descriptor_length_error
+from rsatoolbox.util.descriptor_utils import append_descriptor
+from rsatoolbox.util.data_utils import extract_dict
+from rsatoolbox.util.file_io import write_dict_hdf5
+from rsatoolbox.util.file_io import write_dict_pkl
+from rsatoolbox.util.file_io import read_dict_hdf5
+from rsatoolbox.util.file_io import read_dict_pkl
+from rsatoolbox.util.file_io import remove_file
 
 
 class RDMs:
@@ -87,7 +87,7 @@ class RDMs:
         """
         defines string which is printed for the object
         """
-        return (f'pyrsa.rdm.{self.__class__.__name__}(\n'
+        return (f'rsatoolbox.rdm.{self.__class__.__name__}(\n'
                 f'dissimilarity_measure = \n{self.dissimilarity_measure}\n'
                 f'dissimilarities = \n{self.dissimilarities}\n'
                 f'descriptors = \n{self.descriptors}\n'
@@ -103,7 +103,7 @@ class RDMs:
         rdm_desc = format_descriptor(self.rdm_descriptors)
         pattern_desc = format_descriptor(self.pattern_descriptors)
         diss = self.get_matrices()[0]
-        return (f'pyrsa.rdm.{self.__class__.__name__}\n'
+        return (f'rsatoolbox.rdm.{self.__class__.__name__}\n'
                 f'{self.n_rdm} RDM(s) over {self.n_cond} conditions\n\n'
                 f'dissimilarity_measure = \n{self.dissimilarity_measure}\n\n'
                 f'dissimilarities[0] = \n{diss}\n\n'
@@ -304,7 +304,7 @@ class RDMs:
         Its pattern_descriptor and descriptor are ignored
 
         Args:
-            rdm(pyrsa.rdm.RDMs): the rdm to append
+            rdm(rsatoolbox.rdm.RDMs): the rdm to append
 
         Returns:
 
@@ -411,7 +411,7 @@ class RDMs:
                 ndarray: Weights array of the shape of RDMs.dissimilarities
 
         Returns:
-            `pyrsa.rdm.rdms.RDMs`: New RDMs object with one vector
+            `rsatoolbox.rdm.rdms.RDMs`: New RDMs object with one vector
         """
         if str(weights) in self.rdm_descriptors:
             new_descriptors = dict(
@@ -476,10 +476,10 @@ def concat(rdms):
     the rdm index is reinitialized
 
     Args:
-        rdms(list of pyrsa.rdm.RDMs): RDMs objects to be concatenated
+        rdms(list of rsatoolbox.rdm.RDMs): RDMs objects to be concatenated
 
     Returns:
-        pyrsa.rdm.RDMs: concatenated rdms object
+        rsatoolbox.rdm.RDMs: concatenated rdms object
 
     """
     rdm = rdms[0]
@@ -500,7 +500,7 @@ def permute_rdms(rdms, p=None):
            If p = None, a random permutation vector is created.
 
     Returns:
-        rdm_p(pyrsa.rdm.RDMs): the rdm object with a permuted matrix
+        rdm_p(rsatoolbox.rdm.RDMs): the rdm object with a permuted matrix
             and pattern descriptors
 
     """
@@ -554,7 +554,7 @@ def get_categorical_rdm(category_vector, category_name='category'):
             to 'category'
 
     Returns:
-        pyrsa.rdm.RDMs: constructed RDM
+        rsatoolbox.rdm.RDMs: constructed RDM
 
     """
     n = len(category_vector)

@@ -5,9 +5,9 @@ Definition of RSA Model class and subclasses
 """
 
 import numpy as np
-from pyrsa.rdm import RDMs
-from pyrsa.rdm import rdms_from_dict
-from pyrsa.util.rdm_utils import batch_to_vectors
+from rsatoolbox.rdm import RDMs
+from rsatoolbox.rdm import rdms_from_dict
+from rsatoolbox.util.rdm_utils import batch_to_vectors
 from .fitter import fit_mock, fit_optimize, fit_select, fit_interpolate
 
 
@@ -89,7 +89,7 @@ class ModelFixed(Model):
 
         Args:
             Name(String): Model name
-            rdm(pyrsa.rdm.RDMs): rdms in one object
+            rdm(rsatoolbox.rdm.RDMs): rdms in one object
         """
         Model.__init__(self, name)
         if isinstance(rdm, RDMs):
@@ -133,7 +133,7 @@ class ModelFixed(Model):
             theta(numpy.ndarray): the model parameter vector (one dimensional)
 
         Returns:
-            pyrsa.rdm.RDMs: rdm object
+            rsatoolbox.rdm.RDMs: rdm object
 
         """
         return self.rdm_obj
@@ -189,7 +189,7 @@ class ModelSelect(Model):
             theta(numpy.ndarray): the model parameter vector (one dimensional)
 
         Returns:
-            pyrsa.rdm.RDMs: rdm object
+            rsatoolbox.rdm.RDMs: rdm object
 
         """
         return self.rdm_obj[theta]
@@ -247,7 +247,7 @@ class ModelWeighted(Model):
             theta(numpy.ndarray): the model parameter vector (one dimensional)
 
         Returns:
-            pyrsa.rdm.RDMs: rdm object
+            rsatoolbox.rdm.RDMs: rdm object
 
         """
         if theta is None:
@@ -317,7 +317,7 @@ class ModelInterpolate(Model):
             theta(numpy.ndarray): the model parameter vector (one dimensional)
 
         Returns:
-            pyrsa.rdm.RDMs: rdm object
+            rsatoolbox.rdm.RDMs: rdm object
 
         """
         if theta is None:

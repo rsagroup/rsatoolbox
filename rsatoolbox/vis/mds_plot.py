@@ -9,7 +9,7 @@ integrations of additional plotting options)
 
 import numpy as np
 from sklearn.manifold import MDS
-from pyrsa.util.vis_utils import weight_to_matrices, Weighted_MDS
+from rsatoolbox.util.vis_utils import weight_to_matrices, Weighted_MDS
 
 sd = np.random.RandomState(seed=1)
 
@@ -18,7 +18,7 @@ def rdm_dimension_reduction(rdms, func, dim=2, weight=None):
     """ dimension reduction base function of RDMs class
 
     Args:
-        **rdms** (pyrsa.rdm.RDMs): an RDMs class object
+        **rdms** (rsatoolbox.rdm.RDMs): an RDMs class object
         **func** (function): an sklearn transform function
 
     Returns:

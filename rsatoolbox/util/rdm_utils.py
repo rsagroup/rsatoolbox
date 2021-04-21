@@ -100,7 +100,7 @@ def add_pattern_index(rdms, pattern_descriptor):
     adds index if pattern_descriptor is None
 
     Args:
-        **rdms** (pyrsa.rdm.RDMs): rdms object to be parsed
+        **rdms** (rsatoolbox.rdm.RDMs): rdms object to be parsed
 
     Returns:
         pattern_descriptor

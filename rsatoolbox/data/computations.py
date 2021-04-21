@@ -12,7 +12,7 @@ def average_dataset(dataset):
     computes the average of a dataset
 
     Args:
-        dataset(pyrsa.data.Dataset): the dataset to operate on
+        dataset(rsatoolbox.data.Dataset): the dataset to operate on
 
     Returns:
         numpy.ndarray: average: average activation vector
@@ -25,7 +25,7 @@ def average_dataset_by(dataset, by):
     computes the average of a dataset per value of a descriptor
 
     Args:
-        dataset(pyrsa.data.Dataset): the dataset to operate on
+        dataset(rsatoolbox.data.Dataset): the dataset to operate on
         by(String): which obs_descriptor to split by
 
     Returns:

@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, List, Optional, Tuple
 import numpy as np
 from numpy import sqrt, nan, inf, ndarray
 from scipy.spatial.distance import squareform
-import pyrsa.rdm.rdms
+import rsatoolbox.rdm.rdms
 if TYPE_CHECKING:
-    from pyrsa.rdm.rdms import RDMs
+    from rsatoolbox.rdm.rdms import RDMs
 
 
 def from_partials(
@@ -86,7 +86,7 @@ def from_partials(
                 else:
                     rdm_descriptors[name] = None
             rdm_id += 1
-    return pyrsa.rdm.RDMs(
+    return rsatoolbox.rdm.RDMs(
         dissimilarities=vectors,
         dissimilarity_measure=measure,
         descriptors=descriptors,
@@ -112,7 +112,7 @@ def rescale(rdms, method: str='evidence'):
     rdm_descriptors = deepcopy(rdms.rdm_descriptors)
     if weights is not None:
         rdm_descriptors['rescalingWeights'] = weights
-    return pyrsa.rdm.rdms.RDMs(
+    return rsatoolbox.rdm.rdms.RDMs(
         dissimilarities=aligned,
         dissimilarity_measure=rdms.dissimilarity_measure,
         descriptors=deepcopy(rdms.descriptors),
@@ -124,7 +124,7 @@ def rescale(rdms, method: str='evidence'):
 def _mean(vectors:ndarray, weights:ndarray=None) -> ndarray:
     """Weighted mean of RDM vectors, ignores nans
 
-    See :meth:`pyrsa.rdm.rdms.RDMs.mean`
+    See :meth:`rsatoolbox.rdm.rdms.RDMs.mean`
 
     Args:
         vectors (ndarray): dissimilarity vectors of shape (nrdms, nconds)
@@ -168,7 +168,7 @@ def _scale(vectors:ndarray) -> ndarray:
 def _rescale(dissim:ndarray, method:str) -> Tuple[ndarray, ndarray]:
     """Rescale RDM vectors
 
-    See :meth:`pyrsa.rdm.combine.rescale`
+    See :meth:`rsatoolbox.rdm.combine.rescale`
 
     Args:
         dissim (ndarray): dissimilarity vectors, shape = (rdms, conds)

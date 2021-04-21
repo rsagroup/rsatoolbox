@@ -6,13 +6,13 @@ evaluate model performance
 
 import numpy as np
 import tqdm
-from pyrsa.rdm import compare
-from pyrsa.inference import bootstrap_sample
-from pyrsa.inference import bootstrap_sample_rdm
-from pyrsa.inference import bootstrap_sample_pattern
-from pyrsa.model import Model
-from pyrsa.util.inference_util import input_check_model
-from pyrsa.util.inference_util import default_k_pattern, default_k_rdm
+from rsatoolbox.rdm import compare
+from rsatoolbox.inference import bootstrap_sample
+from rsatoolbox.inference import bootstrap_sample_rdm
+from rsatoolbox.inference import bootstrap_sample_pattern
+from rsatoolbox.model import Model
+from rsatoolbox.util.inference_util import input_check_model
+from rsatoolbox.util.inference_util import default_k_pattern, default_k_rdm
 from .result import Result
 from .crossvalsets import sets_k_fold, sets_random
 from .noise_ceiling import boot_noise_ceiling
@@ -30,8 +30,8 @@ def eval_fancy(models, data, method='cosine', fitter=None, n_cv=1,
     corresponding dimension.
 
     Args:
-        models(pyrsa.model.Model or list): Models to be evaluated
-        data(pyrsa.rdm.RDMs): RDM data to use
+        models(rsatoolbox.model.Model or list): Models to be evaluated
+        data(rsatoolbox.rdm.RDMs): RDM data to use
         method(string): comparison method to use
         fitter(function): fitting method for models
         n_cv(int): number of crossvalidation runs per sample
@@ -107,8 +107,8 @@ def dual_bootstrap(models, data, method='cosine', fitter=None,
     the number of crossvalidation folds to be created along this dimension.
     If a k is set to 1 no crossvalidation is performed over the
     corresponding dimension.
-    by default ks are set by pyrsa.util.inference_util.default_k_pattern
-    and pyrsa.util.inference_util.default_k_rdm based on the number of
+    by default ks are set by rsatoolbox.util.inference_util.default_k_pattern
+    and rsatoolbox.util.inference_util.default_k_rdm based on the number of
     rdms and patterns provided. the ks are then in the range 2-5.
 
     Using the []_descriptor inputs you may make the crossvalidation and
@@ -121,8 +121,8 @@ def dual_bootstrap(models, data, method='cosine', fitter=None,
     provide a non-default funcion or list of functions to fit the models.
 
     Args:
-        models(pyrsa.model.Model): models to be evaluated
-        data(pyrsa.rdm.RDMs): RDM data to use
+        models(rsatoolbox.model.Model): models to be evaluated
+        data(rsatoolbox.rdm.RDMs): RDM data to use
         method(string): comparison method to use
         fitter(function): fitting method for models
         k_pattern(int): #folds over patterns
@@ -234,8 +234,8 @@ def eval_fixed(models, data, theta=None, method='cosine'):
     cross-validation
 
     Args:
-        models(list of pyrsa.model.Model or list): models to be evaluated
-        data(pyrsa.rdm.RDMs): data to evaluate on
+        models(list of rsatoolbox.model.Model or list): models to be evaluated
+        data(rsatoolbox.rdm.RDMs): data to evaluate on
         theta(numpy.ndarray): parameter vector for the models
         method(string): comparison method to use
 
@@ -268,8 +268,8 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
     performs bootstrapping to get a sampling distribution
 
     Args:
-        models(pyrsa.model.Model or list): models to be evaluated
-        data(pyrsa.rdm.RDMs): data to evaluate on
+        models(rsatoolbox.model.Model or list): models to be evaluated
+        data(rsatoolbox.rdm.RDMs): data to evaluate on
         theta(numpy.ndarray): parameter vector for the models
         method(string): comparison method to use
         N(int): number of samples
@@ -328,8 +328,8 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
     performs bootstrapping over patterns to get a sampling distribution
 
     Args:
-        models(pyrsa.model.Model or list): models to be evaluated
-        data(pyrsa.rdm.RDMs): data to evaluate on
+        models(rsatoolbox.model.Model or list): models to be evaluated
+        data(rsatoolbox.rdm.RDMs): data to evaluate on
         theta(numpy.ndarray): parameter vector for the models
         method(string): comparison method to use
         N(int): number of samples
@@ -387,8 +387,8 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
     performs bootstrapping to get a sampling distribution
 
     Args:
-        models(pyrsa.model.Model or list of these): models to be evaluated
-        data(pyrsa.rdm.RDMs): data to evaluate on
+        models(rsatoolbox.model.Model or list of these): models to be evaluated
+        data(rsatoolbox.rdm.RDMs): data to evaluate on
         theta(numpy.ndarray): parameter vector for the models
         method(string): comparison method to use
         N(int): number of samples
@@ -435,8 +435,8 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
     """evaluates models on cross-validation sets
 
     Args:
-        models(pyrsa.model.Model): models to be evaluated
-        rdms(pyrsa.rdm.RDMs): full dataset
+        models(rsatoolbox.model.Model): models to be evaluated
+        rdms(rsatoolbox.rdm.RDMs): full dataset
         train_set(list): a list of the training RDMs with 2-tuple entries:
             (RDMs, pattern_idx)
         test_set(list): a list of the test RDMs with 2-tuple entries:
@@ -522,8 +522,8 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
     the number of crossvalidation folds to be created along this dimension.
     If a k is set to 1 no crossvalidation is performed over the
     corresponding dimension.
-    by default ks are set by pyrsa.util.inference_util.default_k_pattern
-    and pyrsa.util.inference_util.default_k_rdm based on the number of
+    by default ks are set by rsatoolbox.util.inference_util.default_k_pattern
+    and rsatoolbox.util.inference_util.default_k_rdm based on the number of
     rdms and patterns provided. the ks are then in the range 2-5.
 
     Using the []_descriptor inputs you may make the crossvalidation and
@@ -540,8 +540,8 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
     provide a non-default funcion or list of functions to fit the models.
 
     Args:
-        models(pyrsa.model.Model): models to be evaluated
-        data(pyrsa.rdm.RDMs): RDM data to use
+        models(rsatoolbox.model.Model): models to be evaluated
+        data(rsatoolbox.rdm.RDMs): RDM data to use
         method(string): comparison method to use
         fitter(function): fitting method for models
         k_pattern(int): #folds over patterns
@@ -659,13 +659,13 @@ def bootstrap_cv_random(models, data, method='cosine', fitter=None,
     of n_cv=1 inflates the estimated variance. Setting this value
     higher will decrease this effect at the cost of more computation time.
 
-    by default ks are set by pyrsa.util.inference_util.default_k_pattern
-    and pyrsa.util.inference_util.default_k_rdm based on the number of
+    by default ks are set by rsatoolbox.util.inference_util.default_k_pattern
+    and rsatoolbox.util.inference_util.default_k_rdm based on the number of
     rdms and patterns provided. the ks are then in the range 2-5.
 
     Args:
-        models(pyrsa.model.Model): models to be evaluated
-        data(pyrsa.rdm.RDMs): RDM data to use
+        models(rsatoolbox.model.Model): models to be evaluated
+        data(rsatoolbox.rdm.RDMs): RDM data to use
         method(string): comparison method to use
         fitter(function): fitting method for models
         k_pattern(int): #folds over patterns

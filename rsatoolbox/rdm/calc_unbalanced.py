@@ -11,9 +11,9 @@ from collections.abc import Iterable
 from copy import deepcopy
 import warnings
 import numpy as np
-from pyrsa.rdm.rdms import RDMs
-from pyrsa.rdm.rdms import concat
-from pyrsa.util.matrix import row_col_indicator_rdm
+from rsatoolbox.rdm.rdms import RDMs
+from rsatoolbox.rdm.rdms import concat
+from rsatoolbox.util.matrix import row_col_indicator_rdm
 
 
 def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
@@ -24,7 +24,7 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
     calculate a RDM from an input dataset for unbalanced datasets.
 
     Args:
-        dataset (pyrsa.data.dataset.DatasetBase):
+        dataset (rsatoolbox.data.dataset.DatasetBase):
             The dataset the RDM is computed from
         method (String):
             a description of the dissimilarity measure (e.g. 'Euclidean')
@@ -37,7 +37,7 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
             defaults to an identity matrix, i.e. euclidean distance
 
     Returns:
-        pyrsa.rdm.rdms.RDMs: RDMs object with the one RDM
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
     if descriptor is None:
@@ -149,7 +149,7 @@ def calc_one_similarity_small(
     finds all pairs of vectors to be compared and calculates one similarity
 
     Args:
-        dataset (pyrsa.data.DatasetBase):
+        dataset (rsatoolbox.data.DatasetBase):
             dataset to extract from
         descriptor (String):
             key for the descriptor defining the conditions
@@ -210,7 +210,7 @@ def calc_one_similarity(dataset, descriptor, i_des, j_des,
     finds all pairs of vectors to be compared and calculates one distance
 
     Args:
-        dataset (pyrsa.data.DatasetBase):
+        dataset (rsatoolbox.data.DatasetBase):
             dataset to extract from
         descriptor (String):
             key for the descriptor defining the conditions
@@ -280,7 +280,7 @@ def calc_one_dissimilarity_cv(dataset, descriptor, i_des, j_des,
     finds all pairs of vectors to be compared and calculates one distance
 
     Args:
-        dataset (pyrsa.data.DatasetBase):
+        dataset (rsatoolbox.data.DatasetBase):
             dataset to extract from
         descriptor (String):
             key for the descriptor defining the conditions

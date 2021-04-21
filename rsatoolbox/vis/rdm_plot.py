@@ -13,9 +13,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import pyrsa.rdm
-from pyrsa import vis
-from pyrsa.vis.colors import rdm_colormap
+import rsatoolbox.rdm
+from rsatoolbox import vis
+from rsatoolbox.vis.colors import rdm_colormap
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -26,7 +26,7 @@ RDM_STYLE = os.path.join(MODULE_DIR, "rdm.mplstyle")
 
 
 def show_rdm(
-    rdm: pyrsa.rdm.RDMs,
+    rdm: rsatoolbox.rdm.RDMs,
     pattern_descriptor: typing.Any = None,
     cmap: typing.Union[str, matplotlib.colors.Colormap] = None,
     rdm_descriptor: typing.Any = None,
@@ -48,7 +48,7 @@ def show_rdm(
     """show_rdm. Heatmap figure for RDMs instance, with one panel per RDM.
 
     Args:
-        rdm (pyrsa.rdm.RDMs): RDMs object to be plotted.
+        rdm (rsatoolbox.rdm.RDMs): RDMs object to be plotted.
         pattern_descriptor (typing.Any): Key into rdm.pattern_descriptors to use for axis
             labels.
         cmap (typing.Union[str, matplotlib.colors.Colormap]): colormap to be used (by
@@ -71,7 +71,7 @@ def show_rdm(
         nanmask (npt.ArrayLike): boolean mask defining RDM elements to suppress
             (by default, the diagonals).
         style (typing.Union[str, pathlib.Path]): Path to mplstyle file that controls
-            various figure aesthetics (default pyrsa/vis/rdm.mplstyle).
+            various figure aesthetics (default rsatoolbox/vis/rdm.mplstyle).
         vmin (float): Minimum intensity for colorbar mapping. matplotlib imshow
             argument.
         vmax (float): Maximum intensity for colorbar mapping. matplotlib imshow
@@ -254,7 +254,7 @@ def _rdm_colorbar(
 
 
 def show_rdm_panel(
-    rdm: pyrsa.rdm.RDMs,
+    rdm: rsatoolbox.rdm.RDMs,
     ax: matplotlib.axes._axes.Axes = None,
     cmap: typing.Union[str, matplotlib.colors.Colormap] = None,
     nanmask: npt.ArrayLike = None,
@@ -266,7 +266,7 @@ def show_rdm_panel(
     """show_rdm_panel. Add RDM heatmap to the axis ax.
 
     Args:
-        rdm (pyrsa.rdm.RDMs): RDMs object to be plotted (n_rdm must be 1).
+        rdm (rsatoolbox.rdm.RDMs): RDMs object to be plotted (n_rdm must be 1).
         ax (matplotlib.axes._axes.Axes): Matplotlib axis handle. plt.gca() by default.
         cmap (typing.Union[str, matplotlib.colors.Colormap]): colormap to be used (by
             plt.imshow internally). By default we use rdm_colormap.
@@ -316,7 +316,7 @@ def show_rdm_panel(
 
 
 def add_descriptor_x_labels(
-    rdm: pyrsa.rdm.RDMs,
+    rdm: rsatoolbox.rdm.RDMs,
     pattern_descriptor: typing.Any,
     ax: matplotlib.axes._axes.Axes = None,
     num_pattern_groups: int = None,
@@ -327,7 +327,7 @@ def add_descriptor_x_labels(
     rdm.pattern_descriptors dict with the pattern_descriptor key.
 
     Args:
-        rdm (pyrsa.rdm.RDMs): RDMs instance to annotate.
+        rdm (rsatoolbox.rdm.RDMs): RDMs instance to annotate.
         pattern_descriptor (typing.Any): dict key for the rdm.pattern_descriptors dict.
         ax (matplotlib.axes._axes.Axes): Matplotlib axis handle. plt.gca() by default.
         num_pattern_groups (int): Number of rows/columns for any image labels.
@@ -354,7 +354,7 @@ def add_descriptor_x_labels(
 
 
 def add_descriptor_y_labels(
-    rdm: pyrsa.rdm.RDMs,
+    rdm: rsatoolbox.rdm.RDMs,
     pattern_descriptor: typing.Any,
     ax: matplotlib.axes._axes.Axes = None,
     num_pattern_groups: int = None,
@@ -365,7 +365,7 @@ def add_descriptor_y_labels(
     rdm.pattern_descriptors dict with the pattern_descriptor key.
 
     Args:
-        rdm (pyrsa.rdm.RDMs): RDMs instance to annotate.
+        rdm (rsatoolbox.rdm.RDMs): RDMs instance to annotate.
         pattern_descriptor (typing.Any): dict key for the rdm.pattern_descriptors dict.
         ax (matplotlib.axes._axes.Axes): Matplotlib axis handle. plt.gca() by default.
         num_pattern_groups (int): Number of rows/columns for any image labels.
@@ -392,7 +392,7 @@ def add_descriptor_y_labels(
 
 
 def _add_descriptor_labels(
-    rdm: pyrsa.rdm.RDMs,
+    rdm: rsatoolbox.rdm.RDMs,
     pattern_descriptor: typing.Any,
     icon_method: str,
     axis: typing.Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis],
@@ -405,7 +405,7 @@ def _add_descriptor_labels(
     add_descriptor_x_labels.
 
     Args:
-        rdm (pyrsa.rdm.RDMs): RDMs instance to annotate.
+        rdm (rsatoolbox.rdm.RDMs): RDMs instance to annotate.
         pattern_descriptor (typing.Any): dict key for the rdm.pattern_descriptors dict.
         icon_method (str): method to access on Icon instances (typically y_tick_label or
             x_tick_label).

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 """
-Definition of pyrsa's colors
+Definition of rsatoolbox's colors
 
 @author: iancharest
 """
@@ -73,7 +73,7 @@ def rdm_colormap(n_cols=256, monitor=None):
 
             import numpy as np
             import matplotlib.pyplot as plt
-            from pyrsa.vis.colors import rdm_colormap
+            from rsatoolbox.vis.colors import rdm_colormap
             plt.imshow(np.random.rand(10,10),cmap=rdm_colormap())
             plt.colorbar()
             plt.show()

@@ -6,7 +6,7 @@ Parameter fitting methods for models
 
 import numpy as np
 import scipy.optimize as opt
-from pyrsa.rdm import compare
+from rsatoolbox.rdm import compare
 
 
 def fit_mock(model, data, method='cosine', pattern_idx=None,
@@ -15,8 +15,8 @@ def fit_mock(model, data, method='cosine', pattern_idx=None,
     zeros
 
     Args:
-        model(pyrsa.model.Model): model to be fit
-        data(pyrsa.rdm.RDMs): Data to fit to
+        model(rsatoolbox.model.Model): model to be fit
+        data(rsatoolbox.rdm.RDMs): Data to fit to
         method(String): Evaluation method
         pattern_idx(numpy.ndarray): Which patterns are sampled
         pattern_descriptor(String): Which descriptor is used
@@ -34,8 +34,8 @@ def fit_select(model, data, method='cosine', pattern_idx=None,
     with best performance. Works only for ModelSelect
 
     Args:
-        model(pyrsa.model.Model): model to be fit
-        data(pyrsa.rdm.RDMs): Data to fit to
+        model(rsatoolbox.model.Model): model to be fit
+        data(rsatoolbox.rdm.RDMs): Data to fit to
         method(String): Evaluation method
         pattern_idx(numpy.ndarray): Which patterns are sampled
         pattern_descriptor(String): Which descriptor is used
@@ -62,7 +62,7 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
 
     Args:
         model(Model): the model to be fit
-        data(pyrsa.rdm.RDMs): data to be fit
+        data(rsatoolbox.rdm.RDMs): data to be fit
         method(String, optional): evaluation metric The default is 'cosine'.
         pattern_idx(numpy.ndarray, optional)
             sampled patterns The default is None.
@@ -90,7 +90,7 @@ def fit_interpolate(model, data, method='cosine', pattern_idx=None,
 
     Args:
         model(Model): the model to be fit
-        data(pyrsa.rdm.RDMs): data to be fit
+        data(rsatoolbox.rdm.RDMs): data to be fit
         method(String, optional): evaluation metric The default is 'cosine'.
         pattern_idx(numpy.ndarray, optional)
             sampled patterns The default is None.
@@ -129,7 +129,7 @@ def _loss(theta, model, data, method='cosine', cov=None,
     Args:
         theta(numpy.ndarray): evaluated parameter value
         model(Model): the model to be fit
-        data(pyrsa.rdm.RDMs): data to be fit
+        data(rsatoolbox.rdm.RDMs): data to be fit
         method(String, optional): evaluation metric The default is 'cosine'.
         pattern_idx(numpy.ndarray, optional)
             sampled patterns The default is None.

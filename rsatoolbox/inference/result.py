@@ -5,13 +5,13 @@ Result object definition
 """
 
 import numpy as np
-import pyrsa.model
-from pyrsa.util.file_io import write_dict_hdf5
-from pyrsa.util.file_io import write_dict_pkl
-from pyrsa.util.file_io import read_dict_hdf5
-from pyrsa.util.file_io import read_dict_pkl
-from pyrsa.util.file_io import remove_file
-from pyrsa.util.inference_util import extract_variances
+import rsatoolbox.model
+from rsatoolbox.util.file_io import write_dict_hdf5
+from rsatoolbox.util.file_io import write_dict_pkl
+from rsatoolbox.util.file_io import read_dict_hdf5
+from rsatoolbox.util.file_io import read_dict_pkl
+from rsatoolbox.util.file_io import remove_file
+from rsatoolbox.util.inference_util import extract_variances
 
 
 class Result:
@@ -19,7 +19,7 @@ class Result:
     the results matrix and the noise ceiling
 
     Args:
-        models(list of pyrsa.model.Model):
+        models(list of rsatoolbox.model.Model):
             the evaluated models
         evaluations(numpy.ndarray):
             evaluations of the models over bootstrap/crossvalidation
@@ -41,7 +41,7 @@ class Result:
 
     def __init__(self, models, evaluations, method, cv_method, noise_ceiling,
                  variances=None, dof=1):
-        if isinstance(models, pyrsa.model.Model):
+        if isinstance(models, rsatoolbox.model.Model):
             models = [models]
         assert len(models) == evaluations.shape[1], 'evaluations shape does' \
             + 'not match number of models'
@@ -156,7 +156,7 @@ def result_from_dict(result_dict):
     models = [None] * len(result_dict['models'])
     for i_model in range(len(result_dict['models'])):
         key = 'model_%d' % i_model
-        models[i_model] = pyrsa.model.model_from_dict(
+        models[i_model] = rsatoolbox.model.model_from_dict(
             result_dict['models'][key])
     return Result(models, evaluations, method, cv_method, noise_ceiling,
                   variances=variances, dof=dof)
