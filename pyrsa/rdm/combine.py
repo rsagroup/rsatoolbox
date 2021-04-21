@@ -37,31 +37,35 @@ def from_partials(
 
     def pdescs(rdms, descriptor):
         return list(rdms.pattern_descriptors.get(descriptor, []))
-
     if all_patterns is None:
         all_patterns = []
         for rdms in list_of_rdms:
             all_patterns += pdescs(rdms, descriptor)
         all_patterns = list(dict.fromkeys(all_patterns).keys())
 
-    n_rdm_objs = len(list_of_rdms)
     n_rdms = sum([rdms.n_rdm for rdms in list_of_rdms])
     n_patterns = len(all_patterns)
-
-    desc_tuples = []
     rdm_desc_names = []
-    for rdms in list_of_rdms:
-        desc_tuples += list(rdms.descriptors.items())
+    descriptors = deepcopy(list_of_rdms[0].descriptors)
+    desc_diff_names = []
+    for rdms in list_of_rdms[1:]:
         rdm_desc_names += list(rdms.rdm_descriptors.keys())
-    descriptors = dict(
-        [d for d, c in Counter(desc_tuples).items() if c == n_rdm_objs]
-    )
-    desc_diff_names = set(
-        [d[0] for d, c in Counter(desc_tuples).items() if c != n_rdm_objs]
-    )
+        delete = []
+        for k, v in descriptors.items():
+            if k not in rdms.descriptors.keys():
+                desc_diff_names.append(k)
+                delete.append(k)
+            elif not np.all(rdms.descriptors[k] == v):
+                desc_diff_names.append(k)
+                delete.append(k)
+        for k in delete:
+            descriptors.pop(k)
+        for k, v in rdms.descriptors.items():
+            if k not in descriptors.keys() and k not in desc_diff_names:
+                desc_diff_names.append(k)
+
     rdm_desc_names = set(rdm_desc_names + list(desc_diff_names))
     rdm_descriptors = dict([(n, [None]*n_rdms) for n in rdm_desc_names])
-
     measure = None
     vector_len = int(n_patterns * (n_patterns-1) / 2)
     vectors = np.full((n_rdms, vector_len), np.nan)
@@ -79,8 +83,9 @@ def from_partials(
                     rdm_descriptors[name][rdm_id] = val
                 elif name in rdms.descriptors:
                     rdm_descriptors[name][rdm_id] = rdms.descriptors[name]
+                else:
+                    rdm_descriptors[name] = None
             rdm_id += 1
-
     return pyrsa.rdm.RDMs(
         dissimilarities=vectors,
         dissimilarity_measure=measure,
