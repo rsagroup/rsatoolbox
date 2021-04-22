@@ -19,8 +19,8 @@ class RdmsCombineTests(TestCase):
     def test_rescale(self):
         """The rescale function bring the RDMs as close together as possible
         """
-        from pyrsa.rdm.rdms import RDMs
-        from pyrsa.rdm.combine import rescale
+        from rsatoolbox.rdm.rdms import RDMs
+        from rsatoolbox.rdm.combine import rescale
         partial=array([
             [  1,   2, nan,   3, nan, nan],
             [nan, nan, nan,   4,   5,   6],
@@ -52,8 +52,8 @@ class RdmsCombineTests(TestCase):
     def test_rescale_setsize(self):
         """The rescale function bring the RDMs as close together as possible
         """
-        from pyrsa.rdm.rdms import RDMs
-        from pyrsa.rdm.combine import rescale
+        from rsatoolbox.rdm.rdms import RDMs
+        from rsatoolbox.rdm.combine import rescale
         partial_rdms = RDMs(
             dissimilarities=array([
                 [  1,   2, nan,   3, nan, nan],
@@ -73,7 +73,7 @@ class RdmsCombineTests(TestCase):
     def test_mean_no_weights(self):
         """RDMs.mean() returns an RDMs with the nan omitted mean of the rdms
         """
-        from pyrsa.rdm.rdms import RDMs
+        from rsatoolbox.rdm.rdms import RDMs
         partial_rdms = RDMs(
             dissimilarities=array([
                 [  1,   2, nan,   3, nan, nan],
@@ -88,7 +88,7 @@ class RdmsCombineTests(TestCase):
     def test_weighted_mean(self):
         """Weights passed or stored in a descriptor are used in average
         """
-        from pyrsa.rdm.rdms import RDMs
+        from rsatoolbox.rdm.rdms import RDMs
         partial_rdms = RDMs(
             dissimilarities=array([
                 [  1,   2, nan,   3, nan, nan],
@@ -115,8 +115,8 @@ class RdmsCombineTests(TestCase):
         """In this case the complete list of conditions is determined
         from the RDMs passed.
         """
-        from pyrsa.rdm.rdms import RDMs
-        from pyrsa.rdm.combine import from_partials
+        from rsatoolbox.rdm.rdms import RDMs
+        from rsatoolbox.rdm.combine import from_partials
         rdms1 = RDMs(
             dissimilarities=array([[1, 2, 3]]),
             dissimilarity_measure='shared_measure',
@@ -163,8 +163,8 @@ class RdmsCombineTests(TestCase):
         We pass a list with a single RDMs object containing one RDM,
         then specify one additional pattern not covered in the RDM.
         """
-        from pyrsa.rdm.rdms import RDMs
-        from pyrsa.rdm.combine import from_partials
+        from rsatoolbox.rdm.rdms import RDMs
+        from rsatoolbox.rdm.combine import from_partials
         rdms1 = RDMs(
             dissimilarities=array([[1, 2, 3]]),
             dissimilarity_measure='measure',

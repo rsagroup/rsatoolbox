@@ -4,7 +4,7 @@
 """
 
 import unittest
-import pyrsa.model as model
+import rsatoolbox.model as model
 import numpy as np
 
 
@@ -28,7 +28,7 @@ class TestModelFixed(unittest.TestCase):
         assert np.all(pred == rdm)
 
     def test_creation_rdm(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.array(np.ones(6))
         rdm_obj = RDMs(np.array([rdm]))
         m = model.ModelFixed('Test Model', rdm_obj)
@@ -50,7 +50,7 @@ class TestModelSelect(unittest.TestCase):
         assert np.all(pred == rdm[0])
 
     def test_creation_rdm(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(2, 6)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
@@ -64,7 +64,7 @@ class TestModelSelect(unittest.TestCase):
         assert pred_obj.pattern_descriptors == pattern_descriptors
 
     def test_fit(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(2, 6)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_descriptors = {'ind': np.array([1, 2])}
@@ -88,7 +88,7 @@ class TestModelWeighted(unittest.TestCase):
         assert np.all(pred == rdm[0])
 
     def test_creation_rdm(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(2, 6)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
@@ -102,7 +102,7 @@ class TestModelWeighted(unittest.TestCase):
         assert pred_obj.pattern_descriptors == pattern_descriptors
 
     def test_fit(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(2, 6)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_descriptors = {'ind': np.array([1, 2])}
@@ -125,7 +125,7 @@ class TestModelInterpolate(unittest.TestCase):
         assert np.all(pred == rdm[0])
 
     def test_creation_rdm(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(2, 6)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
@@ -139,7 +139,7 @@ class TestModelInterpolate(unittest.TestCase):
         assert pred_obj.pattern_descriptors == pattern_descriptors
 
     def test_fit(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(5, 15)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd', 'e', 'f']}
         rdm_descriptors = {'ind': np.array([1, 2, 3, 1, 2])}
@@ -158,9 +158,9 @@ class TestConsistency(unittest.TestCase):
     """
 
     def setUp(self):
-        from pyrsa.data import Dataset
-        from pyrsa.rdm import calc_rdm
-        from pyrsa.rdm import concat
+        from rsatoolbox.data import Dataset
+        from rsatoolbox.rdm import calc_rdm
+        from rsatoolbox.rdm import concat
         rdms = []
         for _ in range(5):
             data = np.random.rand(6, 20)
@@ -169,9 +169,9 @@ class TestConsistency(unittest.TestCase):
         self.rdms = concat(rdms)
 
     def test_two_rdms(self):
-        from pyrsa.model import ModelInterpolate, ModelWeighted
-        from pyrsa.model.fitter import fit_regress, fit_optimize_positive
-        from pyrsa.rdm import concat, compare
+        from rsatoolbox.model import ModelInterpolate, ModelWeighted
+        from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive
+        from rsatoolbox.rdm import concat, compare
         model_rdms = concat([self.rdms[0], self.rdms[1]])
         model_weighted = ModelWeighted(
             'm_weighted',
@@ -204,9 +204,9 @@ class TestConsistency(unittest.TestCase):
                 + '\nfor %s' % i_method)
 
     def test_two_rdms_nan(self):
-        from pyrsa.model import ModelInterpolate, ModelWeighted
-        from pyrsa.model.fitter import fit_regress, fit_optimize_positive
-        from pyrsa.rdm import concat, compare
+        from rsatoolbox.model import ModelInterpolate, ModelWeighted
+        from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive
+        from rsatoolbox.rdm import concat, compare
         rdms = self.rdms.subsample_pattern('index', [0,1,1,3,4,5])
         model_rdms = concat([rdms[0], rdms[1]])
         model_weighted = ModelWeighted(

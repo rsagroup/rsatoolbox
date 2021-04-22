@@ -8,17 +8,17 @@ To calculate all pairwise distance, one needs to define the appropriate dataset 
 
 .. sourcecode:: python
 
-    data = pyrsa.data.Dataset(xxxx)
-    rdm = pyrsa.rdm.calc_rdm(data, method='euclidean', descriptor=None, noise=None)
+    data = rsatoolbox.data.Dataset(xxxx)
+    rdm = rsatoolbox.rdm.calc_rdm(data, method='euclidean', descriptor=None, noise=None)
 
-By default pyrsa calculates the squared distances for the distances where both the squared and non-squared distances are commonly used.
-To calculate the non-squared RDM use sqrt_transform provided in pyrsa.rdm as follows:
+By default rsatoolbox calculates the squared distances for the distances where both the squared and non-squared distances are commonly used.
+To calculate the non-squared RDM use sqrt_transform provided in rsatoolbox.rdm as follows:
 
 .. sourcecode:: python
 
-    rdm_nonsquare = pyrsa.rdm.sqrt_transform(rdm)
+    rdm_nonsquare = rsatoolbox.rdm.sqrt_transform(rdm)
 
-For more introduction to the calculation of RDMs in pyrsa look at the `example_dissimilarities.ipynb` notebook in the demos folder.
+For more introduction to the calculation of RDMs in rsatoolbox look at the `example_dissimilarities.ipynb` notebook in the demos folder.
 
 .. _EuclideanDist:
 
@@ -56,9 +56,9 @@ To do so, requires a covariance estimate for the measurement noise :math:`\Sigma
     \end{equation}
 
 This dissimilarity is normalized for the number of channels just as the Euclidean distance.
-Also, both math:`d_{i,j}^2` and math:`d_{i,j}` have been used to produce RDMs. Pyrsa returns math:`d_{i,j}^2` by default. Use pyrsa.rdm.sqrt_transform to get math:`d_{i,j}`.
+Also, both math:`d_{i,j}^2` and math:`d_{i,j}` have been used to produce RDMs. rsatoolbox returns math:`d_{i,j}^2` by default. Use rsatoolbox.rdm.sqrt_transform to get math:`d_{i,j}`.
 
-In pyrsa the computing the Mahalanobis distances is achieved by passing method='mahalanobis' and the noise precision math:`\Sigma^{-1}` as 'noise'.
+In rsatoolbox the computing the Mahalanobis distances is achieved by passing method='mahalanobis' and the noise precision math:`\Sigma^{-1}` as 'noise'.
 The precision is the inverse of the noise covariance, which we use for computational efficiency reasons.
 
 The Mahalanobis can be substantially more reliable than the standard Euclidean distance, especially if different channels are differently reliable or correlated with each other.
@@ -87,7 +87,7 @@ where :math:`S` is either a multiple of the identity or the diagonal matrix of s
 These estimates are helpful, because they are guaranteed to be positive definite and thus invertible, which is necessary for the distance computation.
 Also :math:`\lambda` can be chosen adaptively and automatically based on the data, such that no tuning is necessary.
 
-In pyrsa, the noise computations are implemented as pyrsa.data.noise.prec_from_residuals and pyrsa.data.noise.prec_from_measurements to allow estimation of the noise precision based on
+In rsatoolbox, the noise computations are implemented as rsatoolbox.data.noise.prec_from_residuals and rsatoolbox.data.noise.prec_from_measurements to allow estimation of the noise precision based on
 either arbitrary residuals or a dataset object whose pattern means are subtracted before calculating the covariance.
 To switch between the different estimates of the covariance pass the methods
 
@@ -149,7 +149,7 @@ This dissimilarity measures the dissimilarity of two spike rates as the symmetri
 Under the assumption of poisson noise this is clearly a sensible dissimilarity. The measure can be easily calculated without this assumption though and always measures a form of dissimilarity,
 which weighs differences between large firing rates less strongly than difference between small firing rates.
 
-One issue with this formulation is that zero firing rates cannot be allowed. To avoid this problem pyrsa adds a prior to the estimation of the firing rate.
+One issue with this formulation is that zero firing rates cannot be allowed. To avoid this problem rsatoolbox adds a prior to the estimation of the firing rate.
 The parameters of this prior can be passed as `prior_lambda` and `prior_weight`. The first parameter specifies the prior mean, which is 1 by default and the second specifies the weight relative to an observation, which is 0.1 by default.
 
 .. _PoissonCVDist:

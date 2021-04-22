@@ -13,7 +13,7 @@ import numpy as np
 class TestRdmUtils(unittest.TestCase):
 
     def test_batch_to_vectors(self):
-        from pyrsa.util.rdm_utils import batch_to_vectors
+        from rsatoolbox.util.rdm_utils import batch_to_vectors
         dis = np.zeros((8, 5, 5))
         y, n_rdm, n_cond = batch_to_vectors(dis)
         assert y.shape[0] == 8
@@ -22,7 +22,7 @@ class TestRdmUtils(unittest.TestCase):
         assert n_cond == 5
 
     def test_batch_to_matrices(self):
-        from pyrsa.util.rdm_utils import batch_to_matrices
+        from rsatoolbox.util.rdm_utils import batch_to_matrices
         dis = np.zeros((8, 5, 5))
         y, n_rdm, n_cond = batch_to_matrices(dis)
         assert y.shape[0] == 8
@@ -35,8 +35,8 @@ class TestRdmUtils(unittest.TestCase):
 class TestPoolRDM(unittest.TestCase):
 
     def test_pool_standard(self):
-        from pyrsa.rdm import RDMs
-        from pyrsa.util.pooling import pool_rdm
+        from rsatoolbox.rdm import RDMs
+        from rsatoolbox.util.pooling import pool_rdm
         dissimilarities = np.random.rand(5, 10)
         rdms = RDMs(dissimilarities)
         for method in ['euclid', 'cosine', 'corr', 'cosine_cov', 'corr_cov',
@@ -46,8 +46,8 @@ class TestPoolRDM(unittest.TestCase):
             self.assertEqual(pooled_rdm.n_rdm, 1)
 
     def test_pool_nan(self):
-        from pyrsa.rdm import RDMs
-        from pyrsa.util.pooling import pool_rdm
+        from rsatoolbox.rdm import RDMs
+        from rsatoolbox.util.pooling import pool_rdm
         dissimilarities = np.random.rand(5, 10)
         dissimilarities[:, 3] = np.nan
         rdms = RDMs(dissimilarities)
@@ -59,4 +59,4 @@ class TestPoolRDM(unittest.TestCase):
             self.assertTrue(np.isnan(pooled_rdm.dissimilarities[0, 3]),
                             'nan got removed while pooling for %s' % method)
             self.assertFalse(np.isnan(pooled_rdm.dissimilarities[0, 4]),
-                            'too many nans while pooling for %s' % method)
+                             'too many nans while pooling for %s' % method)

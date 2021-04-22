@@ -8,8 +8,8 @@ from unittest.mock import Mock, patch
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 from scipy.spatial.distance import pdist, squareform
-import pyrsa.rdm as rsr
-import pyrsa as rsa
+import rsatoolbox.rdm as rsr
+import rsatoolbox as rsa
 
 
 class TestCalcRDM(unittest.TestCase):
@@ -61,7 +61,7 @@ class TestCalcRDM(unittest.TestCase):
         assert rdm.n_cond == 6
 
     def test_parse_input(self):
-        from pyrsa.rdm.calc import _parse_input
+        from rsatoolbox.rdm.calc import _parse_input
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
         data.measurements = np.random.rand(6, 5)
@@ -71,9 +71,9 @@ class TestCalcRDM(unittest.TestCase):
         self.assertTrue(np.all(np.array(desc_true) == desc))
         self.assertTrue(np.all(data.measurements == measurements))
 
-    @patch('pyrsa.rdm.calc._parse_input')
+    @patch('rsatoolbox.rdm.calc._parse_input')
     def test_calc_euclid_as_scipy(self, _parse_input):
-        from pyrsa.rdm import calc_rdm
+        from rsatoolbox.rdm import calc_rdm
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
         data.measurements = np.random.rand(6, 5)
@@ -92,9 +92,9 @@ class TestCalcRDM(unittest.TestCase):
             )
         )
 
-    @patch('pyrsa.rdm.calc._parse_input')
+    @patch('rsatoolbox.rdm.calc._parse_input')
     def test_calc_correlation(self, _parse_input):
-        from pyrsa.rdm import calc_rdm
+        from rsatoolbox.rdm import calc_rdm
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
         data.measurements = np.random.rand(6, 5)

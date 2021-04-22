@@ -25,13 +25,13 @@ If you have several RDMs, but they don't all cover all conditions,
 you may want to expand them into larger RDMs with missing values,
 so that you can compare them or perform other operations on them
 that require them to have the same dimensions. This can be achieved
-with the :meth:`~pyrsa.rdm.combine.from_partials` function:
+with the :meth:`~rsatoolbox.rdm.combine.from_partials` function:
 
 .. code-block:: python
 
     from numpy import array
-    from pyrsa.rdm.rdms import RDMs
-    from pyrsa.rdm.combine import from_partials
+    from rsatoolbox.rdm.rdms import RDMs
+    from rsatoolbox.rdm.combine import from_partials
     rdms1 = RDMs(
         array(1, 2, 3),
         pattern_descriptors={'conds': ['a', 'b', 'c']}

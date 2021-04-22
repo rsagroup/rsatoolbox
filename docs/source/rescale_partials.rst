@@ -10,8 +10,8 @@ Another is where each participant only takes part in a subset of conditions.
 .. code-block:: python
 
     from numpy import array
-    from pyrsa.rdm.rdms import RDMs
-    from pyrsa.rdm.combine import from_partials, rescale
+    from rsatoolbox.rdm.rdms import RDMs
+    from rsatoolbox.rdm.combine import from_partials, rescale
     rdms1 = RDMs(
         array(1, 2, 3),
         pattern_descriptors={'conds': ['a', 'b', 'c']}

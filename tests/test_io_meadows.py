@@ -13,10 +13,10 @@ class MeadowsIOTests(TestCase):
         single participant. Should have descriptors and dissimilarities
         as found in file.
         """
-        import pyrsa.io.meadows
+        import rsatoolbox.io.meadows
         fname = 'Meadows_myExp_v_v1_cuddly-bunny_3_1D.mat'
         fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
-        rdms = pyrsa.io.meadows.load_rdms(fpath, sort=False)
+        rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=False)
         self.assertEqual(rdms.descriptors.get('participant'), 'cuddly-bunny')
         self.assertEqual(rdms.descriptors.get('task_index'), 3)
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
@@ -31,10 +31,10 @@ class MeadowsIOTests(TestCase):
     def test_load_rdms_and_sort(self):
         """As above but with sorting
         """
-        import pyrsa.io.meadows
+        import rsatoolbox.io.meadows
         fname = 'Meadows_myExp_v_v1_cuddly-bunny_3_1D.mat'
         fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
-        rdms = pyrsa.io.meadows.load_rdms(fpath, sort=True)
+        rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=True)
         conds = rdms.pattern_descriptors.get('conds')
         assert_array_equal(conds[:2], ['stim001', 'stim002'])
         assert_array_equal(conds[-2:], ['stim117', 'stim118'])
@@ -49,10 +49,10 @@ class MeadowsIOTests(TestCase):
         multiple participants. Should have descriptors and dissimilarities
         as found in file.
         """
-        import pyrsa.io.meadows
+        import rsatoolbox.io.meadows
         fname = 'Meadows_myExp_v_v1_arrangement_1D.mat'
         fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
-        rdms = pyrsa.io.meadows.load_rdms(fpath, sort=False)
+        rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=False)
         self.assertEqual(rdms.descriptors.get('task_name'), 'arrangement')
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
         self.assertEqual(
@@ -77,7 +77,7 @@ class MeadowsIOTests(TestCase):
         This case covers a filename for a single participant, single task,
         downloaded in 2019.
         """
-        from pyrsa.io.meadows import extract_filename_segments
+        from rsatoolbox.io.meadows import extract_filename_segments
         fname = 'Meadows_myExp_v_v1_cuddly-bunny_3_1D.mat'
         info = extract_filename_segments(fname)
         self.assertEqual(info.get('participant_scope'), 'single')
@@ -96,7 +96,7 @@ class MeadowsIOTests(TestCase):
         This case covers a filename for multiple participants, single task,
         downloaded in 2019.
         """
-        from pyrsa.io.meadows import extract_filename_segments
+        from rsatoolbox.io.meadows import extract_filename_segments
         fname = 'Meadows_myExp_v_v1_arrangement_1D.mat'
         info = extract_filename_segments(fname)
         self.assertEqual(info.get('participant_scope'), 'multiple')
