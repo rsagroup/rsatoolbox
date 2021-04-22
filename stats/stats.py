@@ -14,7 +14,7 @@ import scipy.signal as signal
 import pandas as pd
 import sys
 import glob
-import pyrsa
+import rsatoolbox
 import nn_simulations as dnn
 from hrf import spm_hrf
 from helpers import get_fname_base
@@ -24,7 +24,6 @@ from helpers import run_inference
 from helpers import parse_fmri
 from helpers import parse_pars
 from helpers import parse_results
-from helpers import load_comp
 from models import get_models
 
 
@@ -71,7 +70,7 @@ def check_compare_to_zero(model, n_voxel=200, n_subj=10, n_sim=100,
     as independent normal noise for the voxels and subjects.
 
     Args:
-        model(pyrsa.model.Model): the model to be tested against
+        model(rsatoolbox.model.Model): the model to be tested against
         n_voxel(int): number of voxels to be simulated per subject
         n_subj(int): number of subjects to be simulated
         n_sim(int): number of simulations to be performed
@@ -86,21 +85,21 @@ def check_compare_to_zero(model, n_voxel=200, n_subj=10, n_sim=100,
         raw_u = sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
         data = []
         for i_subj in range(n_subj):
-            dat = pyrsa.data.Dataset(raw_u[i_subj])
+            dat = rsatoolbox.data.Dataset(raw_u[i_subj])
             data.append(dat)
-        rdms = pyrsa.rdm.calc_rdm(data)
+        rdms = rsatoolbox.rdm.calc_rdm(data)
         results = run_inference(model, rdms, method, bootstrap)
         idx_valid = ~np.isnan(results.evaluations)
         if test_type == 'perc':
             p[i_sim] = 1 - np.sum(results.evaluations[idx_valid] > 0) \
                 / np.sum(idx_valid)
         elif test_type == 't':
-            p[i_sim] = pyrsa.util.inference_util.t_test_0(
+            p[i_sim] = rsatoolbox.util.inference_util.t_test_0(
                 results.evaluations,
                 results.variances,
                 dof=results.dof)
         elif test_type == 'ranksum':
-            p[i_sim] = pyrsa.util.inference_util.ranksum_value_test(
+            p[i_sim] = rsatoolbox.util.inference_util.ranksum_value_test(
                 results.evaluations)
     return p
 
@@ -118,9 +117,9 @@ def save_compare_to_zero(idx, n_voxel=200, n_subj=10, n_cond=5,
         n_cond, n_subj, n_voxel, sigma_noise, idx)
     if not os.path.isfile(fname):
         model_u = np.random.randn(n_cond, n_voxel)
-        model_dat = pyrsa.data.Dataset(model_u)
-        model_rdm = pyrsa.rdm.calc_rdm(model_dat)
-        model = pyrsa.model.ModelFixed('test', model_rdm)
+        model_dat = rsatoolbox.data.Dataset(model_u)
+        model_rdm = rsatoolbox.rdm.calc_rdm(model_dat)
+        model = rsatoolbox.model.ModelFixed('test', model_rdm)
         p = check_compare_to_zero(model, n_voxel=n_voxel, n_subj=n_subj,
                                   method=method, bootstrap=bootstrap,
                                   sigma_noise=sigma_noise,
@@ -136,7 +135,7 @@ def check_compare_models(model1, model2, n_voxel=200, n_subj=10, n_sim=100,
     as independent normal noise for the voxels and subjects.
 
     Args:
-        model(pyrsa.model.Model): the model to be tested against each other
+        model(rsatoolbox.model.Model): the model to be tested against each other
         n_voxel(int): number of voxels to be simulated per subject
         n_subj(int): number of subjects to be simulated
         n_sim(int): number of simulations to be performed
@@ -160,20 +159,20 @@ def check_compare_models(model1, model2, n_voxel=200, n_subj=10, n_sim=100,
     # without this the generation fails
     target_rdm = target_rdm + np.max(target_rdm) + 0.01
     D = squareform(target_rdm)
-    H = pyrsa.util.matrix.centering(D.shape[0])
+    H = rsatoolbox.util.matrix.centering(D.shape[0])
     G = -0.5 * (H @ D @ H)
     G = G + np.eye(G.shape[0])
-    U0 = pyrsa.simulation.make_signal(G, n_voxel, make_exact=True)
-    # dat0 = pyrsa.data.Dataset(U0)
-    # rdm0 = pyrsa.rdm.calc_rdm(dat0)
+    U0 = rsatoolbox.simulation.make_signal(G, n_voxel, make_exact=True)
+    # dat0 = rsatoolbox.data.Dataset(U0)
+    # rdm0 = rsatoolbox.rdm.calc_rdm(dat0)
     p = np.empty(n_sim)
     for i_sim in tqdm.trange(n_sim, position=0):
         raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
         data = []
         for i_subj in range(n_subj):
-            dat = pyrsa.data.Dataset(raw_u[i_subj])
+            dat = rsatoolbox.data.Dataset(raw_u[i_subj])
             data.append(dat)
-        rdms = pyrsa.rdm.calc_rdm(data)
+        rdms = rsatoolbox.rdm.calc_rdm(data)
         results = run_inference([model1, model2], rdms, method, bootstrap)
         if test_type == 'perc':
             idx_valid = ~np.isnan(results.evaluations[:, 0])
@@ -182,10 +181,10 @@ def check_compare_models(model1, model2, n_voxel=200, n_subj=10, n_sim=100,
                  / np.sum(idx_valid))
             p[i_sim] = 2 * np.min(p, 1 - p)
         elif test_type == 't':
-            p[i_sim] = pyrsa.util.inference_util.t_tests(
+            p[i_sim] = rsatoolbox.util.inference_util.t_tests(
                 results.evaluations, results.variances, results.dof)[0, 1]
         elif test_type == 'ranksum':
-            p[i_sim] = pyrsa.util.inference_util.ranksum_pair_test(
+            p[i_sim] = rsatoolbox.util.inference_util.ranksum_pair_test(
                 results.evaluations)[0, 1]
     return p
 
@@ -203,13 +202,13 @@ def save_compare_models(idx, n_voxel=200, n_subj=10, n_cond=5,
         n_cond, n_subj, n_voxel, sigma_noise, idx)
     if not os.path.isfile(fname):
         model1_u = np.random.randn(n_cond, n_voxel)
-        model1_dat = pyrsa.data.Dataset(model1_u)
-        model1_rdm = pyrsa.rdm.calc_rdm(model1_dat)
-        model1 = pyrsa.model.ModelFixed('test1', model1_rdm)
+        model1_dat = rsatoolbox.data.Dataset(model1_u)
+        model1_rdm = rsatoolbox.rdm.calc_rdm(model1_dat)
+        model1 = rsatoolbox.model.ModelFixed('test1', model1_rdm)
         model2_u = np.random.randn(n_cond, n_voxel)
-        model2_dat = pyrsa.data.Dataset(model2_u)
-        model2_rdm = pyrsa.rdm.calc_rdm(model2_dat)
-        model2 = pyrsa.model.ModelFixed('test2', model2_rdm)
+        model2_dat = rsatoolbox.data.Dataset(model2_u)
+        model2_rdm = rsatoolbox.rdm.calc_rdm(model2_dat)
+        model2 = rsatoolbox.model.ModelFixed('test2', model2_rdm)
         p = check_compare_models(model1, model2, n_voxel=n_voxel,
                                  n_subj=n_subj,
                                  method=method, bootstrap=bootstrap,
@@ -225,7 +224,7 @@ def check_noise_ceiling(model, n_voxel=200, n_subj=10, n_sim=100,
     model rdm as ground truth to check
 
     Args:
-        model(pyrsa.model.Model): the model to be tested against each other
+        model(rsatoolbox.model.Model): the model to be tested against each other
         n_voxel(int): number of voxels to be simulated per subject
         n_subj(int): number of subjects to be simulated
         n_sim(int): number of simulations to be performed
@@ -243,20 +242,20 @@ def check_noise_ceiling(model, n_voxel=200, n_subj=10, n_sim=100,
     n_cond = int(model.n_cond)
     rdm = model.predict()
     D = squareform(rdm)
-    H = pyrsa.util.matrix.centering(D.shape[0])
+    H = rsatoolbox.util.matrix.centering(D.shape[0])
     G = -0.5 * (H @ D @ H)
-    U0 = pyrsa.simulation.make_signal(G, n_voxel, make_exact=True)
-    # dat0 = pyrsa.data.Dataset(U0)
-    # rdm0 = pyrsa.rdm.calc_rdm(dat0)
+    U0 = rsatoolbox.simulation.make_signal(G, n_voxel, make_exact=True)
+    # dat0 = rsatoolbox.data.Dataset(U0)
+    # rdm0 = rsatoolbox.rdm.calc_rdm(dat0)
     p_upper = np.empty(n_sim)
     p_lower = np.empty(n_sim)
     for i_sim in tqdm.trange(n_sim, position=0):
         raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
         data = []
         for i_subj in range(n_subj):
-            dat = pyrsa.data.Dataset(raw_u[i_subj])
+            dat = rsatoolbox.data.Dataset(raw_u[i_subj])
             data.append(dat)
-        rdms = pyrsa.rdm.calc_rdm(data)
+        rdms = rsatoolbox.rdm.calc_rdm(data)
         results = run_inference(model, rdms, method, bootstrap,
                                 boot_noise_ceil=boot_noise_ceil)
         idx_valid = ~np.isnan(results.evaluations[:, 0])
@@ -277,30 +276,30 @@ def check_noise_ceiling(model, n_voxel=200, n_subj=10, n_sim=100,
                                   / np.sum(idx_valid))
         elif test_type == 't':
             if results.noise_ceil_var is None:
-                p_upper[i_sim] = pyrsa.util.inference_util.t_test_nc(
+                p_upper[i_sim] = rsatoolbox.util.inference_util.t_test_nc(
                     results.evaluations, results.variances,
                     results.noise_ceiling[1], None,
                     results.dof)
-                p_lower[i_sim] = pyrsa.util.inference_util.t_test_nc(
+                p_lower[i_sim] = rsatoolbox.util.inference_util.t_test_nc(
                     results.evaluations, results.variances,
                     results.noise_ceiling[0], None,
                     results.dof)
             else:
-                p_upper[i_sim] = pyrsa.util.inference_util.t_test_nc(
+                p_upper[i_sim] = rsatoolbox.util.inference_util.t_test_nc(
                     results.evaluations, results.variances,
                     np.nanmean(results.noise_ceiling[1]),
                     results.noise_ceil_var[:-2, 1],
                     results.dof)
-                p_lower[i_sim] = pyrsa.util.inference_util.t_test_nc(
+                p_lower[i_sim] = rsatoolbox.util.inference_util.t_test_nc(
                     results.evaluations, results.variances,
                     np.nanmean(results.noise_ceiling[0]),
                     results.noise_ceil_var[:-1, 0],
                     results.dof)
         elif test_type == 'ranksum':
-            p_upper[i_sim] = pyrsa.util.inference_util.ranksum_value_test(
+            p_upper[i_sim] = rsatoolbox.util.inference_util.ranksum_value_test(
                 results.evaluations,
                 comp_value=np.mean(results.noise_ceiling[1]))
-            p_lower[i_sim] = pyrsa.util.inference_util.ranksum_value_test(
+            p_lower[i_sim] = rsatoolbox.util.inference_util.ranksum_value_test(
                 results.evaluations,
                 comp_value=np.mean(results.noise_ceiling[0]))
     return np.array([p_lower, p_upper])
@@ -320,9 +319,9 @@ def save_noise_ceiling(idx, n_voxel=200, n_subj=10, n_cond=5,
                 sigma_noise, idx))
     if not os.path.isfile(fname):
         model_u = np.random.randn(n_cond, n_voxel)
-        model_dat = pyrsa.data.Dataset(model_u)
-        model_rdm = pyrsa.rdm.calc_rdm(model_dat)
-        model = pyrsa.model.ModelFixed('test1', model_rdm)
+        model_dat = rsatoolbox.data.Dataset(model_u)
+        model_rdm = rsatoolbox.rdm.calc_rdm(model_dat)
+        model = rsatoolbox.model.ModelFixed('test1', model_rdm)
         p = check_noise_ceiling(model, n_voxel=n_voxel, n_subj=n_subj,
                                 method=method, bootstrap=bootstrap,
                                 boot_noise_ceil=boot_noise_ceil,
@@ -495,18 +494,18 @@ def sim_ecoset(layer=2, sd=0.05, n_stim_all=320,
         for i_subj in range(U.shape[0]):
             u_subj = U[i_subj, :, :n_stim, :].reshape(n_repeat * n_stim,
                                                       n_voxel)
-            data.append(pyrsa.data.Dataset(u_subj, obs_descriptors=desc))
+            data.append(rsatoolbox.data.Dataset(u_subj, obs_descriptors=desc))
         if noise_type == 'eye':
             noise = None
         elif noise_type == 'residuals':
-            noise = pyrsa.data.prec_from_residuals(residuals)
-        rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
-                                  cv_descriptor='repeat', noise=noise)
+            noise = rsatoolbox.data.prec_from_residuals(residuals)
+        rdms = rsatoolbox.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
+                                       cv_descriptor='repeat', noise=noise)
         # get true U RDMs
         # dat_true = []
         # for i_subj in range(U.shape[0]):
-        #     dat_true.append(pyrsa.data.Dataset(Utrue[i_subj]))
-        # rdms_true = pyrsa.rdm.calc_rdm(dat_true)
+        #     dat_true.append(rsatoolbox.data.Dataset(Utrue[i_subj]))
+        # rdms_true = rsatoolbox.rdm.calc_rdm(dat_true)
         # run inference & save it
         results = run_inference(models, rdms, method=rdm_comparison,
                                 bootstrap=boot_type,
@@ -814,7 +813,7 @@ def summarize_eco(simulation_folder='sim_eco'):
                     for i_res in results.glob('res*.hdf5'):
                         idx = int(str(i_res)[-9:-5])
                         try:
-                            res = pyrsa.inference.load_results(
+                            res = rsatoolbox.inference.load_results(
                                 i_res, file_type='hdf5')
                             if res.evaluations.ndim == 2:
                                 no_nan_idx = ~np.isnan(res.evaluations[:, 0])
@@ -919,7 +918,7 @@ def summarize_flex(simulation_folder='sim_flex'):
         for i_res in results.glob('res*.hdf5'):
             idx = int(str(i_res)[-9:-5])
             try:
-                res = pyrsa.inference.load_results(
+                res = rsatoolbox.inference.load_results(
                     i_res, file_type='hdf5')
                 if res.evaluations.ndim == 2:
                     no_nan_idx = ~np.isnan(res.evaluations[:, 0])
@@ -979,7 +978,7 @@ def summarize_boot_cv(simulation_folder='boot_cv'):
             split = res_string.split('_')
             i_sim = int(split[0])
             i_rep = int(split[1])
-            res = pyrsa.inference.load_results(results, 'hdf5')
+            res = rsatoolbox.inference.load_results(results, 'hdf5')
             means[i, :, i_sim, i_rep] = np.mean(np.mean(np.mean(
                 res.evaluations, 0), 1), 1)
             if res.variances.shape[0] == 14:
@@ -1197,7 +1196,7 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
     stim_list = get_stimuli_ecoset(ecoset_path, stim_paths[:n_stim])
     rdm_file = os.path.join(simulation_folder, 'rdm%04d.hdf5' % i)
     if os.path.isfile(rdm_file):
-        rdms = pyrsa.rdm.load_rdm(rdm_file, file_type='hdf5')
+        rdms = rsatoolbox.rdm.load_rdm(rdm_file, file_type='hdf5')
     else:
         # Recalculate U_complete if necessary
         U_complete = []
@@ -1295,10 +1294,10 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
         for i_subj in range(U.shape[0]):
             u_subj = U[i_subj, :, :n_stim, :].reshape(n_repeat * n_stim,
                                                       n_voxel)
-            data.append(pyrsa.data.Dataset(u_subj, obs_descriptors=desc))
-        noise = pyrsa.data.prec_from_residuals(residuals)
-        rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
-                                  cv_descriptor='repeat', noise=noise)
+            data.append(rsatoolbox.data.Dataset(u_subj, obs_descriptors=desc))
+        noise = rsatoolbox.data.prec_from_residuals(residuals)
+        rdms = rsatoolbox.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
+                                       cv_descriptor='repeat', noise=noise)
         rdms.save(rdm_file, file_type='hdf5')
     # get models
     models = get_models(
@@ -1308,8 +1307,8 @@ def boot_cv_sim(i=0, n_cv=2, i_rep=0, ecoset_path='~/ecoset/val/',
     # get true U RDMs
     # dat_true = []
     # for i_subj in range(U.shape[0]):
-    #     dat_true.append(pyrsa.data.Dataset(Utrue[i_subj]))
-    # rdms_true = pyrsa.rdm.calc_rdm(dat_true)
+    #     dat_true.append(rsatoolbox.data.Dataset(Utrue[i_subj]))
+    # rdms_true = rsatoolbox.rdm.calc_rdm(dat_true)
     # run inference & save it
     results = run_inference(models, rdms, method=rdm_comparison,
                             bootstrap=boot_type, n_cv=n_cv, N=N,

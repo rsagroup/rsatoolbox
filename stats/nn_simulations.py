@@ -19,7 +19,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter as gaussian_filter
 import scipy.signal as signal
 from hrf import spm_hrf
-import pyrsa
+import rsatoolbox
 
 # initial transormation expected by all torchvision models
 normalize = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -128,11 +128,11 @@ def get_true_RDM(model, layer, stimuli, method='euclidean', smoothing=None,
                 Ustim = np.average(np.average(Ustim, axis=3), axis=2)
         U.append(Ustim.flatten())
     U = np.array(U)
-    data = pyrsa.data.Dataset(U)
+    data = rsatoolbox.data.Dataset(U)
     if not method == 'euclidean':
-        return pyrsa.rdm.calc_rdm(data, method=method)
+        return rsatoolbox.rdm.calc_rdm(data, method=method)
     else:
-        return pyrsa.rdm.calc_rdm_euclid_save_memory(data)
+        return rsatoolbox.rdm.calc_rdm_euclid_save_memory(data)
 
 
 def get_sampled_representations(model, layer, sd, stimList, N):

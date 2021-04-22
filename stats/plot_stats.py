@@ -15,7 +15,7 @@ import seaborn as sns
 import pandas as pd
 import scipy.stats
 from helpers import get_fname_base
-import pyrsa
+import rsatoolbox
 import pathlib
 import nn_simulations as dnn
 from helpers import get_stimuli_ecoset
@@ -95,8 +95,8 @@ def plot_saved_dnn(layer=2, sd=0.05, n_voxel=100, idx=0,
     res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d_%d' % (
         rdm_type, model_type, rdm_comparison, noise_type, n_stimuli,
         k_pattern, k_rdm)
-    results = pyrsa.inference.load_results(res_path + '/res%04d.hdf5' % idx)
-    pyrsa.vis.plot_model_comparison(results)
+    results = rsatoolbox.inference.load_results(res_path + '/res%04d.hdf5' % idx)
+    rsatoolbox.vis.plot_model_comparison(results)
 
 
 def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
@@ -799,7 +799,6 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
         frameon=False, title='# of repeats',
         bbox_to_anchor=(1.0, 1.0), loc=2)
 
-
     g6_m = sns.catplot(data=data_df, legend=False,
                        x='targeted_structure', y='log-snr', hue='n_repeat',
                        kind='point', ci='sd', palette='Reds_d', dodge=.2,
@@ -1257,13 +1256,13 @@ def make_illustrations():
     for i_subj in range(U.shape[0]):
         u_subj = U[i_subj, :, :n_stim, :].reshape(n_repeat * n_stim,
                                                   n_voxel)
-        data.append(pyrsa.data.Dataset(u_subj, obs_descriptors=desc))
+        data.append(rsatoolbox.data.Dataset(u_subj, obs_descriptors=desc))
     if noise_type == 'eye':
         noise = None
     elif noise_type == 'residuals':
-        noise = pyrsa.data.prec_from_residuals(residuals)
-    rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
-                              cv_descriptor='repeat', noise=noise)
+        noise = rsatoolbox.data.prec_from_residuals(residuals)
+    rdms = rsatoolbox.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
+                                   cv_descriptor='repeat', noise=noise)
     # plotting
     # true activations
     for i_sub in range(n_subj):

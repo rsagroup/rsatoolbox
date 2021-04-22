@@ -9,7 +9,7 @@ Created on Fri May 15 07:57:55 2020
 import numpy as np
 import tqdm
 import nn_simulations as dnn
-import pyrsa
+import rsatoolbox
 
 
 def get_models(model_type, stimuli,
@@ -48,7 +48,7 @@ def get_models(model_type, stimuli,
 
     Returns
     -------
-    models : list of pyrsa.model.Model
+    models : list of rsatoolbox.model.Model
         Models corresponding to the model possibilities
 
     """
@@ -65,7 +65,7 @@ def get_models(model_type, stimuli,
                 stimuli=stimuli,
                 smoothing=smoothing)
             rdm.pattern_descriptors = pat_desc
-            model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
+            model = rsatoolbox.model.ModelFixed('Layer%02d' % i_layer, rdm)
         elif model_type == 'fixed_average':
             rdm1 = dnn.get_true_RDM(
                 model=dnn_model,
@@ -82,9 +82,9 @@ def get_models(model_type, stimuli,
             # and Var(U[0,1]) = 1/12
             # Thus 1 : 3 should be the right weighting between the two
             # euclidean distances
-            rdm = pyrsa.rdm.RDMs(3 * rdm1.get_vectors() + rdm2.get_vectors(),
-                                 pattern_descriptors=pat_desc)
-            model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
+            rdm = rsatoolbox.rdm.RDMs(3 * rdm1.get_vectors() + rdm2.get_vectors(),
+                                      pattern_descriptors=pat_desc)
+            model = rsatoolbox.model.ModelFixed('Layer%02d' % i_layer, rdm)
         elif model_type == 'fixed_mean':
             rdm2 = dnn.get_true_RDM(
                 model=dnn_model,
@@ -92,9 +92,9 @@ def get_models(model_type, stimuli,
                 stimuli=stimuli,
                 smoothing=smoothing,
                 average=True)
-            rdm = pyrsa.rdm.RDMs(rdm2.get_vectors(),
-                                 pattern_descriptors=pat_desc)
-            model = pyrsa.model.ModelFixed('Layer%02d' % i_layer, rdm)
+            rdm = rsatoolbox.rdm.RDMs(rdm2.get_vectors(),
+                                      pattern_descriptors=pat_desc)
+            model = rsatoolbox.model.ModelFixed('Layer%02d' % i_layer, rdm)
         elif model_type == 'select_full':
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
@@ -106,8 +106,8 @@ def get_models(model_type, stimuli,
                     average=False)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
+            rdms = rsatoolbox.rdm.concat(rdms)
+            model = rsatoolbox.model.ModelSelect('Layer%02d' % i_layer, rdms)
         elif model_type == 'select_mean':
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
@@ -119,8 +119,8 @@ def get_models(model_type, stimuli,
                     average=True)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
+            rdms = rsatoolbox.rdm.concat(rdms)
+            model = rsatoolbox.model.ModelSelect('Layer%02d' % i_layer, rdms)
         elif model_type == 'select_both':
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
@@ -140,8 +140,8 @@ def get_models(model_type, stimuli,
                     average=True)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
+            rdms = rsatoolbox.rdm.concat(rdms)
+            model = rsatoolbox.model.ModelSelect('Layer%02d' % i_layer, rdms)
         elif model_type == 'select_average':
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
@@ -157,12 +157,12 @@ def get_models(model_type, stimuli,
                     stimuli=stimuli,
                     smoothing=smooth,
                     average=True)
-                rdm = pyrsa.rdm.RDMs(3 * rdm1.get_vectors()
-                                     + rdm2.get_vectors(),
-                                     pattern_descriptors=pat_desc)
+                rdm = rsatoolbox.rdm.RDMs(3 * rdm1.get_vectors()
+                                          + rdm2.get_vectors(),
+                                          pattern_descriptors=pat_desc)
                 rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
+            rdms = rsatoolbox.rdm.concat(rdms)
+            model = rsatoolbox.model.ModelSelect('Layer%02d' % i_layer, rdms)
         elif model_type == 'interpolate_full':
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
@@ -174,8 +174,8 @@ def get_models(model_type, stimuli,
                     average=False)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
+            rdms = rsatoolbox.rdm.concat(rdms)
+            model = rsatoolbox.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
         elif model_type == 'interpolate_mean':
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
@@ -187,8 +187,8 @@ def get_models(model_type, stimuli,
                     average=True)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
+            rdms = rsatoolbox.rdm.concat(rdms)
+            model = rsatoolbox.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
         elif model_type == 'interpolate_both':
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
@@ -209,8 +209,8 @@ def get_models(model_type, stimuli,
                     average=False)
                 rdm.pattern_descriptors = pat_desc
                 rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
+            rdms = rsatoolbox.rdm.concat(rdms)
+            model = rsatoolbox.model.ModelInterpolate('Layer%02d' % i_layer, rdms)
         elif model_type == 'interpolate_average':
             rdms = []
             for i_smooth, smooth in enumerate(smoothings):
@@ -226,12 +226,12 @@ def get_models(model_type, stimuli,
                     stimuli=stimuli,
                     smoothing=smooth,
                     average=True)
-                rdm = pyrsa.rdm.RDMs(3 * rdm1.get_vectors()
-                                     + rdm2.get_vectors(),
-                                     pattern_descriptors=pat_desc)
+                rdm = rsatoolbox.rdm.RDMs(3 * rdm1.get_vectors()
+                                          + rdm2.get_vectors(),
+                                          pattern_descriptors=pat_desc)
                 rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelSelect('Layer%02d' % i_layer, rdms)
+            rdms = rsatoolbox.rdm.concat(rdms)
+            model = rsatoolbox.model.ModelSelect('Layer%02d' % i_layer, rdms)
         elif model_type == 'weighted_avgfull':
             rdms = []
             rdm = dnn.get_true_RDM(
@@ -262,8 +262,8 @@ def get_models(model_type, stimuli,
                 smoothing=np.inf,
                 average=False)
             rdms.append(rdm)
-            rdms = pyrsa.rdm.concat(rdms)
-            model = pyrsa.model.ModelWeighted('Layer%02d' % i_layer, rdms)
-            model.default_fitter = pyrsa.model.fitter.fit_regress
+            rdms = rsatoolbox.rdm.concat(rdms)
+            model = rsatoolbox.model.ModelWeighted('Layer%02d' % i_layer, rdms)
+            model.default_fitter = rsatoolbox.model.fitter.fit_regress
         models.append(model)
     return models

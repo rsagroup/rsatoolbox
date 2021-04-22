@@ -10,7 +10,7 @@ import os
 import PIL
 import pathlib
 import numpy as np
-import pyrsa
+import rsatoolbox
 
 
 def load_comp(folder):
@@ -168,53 +168,53 @@ def run_inference(model, rdms, method, bootstrap, boot_noise_ceil=False,
     """ runs a run of inference
 
     Args:
-        model(pyrsa.model.Model): the model(s) to be tested
-        rdms(pyrsa.rdm.Rdms): the data
+        model(rsatoolbox.model.Model): the model(s) to be tested
+        rdms(rsatoolbox.rdm.Rdms): the data
         method(String): rdm comparison method
         bootstrap(String): Bootstrapping method:
-            pattern: pyrsa.inference.eval_bootstrap_pattern
-            rdm: pyrsa.inference.eval_bootstrap_rdm
-            both: pyrsa.inference.eval_bootstrap
-            crossval: pyrsa.inference.bootstrap_crossval
-            crossval_pattern: pyrsa.inference.bootstrap_crossval(k_rdm=1)
-            crossval_rdms: pyrsa.inference.bootstrap_crossval(k_pattern=1)
-            fancy: pyrsa.inference.eval_fancy
-            fix: pyrsa.inference.eval_fix
+            pattern: rsatoolbox.inference.eval_bootstrap_pattern
+            rdm: rsatoolbox.inference.eval_bootstrap_rdm
+            both: rsatoolbox.inference.eval_bootstrap
+            crossval: rsatoolbox.inference.bootstrap_crossval
+            crossval_pattern: rsatoolbox.inference.bootstrap_crossval(k_rdm=1)
+            crossval_rdms: rsatoolbox.inference.bootstrap_crossval(k_pattern=1)
+            fancy: rsatoolbox.inference.eval_fancy
+            fix: rsatoolbox.inference.eval_fix
     """
     if bootstrap == 'pattern':
-        results = pyrsa.inference.eval_bootstrap_pattern(
+        results = rsatoolbox.inference.eval_bootstrap_pattern(
             model, rdms,
             boot_noise_ceil=boot_noise_ceil, method=method, N=N)
     elif bootstrap == 'rdm':
-        results = pyrsa.inference.eval_bootstrap_rdm(
+        results = rsatoolbox.inference.eval_bootstrap_rdm(
             model, rdms,
             boot_noise_ceil=boot_noise_ceil, method=method, N=N)
     elif bootstrap == 'both':
-        results = pyrsa.inference.eval_bootstrap(
+        results = rsatoolbox.inference.eval_bootstrap(
             model, rdms,
             boot_noise_ceil=boot_noise_ceil, method=method, N=N)
     elif bootstrap == 'crossval':
-        results = pyrsa.inference.bootstrap_crossval(
+        results = rsatoolbox.inference.bootstrap_crossval(
             model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm,
             n_cv=n_cv, N=N)
     elif bootstrap == 'crossval_pattern':
-        results = pyrsa.inference.bootstrap_crossval(
+        results = rsatoolbox.inference.bootstrap_crossval(
             model, rdms, method=method, k_rdm=1, k_pattern=k_pattern,
             n_cv=n_cv, N=N)
     elif bootstrap == 'crossval_rdms':
-        results = pyrsa.inference.bootstrap_crossval(
+        results = rsatoolbox.inference.bootstrap_crossval(
             model, rdms, method=method, k_pattern=1, k_rdm=k_rdm,
             n_cv=n_cv, N=N)
     elif bootstrap == 'fancy':
-        results = pyrsa.inference.eval_fancy(
+        results = rsatoolbox.inference.eval_fancy(
             model, rdms, method=method, k_pattern=k_pattern, k_rdm=k_rdm,
             n_cv=n_cv, N=N)
     elif bootstrap == 'fancyboot':
-        results = pyrsa.inference.eval_fancy(
+        results = rsatoolbox.inference.eval_fancy(
             model, rdms, method=method, k_pattern=1, k_rdm=1,
             n_cv=n_cv, N=N)
     elif bootstrap == 'fix':
-        results = pyrsa.inference.eval_fixed(
+        results = rsatoolbox.inference.eval_fixed(
             model, rdms, method=method)
     return results
 
