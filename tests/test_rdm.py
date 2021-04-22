@@ -10,8 +10,8 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 from scipy.spatial.distance import squareform
-import pyrsa.rdm as rsr
-import pyrsa as rsa
+import rsatoolbox.rdm as rsr
+import rsatoolbox as rsa
 
 
 class TestRDM(unittest.TestCase):
@@ -210,7 +210,7 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(i, rdms.n_rdm)
 
     def test_rank_transform(self):
-        from pyrsa.rdm import rank_transform
+        from rsatoolbox.rdm import rank_transform
         dis = np.zeros((8, 10))
         mes = "Euclidean"
         des = {'subj': 0}
@@ -240,7 +240,7 @@ class TestRDM(unittest.TestCase):
         assert rdms.n_rdm == 16
 
     def test_concat(self):
-        from pyrsa.rdm import concat
+        from rsatoolbox.rdm import concat
         dis = np.zeros((8, 10))
         dis2 = np.random.rand(8, 10)
         mes = "Euclidean"
@@ -262,7 +262,7 @@ class TestRDM(unittest.TestCase):
         assert len(rdms.rdm_descriptors['session']) == 16
 
     def test_categorical_rdm(self):
-        from pyrsa.rdm import get_categorical_rdm
+        from rsatoolbox.rdm import get_categorical_rdm
         category_vector = [1, 2, 2, 3]
         rdm = get_categorical_rdm(category_vector)
         np.testing.assert_array_almost_equal(
@@ -270,7 +270,7 @@ class TestRDM(unittest.TestCase):
             np.array([[1., 1., 1., 0., 1., 1.]]))
 
     def test_reorder(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.array([
             [0., 1., 2., 3.],
             [1., 0., 1., 2.],
@@ -297,7 +297,7 @@ class TestRDM(unittest.TestCase):
         )
 
     def test_sort_by_alpha(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.array([
             [0., 1., 2., 3.],
             [1., 0., 1., 2.],
@@ -326,7 +326,7 @@ class TestRDM(unittest.TestCase):
         )
 
     def test_sort_by_list(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.array([
             [0., 1., 2., 3.],
             [1., 0., 1., 2.],

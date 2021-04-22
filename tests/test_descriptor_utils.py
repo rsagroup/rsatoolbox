@@ -13,7 +13,7 @@ import numpy as np
 class TestDescriptorUtils(unittest.TestCase):
 
     def test_format_descriptor(self):
-        from pyrsa.util.descriptor_utils import format_descriptor
+        from rsatoolbox.util.descriptor_utils import format_descriptor
         descriptors = {'foo': 'bar', 'foz': 12.3}
         self.assertEqual(
             format_descriptor(descriptors),
@@ -21,7 +21,7 @@ class TestDescriptorUtils(unittest.TestCase):
         )
 
     def test_parse_input_descriptor(self):
-        from pyrsa.util.descriptor_utils import parse_input_descriptor
+        from rsatoolbox.util.descriptor_utils import parse_input_descriptor
         descriptors = {'foo': 'bar', 'foz': 12.3}
         self.assertEqual(
             parse_input_descriptor(descriptors),
@@ -33,7 +33,7 @@ class TestDescriptorUtils(unittest.TestCase):
         )
 
     def test_append_descriptor(self):
-        from pyrsa.util.descriptor_utils import append_descriptor
+        from rsatoolbox.util.descriptor_utils import append_descriptor
         desc = {'index': np.arange(3),
                 'test1': [1, 3, 2],
                 'test2': ['a', 'b', 'c']}
@@ -43,7 +43,7 @@ class TestDescriptorUtils(unittest.TestCase):
                       == np.array(['a', 'b', 'c', 'a', 'b', 'c']))
 
     def test_check_descriptor_length(self):
-        from pyrsa.util.descriptor_utils import check_descriptor_length
+        from rsatoolbox.util.descriptor_utils import check_descriptor_length
         descriptors = {'foo': ['bar', 'bar2']}
         assert check_descriptor_length(descriptors, 2)
         assert not check_descriptor_length(descriptors, 3)
@@ -53,12 +53,12 @@ class TestDescriptorUtils(unittest.TestCase):
     def test_check_descriptor_length_0d(self):
         """numpy casts str to 0d arrays (arrays with empty shape).
         This breaks things."""
-        from pyrsa.util.descriptor_utils import check_descriptor_length
+        from rsatoolbox.util.descriptor_utils import check_descriptor_length
         descriptors = {'foo': 'bar'}
         assert check_descriptor_length(descriptors, 1)
 
     def test_subset_descriptor(self):
-        from pyrsa.util.descriptor_utils import subset_descriptor
+        from rsatoolbox.util.descriptor_utils import subset_descriptor
         descriptors = {'foo': ['bar', 'bar2']}
         self.assertEqual(
                 subset_descriptor(descriptors, 0),
@@ -70,12 +70,12 @@ class TestDescriptorUtils(unittest.TestCase):
                 )
 
     def test_check_descriptor_length_error(self):
-        from pyrsa.util.descriptor_utils import check_descriptor_length_error
+        from rsatoolbox.util.descriptor_utils import check_descriptor_length_error
         descriptors = {'foo': ['bar', 'bar2']}
         check_descriptor_length_error(descriptors, 'test', 2)
 
     def test_append_obs_descriptors(self):
-        from pyrsa.util.descriptor_utils import append_obs_descriptors
+        from rsatoolbox.util.descriptor_utils import append_obs_descriptors
         descriptors_1 = {'foo': ['bar1', 'bar2'], 'boo': ['far1']}
         descriptors_2 = {'foo': ['bar3', 'bar4'], 'boo': ['far2']}
         desc_appended = append_obs_descriptors(descriptors_1, descriptors_2)
