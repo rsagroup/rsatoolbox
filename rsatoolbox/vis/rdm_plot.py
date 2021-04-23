@@ -5,8 +5,7 @@ Plot showing an RDMs object
 """
 
 from __future__ import annotations
-import os.path
-import inspect
+import pkg_resources
 import collections
 import typing
 from typing import TYPE_CHECKING
@@ -16,13 +15,11 @@ import matplotlib.pyplot as plt
 import rsatoolbox.rdm
 from rsatoolbox import vis
 from rsatoolbox.vis.colors import rdm_colormap
-
 if TYPE_CHECKING:
     import numpy.typing as npt
     import pathlib
 
-MODULE_DIR = os.path.dirname(inspect.getfile(inspect.currentframe()))
-RDM_STYLE = os.path.join(MODULE_DIR, "rdm.mplstyle")
+RDM_STYLE = pkg_resources.resource_filename('rsatoolbox.vis', 'rdm.mplstyle')
 
 
 def show_rdm(
