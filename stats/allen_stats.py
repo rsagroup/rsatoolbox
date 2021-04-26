@@ -236,7 +236,7 @@ def run_allen(file_add=None,
     order = np.random.permutation(np.arange(len(task_df)))
     for i_task in tqdm.tqdm(order, position=0):
         row = task_df.iloc()[i_task]
-        fname_base = os.path.join(simulation_folder, str(row.name))
+        fname_base = os.path.join(simulation_folder, '%05d' % row.name)
         start_idx = 0
         while os.path.isfile(os.path.join(fname_base, 'res_%03d.hdf5' % start_idx)):
             start_idx += 1
