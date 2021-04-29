@@ -5,16 +5,18 @@
 #SBATCH --job-name=allen
 #SBATCH --mail-type=END
 #SBATCH --mail-user=hs3110@columbia.edu
-#SBATCH --output=/moto/nklab/users/hs3110/pyrsa/stats/slurm-output/slurm_allen_summary.out
+#SBATCH --output=/scratch/hhs4/pyrsa/stats/slurm-output/slurm_allen_summary.out
+
 
 
 module purge
-module load shared anaconda/3-2019.10
+module load anaconda3/2020.07
 
-source activate rsa
+singularity exec --overlay /scratch/hhs4/anaconda/overlay-25GB-500K.ext3 \
+    /scratch/work/public/singularity/cuda11.1.1-cudnn8-devel-ubuntu20.04.sif \
+    /bin/bash -c "source ~/.bashrc;
+        conda activate rsa;
+        pwd;
+        which python;
+        python allen_stats.py summarize -a one"
 
-pwd
-which python
-
-
-~/.conda/envs/rsa/bin/python allen_stats.py summarize

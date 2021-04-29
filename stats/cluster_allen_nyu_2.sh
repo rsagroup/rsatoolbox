@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --cpus-per-task=1
-#SBATCH --time=96:00:00
+#SBATCH --time=48:00:00
 #SBATCH --mem=3500MB
 #SBATCH --job-name=allen
 #SBATCH --mail-type=END
@@ -20,4 +20,4 @@ singularity exec --overlay /scratch/hhs4/anaconda/overlay-25GB-500K.ext3:ro \
         conda activate rsa;
         pwd;
         which python;
-        python allen_stats.py run -a one"
+        python allen_stats.py run -a two"

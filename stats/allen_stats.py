@@ -240,17 +240,20 @@ def run_allen(file_add=None,
         start_idx = 0
         while os.path.isfile(os.path.join(fname_base, 'res_%03d.hdf5' % start_idx)):
             start_idx += 1
-        if start_idx < n_sim:
-            sim_allen(
-                row.name, allen_folder=allen_folder,
-                n_cell=row.n_cell, n_subj=row.n_subj, n_stim=row.n_stim,
-                n_repeat=row.n_repeat,
-                simulation_folder=simulation_folder, n_sim=n_sim,
-                rdm_comparison=row.rdm_comparison, rdm_type='crossnobis',
-                noise_type=row.noise_type, boot_type=row.boot_type,
-                start_idx=start_idx)
-        task_df.at[i_task, 'finished'] = 1
-        task_df.to_csv(tasks_file)
+        try:
+            if start_idx < n_sim:
+                sim_allen(
+                    row.name, allen_folder=allen_folder,
+                    n_cell=row.n_cell, n_subj=row.n_subj, n_stim=row.n_stim,
+                    n_repeat=row.n_repeat,
+                    simulation_folder=simulation_folder, n_sim=n_sim,
+                    rdm_comparison=row.rdm_comparison, rdm_type='crossnobis',
+                    noise_type=row.noise_type, boot_type=row.boot_type,
+                    start_idx=start_idx)
+            task_df.at[i_task, 'finished'] = 1
+            task_df.to_csv(tasks_file)
+        except:
+            pass
 
 
 def save_task_list(file_add=None, targeted_structure=None):
@@ -282,9 +285,9 @@ def summarize_allen(file_add):
     means = []
     variances = []
     for i, row in tqdm.tqdm(task_df.iterrows()):
-        fname_base = os.path.join(simulation_folder, str(row.name))
+        fname_base = os.path.join(simulation_folder, '%05d' % row.name)
         mean = np.nan * np.zeros((100, 6))
-        variance = np.nan * np.zeros((100, 6, 6))
+        variance = np.nan * np.zeros((100, 6))
         if os.path.exists(fname_base):
             for file in os.listdir(fname_base):
                 idx = int(file.split('_')[1].split('.')[0])  # res_XXX.hdf5
@@ -302,7 +305,12 @@ def summarize_allen(file_add):
                         while m.ndim > 1:
                             m = np.mean(m, axis=-1)
                         mean[idx] = m
-                        variance[idx] = res.variances
+                        if res.variances.shape[-1] == 6:
+                            variance[idx] = pyrsa.util.inference_util.extract_variances(
+                                res.variances, nc_included=False)[0]
+                        else:
+                            variance[idx] = pyrsa.util.inference_util.extract_variances(
+                                res.variances, nc_included=True)[0]
                     else:
                         raise OSError('no valid results')
                 except OSError:
