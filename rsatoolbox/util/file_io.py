@@ -41,6 +41,8 @@ def _write_to_group(group, dictionary):
                 group[key] = value.astype('S')
             else:
                 group[key] = value
+        elif isinstance(value, list):
+            _write_list(group, key, value)
         elif isinstance(value, dict):
             subgroup = group.create_group(key)
             _write_to_group(subgroup, value)
@@ -51,6 +53,31 @@ def _write_to_group(group, dictionary):
                 group.attrs[key] = value
         else:
             group[key] = value
+
+
+def _write_list(group, key, value):
+    """
+    writes a list to a hdf5 file. First tries conversion to np.array.
+    If this fails the list is converted to a dict with integer keys.
+
+    Parameters
+    ----------
+    group : hdf5 group
+        where to write.
+    key :  hdf5 key
+    value : list
+        list to be written
+    """
+    try:
+        value = np.array(value)
+        if str(value.dtype)[:2] == '<U':
+            group[key] = value.astype('S')
+        else:
+            group[key] = value
+    except TypeError:
+        l_group = group.create_group(key)
+        for i, v in enumerate(value):
+            l_group[str(i)] = v
 
 
 def read_dict_hdf5(file):
