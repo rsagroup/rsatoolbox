@@ -251,8 +251,8 @@ def run_allen(file_add=None,
                     rdm_comparison=row.rdm_comparison, rdm_type='crossnobis',
                     noise_type=row.noise_type, boot_type=row.boot_type,
                     start_idx=start_idx)
-            task_df.at[i_task, 'finished'] = 1
-            task_df.to_csv(tasks_file)
+            # task_df.at[i_task, 'finished'] = 1
+            # task_df.to_csv(tasks_file)
         except:
             pass
 
@@ -307,10 +307,10 @@ def summarize_allen(file_add):
                             m = np.mean(m, axis=-1)
                         mean[idx] = m
                         if res.variances.shape[-1] == 6:
-                            variance[idx] = pyrsa.util.inference_util.extract_variances(
+                            variance[idx] = rsatoolbox.util.inference_util.extract_variances(
                                 res.variances, nc_included=False)[0]
                         else:
-                            variance[idx] = pyrsa.util.inference_util.extract_variances(
+                            variance[idx] = rsatoolbox.util.inference_util.extract_variances(
                                 res.variances, nc_included=True)[0]
                     else:
                         raise OSError('no valid results')
