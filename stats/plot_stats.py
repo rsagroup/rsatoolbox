@@ -699,8 +699,7 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
     variances = results['variances']
     true_var = np.var(means, 1)
     true_std = np.sqrt(true_var)
-    cov_estimate = np.mean(variances, 1)
-    var_estimate = np.einsum('ijj->ij', cov_estimate)
+    var_estimate = np.mean(variances, 1)
     std_relative = np.sqrt(var_estimate / true_var)
     snr = (np.var(np.mean(means, axis=1), axis=1)
            / np.mean(np.var(means, axis=1), axis=1))
@@ -708,6 +707,8 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
     # create full data table
     data_df = pd.DataFrame()
     for i_model in range(means.shape[2]):
+        labels['mean'] = np.mean(means[:, :, i_model], 1)
+        labels['model_var'] = np.var(np.mean(means, axis=1), axis=1)
         labels['true_std'] = true_std[:, i_model]
         labels['var_estimate'] = var_estimate[:, i_model]
         labels['std_relative'] = std_relative[:, i_model]
@@ -723,16 +724,17 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
     # this is the area marked by the gray rectangle in the plot
     CI = [1 - std_expected, 1 + std_expected]
 
-    g1_m = sns.catplot(data=data_df, legend=False,
+    g1_m = sns.catplot(data=data_df, legend=False, row='boot_type', col='rdm_comparison',
                        x='n_subj', y='std_relative', hue='n_stim',
                        kind='point', ci='sd', palette='Greens_d', dodge=.2,
                        order=[5, 10, 15])
-    plt.plot([-0.3, 2.3], [1, 1], 'k--')
-    r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
-                      facecolor='gray', zorder=-1, alpha=0.5)
-    g1_m.ax.add_patch(r)
+    for a in g1_m.axes:
+        for ax in a:
+            ax.plot([-0.3, 2.3], [1, 1], 'k--')
+            r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
+                              facecolor='gray', zorder=-1, alpha=0.5)
+            ax.add_patch(r)
     sns.despine(trim=True, offset=5)
-    plt.title('double bootstrap')
     g1_m.add_legend(
         frameon=False, title='# of stimuli',
         bbox_to_anchor=(1.0, 1.0), loc=2)
