@@ -14,7 +14,7 @@ import pandas as pd
 import os
 import tqdm
 import matplotlib.pyplot as plt
-import pyrsa
+import rsatoolbox
 from helpers import run_inference
 
 
@@ -23,7 +23,7 @@ def download(exp_id, folder='allen_data', boc=None):
     from the df/f traces for n frames after the exp_id"""
     if boc is None:
         boc = BrainObservatoryCache(manifest_file='boc/manifest.json')
-    nwb_filename = 'boc/ophys_experiment_data/%d.nwb'
+    # nwb_filename = 'boc/ophys_experiment_data/%d.nwb'
     if not os.path.isdir(folder):
         os.mkdir(folder)
     filename = os.path.join(folder, 'U_%d.npz' % exp_id)
@@ -87,7 +87,7 @@ def resample(n_subj, n_stim, n_repeat, n_cell, folder='allen_data',
 
     Returns
     -------
-    list of pyrsa.data.Dataset for the requested data, one dataset per subject
+    list of rsatoolbox.data.Dataset for the requested data, one dataset per subject
 
     """
     csv_file = folder + '.csv'
@@ -115,14 +115,14 @@ def resample(n_subj, n_stim, n_repeat, n_cell, folder='allen_data',
             rep_idx = np.random.permutation(U_stim.shape[0])[:n_repeat]
             cell_idx = np.random.permutation(U_stim.shape[1])[:n_cell]
             U_all[i_subj, i_stim] = U_stim[rep_idx][:, cell_idx]
-    U_pyrsa = U_all.transpose(0, 3, 1, 2).reshape(
+    U_rsatoolbox = U_all.transpose(0, 3, 1, 2).reshape(
         n_subj, n_cell, n_stim * n_repeat).transpose(0, 2, 1)
     stim = np.repeat(stim_idx, n_repeat)
     datasets = []
     for i_subj in range(n_subj):
-        v = np.var(U_pyrsa[i_subj], 0)  # variance to exclude constant cells
-        dataset = pyrsa.data.Dataset(
-            U_pyrsa[i_subj][:, v > 0],
+        v = np.var(U_rsatoolbox[i_subj], 0)  # variance to exclude constant cells
+        dataset = rsatoolbox.data.Dataset(
+            U_rsatoolbox[i_subj][:, v > 0],
             obs_descriptors={
                 'stim': stim},
             descriptors={
@@ -151,7 +151,7 @@ def get_all_data(folder='allen_data', targeted_structure='VISal', min_cell=20):
             dat = np.load('allen_data/U_%d.npz' % exp_id)
             U = dat['U']
             stimulus = dat['stimulus']
-            dataset = pyrsa.data.Dataset(
+            dataset = rsatoolbox.data.Dataset(
                 U,
                 obs_descriptors={
                     'stim': stimulus},
@@ -170,14 +170,14 @@ def get_model_rdm(folder='allen_data', method='crossnobis', sim_type='cosine',
     file_name = os.path.join(
         file_name, targeted_structure + '_' + str(min_cell) + '.hdf5')
     if os.path.exists(file_name):
-        rdm = pyrsa.rdm.load_rdm(file_name)
+        rdm = rsatoolbox.rdm.load_rdm(file_name)
     else:
         datasets = get_all_data(folder=folder, min_cell=min_cell,
                                 targeted_structure=targeted_structure)
         # we don't have a cv_descriptor here
-        rdms = pyrsa.rdm.calc_rdm(datasets, method=method, descriptor='stim',
-                                  cv_descriptor=None)
-        rdm = pyrsa.util.inference_util.pool_rdm(rdms, method=sim_type)
+        rdms = rsatoolbox.rdm.calc_rdm(datasets, method=method, descriptor='stim',
+                                       cv_descriptor=None)
+        rdm = rsatoolbox.util.inference_util.pool_rdm(rdms, method=sim_type)
         rdm.save(file_name)
     return rdm
 
@@ -190,7 +190,7 @@ def get_models(folder='allen_data', method='crossnobis', sim_type='cosine',
         rdm = get_model_rdm(
             folder=folder, method=method, sim_type=sim_type,
             targeted_structure=target, min_cell=min_cell)
-        models.append(pyrsa.model.ModelFixed(target, rdm))
+        models.append(rsatoolbox.model.ModelFixed(target, rdm))
     return models
 
 
@@ -219,10 +219,10 @@ def sim_allen(
         else:
             noise = []
             for dataset in data:
-                noise.append(pyrsa.data.noise.prec_from_measurements(
+                noise.append(rsatoolbox.data.noise.prec_from_measurements(
                     dataset, 'stim', method=noise_type))
-        rdms = pyrsa.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
-                                  cv_descriptor=None, noise=noise)
+        rdms = rsatoolbox.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
+                                       cv_descriptor=None, noise=noise)
         # run analysis
         results = run_inference(models, rdms, method=rdm_comparison,
                                 bootstrap=boot_type)
@@ -237,6 +237,7 @@ def run_allen(file_add=None,
     for i_task in tqdm.tqdm(order, position=0):
         row = task_df.iloc()[i_task]
         fname_base = os.path.join(simulation_folder, '%05d' % row.name)
+        print(row)
         start_idx = 0
         while os.path.isfile(os.path.join(fname_base, 'res_%03d.hdf5' % start_idx)):
             start_idx += 1
@@ -292,8 +293,8 @@ def summarize_allen(file_add):
             for file in os.listdir(fname_base):
                 idx = int(file.split('_')[1].split('.')[0])  # res_XXX.hdf5
                 try:
-                    res = pyrsa.inference.load_results(os.path.join(fname_base, file),
-                                                       file_type='hdf5')
+                    res = rsatoolbox.inference.load_results(os.path.join(fname_base, file),
+                                                            file_type='hdf5')
                     if res.evaluations.ndim == 2:
                         no_nan_idx = ~np.isnan(res.evaluations[:, 0])
                     elif res.evaluations.ndim == 3:
@@ -335,11 +336,11 @@ def overall_ana(allen_folder='allen_data', rdm_comparison='cosine',
     for target in target_structures:
         datasets = get_all_data(
             folder=allen_folder, targeted_structure=target, min_cell=min_cell)
-        rdms = pyrsa.rdm.calc_rdm(datasets, method=rdm_type, descriptor='stim',
-                                  cv_descriptor=None)
+        rdms = rsatoolbox.rdm.calc_rdm(datasets, method=rdm_type, descriptor='stim',
+                                       cv_descriptor=None)
         data_rdms[target] = rdms
-        results.append(pyrsa.inference.eval_fixed(models, rdms, method=rdm_comparison))
-        pyrsa.vis.plot_model_comparison(results[-1])
+        results.append(rsatoolbox.inference.eval_fixed(models, rdms, method=rdm_comparison))
+        rsatoolbox.vis.plot_model_comparison(results[-1])
     pair_sim = np.zeros((len(target_structures), len(target_structures)))
     for i_target in range(len(target_structures)):
         pair_sim[i_target] = np.mean(results[i_target].evaluations, -1)
