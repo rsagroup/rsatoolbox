@@ -700,6 +700,8 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
     true_var = np.var(means, 1)
     true_std = np.sqrt(true_var)
     var_estimate = np.mean(variances, 1)
+    if var_estimate.ndim == 3:
+        var_estimate = np.einsum('ijj->ij', var_estimate)
     std_relative = np.sqrt(var_estimate / true_var)
     snr = (np.var(np.mean(means, axis=1), axis=1)
            / np.mean(np.var(means, axis=1), axis=1))
@@ -718,13 +720,13 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
         data_df = data_df.append(labels)
     data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
                               'n_repeat': 'int', 'n_cell': 'int'})
-
+    
     # for 100 observations we expect this much std even if we were perfect:
     std_expected = np.std(np.sqrt(scipy.stats.f(1000, 100).rvs(100000)))
     # this is the area marked by the gray rectangle in the plot
     CI = [1 - std_expected, 1 + std_expected]
 
-    g1_m = sns.catplot(data=data_df, legend=False, row='boot_type', col='rdm_comparison',
+    g1_m = sns.catplot(data=data_df, legend=False,
                        x='n_subj', y='std_relative', hue='n_stim',
                        kind='point', ci='sd', palette='Greens_d', dodge=.2,
                        order=[5, 10, 15])
