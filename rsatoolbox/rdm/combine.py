@@ -78,7 +78,9 @@ def from_partials(
             rdm[np.ix_(pidx, pidx)] = squareform(utv, checks=False)
             vectors[rdm_id, :] = squareform(rdm, checks=False)
             for name in rdm_descriptors.keys():
-                if name in rdms.rdm_descriptors:
+                if name == 'index':
+                    rdm_descriptors['index'][rdm_id] = rdm_id
+                elif name in rdms.rdm_descriptors:
                     val = rdms.rdm_descriptors[name][rdm_local_id]
                     rdm_descriptors[name][rdm_id] = val
                 elif name in rdms.descriptors:
