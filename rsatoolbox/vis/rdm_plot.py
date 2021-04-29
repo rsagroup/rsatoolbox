@@ -5,55 +5,52 @@ Plot showing an RDMs object
 """
 
 from __future__ import annotations
-import os.path
-import inspect
 import collections
-import typing
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union, Tuple
+import pkg_resources
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import rsatoolbox.rdm
 from rsatoolbox import vis
 from rsatoolbox.vis.colors import rdm_colormap
-
 if TYPE_CHECKING:
     import numpy.typing as npt
     import pathlib
+    from matplotlib.axes._axes import Axes
 
-MODULE_DIR = os.path.dirname(inspect.getfile(inspect.currentframe()))
-RDM_STYLE = os.path.join(MODULE_DIR, "rdm.mplstyle")
+RDM_STYLE = pkg_resources.resource_filename('rsatoolbox.vis', 'rdm.mplstyle')
 
 
 def show_rdm(
     rdm: rsatoolbox.rdm.RDMs,
-    pattern_descriptor: typing.Any = None,
-    cmap: typing.Union[str, matplotlib.colors.Colormap] = None,
-    rdm_descriptor: typing.Any = None,
+    pattern_descriptor: str = None,
+    cmap: Union[str, matplotlib.colors.Colormap] = None,
+    rdm_descriptor: str = None,
     n_column: int = None,
     n_row: int = None,
     show_colorbar: str = None,
     gridlines: npt.ArrayLike = None,
     num_pattern_groups: int = None,
-    figsize: typing.Tuple[float, float] = None,
+    figsize: Tuple[float, float] = None,
     nanmask: npt.ArrayLike = None,
-    style: typing.Union[str, pathlib.Path] = RDM_STYLE,
+    style: Union[str, pathlib.Path] = RDM_STYLE,
     vmin: float = None,
     vmax: float = None,
     icon_spacing: float = 1.0,
     linewidth: float = 0.5,
-) -> typing.Tuple[
+) -> Tuple[
     matplotlib.figure.Figure, npt.ArrayLike, collections.defaultdict
 ]:
     """show_rdm. Heatmap figure for RDMs instance, with one panel per RDM.
 
     Args:
         rdm (rsatoolbox.rdm.RDMs): RDMs object to be plotted.
-        pattern_descriptor (typing.Any): Key into rdm.pattern_descriptors to use for axis
+        pattern_descriptor (str): Key into rdm.pattern_descriptors to use for axis
             labels.
-        cmap (typing.Union[str, matplotlib.colors.Colormap]): colormap to be used (by
+        cmap (Union[str, matplotlib.colors.Colormap]): colormap to be used (by
             plt.imshow internally). By default we use rdm_colormap.
-        rdm_descriptor (typing.Any): Key for rdm_descriptor to use as panel title, or
+        rdm_descriptor (str): Key for rdm_descriptor to use as panel title, or
             str for direct labeling.
         n_column (int): Number of columns in subplot arrangement.
         n_row (int): Number of rows in subplot arrangement.
@@ -65,12 +62,12 @@ def show_rdm(
         num_pattern_groups (int): Number of rows/columns for any image labels. Also
             determines gridlines frequency by default (so e.g., num_pattern_groups=3
             with results in gridlines every 3 rows/columns).
-        figsize (typing.Tuple[float, float]): mpl.Figure argument. By default we
+        figsize (Tuple[float, float]): mpl.Figure argument. By default we
             auto-scale to achieve a figure that fits on a standard A4 / US Letter page
             in portrait orientation.
         nanmask (npt.ArrayLike): boolean mask defining RDM elements to suppress
             (by default, the diagonals).
-        style (typing.Union[str, pathlib.Path]): Path to mplstyle file that controls
+        style (Union[str, pathlib.Path]): Path to mplstyle file that controls
             various figure aesthetics (default rsatoolbox/vis/rdm.mplstyle).
         vmin (float): Minimum intensity for colorbar mapping. matplotlib imshow
             argument.
@@ -165,8 +162,6 @@ def show_rdm(
                     # hide empty panels
                     panel.set_visible(False)
                     continue
-                except:
-                    raise
                 if show_colorbar == "panel":
                     # needs to happen before labels because it resizes the axis
                     return_handles[panel]["colorbar"] = _rdm_colorbar(
@@ -227,7 +222,7 @@ def show_rdm(
 def _rdm_colorbar(
     mappable: matplotlib.cm.ScalarMappable = None,
     fig: matplotlib.figure.Figure = None,
-    ax: matplotlib.axes._axes.Axes = None,
+    ax: Axes = None,
     title: str = None,
 ) -> matplotlib.colorbar.Colorbar:
     """_rdm_colorbar. Add vertically-oriented, small colorbar to rdm figure. Used
@@ -255,10 +250,10 @@ def _rdm_colorbar(
 
 def show_rdm_panel(
     rdm: rsatoolbox.rdm.RDMs,
-    ax: matplotlib.axes._axes.Axes = None,
-    cmap: typing.Union[str, matplotlib.colors.Colormap] = None,
+    ax: Axes = None,
+    cmap: Union[str, matplotlib.colors.Colormap] = None,
     nanmask: npt.ArrayLike = None,
-    rdm_descriptor: typing.Any = None,
+    rdm_descriptor: str = None,
     gridlines: npt.ArrayLike = None,
     vmin: float = None,
     vmax: float = None,
@@ -268,11 +263,11 @@ def show_rdm_panel(
     Args:
         rdm (rsatoolbox.rdm.RDMs): RDMs object to be plotted (n_rdm must be 1).
         ax (matplotlib.axes._axes.Axes): Matplotlib axis handle. plt.gca() by default.
-        cmap (typing.Union[str, matplotlib.colors.Colormap]): colormap to be used (by
+        cmap (Union[str, matplotlib.colors.Colormap]): colormap to be used (by
             plt.imshow internally). By default we use rdm_colormap.
         nanmask (npt.ArrayLike): boolean mask defining RDM elements to suppress
             (by default, the diagonals).
-        rdm_descriptor (typing.Any): Key for rdm_descriptor to use as panel title, or
+        rdm_descriptor (str): Key for rdm_descriptor to use as panel title, or
             str for direct labeling.
         gridlines (npt.ArrayLike): Set to add gridlines at these positions.
         vmin (float): Minimum intensity for colorbar mapping. matplotlib imshow
@@ -310,15 +305,15 @@ def show_rdm_panel(
     ax.yaxis.set_tick_params(length=0, which="minor")
     if rdm_descriptor in rdm.rdm_descriptors:
         ax.set_title(rdm.rdm_descriptors[rdm_descriptor][0])
-    elif isinstance(rdm_descriptor, str):
+    else:
         ax.set_title(rdm_descriptor)
     return image
 
 
 def add_descriptor_x_labels(
     rdm: rsatoolbox.rdm.RDMs,
-    pattern_descriptor: typing.Any,
-    ax: matplotlib.axes._axes.Axes = None,
+    pattern_descriptor: str,
+    ax: Axes = None,
     num_pattern_groups: int = None,
     icon_spacing: float = 1.0,
     linewidth: float = 0.5,
@@ -328,7 +323,7 @@ def add_descriptor_x_labels(
 
     Args:
         rdm (rsatoolbox.rdm.RDMs): RDMs instance to annotate.
-        pattern_descriptor (typing.Any): dict key for the rdm.pattern_descriptors dict.
+        pattern_descriptor (str): dict key for the rdm.pattern_descriptors dict.
         ax (matplotlib.axes._axes.Axes): Matplotlib axis handle. plt.gca() by default.
         num_pattern_groups (int): Number of rows/columns for any image labels.
         icon_spacing (float): control spacing of image labels - 1. means no gap (the
@@ -355,8 +350,8 @@ def add_descriptor_x_labels(
 
 def add_descriptor_y_labels(
     rdm: rsatoolbox.rdm.RDMs,
-    pattern_descriptor: typing.Any,
-    ax: matplotlib.axes._axes.Axes = None,
+    pattern_descriptor: str,
+    ax: Axes = None,
     num_pattern_groups: int = None,
     icon_spacing: float = 1.0,
     linewidth: float = 0.5,
@@ -366,7 +361,7 @@ def add_descriptor_y_labels(
 
     Args:
         rdm (rsatoolbox.rdm.RDMs): RDMs instance to annotate.
-        pattern_descriptor (typing.Any): dict key for the rdm.pattern_descriptors dict.
+        pattern_descriptor (str): dict key for the rdm.pattern_descriptors dict.
         ax (matplotlib.axes._axes.Axes): Matplotlib axis handle. plt.gca() by default.
         num_pattern_groups (int): Number of rows/columns for any image labels.
         icon_spacing (float): control spacing of image labels - 1. means no gap (the
@@ -393,9 +388,9 @@ def add_descriptor_y_labels(
 
 def _add_descriptor_labels(
     rdm: rsatoolbox.rdm.RDMs,
-    pattern_descriptor: typing.Any,
+    pattern_descriptor: str,
     icon_method: str,
-    axis: typing.Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis],
+    axis: Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis],
     num_pattern_groups: int = None,
     icon_spacing: float = 1.0,
     linewidth: float = 0.5,
@@ -406,10 +401,10 @@ def _add_descriptor_labels(
 
     Args:
         rdm (rsatoolbox.rdm.RDMs): RDMs instance to annotate.
-        pattern_descriptor (typing.Any): dict key for the rdm.pattern_descriptors dict.
+        pattern_descriptor (str): dict key for the rdm.pattern_descriptors dict.
         icon_method (str): method to access on Icon instances (typically y_tick_label or
             x_tick_label).
-        axis (typing.Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis]): Axis to add
+        axis (Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis]): Axis to add
             tick labels to.
         num_pattern_groups (int): Number of rows/columns for any image labels.
         icon_spacing (float): control spacing of image labels - 1. means no gap (the
@@ -443,7 +438,7 @@ def _add_descriptor_labels(
 
 def _add_descriptor_text(
     descriptor_arr: npt.ArrayLike,
-    axis: typing.Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis],
+    axis: Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis],
     horizontalalignment: str = "center",
     is_x_axis: bool = False,
 ) -> list:
@@ -452,7 +447,7 @@ def _add_descriptor_text(
 
     Args:
         descriptor_arr (npt.ArrayLike): np.Array-like version of the labels.
-        axis (typing.Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis]): handle for
+        axis (Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis]): handle for
             the relevant axis (ax.xaxis or ax.yaxis).
         horizontalalignment (str): Horizontal alignment of text tick labels.
         is_x_axis (bool): If set, rotate the text labels 60 degrees to reduce overlap on
@@ -484,7 +479,7 @@ def _add_descriptor_icons(
     descriptor_arr: npt.ArrayLike,
     icon_method: str,
     n_cond: int,
-    ax: matplotlib.axes._axes.Axes = None,
+    ax: Axes = None,
     num_pattern_groups: int = None,
     icon_spacing: float = 1.0,
     linewidth: float = 0.5,

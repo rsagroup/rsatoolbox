@@ -192,3 +192,17 @@ def append_obs_descriptors(dict_orig, dict_addit):
         values = list(np.append(dict_orig[k], dict_addit[k]))
         dict_merged.update({k: values})
     return dict_merged
+
+
+def dict_to_list(d_dict):
+    """
+    converts a dictionary from a hdf5 file to a list
+    """
+    for k, v in d_dict.items():
+        if isinstance(v, dict):
+            d_dict[k] = [
+                d_dict[k][str(i)]
+                for i in range(len(d_dict[k]))]
+        else:
+            d_dict[k] = list(d_dict[k])
+    return d_dict

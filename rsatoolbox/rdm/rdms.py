@@ -18,6 +18,7 @@ from rsatoolbox.util.descriptor_utils import num_index
 from rsatoolbox.util.descriptor_utils import subset_descriptor
 from rsatoolbox.util.descriptor_utils import check_descriptor_length_error
 from rsatoolbox.util.descriptor_utils import append_descriptor
+from rsatoolbox.util.descriptor_utils import dict_to_list
 from rsatoolbox.util.data_utils import extract_dict
 from rsatoolbox.util.file_io import write_dict_hdf5
 from rsatoolbox.util.file_io import write_dict_pkl
@@ -437,8 +438,8 @@ def rdms_from_dict(rdm_dict):
     """
     rdms = RDMs(dissimilarities=rdm_dict['dissimilarities'],
                 descriptors=rdm_dict['descriptors'],
-                rdm_descriptors=rdm_dict['rdm_descriptors'],
-                pattern_descriptors=rdm_dict['pattern_descriptors'],
+                rdm_descriptors=dict_to_list(rdm_dict['rdm_descriptors']),
+                pattern_descriptors=dict_to_list(rdm_dict['pattern_descriptors']),
                 dissimilarity_measure=rdm_dict['dissimilarity_measure'])
     return rdms
 
