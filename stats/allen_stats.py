@@ -6,6 +6,7 @@ Created on Thu Mar 18 13:47:59 2021
 @author: heiko
 """
 
+import sys, traceback
 from allensdk.core.brain_observatory_cache import BrainObservatoryCache
 import allensdk.brain_observatory.natural_scenes as ns
 import allensdk.brain_observatory.stimulus_info as stim_info
@@ -236,7 +237,7 @@ def sim_allen(
             noise = []
             for dataset in data:
                 noise.append(rsatoolbox.data.noise.prec_from_measurements(
-                    dataset, 'stim', method=noise_type))
+                    dataset, 'i_stim', method=noise_type))
         rdms = rsatoolbox.rdm.calc_rdm(data, method=rdm_type, descriptor='i_stim',
                                        cv_descriptor=None, noise=noise)
         # run analysis
@@ -253,7 +254,7 @@ def run_allen(file_add=None,
     for i_task in tqdm.tqdm(order, position=0):
         row = task_df.iloc()[i_task]
         fname_base = os.path.join(simulation_folder, '%05d' % row.name)
-        print(row)
+        print(row, flush=True)
         start_idx = 0
         while os.path.isfile(os.path.join(fname_base, 'res_%03d.hdf5' % start_idx)):
             start_idx += 1
@@ -269,8 +270,10 @@ def run_allen(file_add=None,
                     start_idx=start_idx)
             # task_df.at[i_task, 'finished'] = 1
             # task_df.to_csv(tasks_file)
-        except:
-            pass
+        except Exception as err:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            # print(err, flush=True)
 
 
 def save_task_list(file_add=None, targeted_structure=None):
