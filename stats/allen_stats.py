@@ -102,6 +102,7 @@ def resample(n_subj, n_stim, n_repeat, n_cell, folder='allen_data',
     else:
         subj_idx = subs[np.random.permutation(len(subs))[:n_subj]]
         stim_idx = np.random.permutation(118)[:n_stim]
+    stim_idx.sort()
     U_all = np.empty((n_subj, n_stim, n_repeat, n_cell))
     for i_subj, subj in enumerate(subj_idx):
         right_sub_df = right_tar_df[
@@ -114,14 +115,16 @@ def resample(n_subj, n_stim, n_repeat, n_cell, folder='allen_data',
         dat = np.load('allen_data/U_%d.npz' % exp_id)
         U = dat['U']
         stimulus = dat['stimulus']
+        if replacement:
+            cell_idx = np.random.randint(U.shape[1], size=n_cell)
+        else:
+            cell_idx = np.random.permutation(U.shape[1])[:n_cell]
         for i_stim, stim in enumerate(stim_idx):
             U_stim = U[stimulus == stim]
             if replacement:
                 rep_idx = np.random.randint(U_stim.shape[0], size=n_repeat)
-                cell_idx = np.random.randint(U_stim.shape[1], size=n_cell)
             else:
                 rep_idx = np.random.permutation(U_stim.shape[0])[:n_repeat]
-                cell_idx = np.random.permutation(U_stim.shape[1])[:n_cell]
             U_all[i_subj, i_stim] = U_stim[rep_idx][:, cell_idx]
     U_rsatoolbox = U_all.transpose(0, 3, 1, 2).reshape(
         n_subj, n_cell, n_stim * n_repeat).transpose(0, 2, 1)
@@ -193,13 +196,15 @@ def get_model_rdm(folder='allen_data', method='crossnobis', sim_type='cosine',
 
 
 def get_models(folder='allen_data', method='crossnobis', sim_type='cosine',
-               min_cell=20):
+               min_cell=20, stim_idx=np.arange(-1, 117)):
     target_structures = ['VISl', 'VISpm', 'VISrl', 'VISp', 'VISam', 'VISal']
     models = []
     for target in target_structures:
         rdm = get_model_rdm(
             folder=folder, method=method, sim_type=sim_type,
             targeted_structure=target, min_cell=min_cell)
+        rdm = rdm.subsample_pattern('stim', stim_idx)
+        rdm.dissimilarities[np.isnan(rdm.dissimilarities)] = 0
         models.append(rsatoolbox.model.ModelFixed(target, rdm))
     return models
 
@@ -218,11 +223,12 @@ def sim_allen(
     if not os.path.isdir(fname_base):
         os.makedirs(fname_base)
     res_name = os.path.join(fname_base, 'res_%03d.hdf5')
-    models = get_models(folder=allen_folder, method=rdm_type,
-                        sim_type=rdm_comparison, min_cell=n_cell)
     for i in tqdm.trange(start_idx, n_sim, position=1):
         data, stim_idx = resample(n_subj, n_stim, n_repeat, n_cell,
                                   targeted_structure=targeted_structure)
+        models = get_models(folder=allen_folder, method=rdm_type,
+                            sim_type=rdm_comparison, min_cell=n_cell,
+                            stim_idx=stim_idx)
         # calculate RDMs
         if noise_type == 'eye':
             noise = None
