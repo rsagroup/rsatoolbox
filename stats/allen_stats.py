@@ -267,7 +267,8 @@ def run_allen(file_add=None,
                     simulation_folder=simulation_folder, n_sim=n_sim,
                     rdm_comparison=row.rdm_comparison, rdm_type='crossnobis',
                     noise_type=row.noise_type, boot_type=row.boot_type,
-                    start_idx=start_idx)
+                    start_idx=start_idx,
+                    targeted_structure=row.targeted_structure)
             # task_df.at[i_task, 'finished'] = 1
             # task_df.to_csv(tasks_file)
         except Exception as err:
