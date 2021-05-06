@@ -8,8 +8,8 @@ from unittest.mock import Mock, patch
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 from scipy.spatial.distance import pdist, squareform
-import pyrsa.rdm as rsr
-import pyrsa as rsa
+import rsatoolbox.rdm as rsr
+import rsatoolbox as rsa
 
 
 class TestCalcRDM(unittest.TestCase):
@@ -61,7 +61,7 @@ class TestCalcRDM(unittest.TestCase):
         assert rdm.n_cond == 6
 
     def test_parse_input(self):
-        from pyrsa.rdm.calc import _parse_input
+        from rsatoolbox.rdm.calc import _parse_input
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
         data.measurements = np.random.rand(6, 5)
@@ -71,9 +71,9 @@ class TestCalcRDM(unittest.TestCase):
         self.assertTrue(np.all(np.array(desc_true) == desc))
         self.assertTrue(np.all(data.measurements == measurements))
 
-    @patch('pyrsa.rdm.calc._parse_input')
+    @patch('rsatoolbox.rdm.calc._parse_input')
     def test_calc_euclid_as_scipy(self, _parse_input):
-        from pyrsa.rdm import calc_rdm
+        from rsatoolbox.rdm import calc_rdm
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
         data.measurements = np.random.rand(6, 5)
@@ -92,9 +92,9 @@ class TestCalcRDM(unittest.TestCase):
             )
         )
 
-    @patch('pyrsa.rdm.calc._parse_input')
+    @patch('rsatoolbox.rdm.calc._parse_input')
     def test_calc_correlation(self, _parse_input):
-        from pyrsa.rdm import calc_rdm
+        from rsatoolbox.rdm import calc_rdm
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
         data.measurements = np.random.rand(6, 5)
@@ -126,6 +126,10 @@ class TestCalcRDM(unittest.TestCase):
     def test_calc_mahalanobis(self):
         rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
                            method='mahalanobis')
+        assert rdm.n_cond == 6
+        noise = np.linalg.inv(np.cov(np.random.randn(10, 5).T))
+        rdm = rsr.calc_rdm(self.test_data, descriptor='conds',
+                           method='mahalanobis', noise=noise)
         assert rdm.n_cond == 6
 
     def test_calc_crossnobis(self):
@@ -270,16 +274,19 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.rdm_descriptors['time'][0] == 0.0
 
     def test_calc_rdm_movie_crossnobis_no_descriptors(self):
-        rdm = rsr.calc_rdm_crossnobis(self.test_data_time_balanced,
-                                      descriptor='conds')
+        rdm = rsr.calc_rdm_movie(
+            self.test_data_time_balanced,
+            method='crossnobis', time_descriptor='time',
+            descriptor='conds')
         assert rdm.n_cond == 5
 
     def test_calc_rdm_movie_crossnobis_noise(self):
         noise = np.random.randn(10, 5)
         noise = np.matmul(noise.T, noise)
-        rdm = rsr.calc_rdm_crossnobis(self.test_data_time_balanced,
-                                      descriptor='conds',
-                                      noise=noise)
+        rdm = rsr.calc_rdm_movie(
+            self.test_data_time_balanced,
+            method='crossnobis', time_descriptor='time',
+            descriptor='conds', noise=noise)
         assert rdm.n_cond == 5
 
     def test_calc_rdm_movie_rdm_movie_poisson(self):

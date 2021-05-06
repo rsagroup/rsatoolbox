@@ -8,7 +8,7 @@
 import unittest
 import numpy as np
 from numpy.testing import assert_array_almost_equal
-import pyrsa as rsa
+import rsatoolbox as rsa
 
 
 class TestCompareRDM(unittest.TestCase):
@@ -36,14 +36,14 @@ class TestCompareRDM(unittest.TestCase):
             )
 
     def test_compare_cosine(self):
-        from pyrsa.rdm.compare import compare_cosine
+        from rsatoolbox.rdm.compare import compare_cosine
         result = compare_cosine(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare_cosine(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_compare_cosine_cov(self):
-        from pyrsa.rdm.compare import compare_cosine_cov_weighted
+        from rsatoolbox.rdm.compare import compare_cosine_cov_weighted
         result = compare_cosine_cov_weighted(self.test_rdm1,
                                              self.test_rdm1,
                                              sigma_k=np.eye(6))
@@ -54,7 +54,7 @@ class TestCompareRDM(unittest.TestCase):
         assert np.all(result < 1)
 
     def test_compare_cosine_loop(self):
-        from pyrsa.rdm.compare import compare_cosine
+        from rsatoolbox.rdm.compare import compare_cosine
         result = compare_cosine(self.test_rdm2, self.test_rdm3)
         assert result.shape[0] == 3
         assert result.shape[1] == 7
@@ -69,14 +69,14 @@ class TestCompareRDM(unittest.TestCase):
         assert_array_almost_equal(result, result_loop)
 
     def test_compare_correlation(self):
-        from pyrsa.rdm.compare import compare_correlation
+        from rsatoolbox.rdm.compare import compare_correlation
         result = compare_correlation(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare_correlation(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_compare_correlation_cov(self):
-        from pyrsa.rdm.compare import compare_correlation_cov_weighted
+        from rsatoolbox.rdm.compare import compare_correlation_cov_weighted
         result = compare_correlation_cov_weighted(self.test_rdm1,
                                                   self.test_rdm1)
         assert_array_almost_equal(result, 1)
@@ -85,7 +85,7 @@ class TestCompareRDM(unittest.TestCase):
         assert np.all(result < 1)
 
     def test_compare_correlation_cov_sk(self):
-        from pyrsa.rdm.compare import compare_correlation_cov_weighted
+        from rsatoolbox.rdm.compare import compare_correlation_cov_weighted
         result = compare_correlation_cov_weighted(self.test_rdm1,
                                                   self.test_rdm1,
                                                   sigma_k=np.eye(6))
@@ -96,7 +96,7 @@ class TestCompareRDM(unittest.TestCase):
         assert np.all(result < 1)
 
     def test_compare_corr_loop(self):
-        from pyrsa.rdm.compare import compare_correlation
+        from rsatoolbox.rdm.compare import compare_correlation
         result = compare_correlation(self.test_rdm2, self.test_rdm3)
         assert result.shape[0] == 3
         assert result.shape[1] == 7
@@ -113,24 +113,24 @@ class TestCompareRDM(unittest.TestCase):
         assert_array_almost_equal(result, result_loop)
 
     def test_compare_spearman(self):
-        from pyrsa.rdm.compare import compare_spearman
+        from rsatoolbox.rdm.compare import compare_spearman
         result = compare_spearman(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare_spearman(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_compare_rho_a(self):
-        from pyrsa.rdm.compare import compare_rho_a
+        from rsatoolbox.rdm.compare import compare_rho_a
         result = compare_rho_a(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare_rho_a(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_spearman_equal_scipy(self):
-        from pyrsa.rdm.compare import _parse_input_rdms
-        from pyrsa.rdm.compare import _all_combinations
+        from rsatoolbox.rdm.compare import _parse_input_rdms
+        from rsatoolbox.rdm.compare import _all_combinations
         import scipy.stats
-        from pyrsa.rdm.compare import compare_spearman
+        from rsatoolbox.rdm.compare import compare_spearman
 
         def _spearman_r(vector1, vector2):
             """computes the spearman rank correlation between two vectors
@@ -154,21 +154,21 @@ class TestCompareRDM(unittest.TestCase):
         assert_array_almost_equal(result, result2)
 
     def test_compare_kendall_tau(self):
-        from pyrsa.rdm.compare import compare_kendall_tau
+        from rsatoolbox.rdm.compare import compare_kendall_tau
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_compare_kendall_tau_a(self):
-        from pyrsa.rdm.compare import compare_kendall_tau_a
+        from rsatoolbox.rdm.compare import compare_kendall_tau_a
         result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_compare(self):
-        from pyrsa.rdm.compare import compare
+        from rsatoolbox.rdm.compare import compare
         result = compare(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare(self.test_rdm1, self.test_rdm2, method='corr')
@@ -210,14 +210,14 @@ class TestCompareRDMNaN(unittest.TestCase):
                                                      [0, 1, 1, 3, 4, 5])
 
     def test_compare_cosine(self):
-        from pyrsa.rdm.compare import compare_cosine
+        from rsatoolbox.rdm.compare import compare_cosine
         result = compare_cosine(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare_cosine(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_compare_cosine_cov(self):
-        from pyrsa.rdm.compare import compare_cosine_cov_weighted
+        from rsatoolbox.rdm.compare import compare_cosine_cov_weighted
         result = compare_cosine_cov_weighted(self.test_rdm1,
                                              self.test_rdm1,
                                              sigma_k=np.eye(6))
@@ -228,7 +228,7 @@ class TestCompareRDMNaN(unittest.TestCase):
         assert np.all(result < 1)
 
     def test_compare_cosine_cov_sk(self):
-        from pyrsa.rdm.compare import compare_cosine_cov_weighted
+        from rsatoolbox.rdm.compare import compare_cosine_cov_weighted
         result = compare_cosine_cov_weighted(self.test_rdm1,
                                              self.test_rdm2,
                                              sigma_k=None)
@@ -242,9 +242,9 @@ class TestCompareRDMNaN(unittest.TestCase):
         assert_array_almost_equal(result, result_2D)
 
     def test_cosine_cov_consistency(self):
-        from pyrsa.rdm.compare import _cosine_cov_weighted
-        from pyrsa.rdm.compare import _cosine_cov_weighted_slow
-        from pyrsa.rdm.compare import _parse_input_rdms
+        from rsatoolbox.rdm.compare import _cosine_cov_weighted
+        from rsatoolbox.rdm.compare import _cosine_cov_weighted_slow
+        from rsatoolbox.rdm.compare import _parse_input_rdms
         vector1, vector2, nan_idx = _parse_input_rdms(self.test_rdm1,
                                                       self.test_rdm2)
         res_slow = _cosine_cov_weighted_slow(vector1, vector2, nan_idx=nan_idx)
@@ -252,14 +252,14 @@ class TestCompareRDMNaN(unittest.TestCase):
         assert_array_almost_equal(res, res_slow)
 
     def test_compare_correlation(self):
-        from pyrsa.rdm.compare import compare_correlation
+        from rsatoolbox.rdm.compare import compare_correlation
         result = compare_correlation(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare_correlation(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_compare_correlation_cov(self):
-        from pyrsa.rdm.compare import compare_correlation_cov_weighted
+        from rsatoolbox.rdm.compare import compare_correlation_cov_weighted
         result = compare_correlation_cov_weighted(self.test_rdm1,
                                                   self.test_rdm1)
         assert_array_almost_equal(result, 1)
@@ -268,7 +268,7 @@ class TestCompareRDMNaN(unittest.TestCase):
         assert np.all(result < 1)
 
     def test_compare_correlation_cov_sk(self):
-        from pyrsa.rdm.compare import compare_correlation_cov_weighted
+        from rsatoolbox.rdm.compare import compare_correlation_cov_weighted
         result = compare_correlation_cov_weighted(self.test_rdm1,
                                                   self.test_rdm1,
                                                   sigma_k=np.eye(6))
@@ -279,23 +279,23 @@ class TestCompareRDMNaN(unittest.TestCase):
         assert np.all(result < 1)
 
     def test_compare_spearman(self):
-        from pyrsa.rdm.compare import compare_spearman
+        from rsatoolbox.rdm.compare import compare_spearman
         result = compare_spearman(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare_spearman(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_compare_rho_a(self):
-        from pyrsa.rdm.compare import compare_rho_a
+        from rsatoolbox.rdm.compare import compare_rho_a
         result = compare_rho_a(self.test_rdm1, self.test_rdm1)
         result = compare_rho_a(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_spearman_equal_scipy(self):
-        from pyrsa.rdm.compare import _parse_input_rdms
-        from pyrsa.rdm.compare import _all_combinations
+        from rsatoolbox.rdm.compare import _parse_input_rdms
+        from rsatoolbox.rdm.compare import _all_combinations
         import scipy.stats
-        from pyrsa.rdm.compare import compare_spearman
+        from rsatoolbox.rdm.compare import compare_spearman
 
         def _spearman_r(vector1, vector2):
             """computes the spearman rank correlation between two vectors
@@ -319,20 +319,20 @@ class TestCompareRDMNaN(unittest.TestCase):
         assert_array_almost_equal(result, result2)
 
     def test_compare_kendall_tau(self):
-        from pyrsa.rdm.compare import compare_kendall_tau
+        from rsatoolbox.rdm.compare import compare_kendall_tau
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare_kendall_tau(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_compare_kendall_tau_a(self):
-        from pyrsa.rdm.compare import compare_kendall_tau_a
+        from rsatoolbox.rdm.compare import compare_kendall_tau_a
         result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm1)
         result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
     def test_compare(self):
-        from pyrsa.rdm.compare import compare
+        from rsatoolbox.rdm.compare import compare
         result = compare(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
         result = compare(self.test_rdm1, self.test_rdm2, method='corr')
@@ -368,7 +368,7 @@ class TestCompareCov(unittest.TestCase):
             )
 
     def test_corr_identity_equal(self):
-        from pyrsa.rdm.compare import compare
+        from rsatoolbox.rdm.compare import compare
         result = compare(self.test_rdm1, self.test_rdm2, method='corr_cov')
         result_1D = compare(
             self.test_rdm1, self.test_rdm2, method='corr_cov',
@@ -380,7 +380,7 @@ class TestCompareCov(unittest.TestCase):
         assert_array_almost_equal(result, result_2D)
 
     def test_cos_identity_equal(self):
-        from pyrsa.rdm.compare import compare
+        from rsatoolbox.rdm.compare import compare
         result = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov')
         result_1D = compare(
             self.test_rdm1, self.test_rdm2, method='cosine_cov',

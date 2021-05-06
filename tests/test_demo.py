@@ -12,8 +12,8 @@ class TestDemos(unittest.TestCase):
     def test_example_dataset(self):
         import numpy as np
         import matplotlib.pyplot as plt
-        import pyrsa
-        import pyrsa.data as rsd  # abbreviation to deal with dataset
+        import rsatoolbox
+        import rsatoolbox.data as rsd  # abbreviation to deal with dataset
 
         # import the measurements for the dataset
         measurements = {'simTruePatterns': np.random.randn(92, 100)}
@@ -102,9 +102,9 @@ class TestDemos(unittest.TestCase):
         # relevant imports
         import numpy as np
         from scipy import io
-        import pyrsa
-        import pyrsa.data as rsd  # abbreviation to deal with dataset
-        import pyrsa.rdm as rsr
+        import rsatoolbox
+        import rsatoolbox.data as rsd  # abbreviation to deal with dataset
+        import rsatoolbox.rdm as rsr
         # create a dataset object
         measurements = {'simTruePatterns': np.random.randn(92, 100)}
         measurements = measurements['simTruePatterns']
@@ -140,7 +140,7 @@ class TestDemos(unittest.TestCase):
         import numpy as np
         from scipy import io
         import matplotlib.pyplot as plt
-        import pyrsa
+        import rsatoolbox
         import os
         path = os.path.dirname(os.path.abspath(__file__))
         matlab_data = io.matlab.loadmat(
@@ -152,7 +152,7 @@ class TestDemos(unittest.TestCase):
         measurement_model = [matlab_data[0][i][1][0] for i in range(n_models)]
         rdms_array = np.array([matlab_data[0][i][3][0]
                                for i in range(n_models)])
-        model_rdms = pyrsa.rdm.RDMs(
+        model_rdms = rsatoolbox.rdm.RDMs(
             rdms_array,
             rdm_descriptors={'brain_computational_model': model_names,
                              'measurement_model': measurement_model},
@@ -161,7 +161,7 @@ class TestDemos(unittest.TestCase):
 
         conv1_rdms = model_rdms.subset('brain_computational_model', 'conv1')
         plt.figure(figsize=(10, 10))
-        pyrsa.vis.show_rdm(conv1_rdms, do_rank_transform=True,
+        rsatoolbox.vis.show_rdm(conv1_rdms,
                            rdm_descriptor='measurement_model')
 
         conv1_rdms = model_rdms.subset('brain_computational_model', 'conv1')
@@ -193,69 +193,69 @@ class TestDemos(unittest.TestCase):
         print(fwhms[i_fwhm])
 
         # put the rdms into an RDMs object and show it
-        rdms_data = pyrsa.rdm.RDMs(
+        rdms_data = rsatoolbox.rdm.RDMs(
             rdms_matrix[:, i_rep, i_fwhm, i_noise, :].transpose())
 
         plt.figure(figsize=(10, 10))
-        pyrsa.vis.show_rdm(rdms_data, do_rank_transform=True)
+        rsatoolbox.vis.show_rdm(rdms_data)
 
         models = []
         for i_model in np.unique(model_names):
             rdm_m = model_rdms.subset(
                 'brain_computational_model', i_model).subset(
                     'measurement_model', 'complete')
-            m = pyrsa.model.ModelFixed(i_model, rdm_m)
+            m = rsatoolbox.model.ModelFixed(i_model, rdm_m)
             models.append(m)
 
         print('created the following models:')
         for i in range(len(models)):
             print(models[i].name)
 
-        results_1 = pyrsa.inference.eval_fixed(
+        results_1 = rsatoolbox.inference.eval_fixed(
             models, rdms_data, method='corr')
-        pyrsa.vis.plot_model_comparison(results_1)
+        rsatoolbox.vis.plot_model_comparison(results_1)
 
-        results_2a = pyrsa.inference.eval_bootstrap_rdm(
+        results_2a = rsatoolbox.inference.eval_bootstrap_rdm(
             models, rdms_data, method='corr', N=10)
-        pyrsa.vis.plot_model_comparison(results_2a)
+        rsatoolbox.vis.plot_model_comparison(results_2a)
 
-        results_2b = pyrsa.inference.eval_bootstrap_pattern(
+        results_2b = rsatoolbox.inference.eval_bootstrap_pattern(
             models, rdms_data, method='corr', N=10)
-        pyrsa.vis.plot_model_comparison(results_2b)
+        rsatoolbox.vis.plot_model_comparison(results_2b)
 
-        results_2c = pyrsa.inference.eval_bootstrap(
+        results_2c = rsatoolbox.inference.eval_bootstrap(
             models, rdms_data, method='corr', N=10)
-        pyrsa.vis.plot_model_comparison(results_2c)
+        rsatoolbox.vis.plot_model_comparison(results_2c)
 
         models_flex = []
         for i_model in np.unique(model_names):
-            models_flex.append(pyrsa.model.ModelSelect(i_model,
+            models_flex.append(rsatoolbox.model.ModelSelect(i_model,
                 model_rdms.subset('brain_computational_model', i_model)))
 
         print('created the following models:')
         for i in range(len(models_flex)):
             print(models_flex[i].name)
 
-        train_set, test_set, ceil_set = pyrsa.inference.sets_k_fold(
+        train_set, test_set, ceil_set = rsatoolbox.inference.sets_k_fold(
             rdms_data, k_pattern=3, k_rdm=2)
 
-        results_3_cv = pyrsa.inference.crossval(
+        results_3_cv = rsatoolbox.inference.crossval(
             models_flex, rdms_data, train_set, test_set,
             ceil_set=ceil_set, method='corr')
         # plot results
-        pyrsa.vis.plot_model_comparison(results_3_cv)
+        rsatoolbox.vis.plot_model_comparison(results_3_cv)
 
-        results_3_full = pyrsa.inference.bootstrap_crossval(
+        results_3_full = rsatoolbox.inference.bootstrap_crossval(
             models_flex, rdms_data, k_pattern=4, k_rdm=2, method='corr', N=5)
         # plot results
-        pyrsa.vis.plot_model_comparison(results_3_full)
+        rsatoolbox.vis.plot_model_comparison(results_3_full)
 
     def test_temporal_rsa(self):
         import numpy as np
         import matplotlib.pyplot as plt
-        import pyrsa
+        import rsatoolbox
         import pickle
-        from pyrsa.rdm import calc_rdm_movie
+        from rsatoolbox.rdm import calc_rdm_movie
 
         import os
         path = os.path.dirname(os.path.abspath(__file__))
@@ -284,7 +284,7 @@ class TestDemos(unittest.TestCase):
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': cond_idx}
         chn_des = {'channels': channel_names}
-        data = pyrsa.data.TemporalDataset(
+        data = rsatoolbox.data.TemporalDataset(
             measurements,
             descriptors=des,
             obs_descriptors=obs_des,
@@ -332,11 +332,10 @@ class TestDemos(unittest.TestCase):
             '%0.0f ms' % (np.round(x * 1000, 2))
             for x in rdms_data_binned.rdm_descriptors['time']]
 
-        pyrsa.vis.show_rdm(rdms_data_binned,
-                           do_rank_transform=False,
+        rsatoolbox.vis.show_rdm(rdms_data_binned,
                            pattern_descriptor='conds',
                            rdm_descriptor='time_formatted')
-        from pyrsa.rdm import get_categorical_rdm
+        from rsatoolbox.rdm import get_categorical_rdm
         rdms_model_in = get_categorical_rdm(['%d' % x for x in range(4)])
         rdms_model_lr = get_categorical_rdm(['l', 'r', 'l', 'r'])
         rdms_model_av = get_categorical_rdm(['a', 'a', 'v', 'v'])
@@ -348,9 +347,9 @@ class TestDemos(unittest.TestCase):
         model_rdms.rdm_descriptors['model_names'] = model_names
         model_rdms.pattern_descriptors['cond_names'] = cond_names
         plt.figure(figsize=(10, 10))
-        pyrsa.vis.show_rdm(model_rdms, rdm_descriptor='model_names',
+        rsatoolbox.vis.show_rdm(model_rdms, rdm_descriptor='model_names',
                            pattern_descriptor='cond_names')
-        from pyrsa.rdm import compare
+        from rsatoolbox.rdm import compare
         r = []
         for mod in model_rdms:
             r.append(compare(mod, rdms_data_binned, method='cosine'))

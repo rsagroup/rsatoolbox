@@ -1,0 +1,6 @@
+{
+    "path": "../../demos/demo_temporal.ipynb",
+    "extra-media": [
+        "../../demos/TemporalSampleData"
+    ]
+}

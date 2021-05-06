@@ -4,7 +4,7 @@
 """
 
 import unittest
-import pyrsa.model as model
+import rsatoolbox.model as model
 import numpy as np
 from numpy.testing import assert_allclose
 
@@ -29,7 +29,7 @@ class TestModelFixed(unittest.TestCase):
         assert np.all(pred == rdm)
 
     def test_creation_rdm(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.array(np.ones(6))
         rdm_obj = RDMs(np.array([rdm]))
         m = model.ModelFixed('Test Model', rdm_obj)
@@ -51,7 +51,7 @@ class TestModelSelect(unittest.TestCase):
         assert np.all(pred == rdm[0])
 
     def test_creation_rdm(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(2, 6)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
@@ -65,7 +65,7 @@ class TestModelSelect(unittest.TestCase):
         assert pred_obj.pattern_descriptors == pattern_descriptors
 
     def test_fit(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(2, 6)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_descriptors = {'ind': np.array([1, 2])}
@@ -89,7 +89,7 @@ class TestModelWeighted(unittest.TestCase):
         assert np.all(pred == rdm[0])
 
     def test_creation_rdm(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(2, 6)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
@@ -103,7 +103,7 @@ class TestModelWeighted(unittest.TestCase):
         assert pred_obj.pattern_descriptors == pattern_descriptors
 
     def test_fit(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(2, 6)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_descriptors = {'ind': np.array([1, 2])}
@@ -126,7 +126,7 @@ class TestModelInterpolate(unittest.TestCase):
         assert np.all(pred == rdm[0])
 
     def test_creation_rdm(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(2, 6)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
@@ -140,7 +140,7 @@ class TestModelInterpolate(unittest.TestCase):
         assert pred_obj.pattern_descriptors == pattern_descriptors
 
     def test_fit(self):
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.rdm import RDMs
         rdm = np.random.rand(5, 15)
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd', 'e', 'f']}
         rdm_descriptors = {'ind': np.array([1, 2, 3, 1, 2])}
