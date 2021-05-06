@@ -726,7 +726,7 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
     # this is the area marked by the gray rectangle in the plot
     CI = [1 - std_expected, 1 + std_expected]
 
-    g1_m = sns.catplot(data=data_df, legend=False,
+    g1_m = sns.catplot(data=data_df, legend=False, col='boot_type',
                        x='n_subj', y='std_relative', hue='n_stim',
                        kind='point', ci='sd', palette='Greens_d', dodge=.2,
                        order=[5, 10, 15])
@@ -740,21 +740,27 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
     g1_m.add_legend(
         frameon=False, title='# of stimuli',
         bbox_to_anchor=(1.0, 1.0), loc=2)
-    g1_m.set_xlabels('# of subjects')
-    g1_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+    g1_m.axes[0, 0].set_title('double-bootstrap')
+    g1_m.axes[0, 1].set_title('dual bootstrap')
+    g1_m.set_xlabels('# of subjects', fontsize=16)
+    g1_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$',
+                     fontsize=16)
 
     g2_m = sns.catplot(data=data_df, col='rdm_comparison', legend=False,
                        x='n_stim', y='std_relative', hue='n_subj',
                        kind='point', ci='sd', palette='Blues', dodge=.2,
-                       order=[10, 20, 40])
+                       order=[10, 20, 40], row='boot_type')
     for ax in g2_m.axes[0]:
         ax.plot([-0.3, 2.3], [1, 1], 'k--')
         r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
                           facecolor='gray', zorder=-1, alpha=0.5)
         ax.add_patch(r)
+    for ax in g2_m.axes[1]:
+        ax.plot([-0.3, 2.3], [1, 1], 'k--')
+        r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
+                          facecolor='gray', zorder=-1, alpha=0.5)
+        ax.add_patch(r)
     sns.despine(trim=True, offset=5)
-    g2_m.axes[0, 0].set_title('double-bootstrap')
-    g2_m.axes[0, 1].set_title('dual bootstrap')
     g2_m.add_legend(
         frameon=False, title='# of subjects',
         bbox_to_anchor=(1.0, 1.0), loc=2)
@@ -767,9 +773,9 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
                        order=[10, 20, 40])
     g3_m.set_xlabels('# of stimuli')
     g3_m.set_ylabels('signal to noise ratio')
-    plt.ylim([-3, 1])
-    plt.yticks([-3, -2, -1, 0, 1],
-               ['10^-3', '10^-2', '10^-1', '10^0', '10^1'])
+    plt.ylim([-2, 1])
+    plt.yticks([-2, -1, 0, 1],
+               ['10^-2', '10^-1', '10^0', '10^1'])
     sns.despine(trim=True, offset=5)
     g3_m.add_legend(
         frameon=False, title='# of subjects',
@@ -778,12 +784,12 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
     g4_m = sns.catplot(data=data_df, legend=False,
                        x='n_cell', y='log-snr', hue='n_repeat',
                        kind='point', ci='sd', palette='Reds_d', dodge=.2,
-                       order=[10, 20, 40])
+                       order=[20, 40, 80])
     g4_m.set_xlabels('# of cells per subject')
     g4_m.set_ylabels('signal to noise ratio')
-    plt.ylim([-3, 1])
-    plt.yticks([-3, -2, -1, 0, 1],
-               ['10^-3', '10^-2', '10^-1', '10^0', '10^1'])
+    plt.ylim([-2, 1])
+    plt.yticks([-2, -1, 0, 1],
+               ['10^-2', '10^-1', '10^0', '10^1'])
     sns.despine(trim=True, offset=5)
     g4_m.add_legend(
         frameon=False, title='# of repeats',
@@ -795,25 +801,25 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
                        order=['corr', 'corr_cov', 'cosine', 'cosine_cov'])
     g5_m.set_xlabels('RDM comparison method')
     g5_m.set_ylabels('signal to noise ratio')
-    plt.ylim([-3, 1])
-    plt.yticks([-3, -2, -1, 0, 1],
-               ['10^-3', '10^-2', '10^-1', '10^0', '10^1'])
+    plt.ylim([-2, 1])
+    plt.yticks([-2, -1, 0, 1],
+               ['10^-2', '10^-1', '10^0', '10^1'])
     sns.despine(trim=True, offset=5)
     g5_m.add_legend(
         frameon=False, title='# of repeats',
         bbox_to_anchor=(1.0, 1.0), loc=2)
 
-    g6_m = sns.catplot(data=data_df, legend=False,
-                       x='targeted_structure', y='log-snr', hue='n_repeat',
+    g6_m = sns.catplot(data=data_df, legend=False, col='rdm_comparison',
+                       x='noise_type', y='log-snr', hue='n_repeat',
                        kind='point', ci='sd', palette='Reds_d', dodge=.2,
-                       order=['corr', 'corr_cov', 'cosine', 'cosine_cov'])
-    g6_m.set_xlabels('# of cells per subject')
-    g5_m.set_ylabels('signal to noise ratio')
-    plt.ylim([-3, 1])
-    plt.yticks([-3, -2, -1, 0, 1],
-               ['10^-3', '10^-2', '10^-1', '10^0', '10^1'])
+                       order=['eye','diag', 'shrinkage_eye', 'shrinkage_diag'])
+    g6_m.set_xlabels('covariance estimate', fontsize=16)
+    g6_m.set_ylabels('signal to noise ratio', fontsize=16)
+    plt.ylim([-2, 1])
+    plt.yticks([-2, -1, 0, 1],
+               ['10^-2', '10^-1', '10^0', '10^1'])
     sns.despine(trim=True, offset=5)
-    g5_m.add_legend(
+    g6_m.add_legend(
         frameon=False, title='# of repeats',
         bbox_to_anchor=(1.0, 1.0), loc=2)
 
