@@ -9,8 +9,8 @@ Created on Tue Oct 20 23:58:28 2020
 import numpy as np
 import scipy.sparse
 from scipy.stats import rankdata
-from pyrsa.rdm import RDMs
-from pyrsa.util.matrix import get_v
+from rsatoolbox.rdm import RDMs
+from rsatoolbox.util.matrix import get_v
 
 
 def pool_rdm(rdms, method='cosine', sigma_k=None):

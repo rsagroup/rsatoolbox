@@ -159,9 +159,9 @@ class TestConsistency(unittest.TestCase):
     """
 
     def setUp(self):
-        from pyrsa.data import Dataset
-        from pyrsa.rdm import calc_rdm
-        from pyrsa.rdm import concat
+        from rsatoolbox.data import Dataset
+        from rsatoolbox.rdm import calc_rdm
+        from rsatoolbox.rdm import concat
         rdms = []
         for _ in range(5):
             data = np.random.rand(6, 20)
@@ -170,9 +170,9 @@ class TestConsistency(unittest.TestCase):
         self.rdms = concat(rdms)
 
     def test_two_rdms(self):
-        from pyrsa.model import ModelInterpolate, ModelWeighted
-        from pyrsa.model.fitter import fit_regress, fit_optimize_positive
-        from pyrsa.rdm import concat, compare
+        from rsatoolbox.model import ModelInterpolate, ModelWeighted
+        from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive
+        from rsatoolbox.rdm import concat, compare
         model_rdms = concat([self.rdms[0], self.rdms[1]])
         model_weighted = ModelWeighted(
             'm_weighted',
@@ -205,9 +205,9 @@ class TestConsistency(unittest.TestCase):
                 + '\nfor %s' % i_method)
 
     def test_two_rdms_nan(self):
-        from pyrsa.model import ModelInterpolate, ModelWeighted
-        from pyrsa.model.fitter import fit_regress, fit_optimize_positive
-        from pyrsa.rdm import concat, compare
+        from rsatoolbox.model import ModelInterpolate, ModelWeighted
+        from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive
+        from rsatoolbox.rdm import concat, compare
         rdms = self.rdms.subsample_pattern('index', [0, 1, 1, 3, 4, 5])
         model_rdms = concat([rdms[0], rdms[1]])
         model_weighted = ModelWeighted(
@@ -248,41 +248,41 @@ class TestNNLS(unittest.TestCase):
 
     def test_nnls_scipy(self):
         from scipy.optimize import nnls
-        from pyrsa.model.fitter import _nn_least_squares
+        from rsatoolbox.model.fitter import _nn_least_squares
         A = np.random.rand(10, 3)
         b = A @ np.array([1, -0.1, -0.1])
         x_scipy, loss_scipy = nnls(A, b)
-        x_pyrsa, loss_pyrsa = _nn_least_squares(A, b)
+        x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b)
         assert_allclose(
-            x_scipy, x_pyrsa,
+            x_scipy, x_rsatoolbox,
             err_msg='non-negative-least squares different from scipy')
         self.assertAlmostEqual(
-            loss_scipy, np.sqrt(loss_pyrsa),
+            loss_scipy, np.sqrt(loss_rsatoolbox),
             places=5, msg='non-negative-least squares different from scipy')
 
     def test_nnls_eye(self):
-        from pyrsa.model.fitter import _nn_least_squares
+        from rsatoolbox.model.fitter import _nn_least_squares
         A = np.random.rand(10, 3)
         b = A @ np.array([1, -0.1, -0.1])
-        x_pyrsa, loss_pyrsa = _nn_least_squares(A, b)
-        x_pyrsa_v, loss_pyrsa_v = _nn_least_squares(A, b, V=np.eye(10))
+        x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b)
+        x_rsatoolbox_v, loss_rsatoolbox_v = _nn_least_squares(A, b, V=np.eye(10))
         assert_allclose(
-            x_pyrsa, x_pyrsa_v,
+            x_rsatoolbox, x_rsatoolbox_v,
             err_msg='non-negative-least squares changes with V=np.eye')
         self.assertAlmostEqual(
-            loss_pyrsa_v, loss_pyrsa,
+            loss_rsatoolbox_v, loss_rsatoolbox,
             places=5, msg='nnls loss changes with np.eye')
 
     def test_nnls_eye_ridge(self):
-        from pyrsa.model.fitter import _nn_least_squares
+        from rsatoolbox.model.fitter import _nn_least_squares
         A = np.random.rand(10, 3)
         b = A @ np.array([1, -0.1, -0.1])
-        x_pyrsa, loss_pyrsa = _nn_least_squares(A, b, ridge_weight=1)
-        x_pyrsa_v, loss_pyrsa_v = _nn_least_squares(A, b, ridge_weight=1,
-                                                    V=np.eye(10))
+        x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b, ridge_weight=1)
+        x_rsatoolbox_v, loss_rsatoolbox_v = _nn_least_squares(
+            A, b, ridge_weight=1, V=np.eye(10))
         assert_allclose(
-            x_pyrsa, x_pyrsa_v,
+            x_rsatoolbox, x_rsatoolbox_v,
             err_msg='non-negative-least squares changes with V=np.eye')
         self.assertAlmostEqual(
-            loss_pyrsa_v, loss_pyrsa,
+            loss_rsatoolbox_v, loss_rsatoolbox,
             places=5, msg='nnls loss changes with np.eye')

@@ -35,8 +35,8 @@ class TestRdmUtils(unittest.TestCase):
 class TestPoolRDM(unittest.TestCase):
 
     def test_pool_standard(self):
-        from pyrsa.rdm import RDMs
-        from pyrsa.util.pooling import pool_rdm
+        from rsatoolbox.rdm import RDMs
+        from rsatoolbox.util.pooling import pool_rdm
         dissimilarities = np.random.rand(5, 10)
         rdms = RDMs(dissimilarities)
         for method in ['euclid', 'cosine', 'corr', 'cosine_cov', 'corr_cov',
@@ -46,8 +46,8 @@ class TestPoolRDM(unittest.TestCase):
             self.assertEqual(pooled_rdm.n_rdm, 1)
 
     def test_pool_nan(self):
-        from pyrsa.rdm import RDMs
-        from pyrsa.util.pooling import pool_rdm
+        from rsatoolbox.rdm import RDMs
+        from rsatoolbox.util.pooling import pool_rdm
         dissimilarities = np.random.rand(5, 10)
         dissimilarities[:, 3] = np.nan
         rdms = RDMs(dissimilarities)
