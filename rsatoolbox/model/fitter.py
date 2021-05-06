@@ -404,11 +404,13 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
             s_p = np.linalg.solve(ATA[p][:, p], y_V_A[p])
         while np.any(s_p < 0):
             alphas = x[p] / (x[p] - s_p)
+            alphas[s_p > 0] = 1
             i_alpha = np.argmin(alphas)
             alpha = alphas[i_alpha]
-            x[p] = x[p] + alpha * (x[p] - s_p)
-            x[p][i_alpha] = 0
-            p[p][i_alpha] = False
+            x[p] = x[p] + alpha * (s_p - x[p])
+            i_alpha = np.where(p)[0][i_alpha]
+            x[i_alpha] = 0
+            p[i_alpha] = False
             if V is None:
                 s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ y)
             else:
