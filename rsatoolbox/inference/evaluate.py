@@ -7,7 +7,7 @@ evaluate model performance
 import numpy as np
 import tqdm
 import warnings
-from rsatoolbox.rdm import compare
+from rsatoolbox.rdm.compare import compare
 from rsatoolbox.inference import bootstrap_sample
 from rsatoolbox.inference import bootstrap_sample_rdm
 from rsatoolbox.inference import bootstrap_sample_pattern

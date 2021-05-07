@@ -10,7 +10,7 @@ from copy import deepcopy
 from collections.abc import Iterable
 import os
 import numpy as np
-from rsatoolbox.rdm.combine import _mean
+from rsatoolbox.util.rdm_utils import _mean
 from rsatoolbox.util.rdm_utils import batch_to_vectors
 from rsatoolbox.util.rdm_utils import batch_to_matrices
 from rsatoolbox.util.descriptor_utils import format_descriptor
