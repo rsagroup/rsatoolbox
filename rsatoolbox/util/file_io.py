@@ -7,8 +7,8 @@ saving to and reading from files
 import os
 from collections.abc import Iterable
 from pathlib import Path
-import h5py
 import pickle
+import h5py
 import numpy as np
 
 
@@ -161,4 +161,3 @@ def remove_file(file):
         os.remove(file)
     elif hasattr(file, 'name') and os.path.exists(file.name):
         file.truncate(0)
-    return
