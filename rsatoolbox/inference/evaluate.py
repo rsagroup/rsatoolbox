@@ -578,6 +578,8 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         n_rdm = len(np.unique(data.rdm_descriptors[
             rdm_descriptor]))
         k_rdm = default_k_rdm((1 - 1 / np.exp(1)) * n_rdm)
+    if k_pattern == 1 and k_rdm == 1:
+        n_cv = 1
     if isinstance(models, Model):
         models = [models]
     if calc_noise_ceil == 'False':
