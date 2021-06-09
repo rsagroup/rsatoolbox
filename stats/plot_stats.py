@@ -692,7 +692,8 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             g10_m.fig.savefig('figures/SNR_variation.pdf', bbox_inches='tight')
 
 
-def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
+def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv',
+               savefig=False):
     labels = pd.read_csv(task_file, index_col=0)
     results = np.load(result_file)
     means = results['means']
@@ -720,7 +721,8 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
         data_df = data_df.append(labels)
     data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
                               'n_repeat': 'int', 'n_cell': 'int'})
-    
+    sns.set_context('paper', font_scale=1.75)
+
     # for 100 observations we expect this much std even if we were perfect:
     std_expected = np.std(np.sqrt(scipy.stats.f(1000, 100).rvs(100000)))
     # this is the area marked by the gray rectangle in the plot
@@ -740,8 +742,8 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
     g1_m.add_legend(
         frameon=False, title='# of stimuli',
         bbox_to_anchor=(1.0, 1.0), loc=2)
-    g1_m.axes[0, 0].set_title('double-bootstrap')
-    g1_m.axes[0, 1].set_title('dual bootstrap')
+    g1_m.axes[0, 0].set_title('double-bootstrap', fontsize=18)
+    g1_m.axes[0, 1].set_title('dual bootstrap', fontsize=18)
     g1_m.set_xlabels('# of subjects', fontsize=16)
     g1_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$',
                      fontsize=16)
@@ -764,15 +766,16 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
     g2_m.add_legend(
         frameon=False, title='# of subjects',
         bbox_to_anchor=(1.0, 1.0), loc=2)
-    g2_m.set_xlabels('# of stimuli')
-    g2_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+    g2_m.set_xlabels('# of stimuli', fontsize=16)
+    g2_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$',
+                     fontsize=16)
 
     g3_m = sns.catplot(data=data_df, legend=False,
                        x='n_stim', y='log-snr', hue='n_subj',
                        kind='point', ci='sd', palette='Greens_d', dodge=.2,
                        order=[10, 20, 40])
-    g3_m.set_xlabels('# of stimuli')
-    g3_m.set_ylabels('signal to noise ratio')
+    g3_m.set_xlabels('# of stimuli', fontsize=16)
+    g3_m.set_ylabels('signal to noise ratio', fontsize=16)
     plt.ylim([-2, 1])
     plt.yticks([-2, -1, 0, 1],
                ['10^-2', '10^-1', '10^0', '10^1'])
@@ -783,10 +786,10 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
 
     g4_m = sns.catplot(data=data_df, legend=False,
                        x='n_cell', y='log-snr', hue='n_repeat',
-                       kind='point', ci='sd', palette='Reds_d', dodge=.2,
+                       kind='point', ci='sd', palette='Greys_d', dodge=.2,
                        order=[20, 40, 80])
-    g4_m.set_xlabels('# of cells per subject')
-    g4_m.set_ylabels('signal to noise ratio')
+    g4_m.set_xlabels('# of cells per subject', fontsize=16)
+    g4_m.set_ylabels('signal to noise ratio', fontsize=16)
     plt.ylim([-2, 1])
     plt.yticks([-2, -1, 0, 1],
                ['10^-2', '10^-1', '10^0', '10^1'])
@@ -797,11 +800,13 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
 
     g5_m = sns.catplot(data=data_df, legend=False,
                        x='rdm_comparison', y='log-snr', hue='n_repeat',
-                       kind='point', ci='sd', palette='Reds_d', dodge=.2,
+                       kind='point', ci='sd', palette='Greys_d', dodge=.2,
                        order=['corr', 'corr_cov', 'cosine', 'cosine_cov'])
-    g5_m.set_xlabels('RDM comparison method')
-    g5_m.set_ylabels('signal to noise ratio')
+    g5_m.set_xlabels('RDM comparison method', fontsize=16)
+    g5_m.set_ylabels('signal to noise ratio', fontsize=16)
     plt.ylim([-2, 1])
+    plt.xticks([0, 1, 2, 3],
+               ['corr', 'whitened\ncorr', 'cosine', 'whitened\ncosine'])
     plt.yticks([-2, -1, 0, 1],
                ['10^-2', '10^-1', '10^0', '10^1'])
     sns.despine(trim=True, offset=5)
@@ -809,19 +814,28 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv'):
         frameon=False, title='# of repeats',
         bbox_to_anchor=(1.0, 1.0), loc=2)
 
-    g6_m = sns.catplot(data=data_df, legend=False, col='rdm_comparison',
+    g6_m = sns.catplot(data=data_df, legend=False,
                        x='noise_type', y='log-snr', hue='n_repeat',
-                       kind='point', ci='sd', palette='Reds_d', dodge=.2,
-                       order=['eye','diag', 'shrinkage_eye', 'shrinkage_diag'])
-    g6_m.set_xlabels('covariance estimate', fontsize=16)
+                       kind='point', ci='sd', palette='Greys_d', dodge=.2,
+                       order=['eye', 'diag', 'shrinkage_eye', 'shrinkage_diag'])
+    g6_m.set_xlabels('noise covariance estimate', fontsize=16)
     g6_m.set_ylabels('signal to noise ratio', fontsize=16)
     plt.ylim([-2, 1])
     plt.yticks([-2, -1, 0, 1],
                ['10^-2', '10^-1', '10^0', '10^1'])
+    plt.xticks([0, 1, 2, 3],
+               ['None', 'Diag', 'shrinkage\nto I', 'shrinkage\nto Diag'])
     sns.despine(trim=True, offset=5)
     g6_m.add_legend(
         frameon=False, title='# of repeats',
         bbox_to_anchor=(1.0, 1.0), loc=2)
+    if savefig:
+        g1_m.fig.savefig('figures/allen_dd.pdf', bbox_inches='tight')
+        g2_m.fig.savefig('figures/allen_detail.pdf', bbox_inches='tight')
+        g3_m.fig.savefig('figures/allen_SNR1.pdf', bbox_inches='tight')
+        g4_m.fig.savefig('figures/allen_SNR2.pdf', bbox_inches='tight')
+        g5_m.fig.savefig('figures/allen_comparison.pdf', bbox_inches='tight')
+        g6_m.fig.savefig('figures/allen_noise.pdf', bbox_inches='tight')
 
 
 def plot_metrics(simulation_folder='sim_metric', savefig=False):

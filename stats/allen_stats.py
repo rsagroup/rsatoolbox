@@ -347,23 +347,35 @@ def summarize_allen(file_add):
 def overall_ana(allen_folder='allen_data', rdm_comparison='cosine',
                 rdm_type='crossnobis', min_cell=1,
                 noise_type='eye', boot_type='both'):
-    models = get_models(folder='allen_data', method=rdm_type,
-                        sim_type=rdm_comparison, min_cell=1)
-    models = [models[i] for i in (3, 0, 5, 2, 4, 1)]
     target_structures = ['VISp', 'VISl', 'VISal', 'VISrl', 'VISam', 'VISpm']
     data_rdms = {}
-    results = []
+    mean_rdm = {}
     for target in target_structures:
         datasets = get_all_data(
             folder=allen_folder, targeted_structure=target, min_cell=min_cell)
         rdms = rsatoolbox.rdm.calc_rdm(datasets, method=rdm_type, descriptor='stim',
                                        cv_descriptor=None)
         data_rdms[target] = rdms
-        results.append(rsatoolbox.inference.eval_fixed(models, rdms, method=rdm_comparison))
-        rsatoolbox.vis.plot_model_comparison(results[-1])
+        mean_rdm[target] = rsatoolbox.util.pooling.pool_rdm(
+            rdms, method=rdm_comparison)
     pair_sim = np.zeros((len(target_structures), len(target_structures)))
-    for i_target in range(len(target_structures)):
-        pair_sim[i_target] = np.mean(results[i_target].evaluations, -1)
+    for i_t, i_target in enumerate(target_structures):
+        for j_t, j_target in enumerate(target_structures):
+            if i_target == j_target:
+                evals = []
+                rdms = data_rdms[i_target]
+                for i_rdm in range(data_rdms[i_target].n_rdm):
+                    test = rdms.subset('index', i_rdm)
+                    train = rdms.subset('index', np.setdiff1d(
+                        np.arange(data_rdms[i_target].n_rdm), i_rdm))
+                    m_rdm = rsatoolbox.util.pooling.pool_rdm(
+                        train, method=rdm_comparison)
+                    evals.append(rsatoolbox.rdm.compare(
+                        test, m_rdm))
+            else:
+                evals = rsatoolbox.rdm.compare(
+                    data_rdms[i_target], mean_rdm[j_target], method=rdm_comparison)
+            pair_sim[i_t, j_t] = np.mean(evals)
     plt.figure()
     plt.imshow(pair_sim, cmap='bone')
     cb = plt.colorbar()
@@ -385,6 +397,81 @@ def overall_ana(allen_folder='allen_data', rdm_comparison='cosine',
     plt.ylabel('data RDM', fontsize=16)
     plt.savefig('figures/allen_%s_%s.pdf' % (rdm_type, rdm_comparison),
                 bbox_inches='tight')
+
+
+def sim_cells(subj=225036, n_sim=100, folder='allen_data',
+              targeted_structure='VISp', replacement=True,
+              n_cell=40, start_idx=0, n_stim=20, n_repeat=20,
+              rdm_type='crossnobis', rdm_comparison='cosine',
+              boot_type='fancyboot'):
+    """ subsampling cells
+    """
+    csv_file = folder + '.csv'
+    exp_df = pd.read_csv(csv_file)
+    exp_df = exp_df[exp_df.n_cell >= n_cell]
+    right_tar_df = exp_df[exp_df['targeted_structure'] == targeted_structure]
+    # get models
+    models = get_models(min_cell=1, method=rdm_type, sim_type=rdm_comparison)
+    # get data for chosen subject
+    
+    for i in tqdm.trange(start_idx, n_sim, position=1):
+        # subset cells, stimuli and repeats
+        # generate RDMs
+        # run inference
+        # save results
+        if replacement:
+            stim_idx = np.random.randint(118, size=n_stim)
+        else:
+            stim_idx = np.random.permutation(118)[:n_stim]
+        stim_idx.sort()
+        U_all = np.empty((n_stim, n_repeat, n_cell))
+        right_sub_df = right_tar_df[
+            right_tar_df['donor_name'] == subj]
+        if len(right_sub_df) == 1:
+            exp_id = right_sub_df.iloc()[0]['id']
+        else:
+            k = np.random.randint(len(right_sub_df))
+            exp_id = right_sub_df.iloc()[k]['id']
+        dat = np.load('allen_data/U_%d.npz' % exp_id)
+        U = dat['U']
+        stimulus = dat['stimulus']
+        if replacement:
+            cell_idx = np.random.randint(U.shape[1], size=n_cell)
+        else:
+            cell_idx = np.random.permutation(U.shape[1])[:n_cell]
+        for i_stim, stim in enumerate(stim_idx):
+            U_stim = U[stimulus == stim]
+            if replacement:
+                rep_idx = np.random.randint(U_stim.shape[0], size=n_repeat)
+            else:
+                rep_idx = np.random.permutation(U_stim.shape[0])[:n_repeat]
+            U_all[i_stim] = U_stim[rep_idx][:, cell_idx]
+        U_rsatoolbox = U_all.transpose(2, 0, 1).reshape(
+            n_cell, n_stim * n_repeat).transpose(1, 0)
+        stim = np.repeat(stim_idx, n_repeat)
+        i_stim = np.repeat(np.arange(len(stim_idx)), n_repeat)
+        datasets = []
+        v = np.var(U_rsatoolbox, 0)  # variance to exclude constant cells
+        for i_cell in range(n_cell):
+            if v[i_cell] > 0:
+                dataset = rsatoolbox.data.Dataset(
+                    U_rsatoolbox[:, i_cell].reshape(-1, 1),
+                    obs_descriptors={
+                        'stim': stim,
+                        'i_stim': i_stim},
+                    descriptors={
+                        'subj': subj,
+                        'n_repeat': n_repeat,
+                        'n_stim': n_stim,
+                        'n_cell': n_cell,
+                        'targeted_structure': targeted_structure}
+                    )
+                datasets.append(dataset)
+        rdms = rsatoolbox.rdm.calc_rdm(
+            datasets, method=rdm_type, descriptor='i_stim',
+            cv_descriptor=None)
+        results = run_inference(models, rdms, method=rdm_comparison,
+                                bootstrap=boot_type)
 
 
 def _get_fnames(file_add):
