@@ -1,0 +1,12 @@
+font.size: 9
+font.style: normal
+axes.grid: True
+axes.titlesize: 10
+axes.titleweight: bold
+axes.labelsize: 10
+axes.labelweight: normal
+grid.color: white
+xtick.major.size: 0
+xtick.labelsize: 9
+ytick.labelsize: 9
+ytick.major.size: 0

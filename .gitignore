@@ -1,5 +1,9 @@
 # IDEs
 .vscode/
+.idea/
+
+# vscode jupyter extension garbage
+default-*.ipynb
 
 # MAC
 .DS_Store
