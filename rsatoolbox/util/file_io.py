@@ -4,11 +4,12 @@
 saving to and reading from files
 """
 
+import os
+from collections.abc import Iterable
+from pathlib import Path
 import h5py
 import pickle
 import numpy as np
-import os
-from collections.abc import Iterable
 
 
 def write_dict_hdf5(file, dictionary):
@@ -156,7 +157,6 @@ def remove_file(file):
             a filename or opened readable file
 
     """
-    from pathlib import Path
     if isinstance(file, (str, Path)) and os.path.exists(file):
         os.remove(file)
     elif hasattr(file, 'name') and os.path.exists(file.name):
