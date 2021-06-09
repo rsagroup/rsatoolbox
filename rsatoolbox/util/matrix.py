@@ -5,7 +5,7 @@ Collection of different utility Matrices
 """
 
 import numpy as np
-from scipy.sparse import coo_matrix
+from scipy.sparse import coo_matrix, csr_matrix
 
 
 def indicator(index_vector, positive=False):
@@ -157,6 +157,20 @@ def row_col_indicator_g(n_cond):
     np.fill_diagonal(row_i[-n_cond:, :], 1)
     np.fill_diagonal(col_i[-n_cond:, :], 1)
     return (row_i, col_i)
+
+
+def get_v(n_cond, sigma_k):
+    """ get the rdm covariance from sigma_k """
+    # calculate Xi
+    c_mat = pairwise_contrast_sparse(np.arange(n_cond))
+    if sigma_k is None:
+        xi = c_mat @ c_mat.transpose()
+    else:
+        sigma_k = csr_matrix(sigma_k)
+        xi = c_mat @ sigma_k @ c_mat.transpose()
+    # calculate V
+    v = xi.multiply(xi).tocsc()
+    return v
 
 
 def _row_col_indicator(row_i, col_i, n_cond):

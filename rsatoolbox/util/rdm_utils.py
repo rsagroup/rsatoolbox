@@ -112,6 +112,41 @@ def add_pattern_index(rdms, pattern_descriptor):
     return pattern_descriptor, pattern_select
 
 
+def _parse_input_rdms(rdm1, rdm2):
+    """Gets the vector representation of input RDMs, raises an error if
+    the two RDMs objects have different dimensions
+
+    Args:
+        rdm1 (pyrsa.rdm.RDMs):
+            first set of RDMs
+        rdm2 (pyrsa.rdm.RDMs):
+            second set of RDMs
+
+    """
+    if not isinstance(rdm1, np.ndarray):
+        vector1 = rdm1.get_vectors()
+    else:
+        if len(rdm1.shape) == 1:
+            vector1 = rdm1.reshape(1, -1)
+        else:
+            vector1 = rdm1
+    if not isinstance(rdm2, np.ndarray):
+        vector2 = rdm2.get_vectors()
+    else:
+        if len(rdm2.shape) == 1:
+            vector2 = rdm2.reshape(1, -1)
+        else:
+            vector2 = rdm2
+    if not vector1.shape[1] == vector2.shape[1]:
+        raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
+    nan_idx = ~np.isnan(vector1)
+    vector1_no_nan = vector1[nan_idx].reshape(vector1.shape[0], -1)
+    vector2_no_nan = vector2[~np.isnan(vector2)].reshape(vector2.shape[0], -1)
+    if not vector1_no_nan.shape[1] == vector2_no_nan.shape[1]:
+        raise ValueError('rdm1 and rdm2 have different nan positions')
+    return vector1_no_nan, vector2_no_nan, nan_idx
+
+
 def _extract_triu_(X):
     """ extracts the upper triangular vector as a masked view
 

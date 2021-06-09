@@ -6,6 +6,7 @@
 import unittest
 import rsatoolbox.model as model
 import numpy as np
+from numpy.testing import assert_allclose
 
 
 class TestModel(unittest.TestCase):
@@ -13,7 +14,7 @@ class TestModel(unittest.TestCase):
     """
 
     def test_creation(self):
-        m = model.Model('Test Model')
+        _ = model.Model('Test Model')
 
 
 class TestModelFixed(unittest.TestCase):
@@ -149,4 +150,139 @@ class TestModelInterpolate(unittest.TestCase):
         m = model.ModelInterpolate('Test Model', rdm_obj)
         train = rdm_obj.subset('ind', 2)
         theta = m.fit(train)
-        pre = m.predict(theta)
+        _ = m.predict(theta)
+
+
+class TestConsistency(unittest.TestCase):
+    """ Tests which compare different model types and fitting methods,
+    which should be equivalent
+    """
+
+    def setUp(self):
+        from rsatoolbox.data import Dataset
+        from rsatoolbox.rdm import calc_rdm
+        from rsatoolbox.rdm import concat
+        rdms = []
+        for _ in range(5):
+            data = np.random.rand(6, 20)
+            data_s = Dataset(data)
+            rdms.append(calc_rdm(data_s))
+        self.rdms = concat(rdms)
+
+    def test_two_rdms(self):
+        from rsatoolbox.model import ModelInterpolate, ModelWeighted
+        from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive
+        from rsatoolbox.rdm import concat, compare
+        model_rdms = concat([self.rdms[0], self.rdms[1]])
+        model_weighted = ModelWeighted(
+            'm_weighted',
+            model_rdms)
+        model_interpolate = ModelInterpolate(
+            'm_interpolate',
+            model_rdms)
+        for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
+            theta_m_i = model_interpolate.fit(self.rdms, method=i_method)
+            theta_m_w = model_weighted.fit(self.rdms, method=i_method)
+            theta_m_w_pos = fit_optimize_positive(
+                model_weighted, self.rdms, method=i_method)
+            theta_m_w_linear = fit_regress(
+                model_weighted, self.rdms, method=i_method)
+            eval_m_i = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_i), self.rdms, method=i_method))
+            eval_m_w = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w), self.rdms, method=i_method))
+            eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w_pos), self.rdms, method=i_method))
+            eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w_linear), self.rdms, method=i_method))
+            self.assertAlmostEqual(
+                eval_m_i, eval_m_w_pos,
+                places=4, msg='weighted fit differs from interpolation fit!'
+                + '\nfor %s' % i_method)
+            self.assertAlmostEqual(
+                eval_m_w, eval_m_w_linear,
+                places=4, msg='regression fit differs from optimization fit!'
+                + '\nfor %s' % i_method)
+
+    def test_two_rdms_nan(self):
+        from rsatoolbox.model import ModelInterpolate, ModelWeighted
+        from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive
+        from rsatoolbox.rdm import concat, compare
+        rdms = self.rdms.subsample_pattern('index', [0, 1, 1, 3, 4, 5])
+        model_rdms = concat([rdms[0], rdms[1]])
+        model_weighted = ModelWeighted(
+            'm_weighted',
+            model_rdms)
+        model_interpolate = ModelInterpolate(
+            'm_interpolate',
+            model_rdms)
+        for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
+            theta_m_i = model_interpolate.fit(rdms, method=i_method)
+            theta_m_w = model_weighted.fit(rdms, method=i_method)
+            theta_m_w_pos = fit_optimize_positive(
+                model_weighted, rdms, method=i_method)
+            theta_m_w_linear = fit_regress(
+                model_weighted, rdms, method=i_method)
+            eval_m_i = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_i), rdms, method=i_method))
+            eval_m_w = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w), rdms, method=i_method))
+            eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w_pos), rdms, method=i_method))
+            eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w_linear), rdms, method=i_method))
+            self.assertAlmostEqual(
+                eval_m_i, eval_m_w_pos,
+                places=4, msg='weighted fit differs from interpolation fit!'
+                + '\nfor %s' % i_method)
+            self.assertAlmostEqual(
+                eval_m_w, eval_m_w_linear,
+                places=4, msg='regression fit differs from optimization fit!'
+                + '\nfor %s' % i_method)
+
+
+class TestNNLS(unittest.TestCase):
+    """ Tests that the non-negative least squares give results consistent
+    with other solutions where they apply
+    """
+
+    def test_nnls_scipy(self):
+        from scipy.optimize import nnls
+        from rsatoolbox.model.fitter import _nn_least_squares
+        A = np.random.rand(10, 3)
+        b = A @ np.array([1, -0.1, -0.1])
+        x_scipy, loss_scipy = nnls(A, b)
+        x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b)
+        assert_allclose(
+            x_scipy, x_rsatoolbox,
+            err_msg='non-negative-least squares different from scipy')
+        self.assertAlmostEqual(
+            loss_scipy, np.sqrt(loss_rsatoolbox),
+            places=5, msg='non-negative-least squares different from scipy')
+
+    def test_nnls_eye(self):
+        from rsatoolbox.model.fitter import _nn_least_squares
+        A = np.random.rand(10, 3)
+        b = A @ np.array([1, -0.1, -0.1])
+        x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b)
+        x_rsatoolbox_v, loss_rsatoolbox_v = _nn_least_squares(A, b, V=np.eye(10))
+        assert_allclose(
+            x_rsatoolbox, x_rsatoolbox_v,
+            err_msg='non-negative-least squares changes with V=np.eye')
+        self.assertAlmostEqual(
+            loss_rsatoolbox_v, loss_rsatoolbox,
+            places=5, msg='nnls loss changes with np.eye')
+
+    def test_nnls_eye_ridge(self):
+        from rsatoolbox.model.fitter import _nn_least_squares
+        A = np.random.rand(10, 3)
+        b = A @ np.array([1, -0.1, -0.1])
+        x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b, ridge_weight=1)
+        x_rsatoolbox_v, loss_rsatoolbox_v = _nn_least_squares(
+            A, b, ridge_weight=1, V=np.eye(10))
+        assert_allclose(
+            x_rsatoolbox, x_rsatoolbox_v,
+            err_msg='non-negative-least squares changes with V=np.eye')
+        self.assertAlmostEqual(
+            loss_rsatoolbox_v, loss_rsatoolbox,
+            places=5, msg='nnls loss changes with np.eye')

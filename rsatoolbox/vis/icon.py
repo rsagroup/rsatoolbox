@@ -14,7 +14,7 @@ import PIL.ImageFilter
 from PIL import UnidentifiedImageError
 import os
 from rsatoolbox.rdm import RDMs
-from rsatoolbox.util.inference_util import pool_rdm
+from rsatoolbox.util.pooling import pool_rdm
 
 
 class Icon:
@@ -372,7 +372,6 @@ class Icon:
         verticalalignment=None,
         rotation=None,
     ):
-
         """
         uses the icon as a ticklabel at location x
 
