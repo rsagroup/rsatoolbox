@@ -7,11 +7,11 @@ Inference module utilities
 import numpy as np
 import scipy.stats as stats
 from scipy.stats import rankdata, wilcoxon
+from collections.abc import Iterable
 from rsatoolbox.model import Model
 from rsatoolbox.rdm import RDMs
 from .matrix import pairwise_contrast
 from .rdm_utils import batch_to_matrices
-from collections.abc import Iterable
 
 
 def input_check_model(models, theta=None, fitter=None, N=1):

@@ -6,6 +6,7 @@
 import unittest
 import rsatoolbox.model as model
 import numpy as np
+from numpy.testing import assert_allclose
 
 
 class TestModel(unittest.TestCase):
@@ -207,7 +208,7 @@ class TestConsistency(unittest.TestCase):
         from rsatoolbox.model import ModelInterpolate, ModelWeighted
         from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive
         from rsatoolbox.rdm import concat, compare
-        rdms = self.rdms.subsample_pattern('index', [0,1,1,3,4,5])
+        rdms = self.rdms.subsample_pattern('index', [0, 1, 1, 3, 4, 5])
         model_rdms = concat([rdms[0], rdms[1]])
         model_weighted = ModelWeighted(
             'm_weighted',
@@ -238,3 +239,50 @@ class TestConsistency(unittest.TestCase):
                 eval_m_w, eval_m_w_linear,
                 places=4, msg='regression fit differs from optimization fit!'
                 + '\nfor %s' % i_method)
+
+
+class TestNNLS(unittest.TestCase):
+    """ Tests that the non-negative least squares give results consistent
+    with other solutions where they apply
+    """
+
+    def test_nnls_scipy(self):
+        from scipy.optimize import nnls
+        from rsatoolbox.model.fitter import _nn_least_squares
+        A = np.random.rand(10, 3)
+        b = A @ np.array([1, -0.1, -0.1])
+        x_scipy, loss_scipy = nnls(A, b)
+        x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b)
+        assert_allclose(
+            x_scipy, x_rsatoolbox,
+            err_msg='non-negative-least squares different from scipy')
+        self.assertAlmostEqual(
+            loss_scipy, np.sqrt(loss_rsatoolbox),
+            places=5, msg='non-negative-least squares different from scipy')
+
+    def test_nnls_eye(self):
+        from rsatoolbox.model.fitter import _nn_least_squares
+        A = np.random.rand(10, 3)
+        b = A @ np.array([1, -0.1, -0.1])
+        x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b)
+        x_rsatoolbox_v, loss_rsatoolbox_v = _nn_least_squares(A, b, V=np.eye(10))
+        assert_allclose(
+            x_rsatoolbox, x_rsatoolbox_v,
+            err_msg='non-negative-least squares changes with V=np.eye')
+        self.assertAlmostEqual(
+            loss_rsatoolbox_v, loss_rsatoolbox,
+            places=5, msg='nnls loss changes with np.eye')
+
+    def test_nnls_eye_ridge(self):
+        from rsatoolbox.model.fitter import _nn_least_squares
+        A = np.random.rand(10, 3)
+        b = A @ np.array([1, -0.1, -0.1])
+        x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b, ridge_weight=1)
+        x_rsatoolbox_v, loss_rsatoolbox_v = _nn_least_squares(
+            A, b, ridge_weight=1, V=np.eye(10))
+        assert_allclose(
+            x_rsatoolbox, x_rsatoolbox_v,
+            err_msg='non-negative-least squares changes with V=np.eye')
+        self.assertAlmostEqual(
+            loss_rsatoolbox_v, loss_rsatoolbox,
+            places=5, msg='nnls loss changes with np.eye')

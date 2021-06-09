@@ -412,9 +412,9 @@ class RDMs:
             `rsatoolbox.rdm.rdms.RDMs`: New RDMs object with one vector
         """
         if str(weights) in self.rdm_descriptors:
-            new_descriptors = dict(
-                [(k, v) for (k, v) in self.descriptors.items() if k != weights]
-            )
+            new_descriptors = {
+                (k, v) for (k, v) in self.descriptors.items() if k != weights
+            }
             weights = self.rdm_descriptors[weights]
         else:
             new_descriptors = deepcopy(self.descriptors)
