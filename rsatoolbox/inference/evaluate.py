@@ -218,7 +218,7 @@ def dual_bootstrap(models, data, method='cosine', fitter=None,
         variances = (n_cv * var_mean - var_1) / (n_cv - 1)
     else:
         if use_correction:
-            raise Warning('correction requested, but only one cv run'
+            warnings.warn('correction requested, but only one cv run'
                           + ' per sample requested. This is invalid!'
                           + ' We do not use the correction for now.')
         evals_nonan = np.mean(np.mean(evaluations[eval_ok], -2), -2)
