@@ -403,9 +403,10 @@ def sim_cells(subj=225036, n_sim=100, folder='allen_data',
               targeted_structure='VISp', replacement=True,
               n_cell=40, start_idx=0, n_stim=20, n_repeat=20,
               rdm_type='crossnobis', rdm_comparison='cosine',
-              boot_type='fancyboot'):
+              boot_type='fancyboot', save_file='sim_cell/res_%03d.hdf5'):
     """ subsampling cells
     """
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
     csv_file = folder + '.csv'
     exp_df = pd.read_csv(csv_file)
     exp_df = exp_df[exp_df.n_cell >= n_cell]
@@ -472,7 +473,44 @@ def sim_cells(subj=225036, n_sim=100, folder='allen_data',
             cv_descriptor=None)
         results = run_inference(models, rdms, method=rdm_comparison,
                                 bootstrap=boot_type)
+        results.save(save_file % i)
 
+
+def run_cells():
+    df = _get_cells_list()
+    order = np.random.permutation(np.arange(len(df)))
+    for idx in tqdm.tqdm(order, position=0):
+        start_idx = 0
+        save_file = f'sim_cell/{idx}/res_%03d.hdf5'
+        while os.path.isfile(os.path.join(save_file % start_idx)):
+            start_idx += 1
+        sim_cells(
+            targeted_structure=df['targeted_structure'][idx],
+            n_cell=df['n_cell'][idx], n_stim=df['n_stim'][idx],
+            n_repeat=df['n_repeat'][idx], start_idx=start_idx,
+            rdm_type=df['rdm_type'][idx], rdm_comparison=df['rdm_comparison'][idx],
+            boot_type='fancyboot', save_file=save_file)
+
+
+def _get_cells_list():
+    n_cell = [10, 20, 40]
+    n_stim = [10, 20, 40]
+    n_repeat = [5, 10, 20]
+    rdm_type = 'crossnobis'
+    comparison = ['cosine', 'corr', 'cosine_cov', 'corr_cov']
+    targeted_structure = ['VISp']
+    boot_type = ['fancyboot']
+    grid = np.meshgrid(
+        boot_type, targeted_structure, rdm_type,
+        comparison,
+        n_cell, n_stim, n_repeat)
+    table = [i.flatten() for i in grid]
+    df = pd.DataFrame(table).transpose()
+    df.columns = ['boot_type', 'targeted_structure', 'rdm_type',
+                  'rdm_comparison',
+                  'n_cell', 'n_stim', 'n_repeat']
+    return df
+    
 
 def _get_fnames(file_add):
     if file_add is None:
@@ -499,7 +537,8 @@ if __name__ == '__main__':
                         help='which target should be parsed',
                         default=None)
     parser.add_argument('action', help='what to do?', type=str,
-                        choices=['download', 'save_list', 'run', 'nothing', 'summarize'],
+                        choices=['download', 'save_list', 'run', 'nothing', 'summarize',
+                                 'cells'],
                         default='nothing', nargs='?')
     args = parser.parse_args()
     if args.action == 'download':
@@ -513,5 +552,7 @@ if __name__ == '__main__':
             allen_folder=args.folder)
     elif args.action == 'summarize':
         summarize_allen(file_add=args.file_add)
+    elif args.action == 'cells':
+        run_cells()
     else:
         print('No action selected, I am done!')
