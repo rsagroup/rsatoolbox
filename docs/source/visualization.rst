@@ -14,5 +14,5 @@ Multidimensional Scaling
 
 
 
-Ploting model evaluations 
-----------------------
+Ploting model evaluations
+-------------------------

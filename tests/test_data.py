@@ -7,7 +7,7 @@ Test for Dataset class
 """
 
 import unittest
-import pyrsa.data as rsd
+import rsatoolbox.data as rsd
 import numpy as np
 
 
@@ -367,19 +367,19 @@ class TestNoiseComputations(unittest.TestCase):
         self.res_list = res_list
 
     def test_cov(self):
-        from pyrsa.data import cov_from_residuals
+        from rsatoolbox.data import cov_from_residuals
         cov = cov_from_residuals(self.residuals)
 
     def test_cov_list(self):
-        from pyrsa.data import cov_from_residuals
+        from rsatoolbox.data import cov_from_residuals
         cov = cov_from_residuals(self.res_list)
 
     def test_prec(self):
-        from pyrsa.data import prec_from_residuals
+        from rsatoolbox.data import prec_from_residuals
         cov = prec_from_residuals(self.residuals)
 
     def test_prec_list(self):
-        from pyrsa.data import prec_from_residuals
+        from rsatoolbox.data import prec_from_residuals
         cov = prec_from_residuals(self.res_list)
 
 
