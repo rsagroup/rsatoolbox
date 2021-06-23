@@ -742,11 +742,11 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv',
     g1_m.add_legend(
         frameon=False, title='# of stimuli',
         bbox_to_anchor=(1.0, 1.0), loc=2)
-    g1_m.axes[0, 0].set_title('double-bootstrap', fontsize=18)
-    g1_m.axes[0, 1].set_title('dual bootstrap', fontsize=18)
+    g1_m.axes[0, 0].set_title('uncorrected bootstrap', fontsize=18)
+    g1_m.axes[0, 1].set_title('corrected bootstrap', fontsize=18)
     g1_m.set_xlabels('# of subjects', fontsize=16)
     g1_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$',
-                     fontsize=16)
+                     fontsize=18)
 
     g2_m = sns.catplot(data=data_df, col='rdm_comparison', legend=False,
                        x='n_stim', y='std_relative', hue='n_subj',
@@ -766,19 +766,19 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv',
     g2_m.add_legend(
         frameon=False, title='# of subjects',
         bbox_to_anchor=(1.0, 1.0), loc=2)
-    g2_m.set_xlabels('# of stimuli', fontsize=16)
+    g2_m.set_xlabels('# of stimuli', fontsize=18)
     g2_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$',
-                     fontsize=16)
+                     fontsize=18)
 
     g3_m = sns.catplot(data=data_df, legend=False,
                        x='n_stim', y='log-snr', hue='n_subj',
                        kind='point', ci='sd', palette='Greens_d', dodge=.2,
                        order=[10, 20, 40])
-    g3_m.set_xlabels('# of stimuli', fontsize=16)
-    g3_m.set_ylabels('signal to noise ratio', fontsize=16)
+    g3_m.set_xlabels('# of stimuli', fontsize=18)
+    g3_m.set_ylabels('signal to noise ratio', fontsize=18)
     plt.ylim([-2, 1])
     plt.yticks([-2, -1, 0, 1],
-               ['10^-2', '10^-1', '10^0', '10^1'])
+               ['10^-2', '10^-1', '10^0', '10^1'], fontsize=14)
     sns.despine(trim=True, offset=5)
     g3_m.add_legend(
         frameon=False, title='# of subjects',
@@ -788,47 +788,61 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv',
                        x='n_cell', y='log-snr', hue='n_repeat',
                        kind='point', ci='sd', palette='Greys_d', dodge=.2,
                        order=[20, 40, 80])
-    g4_m.set_xlabels('# of cells per subject', fontsize=16)
-    g4_m.set_ylabels('signal to noise ratio', fontsize=16)
+    g4_m.set_xlabels('# of cells per subject', fontsize=18)
+    g4_m.set_ylabels('signal to noise ratio', fontsize=18)
     plt.ylim([-2, 1])
     plt.yticks([-2, -1, 0, 1],
-               ['10^-2', '10^-1', '10^0', '10^1'])
+               ['10^-2', '10^-1', '10^0', '10^1'], fontsize=14)
     sns.despine(trim=True, offset=5)
     g4_m.add_legend(
         frameon=False, title='# of repeats',
         bbox_to_anchor=(1.0, 1.0), loc=2)
 
     g5_m = sns.catplot(data=data_df, legend=False,
-                       x='rdm_comparison', y='log-snr', hue='n_repeat',
-                       kind='point', ci='sd', palette='Greys_d', dodge=.2,
+                       x='rdm_comparison', y='log-snr', hue='targeted_structure',
+                       kind='point', ci='sd', palette='Set2', dodge=.2,
                        order=['corr', 'corr_cov', 'cosine', 'cosine_cov'])
-    g5_m.set_xlabels('RDM comparison method', fontsize=16)
-    g5_m.set_ylabels('signal to noise ratio', fontsize=16)
+    g5_m.set_xlabels('RDM comparison method', fontsize=18)
+    g5_m.set_ylabels('signal to noise ratio', fontsize=18)
     plt.ylim([-2, 1])
     plt.xticks([0, 1, 2, 3],
-               ['corr', 'whitened\ncorr', 'cosine', 'whitened\ncosine'])
+               ['corr', 'whitened\ncorr', 'cosine', 'whitened\ncosine'], fontsize=14)
     plt.yticks([-2, -1, 0, 1],
-               ['10^-2', '10^-1', '10^0', '10^1'])
+               ['10^-2', '10^-1', '10^0', '10^1'], fontsize=14)
     sns.despine(trim=True, offset=5)
     g5_m.add_legend(
-        frameon=False, title='# of repeats',
+        frameon=False, title='Target Area',
         bbox_to_anchor=(1.0, 1.0), loc=2)
 
     g6_m = sns.catplot(data=data_df, legend=False,
                        x='noise_type', y='log-snr', hue='n_repeat',
                        kind='point', ci='sd', palette='Greys_d', dodge=.2,
                        order=['eye', 'diag', 'shrinkage_eye', 'shrinkage_diag'])
-    g6_m.set_xlabels('noise covariance estimate', fontsize=16)
-    g6_m.set_ylabels('signal to noise ratio', fontsize=16)
+    g6_m.set_xlabels('noise covariance estimate', fontsize=18)
+    g6_m.set_ylabels('signal to noise ratio', fontsize=18)
     plt.ylim([-2, 1])
     plt.yticks([-2, -1, 0, 1],
-               ['10^-2', '10^-1', '10^0', '10^1'])
+               ['10^-2', '10^-1', '10^0', '10^1'], fontsize=14)
     plt.xticks([0, 1, 2, 3],
-               ['None', 'Diag', 'shrinkage\nto I', 'shrinkage\nto Diag'])
+               ['None', 'Diag', 'shrinkage\nto I', 'shrinkage\nto Diag'], fontsize=14)
     sns.despine(trim=True, offset=5)
     g6_m.add_legend(
         frameon=False, title='# of repeats',
         bbox_to_anchor=(1.0, 1.0), loc=2)
+    
+    g7_m = sns.catplot(data=data_df, legend=False,
+                   x='targeted_structure', y='log-snr', hue='n_subj',
+                   kind='point', ci='sd', palette='Greens_d', dodge=.2)
+    g7_m.set_xlabels('cortical area', fontsize=18)
+    g7_m.set_ylabels('signal to noise ratio', fontsize=18)
+    plt.ylim([-2, 1])
+    plt.yticks([-2, -1, 0, 1],
+               ['10^-2', '10^-1', '10^0', '10^1'], fontsize=14)
+    sns.despine(trim=True, offset=5)
+    g7_m.add_legend(
+        frameon=False, title='# of subjects',
+        bbox_to_anchor=(1.0, 1.0), loc=2)
+
     if savefig:
         g1_m.fig.savefig('figures/allen_dd.pdf', bbox_inches='tight')
         g2_m.fig.savefig('figures/allen_detail.pdf', bbox_inches='tight')
@@ -836,6 +850,7 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv',
         g4_m.fig.savefig('figures/allen_SNR2.pdf', bbox_inches='tight')
         g5_m.fig.savefig('figures/allen_comparison.pdf', bbox_inches='tight')
         g6_m.fig.savefig('figures/allen_noise.pdf', bbox_inches='tight')
+        g7_m.fig.savefig('figures/allen_areas.pdf', bbox_inches='tight')
 
 
 def plot_metrics(simulation_folder='sim_metric', savefig=False):
