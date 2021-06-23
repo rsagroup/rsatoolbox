@@ -7,12 +7,12 @@ Tests for BidsDerivatives class and subclasses
 
 import unittest
 import os
-import pyrsa.data.fmri as fmri
+import rsatoolbox.data.fmri as fmri
 import numpy as np
 
 def get_fmri_data():
     fmri_dir = os.path.join(
-            os.getcwd(), "data", "BIDS_example", "derivatives", "SPM_example")
+            os.path.dirname(__file__), "data", "BIDS_example", "derivatives", "SPM_example")
     fmri_data = fmri.BidsDerivatives(fmri_dir)
     return fmri_data
 
