@@ -12,20 +12,21 @@ import numpy as np
 
 def get_fmri_data():
     fmri_dir = os.path.join(
-            os.path.dirname(__file__), "data", "BIDS_example", "derivatives", "SPM_example")
+            os.path.dirname(__file__), "data", "BIDS_example", "derivatives",
+            "SPM_example")
     fmri_data = fmri.BidsDerivatives(fmri_dir)
     return fmri_data
 
 def get_subject_data():
     fmri_data = get_fmri_data()
     subjects = fmri_data.get_subjects()
-    subject_data = fmri_data.subset_subject(subjects[0])
+    subject_data = fmri_data.subset_subject(subjects[0])                        # subset data for first subject
     return subject_data
 
 def get_subject_session_data():
     subject_data = get_subject_data()
     session_types = subject_data.get_session_types()
-    subject_data_s = subject_data.subset_session_type(session_types[0])
+    subject_data_s = subject_data.subset_session_type(session_types[0])         # further subset data for first session type
     return subject_data_s
 
 class TestParsing(unittest.TestCase):
@@ -39,7 +40,7 @@ class TestParsing(unittest.TestCase):
             fmri_data.get_session_types(),
             ['ses-perceptionTest', 'ses-perceptionTraining'])
         np.testing.assert_array_equal(
-            fmri_data.runs_total, 13)
+            fmri_data.runs_total, 2)
         
     def test_sub_parsing(self):
         subject_data = get_subject_data()
@@ -48,14 +49,13 @@ class TestParsing(unittest.TestCase):
             ['sub-01'])
         np.testing.assert_array_equal(
             subject_data.get_sessions(),
-            ['ses-perceptionTest01', 'ses-perceptionTraining01',
-             'ses-perceptionTraining02'])
+            ['ses-perceptionTest01'])
         np.testing.assert_array_equal(
-            subject_data.runs_total, 5)
+            subject_data.runs_total, 1)
         np.testing.assert_array_equal(
             [os.path.isdir(run_dir)
              for run_dir in subject_data.get_runs()],
-            [True, True, True, True, True])
+            [True])
         
     def test_session_parsing(self):
         subject_data = get_subject_session_data()
