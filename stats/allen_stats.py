@@ -492,6 +492,55 @@ def run_cells():
             boot_type='fancyboot', save_file=save_file)
 
 
+def summarize_cells():
+    tasks_file, simulation_folder, summary_file = _get_fnames()
+    simulation_folder = 'sim_cell'
+    summary_file = 'cell_results.npz'
+    task_df = _get_cells_list()
+    means = []
+    variances = []
+    for i, row in tqdm.tqdm(task_df.iterrows()):
+        fname_base = os.path.join(simulation_folder, '%d' % row.name)
+        mean = np.nan * np.zeros((100, 6))
+        variance = np.nan * np.zeros((100, 6))
+        if os.path.exists(fname_base):
+            for file in os.listdir(fname_base):
+                idx = int(file.split('_')[1].split('.')[0])  # res_XXX.hdf5
+                try:
+                    res = rsatoolbox.inference.load_results(os.path.join(fname_base, file),
+                                                            file_type='hdf5')
+                    if res.evaluations.ndim == 2:
+                        no_nan_idx = ~np.isnan(res.evaluations[:, 0])
+                    elif res.evaluations.ndim == 3:
+                        no_nan_idx = \
+                            ~np.isnan(res.evaluations[:, 0, 0])
+                    elif res.evaluations.ndim == 4:
+                        no_nan_idx = \
+                            np.all(np.isfinite(res.evaluations[:, 0, 0]), -1)
+                    if np.any(no_nan_idx):
+                        m = np.mean(res.evaluations[no_nan_idx],
+                                    axis=0)
+                        while m.ndim > 1:
+                            m = np.mean(m, axis=-1)
+                        mean[idx] = m
+                        if res.variances.shape[-1] == 6:
+                            variance[idx] = rsatoolbox.util.inference_util.extract_variances(
+                                res.variances, nc_included=False)[0]
+                        else:
+                            variance[idx] = rsatoolbox.util.inference_util.extract_variances(
+                                res.variances, nc_included=True)[0]
+                    else:
+                        raise OSError('no valid results')
+                except OSError:
+                    mean[idx] = np.nan
+                    variance[idx] = np.nan
+        means.append(mean)
+        variances.append(variance)
+    means = np.array(means)
+    variances = np.array(variances)
+    np.savez(summary_file, means=means, variances=variances)
+
+
 def _get_cells_list():
     n_cell = [10, 20, 40]
     n_stim = [10, 20, 40]
@@ -512,7 +561,7 @@ def _get_cells_list():
     return df
     
 
-def _get_fnames(file_add):
+def _get_fnames(file_add=None):
     if file_add is None:
         tasks_file = 'allen_tasks.csv'
         simulation_folder = 'sim_allen'

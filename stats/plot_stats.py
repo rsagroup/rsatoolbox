@@ -20,6 +20,7 @@ import pathlib
 import nn_simulations as dnn
 from helpers import get_stimuli_ecoset
 from stats import estimate_betas, get_residuals
+from allen_stats import _get_cells_list
 
 rcParams.update({'figure.autolayout': True})
 
@@ -721,7 +722,7 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv',
         data_df = data_df.append(labels)
     data_df = data_df.astype({'n_subj': 'int', 'n_stim': 'int',
                               'n_repeat': 'int', 'n_cell': 'int'})
-    sns.set_context('paper', font_scale=1.75)
+    sns.set_context('paper', font_scale=2)
 
     # for 100 observations we expect this much std even if we were perfect:
     std_expected = np.std(np.sqrt(scipy.stats.f(1000, 100).rvs(100000)))
@@ -851,6 +852,75 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv',
         g5_m.fig.savefig('figures/allen_comparison.pdf', bbox_inches='tight')
         g6_m.fig.savefig('figures/allen_noise.pdf', bbox_inches='tight')
         g7_m.fig.savefig('figures/allen_areas.pdf', bbox_inches='tight')
+
+
+def plot_cells(result_file='cell_results.npz',
+               savefig=False):
+    labels = _get_cells_list()
+    results = np.load(result_file)
+    means = results['means']
+    variances = results['variances']
+    true_var = np.var(means, 1)
+    true_std = np.sqrt(true_var)
+    var_estimate = np.mean(variances, 1)
+    if var_estimate.ndim == 3:
+        var_estimate = np.einsum('ijj->ij', var_estimate)
+    std_relative = np.sqrt(var_estimate / true_var)
+    snr = (np.var(np.mean(means, axis=1), axis=1)
+           / np.mean(np.var(means, axis=1), axis=1))
+    # seaborn based plotting
+    # create full data table
+    data_df = pd.DataFrame()
+    for i_model in range(means.shape[2]):
+        labels['mean'] = np.mean(means[:, :, i_model], 1)
+        labels['model_var'] = np.var(np.mean(means, axis=1), axis=1)
+        labels['true_std'] = true_std[:, i_model]
+        labels['var_estimate'] = var_estimate[:, i_model]
+        labels['std_relative'] = std_relative[:, i_model]
+        labels['model'] = i_model
+        labels['snr'] = snr
+        labels['log-snr'] = np.log10(snr)
+        data_df = data_df.append(labels)
+    data_df = data_df.astype({'n_stim': 'int',
+                              'n_repeat': 'int', 'n_cell': 'int'})
+    sns.set_context('paper', font_scale=1.75)
+
+    # for 100 observations we expect this much std even if we were perfect:
+    std_expected = np.std(np.sqrt(scipy.stats.f(1000, 100).rvs(100000)))
+    # this is the area marked by the gray rectangle in the plot
+    CI = [1 - std_expected, 1 + std_expected]
+    
+    g1 = sns.catplot(data=data_df, legend=False,
+                       x='n_stim', y='log-snr', hue='n_cell',
+                       kind='point', ci='sd', palette='Greens_d', dodge=.2,
+                       order=[10, 20, 40])
+    g1.set_xlabels('# of stimuli', fontsize=18)
+    g1.set_ylabels('signal to noise ratio', fontsize=18)
+    plt.ylim([-4, 0])
+    plt.yticks([-4, -3, -2, -1, 0],
+               ['10^-4', '10^-3', '10^-2', '10^-1', '10^0'], fontsize=14)
+    sns.despine(trim=True, offset=5)
+    g1.add_legend(
+        frameon=False, title='# of cells',
+        bbox_to_anchor=(1.0, 1.0), loc=2)
+
+    g2 = sns.catplot(data=data_df, legend=False,
+                     x='n_cell', y='std_relative', hue='n_stim',
+                     kind='point', ci='sd', palette='Greens_d', dodge=.2,
+                     order=[10, 20, 40])
+    for a in g2.axes:
+        for ax in a:
+            ax.plot([-0.3, 2.3], [1, 1], 'k--')
+            r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
+                              facecolor='gray', zorder=-1, alpha=0.5)
+            ax.add_patch(r)
+    sns.despine(trim=True, offset=5)
+    g2.add_legend(
+        frameon=False, title='# of stimuli',
+        bbox_to_anchor=(1.0, 1.0), loc=2)
+    g2.set_xlabels('# of stimuli', fontsize=16)
+    g2.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$',
+                     fontsize=18)
 
 
 def plot_metrics(simulation_folder='sim_metric', savefig=False):
