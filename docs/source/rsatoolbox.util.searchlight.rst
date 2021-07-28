@@ -1,7 +1,7 @@
-rsatoolbox.util.data\_utils module
+rsatoolbox.util.searchlight module
 ==================================
 
-.. automodule:: rsatoolbox.util.data_utils
+.. automodule:: rsatoolbox.util.searchlight
    :members:
    :undoc-members:
    :show-inheritance:

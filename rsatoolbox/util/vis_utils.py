@@ -7,12 +7,12 @@
 
 @author: baihan
 
-Notice: 
+Notice:
 
-The functions of MDS in this module are modified from 
+The functions of MDS in this module are modified from
 the Python package scikit-learn, originally written by
-Nelle Varoquaux <nelle.varoquaux@gmail.com> under BSD 
-licence <https://en.wikipedia.org/wiki/BSD_licenses>. 
+Nelle Varoquaux <nelle.varoquaux@gmail.com> under BSD
+licence <https://en.wikipedia.org/wiki/BSD_licenses>.
 We modified the MDS function to include an additional
 functionality of having an important matrix as an input.
 """
@@ -230,8 +230,7 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
         computed in parallel.
 
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details.
+        ``-1`` means using all processors.
 
     max_iter : int, default=300
         Maximum number of iterations of the SMACOF algorithm for a single run.
@@ -329,8 +328,6 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
 class Weighted_MDS(BaseEstimator):
     """Multidimensional scaling with weighting options.
 
-    Read more in the :ref:`User Guide <multidimensional_scaling>`.
-
     Parameters
     ----------
     n_components : int, default=2
@@ -360,8 +357,7 @@ class Weighted_MDS(BaseEstimator):
         computed in parallel.
 
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details.
+        ``-1`` means using all processors.
 
     random_state : int, RandomState instance or None, default=None
         Determines the random number generator used to initialize the centers.

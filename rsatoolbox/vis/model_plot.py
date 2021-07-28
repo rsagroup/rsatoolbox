@@ -37,95 +37,165 @@ def plot_model_comparison(result, sort=False, colors=None,
     for bootstrap samples and crossvalidation folds. These are used here to
     construct confidence intervals and perform the significance tests.
 
-    Args (All strings case insensitive):
+    All string inputs are case insensitive.
+
+    Args:
         result (rsatoolbox.inference.result.Result):
             model evaluation result
+
         sort (Boolean or string):
+
             False (default): plot bars in the order passed
+
             'descend[ing]': plot bars in descending order of model performance
+
             'ascend[ing]': plot bars in ascending order of model performance
+
         colors (list of lists, numpy array, matplotlib colormap):
-            None (default): default blue for all bars
-            single color: list or numpy array of 3 or 4 values (RGB, RGBA)
-                    specifying the color for all bars
-            multiple colors: list of lists or numpy array (number of colors by
-                    3 or 4 channels -- RGB, RGBA). If the number of colors
-                    matches the number of models, each color is used for the
-                    bar corresponding to one model (in the order of the models
-                    as passed). If the number of colors does not match the
-                    number of models, the list is linearly interpolated to
-                    assign a color to each model (in the order of the models as
-                    passed). For example, two colors will become a gradation,
-                    unless there are exactly two model. Instead of a list of
-                    lists or numpy array, a matplotlib colormap object may also
-                    be passed (e.g. colors = cm.coolwarm).
+
+            None (default):
+                default blue for all bars
+
+            single color:
+                list or numpy array of 3 or 4 values (RGB, RGBA)
+                specifying the color for all bars
+
+            multiple colors:
+                list of lists or numpy array (number of colors by
+                3 or 4 channels -- RGB, RGBA). If the number of colors
+                matches the number of models, each color is used for the
+                bar corresponding to one model (in the order of the models
+                as passed). If the number of colors does not match the
+                number of models, the list is linearly interpolated to
+                assign a color to each model (in the order of the models as
+                passed). For example, two colors will become a gradation,
+                unless there are exactly two model. Instead of a list of
+                lists or numpy array, a matplotlib colormap object may also
+                be passed (e.g. colors = cm.coolwarm).
+
         alpha (float):
             significance threshold (p threshold or FDR q threshold)
+
         test_pair_comparisons (Boolean or string):
-            False or None: do not plot pairwise model comparison results
-            True (default): plot pairwise model comparison results using
+
+            False or None:
+                do not plot pairwise model comparison results
+
+            True (default):
+                plot pairwise model comparison results using
                 default settings
-            'arrows': plot results in arrows style, indicating pairs of sets
+
+            'arrows':
+                plot results in arrows style, indicating pairs of sets
                 between which all differences are significant
-            'nili': plot results as Nili bars (Nili et al. 2014), indicating
+
+            'nili':
+                plot results as Nili bars (Nili et al. 2014), indicating
                 each significant difference by a horizontal line (or each
                 nonsignificant difference if the string contains a '2', e.g.
                 'nili2')
-            'golan': plot results as Golan wings (Golan et al. 2020), with one
+
+            'golan':
+                plot results as Golan wings (Golan et al. 2020), with one
                 wing (graphical element) indicating all dominance relationships
                 for one model.
+
             'cliques': plot results as cliques of insignificant differences
+
         multiple_pair_testing (Boolean or string):
-            False or 'none': do not adjust for multiple testing for the
+
+            False or 'none':
+                do not adjust for multiple testing for the
                 pairwise model comparisons
-            'FDR' or 'fdr' (default): control the false-discorvery rate at
+
+            'FDR' or 'fdr' (default):
+                control the false-discorvery rate at
                 q = alpha
-            'FWER',' fwer', or 'Bonferroni': control the familywise error rate
-            using the Bonferroni method
+
+            'FWER',' fwer', or 'Bonferroni':
+                control the familywise error rate
+                using the Bonferroni method
+
         test_above_0 (Boolean or string):
-            False or None: do not plot results of statistical comparison of
+
+            False or None:
+                do not plot results of statistical comparison of
                 each model performance against 0
-            True (default): plot results of statistical comparison of each
+
+            True (default):
+                plot results of statistical comparison of each
                 model performance against 0 using default settings ('dewdrops')
-            'dewdrops': place circular "dewdrops" at the baseline to indicate
+
+            'dewdrops':
+                place circular "dewdrops" at the baseline to indicate
                 models whose performance is significantly greater than 0
-            'icicles': place triangular "icicles" at the baseline to indicate
+
+            'icicles':
+                place triangular "icicles" at the baseline to indicate
                 models whose performance is significantly greater than 0
+
             Tests are one-sided, use the global alpha threshold and are
             automatically Bonferroni-corrected for the number of models tested.
+
         test_below_noise_ceil (Boolean or string):
-            False or None: do not plot results of statistical comparison of
+
+            False or None:
+                do not plot results of statistical comparison of
                 each model performance against the lower-bound estimate of the
                 noise ceiling
-            True (default): plot results of statistical comparison of each
+
+            True (default):
+                plot results of statistical comparison of each
                 model performance against the lower-bound estimate of the noise
                 ceiling using default settings ('dewdrops')
-            'dewdrops': use circular "dewdrops" at the lower bound of the
+
+            'dewdrops':
+                use circular "dewdrops" at the lower bound of the
                 noise ceiling to indicate models whose performance is
                 significantly below the lower-bound estimate of the noise
                 ceiling
-            'icicles': use triangular "icicles" at the lower bound of the noise
+
+            'icicles':
+                use triangular "icicles" at the lower bound of the noise
                 ceiling to indicate models whose performance is significantly
                 below the lower-bound estimate of the noise ceiling
+
             Tests are one-sided, use the global alpha threshold and are
             automatically Bonferroni-corrected for the number of models tested.
+
         error_bars (Boolean or string):
-            False or None: do not plot error bars
-            True (default) or 'SEM': plot the standard error of the mean
-            'CI': plot 95%-confidence intervals (exluding 2.5% on each side)
-            'CI[x]': plot x%-confidence intervals
-                    (exluding (100-x)/2% on each side)
-                    i.e. 'CI' has the same effect as 'CI95'
+
+            False or None:
+                do not plot error bars
+
+            True (default) or 'SEM':
+                plot the standard error of the mean
+
+            'CI':
+                plot 95%-confidence intervals (exluding 2.5% on each side)
+
+            'CI[x]':
+                plot x%-confidence intervals
+                (exluding (100-x)/2% on each side)
+                i.e. 'CI' has the same effect as 'CI95'
+
             Confidence intervals are based on the bootstrap procedure,
             reflecting variability of the estimate across subjects and/or
             experimental conditions.
+
         test_type (string):
             which tests to perform:
-                't-test' : performs a t-test based on the variance estimates
-                    in the result structs
-                'bootstrap' : performs a bootstrap test, i.e. checks based
-                    on the number of samples defying H0
-                'ranksum' : performs wilcoxon signed rank sum tests
+
+            't-test':
+                performs a t-test based on the variance estimates
+                in the result structs
+
+            'bootstrap':
+                performs a bootstrap test, i.e. checks based
+                on the number of samples defying H0
+
+            'ranksum':
+                performs wilcoxon signed rank sum tests
 
     Returns:
         ---
@@ -452,10 +522,14 @@ def plot_nili_bars(axbar, significant, version=1):
 
     Args:
         axbar: Matplotlib axes handle to plot in
+
         significant: Boolean matrix of model comparisons
-        version: 1 (Normal Nili bars, indicating significant differences)
-                 2 (Negative Nili bars in gray, indicating nonsignificant
-                    comparison results)
+
+        version:
+
+            - 1 (Normal Nili bars, indicating significant differences)
+            - 2 (Negative Nili bars in gray, indicating nonsignificant
+              comparison results)
 
     Returns:
         ---
@@ -501,15 +575,17 @@ def plot_golan_wings(axbar, significant, perf, sort, colors=None,
     Args:
         axbar: Matplotlib axes handle to plot in
         significant: Boolean matrix of model comparisons
-        version: 0 (single wing: solid circle anchor and open circles),
-                 1 (single wing: tick anchor and circles),
-                 2 (single wing: circle anchor and up and down feathers)
-                 3 (double wings: circle anchor,
-                    downward dominance-indicating feathers,
-                    from bottom to top in model order)
-                 4 (double wings: circle anchor,
-                    downward dominance-indicating feathers,
-                    from bottom to top in performance order)
+        version:
+
+            - 0 (single wing: solid circle anchor and open circles),
+            - 1 (single wing: tick anchor and circles),
+            - 2 (single wing: circle anchor and up and down feathers)
+            - 3 (double wings: circle anchor,
+              downward dominance-indicating feathers,
+              from bottom to top in model order)
+            - 4 (double wings: circle anchor,
+              downward dominance-indicating feathers,
+              from bottom to top in performance order)
 
     Returns:
         ---

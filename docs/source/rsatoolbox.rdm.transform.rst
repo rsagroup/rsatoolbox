@@ -1,7 +1,7 @@
-rsatoolbox.vis.mds\_plot module
+rsatoolbox.rdm.transform module
 ===============================
 
-.. automodule:: rsatoolbox.vis.mds_plot
+.. automodule:: rsatoolbox.rdm.transform
    :members:
    :undoc-members:
    :show-inheritance:

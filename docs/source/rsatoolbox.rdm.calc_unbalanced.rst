@@ -1,7 +1,7 @@
-rsatoolbox.util.inference\_util module
+rsatoolbox.rdm.calc\_unbalanced module
 ======================================
 
-.. automodule:: rsatoolbox.util.inference_util
+.. automodule:: rsatoolbox.rdm.calc_unbalanced
    :members:
    :undoc-members:
    :show-inheritance:

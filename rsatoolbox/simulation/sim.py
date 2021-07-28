@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 Functions for data simulation a specific RSA-model
+
     make_design: creates design and condition vectors for fMRI design
+
     make_dataset: creates a data set based on an RDM model
+
 @author: jdiedrichsen
 """
 import numpy as np

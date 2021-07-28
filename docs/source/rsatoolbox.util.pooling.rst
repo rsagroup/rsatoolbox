@@ -1,7 +1,7 @@
-rsatoolbox.model.fitter module
+rsatoolbox.util.pooling module
 ==============================
 
-.. automodule:: rsatoolbox.model.fitter
+.. automodule:: rsatoolbox.util.pooling
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
-rsatoolbox.rdm.rdms module
+rsatoolbox.vis.icon module
 ==========================
 
-.. automodule:: rsatoolbox.rdm.rdms
+.. automodule:: rsatoolbox.vis.icon
    :members:
    :undoc-members:
    :show-inheritance:

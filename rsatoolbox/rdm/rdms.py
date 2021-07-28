@@ -373,14 +373,26 @@ class RDMs:
 
         Pass keyword arguments that correspond to descriptors,
         with value indicating the sort type. Supported methods:
+
             'alpha': sort alphabetically (using np.sort)
+
             list/np.array: specify the new order explicitly. Values should
                 correspond to the descriptor values
 
-        Example:
-            Sorts the condition descriptor alphabetically:
+        Examples:
 
-            `rdms.sort(condition='alpha')`
+            The following code sorts the 'condition' descriptor alphabetically:
+
+            ::
+
+                rdms.sort(condition='alpha')
+
+            The following code sort the 'condition' descriptor in the order
+            1, 3, 2, 4, 5:
+
+            ::
+
+                rdms.sort(condition=[1, 3, 2, 4, 5])
 
         Raises:
             ValueError: Raised if the method chosen is not implemented
