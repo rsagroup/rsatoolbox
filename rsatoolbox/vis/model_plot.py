@@ -8,9 +8,9 @@ import warnings
 import numpy as np
 import scipy.stats
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from matplotlib import patches
 from matplotlib.path import Path
-import matplotlib.transforms as transforms
+from matplotlib import transforms
 from matplotlib import cm
 import networkx as nx
 from networkx.algorithms.clique import find_cliques as maximal_cliques
