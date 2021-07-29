@@ -19,3 +19,5 @@ from .compare import compare_cosine
 from .compare import compare_kendall_tau
 from .compare import compare_spearman
 from .compare import compare_rho_a
+from .compare import compare_correlation_cov_weighted
+from .compare import compare_cosine_cov_weighted

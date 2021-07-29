@@ -2,6 +2,7 @@
 
 References
 ----------
+.. _Cai_2016:
 
 * Cai, M.B., Schuck, N.W., Pillow, J., and Niv, Y. (2016). A Bayesian method for reducing bias in neural representational similarity analysis. In Advances in Neural Information Processing Systems, pp. 4952–4960.
 
