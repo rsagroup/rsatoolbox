@@ -16,10 +16,9 @@ Documentation
    getting_started.rst
    datasets.rst
    distances.rst
-   model.rst
-   comparing.rst
    operations.rst
-   fitting.rst
+   comparing.rst
+   model.rst
    inference.rst
    visualization.rst
    literature_cited.rst
