@@ -385,14 +385,14 @@ class RDMs:
 
             ::
 
-                rdms.sort(condition='alpha')
+                rdms.sort_by(condition='alpha')
 
             The following code sort the 'condition' descriptor in the order
             1, 3, 2, 4, 5:
 
             ::
 
-                rdms.sort(condition=[1, 3, 2, 4, 5])
+                rdms.sort_by(condition=[1, 3, 2, 4, 5])
 
         Raises:
             ValueError: Raised if the method chosen is not implemented
