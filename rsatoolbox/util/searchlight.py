@@ -55,7 +55,7 @@ def get_volume_searchlight(mask, radius=2, threshold=1.0):
 
         mask ([numpy array]): binary brain mask
 
-        radius (int, optional): the radius of each searchlight, defined in voxels. 
+        radius (int, optional): the radius of each searchlight, defined in voxels.
         Defaults to 2.
 
         threshold (float, optional): Threshold of the proportion of voxels that need to
@@ -106,7 +106,7 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
 
         data_2d (2D numpy array): brain data,
         shape n_observations x n_channels (i.e. voxels/vertices)
-        
+
         centers (1D numpy array): center indices for all searchlights as provided
         by rsatoolbox.util.searchlight.get_volume_searchlight
         
@@ -184,7 +184,7 @@ def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', th
 
     Args:
 
-        sl_RDM ([rsatoolbox.rdm.RDMs]): RDMs object 
+        sl_RDM ([rsatoolbox.rdm.RDMs]): RDMs object
         as computed by rsatoolbox.util.searchlight.get_searchlight_RDMs
 
         models ([rsatoolbox.model]: models to evaluate - can also be list of models
