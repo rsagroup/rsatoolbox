@@ -1,5 +1,5 @@
 rsatoolbox.vis.colors module
-=======================
+============================
 
 .. automodule:: rsatoolbox.vis.colors
    :members:

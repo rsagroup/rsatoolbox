@@ -1,5 +1,5 @@
 rsatoolbox.rdm.rdms module
-=====================
+==========================
 
 .. automodule:: rsatoolbox.rdm.rdms
    :members:
