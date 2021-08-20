@@ -5,7 +5,7 @@ icon object which can be plotted into an axis
 """
 
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
+from matplotlib import cm
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox, DrawingArea
 import numpy as np
 import PIL

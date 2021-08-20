@@ -814,9 +814,11 @@ def plot_arrows(axbar, significant):
 
 
 def draw_hor_arrow(ax, x1, x2, y, style, ah_L, ah_R):
-    # Draws a horizontal arrow from (x1, y) to (x2, y) if style is '->' and
-    # in the reverse direction if style is '<-'. If style is '<->', this
-    # function draws a double arrow.
+    """
+    Draws a horizontal arrow from (x1, y) to (x2, y) if style is '->' and
+    in the reverse direction if style is '<-'. If style is '<->', this
+    function draws a double arrow.
+    """
     lw, s = 1.6, 0.45
     ms, ms_a = 8, 18
     if (x1 < x2 and style == '->') or (x2 < x1 and style == '<-'):

@@ -5,7 +5,7 @@ Inference module utilities
 """
 
 import numpy as np
-import scipy.stats as stats
+from scipy import stats
 from scipy.stats import rankdata, wilcoxon
 from collections.abc import Iterable
 from rsatoolbox.model import Model
