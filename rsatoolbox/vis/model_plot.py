@@ -231,7 +231,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                           + 'provide uncertainty estimate')
             error_bars = False
     else:
-        while (len(evaluations.shape) > 2):
+        while len(evaluations.shape) > 2:
             evaluations = np.nanmean(evaluations, axis=-1)
         evaluations = evaluations[~np.isnan(evaluations[:, 0])]
         n_bootstraps, n_models = evaluations.shape
@@ -605,8 +605,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors=None,
         plt.gcf().dpi_scale_trans.inverted())
     h_inch = bbox.height
     h = 1
-    for wo_i in range(len(wing_order)):
-        i = wing_order[wo_i]
+    for wo_i, i in enumerate(wing_order):
         if version in [3, 4]:
             js = np.concatenate((wing_order[0:wo_i],
                                  wing_order[wo_i+1:])).astype('int')
@@ -624,8 +623,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors=None,
         colors = np.tile([0, 0, 0, 1], (n_models, 1))
     tick_length_inch = 0.08
     k = 1
-    for wo_i in range(len(wing_order)):
-        i = wing_order[wo_i]
+    for wo_i, i in enumerate(wing_order):
         if version in [3, 4]:
             js = np.concatenate((wing_order[0:wo_i],
                                  wing_order[wo_i+1:])).astype('int')
