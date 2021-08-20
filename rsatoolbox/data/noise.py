@@ -192,12 +192,12 @@ def prec_from_residuals(residuals, dof=None, method='shrinkage_diag'):
     cov = cov_from_residuals(residuals=residuals, dof=dof, method=method)
     if not isinstance(cov, np.ndarray):
         prec = [None] * len(cov)
-        for i in range(len(cov)):
-            prec[i] = np.linalg.inv(cov[i])
+        for i, cov_i in enumerate(cov):
+            prec[i] = np.linalg.inv(cov_i)
     elif len(cov.shape) > 2:
         prec = np.zeros(cov.shape)
-        for i in range(len(cov)):
-            prec[i] = np.linalg.inv(cov[i])
+        for i, cov_i in enumerate(cov):
+            prec[i] = np.linalg.inv(cov_i)
     else:
         prec = np.linalg.inv(cov)
     return prec
