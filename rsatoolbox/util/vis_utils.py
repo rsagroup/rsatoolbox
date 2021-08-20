@@ -17,9 +17,9 @@ We modified the MDS function to include an additional
 functionality of having an important matrix as an input.
 """
 
+import warnings
 import numpy as np
 from joblib import Parallel, delayed, effective_n_jobs
-import warnings
 from sklearn.base import BaseEstimator
 from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_random_state, check_array, check_symmetric
@@ -430,6 +430,11 @@ class Weighted_MDS(BaseEstimator):
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.dissimilarity_matrix_ = None
+        self.embedding_ = None
+        self.stress_ = None
+        self.n_iter_ = None
+        
 
     @property
     def _pairwise(self):

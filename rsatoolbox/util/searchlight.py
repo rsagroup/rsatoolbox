@@ -14,6 +14,7 @@ from rsatoolbox.data.dataset import Dataset
 from rsatoolbox.rdm.calc import calc_rdm
 from rsatoolbox.rdm import RDMs
 
+
 def _get_searchlight_neighbors(mask, center, radius=3):
     """Return indices for searchlight where distance
         between a voxel and their center < radius (in voxels)
@@ -109,15 +110,15 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
 
         centers (1D numpy array): center indices for all searchlights as provided
         by rsatoolbox.util.searchlight.get_volume_searchlight
-        
+
         neighbors (list): list of lists with neighbor voxel indices for all searchlights
         as provided by rsatoolbox.util.searchlight.get_volume_searchlight
-        
+
         events (1D numpy array): 1D array of length n_observations
-        
+
         method (str, optional): distance metric,
         see rsatoolbox.rdm.calc for options. Defaults to 'correlation'.
-        
+
         verbose (bool, optional): Defaults to True.
 
     Returns:
