@@ -221,12 +221,13 @@ class TestRDM(unittest.TestCase):
                         pattern_descriptors=pattern_des,
                         dissimilarity_measure=mes,
                         descriptors=des)
+
         def square(x):
             return x ** 2
+
         transformed_rdm = transform(rdms, square)
-        assert transformed_rdm.n_rdm == rdms.n_rdm
-        assert transformed_rdm.n_cond == rdms.n_cond
-        
+        self.assertEqual(transformed_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(transformed_rdm.n_cond, rdms.n_cond)
 
     def test_rank_transform(self):
         from rsatoolbox.rdm import rank_transform
@@ -241,8 +242,8 @@ class TestRDM(unittest.TestCase):
                         dissimilarity_measure=mes,
                         descriptors=des)
         rank_rdm = rank_transform(rdms)
-        assert rank_rdm.n_rdm == rdms.n_rdm
-        assert rank_rdm.n_cond == rdms.n_cond
+        self.assertEqual(rank_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(rank_rdm.n_cond, rdms.n_cond)
 
     def test_sqrt_transform(self):
         from rsatoolbox.rdm import sqrt_transform
@@ -257,8 +258,8 @@ class TestRDM(unittest.TestCase):
                         dissimilarity_measure=mes,
                         descriptors=des)
         sqrt_rdm = sqrt_transform(rdms)
-        assert sqrt_rdm.n_rdm == rdms.n_rdm
-        assert sqrt_rdm.n_cond == rdms.n_cond
+        self.assertEqual(sqrt_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(sqrt_rdm.n_cond, rdms.n_cond)
 
     def test_positive_transform(self):
         from rsatoolbox.rdm import positive_transform
@@ -273,8 +274,8 @@ class TestRDM(unittest.TestCase):
                         dissimilarity_measure=mes,
                         descriptors=des)
         pos_rdm = positive_transform(rdms)
-        assert pos_rdm.n_rdm == rdms.n_rdm
-        assert pos_rdm.n_cond == rdms.n_cond
+        self.assertEqual(pos_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(pos_rdm.n_cond, rdms.n_cond)
         assert np.all(pos_rdm.dissimilarities >= 0)
 
     def test_rdm_append(self):
@@ -289,7 +290,7 @@ class TestRDM(unittest.TestCase):
                         descriptors=des,
                         rdm_descriptors=rdm_des)
         rdms.append(rdms)
-        assert rdms.n_rdm == 16
+        self.assertEqual(rdms.n_rdm, 16)
 
     def test_concat(self):
         from rsatoolbox.rdm import concat
@@ -310,7 +311,7 @@ class TestRDM(unittest.TestCase):
                          descriptors=des,
                          rdm_descriptors=rdm_des)
         rdms = concat((rdms1, rdms2))
-        assert rdms.n_rdm == 16
+        self.assertEqual(rdms.n_rdm, 16)
         assert len(rdms.rdm_descriptors['session']) == 16
 
     def test_categorical_rdm(self):
