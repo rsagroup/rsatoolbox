@@ -27,6 +27,7 @@ from sklearn.isotonic import IsotonicRegression
 from scipy.spatial.distance import squareform
 from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
 
+
 def weight_to_matrices(x):
     """converts a *stack* of weights in vector or matrix form into matrix form
 
@@ -418,6 +419,7 @@ class Weighted_MDS(BaseEstimator):
     hypothesis" Kruskal, J. Psychometrika, 29, (1964)
 
     """
+
     def __init__(self, n_components=2, *, metric=True, n_init=4,
                  max_iter=300, verbose=0, eps=1e-3, n_jobs=None,
                  random_state=None, dissimilarity="euclidean"):
@@ -434,7 +436,6 @@ class Weighted_MDS(BaseEstimator):
         self.embedding_ = None
         self.stress_ = None
         self.n_iter_ = None
-        
 
     @property
     def _pairwise(self):
