@@ -62,11 +62,17 @@ def mds(rdms, dim=2, weight=None):
     return rdm_dimension_reduction(rdms, mds_emb, dim, weight)
 
 
-def show_mds(rdms: RDMs, pattern_descriptor: Optional[str]) -> Figure:
+def show_mds(
+        rdms: RDMs,
+        rdm_descriptor: Optional[str]=None,
+        pattern_descriptor: Optional[str]=None
+    ) -> Figure:
     """Draw a scatter plot based on Multi-dimensional scaling
 
     Args:
         rdms (RDMs): The RDMs object to display
+        rdm_descriptor: (Optional[str]): If provided, this will be used as
+            title for each individual RDM.
         pattern_descriptor (Optional[str]): If provided, the chosen pattern
             descriptor will be printed adjacent to each point in the plot
 
@@ -77,5 +83,6 @@ def show_mds(rdms: RDMs, pattern_descriptor: Optional[str]) -> Figure:
     return show_scatter(
         rdms,
         coords,
+        rdm_descriptor=rdm_descriptor,
         pattern_descriptor=pattern_descriptor
     )

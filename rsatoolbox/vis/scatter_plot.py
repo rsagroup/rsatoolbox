@@ -7,13 +7,20 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
 
-def show_scatter(rdms: RDMs, coords: NDArray, pattern_descriptor: Optional[str]) -> Figure:
+def show_scatter(
+        rdms: RDMs,
+        coords: NDArray,
+        rdm_descriptor: Optional[str]=None,
+        pattern_descriptor: Optional[str]=None,
+    ) -> Figure:
     """Draw a 2-dimensional scatter plot based on the provided coordinates
 
     Args:
         rdms (RDMs): The RDMs object to display
         coords (NDArray): Array of x and y coordinates for each
             pattern (patterns x 2)
+        rdm_descriptor: (Optional[str]): If provided, this will be used as
+            title for each individual RDM.
         pattern_descriptor (Optional[str]): If provided, the chosen pattern 
             descriptor will be printed adjacent to each point in the plot
 
@@ -23,6 +30,11 @@ def show_scatter(rdms: RDMs, coords: NDArray, pattern_descriptor: Optional[str])
     fig, ax = plt.subplots()
     ax.scatter(coords[0, :, 0], coords[0, :, 1])
 
+    ## RDM names
+    if rdm_descriptor is not None:
+        ax.set_title(rdms.rdm_descriptors[rdm_descriptor][0])
+
+    ## print labels next to dots
     if pattern_descriptor is not None:
         for p in range(coords.shape[1]):
             ax.annotate(
@@ -32,6 +44,6 @@ def show_scatter(rdms: RDMs, coords: NDArray, pattern_descriptor: Optional[str])
 
     ## turn off all axis ticks and labels
     ax.tick_params(axis='both', which='both', bottom=False, top=False,
-        right=False, left=False, labelbottom=False, labeltop=False, 
+        right=False, left=False, labelbottom=False, labeltop=False,
         labelleft=False, labelright=False)
     return fig
