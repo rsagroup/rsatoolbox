@@ -209,6 +209,26 @@ class TestRDM(unittest.TestCase):
             i += 1
         self.assertEqual(i, rdms.n_rdm)
 
+    def test_transform(self):
+        from rsatoolbox.rdm import transform
+        dis = np.random.rand(8, 10)
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+
+        def square(x):
+            return x ** 2
+
+        transformed_rdm = transform(rdms, square)
+        self.assertEqual(transformed_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(transformed_rdm.n_cond, rdms.n_cond)
+
     def test_rank_transform(self):
         from rsatoolbox.rdm import rank_transform
         dis = np.zeros((8, 10))
@@ -222,8 +242,41 @@ class TestRDM(unittest.TestCase):
                         dissimilarity_measure=mes,
                         descriptors=des)
         rank_rdm = rank_transform(rdms)
-        assert rank_rdm.n_rdm == rdms.n_rdm
-        assert rank_rdm.n_cond == rdms.n_cond
+        self.assertEqual(rank_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(rank_rdm.n_cond, rdms.n_cond)
+
+    def test_sqrt_transform(self):
+        from rsatoolbox.rdm import sqrt_transform
+        dis = np.zeros((8, 10))
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        sqrt_rdm = sqrt_transform(rdms)
+        self.assertEqual(sqrt_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(sqrt_rdm.n_cond, rdms.n_cond)
+
+    def test_positive_transform(self):
+        from rsatoolbox.rdm import positive_transform
+        dis = np.random.rand(8, 10) - 0.5
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        pos_rdm = positive_transform(rdms)
+        self.assertEqual(pos_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(pos_rdm.n_cond, rdms.n_cond)
+        assert np.all(pos_rdm.dissimilarities >= 0)
 
     def test_rdm_append(self):
         dis = np.zeros((8, 10))
@@ -237,7 +290,7 @@ class TestRDM(unittest.TestCase):
                         descriptors=des,
                         rdm_descriptors=rdm_des)
         rdms.append(rdms)
-        assert rdms.n_rdm == 16
+        self.assertEqual(rdms.n_rdm, 16)
 
     def test_concat(self):
         from rsatoolbox.rdm import concat
@@ -258,7 +311,7 @@ class TestRDM(unittest.TestCase):
                          descriptors=des,
                          rdm_descriptors=rdm_des)
         rdms = concat((rdms1, rdms2))
-        assert rdms.n_rdm == 16
+        self.assertEqual(rdms.n_rdm, 16)
         assert len(rdms.rdm_descriptors['session']) == 16
 
     def test_categorical_rdm(self):

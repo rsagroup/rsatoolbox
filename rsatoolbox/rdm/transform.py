@@ -21,7 +21,7 @@ def rank_transform(rdms, method='average'):
         rdms(RDMs): RDMs object
         method(String):
             controls how ranks are assigned to equal values
-            other options are: ‘average’, ‘min’, ‘max’, ‘dense’, ‘ordinal’
+            options are: ‘average’, ‘min’, ‘max’, ‘dense’, ‘ordinal’
 
     Returns:
         rdms_new(RDMs): RDMs object with rank transformed dissimilarities
@@ -81,6 +81,27 @@ def positive_transform(rdms):
     dissimilarities[dissimilarities < 0] = 0
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=rdms.dissimilarity_measure,
+                    descriptors=deepcopy(rdms.descriptors),
+                    rdm_descriptors=deepcopy(rdms.rdm_descriptors),
+                    pattern_descriptors=deepcopy(rdms.pattern_descriptors))
+    return rdms_new
+
+
+def transform(rdms, fun):
+    """ applies an arbitray function ``fun`` to the dissimilarities and
+    returns a new RDMs object.
+
+    Args:
+        rdms(RDMs): RDMs object
+
+    Returns:
+        rdms_new(RDMs): RDMs object with sqrt transformed dissimilarities
+
+    """
+    dissimilarities = rdms.get_vectors()
+    dissimilarities = fun(dissimilarities)
+    rdms_new = RDMs(dissimilarities,
+                    dissimilarity_measure='transformed ' + rdms.dissimilarity_measure,
                     descriptors=deepcopy(rdms.descriptors),
                     rdm_descriptors=deepcopy(rdms.rdm_descriptors),
                     pattern_descriptors=deepcopy(rdms.pattern_descriptors))

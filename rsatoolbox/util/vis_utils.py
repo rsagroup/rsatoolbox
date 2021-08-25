@@ -7,25 +7,26 @@
 
 @author: baihan
 
-Notice: 
+Notice:
 
-The functions of MDS in this module are modified from 
+The functions of MDS in this module are modified from
 the Python package scikit-learn, originally written by
-Nelle Varoquaux <nelle.varoquaux@gmail.com> under BSD 
-licence <https://en.wikipedia.org/wiki/BSD_licenses>. 
+Nelle Varoquaux <nelle.varoquaux@gmail.com> under BSD
+licence <https://en.wikipedia.org/wiki/BSD_licenses>.
 We modified the MDS function to include an additional
 functionality of having an important matrix as an input.
 """
 
+import warnings
 import numpy as np
 from joblib import Parallel, delayed, effective_n_jobs
-import warnings
 from sklearn.base import BaseEstimator
 from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_random_state, check_array, check_symmetric
 from sklearn.isotonic import IsotonicRegression
 from scipy.spatial.distance import squareform
 from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
+
 
 def weight_to_matrices(x):
     """converts a *stack* of weights in vector or matrix form into matrix form
@@ -230,8 +231,7 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
         computed in parallel.
 
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details.
+        ``-1`` means using all processors.
 
     max_iter : int, default=300
         Maximum number of iterations of the SMACOF algorithm for a single run.
@@ -329,8 +329,6 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
 class Weighted_MDS(BaseEstimator):
     """Multidimensional scaling with weighting options.
 
-    Read more in the :ref:`User Guide <multidimensional_scaling>`.
-
     Parameters
     ----------
     n_components : int, default=2
@@ -360,8 +358,7 @@ class Weighted_MDS(BaseEstimator):
         computed in parallel.
 
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details.
+        ``-1`` means using all processors.
 
     random_state : int, RandomState instance or None, default=None
         Determines the random number generator used to initialize the centers.
@@ -422,6 +419,7 @@ class Weighted_MDS(BaseEstimator):
     hypothesis" Kruskal, J. Psychometrika, 29, (1964)
 
     """
+
     def __init__(self, n_components=2, *, metric=True, n_init=4,
                  max_iter=300, verbose=0, eps=1e-3, n_jobs=None,
                  random_state=None, dissimilarity="euclidean"):
@@ -434,6 +432,10 @@ class Weighted_MDS(BaseEstimator):
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.dissimilarity_matrix_ = None
+        self.embedding_ = None
+        self.stress_ = None
+        self.n_iter_ = None
 
     @property
     def _pairwise(self):

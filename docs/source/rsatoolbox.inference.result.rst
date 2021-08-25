@@ -1,5 +1,5 @@
 rsatoolbox.inference.result module
-=============================
+==================================
 
 .. automodule:: rsatoolbox.inference.result
    :members:

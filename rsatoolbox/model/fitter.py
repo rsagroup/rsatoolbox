@@ -27,10 +27,17 @@ class Fitter:
 
     Example:
         generate Fitter-object for ridge regression:
+
+        ::
+
             fit = pyrsa.model.Fitter(pyrsa.model.fit_regress, ridge_weight=1)
+
         the resulting object 'fit' now does the same as
         pyrsa.model.fit_regress when run with the additional argument
-        ridge_weight=1, i.e. the following two lines now yield equal results:
+        ``ridge_weight=1``, i.e. the following two lines now yield equal results:
+
+        ::
+
             fit(model, data)
             pyrsa.model.fit_regress(model, data, ridge_weight=1)
 

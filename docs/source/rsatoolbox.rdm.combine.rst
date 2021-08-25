@@ -1,5 +1,5 @@
 rsatoolbox.rdm.combine module
-========================
+=============================
 
 .. automodule:: rsatoolbox.rdm.combine
    :members:
