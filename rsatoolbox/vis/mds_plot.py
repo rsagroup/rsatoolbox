@@ -6,11 +6,16 @@ integrations of additional plotting options)
 
 @author: baihan
 """
-
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import numpy as np
 from sklearn.manifold import MDS
 from rsatoolbox.util.vis_utils import weight_to_matrices, Weighted_MDS
-
+from rsatoolbox.vis.scatter_plot import show_scatter
+if TYPE_CHECKING:
+    from rsatoolbox.rdm import RDMs
+    from numpy.typing import NDArray
+    from matplotlib.figure import Figure
 sd = np.random.RandomState(seed=1)
 
 
@@ -48,10 +53,15 @@ def mds(rdms, dim=2, weight=None):
         **weight** (np.ndarray): an importance matrix for distances
 
     Returns:
-        (np.ndarray): an MDS embedding
+        (np.ndarray): an MDS embedding of shape (rdms, conds, dims)
     """
     emb = MDS if weight is None else Weighted_MDS
     mds_emb = emb(n_components=dim,
                   random_state=sd,
                   dissimilarity="precomputed")
     return rdm_dimension_reduction(rdms, mds_emb, dim, weight)
+
+
+def show_mds(rdms: RDMs) -> Figure:
+    coords = mds(rdms)
+    return show_scatter(rdms, coords)
