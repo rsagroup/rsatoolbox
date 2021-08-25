@@ -5,8 +5,9 @@ Definition of RSA Model family
 """
 import itertools
 import numpy as np
-from pyrsa.model import ModelWeighted
-from pyrsa.rdm import RDMs
+from .model import ModelWeighted
+from rsatoolbox.rdm import RDMs
+
 
 class ModelFamily():
     """Short summary.
@@ -31,6 +32,7 @@ class ModelFamily():
     models
 
     """
+
     def __init__(self, models):
         """Class initialization.
 
