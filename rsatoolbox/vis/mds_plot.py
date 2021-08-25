@@ -63,6 +63,16 @@ def mds(rdms, dim=2, weight=None):
 
 
 def show_mds(rdms: RDMs, pattern_descriptor: Optional[str]) -> Figure:
+    """Draw a scatter plot based on Multi-dimensional scaling
+
+    Args:
+        rdms (RDMs): The RDMs object to display
+        pattern_descriptor (Optional[str]): If provided, the chosen pattern
+            descriptor will be printed adjacent to each point in the plot
+
+    Returns:
+        Figure: A matplotlib figure in which the plot is drawn
+    """
     coords = mds(rdms)
     return show_scatter(
         rdms,

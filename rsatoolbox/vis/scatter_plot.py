@@ -8,6 +8,18 @@ if TYPE_CHECKING:
 
 
 def show_scatter(rdms: RDMs, coords: NDArray, pattern_descriptor: Optional[str]) -> Figure:
+    """Draw a 2-dimensional scatter plot based on the provided coordinates
+
+    Args:
+        rdms (RDMs): The RDMs object to display
+        coords (NDArray): Array of x and y coordinates for each
+            pattern (patterns x 2)
+        pattern_descriptor (Optional[str]): If provided, the chosen pattern 
+            descriptor will be printed adjacent to each point in the plot
+
+    Returns:
+        Figure: A matplotlib figure in which the plot is drawn
+    """
     fig, ax = plt.subplots()
     ax.scatter(coords[0, :, 0], coords[0, :, 1])
 
