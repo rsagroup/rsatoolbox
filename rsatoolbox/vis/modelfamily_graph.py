@@ -141,8 +141,9 @@ def show_family_graph(model_family, results, node_labels='presence',
     colors = [G[u][v]['color'] for u, v in edges]
     weights = [G[u][v]['weight'] for u, v in edges]
     if node_property == 'color':
-        nx.draw_networkx(G, labels=labeldict, with_labels=True, pos=pos, node_color=node_colors,
-                         edgelist=list(edges), edge_color=colors, width=weights, node_size=800, **kwargs)
+        nx.draw_networkx(
+            G, labels=labeldict, with_labels=True, pos=pos, node_color=node_colors,
+            edgelist=list(edges), edge_color=colors, width=weights, node_size=800, **kwargs)
         vmin = min(node_colors)
         vmax = max(node_colors)
         sm = plt.cm.ScalarMappable(norm=plt.Normalize(vmin=vmin, vmax=vmax), **kwargs)
@@ -151,5 +152,6 @@ def show_family_graph(model_family, results, node_labels='presence',
         cbar.set_label(method, rotation=270, size='x-large', labelpad=20)
         plt.show()
     elif node_property == 'area':
-        nx.draw_networkx(G, labels=labeldict, with_labels=True, pos=pos, node_size=node_sizes,
-                         edgelist=list(edges), edge_color=colors, width=weights, **kwargs)
+        nx.draw_networkx(
+            G, labels=labeldict, with_labels=True, pos=pos, node_size=node_sizes,
+            edgelist=list(edges), edge_color=colors, width=weights, **kwargs)

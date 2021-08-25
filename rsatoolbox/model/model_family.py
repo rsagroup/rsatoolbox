@@ -5,8 +5,8 @@ Definition of RSA Model family
 """
 import itertools
 import numpy as np
-from .model import ModelWeighted
 from rsatoolbox.rdm import RDMs
+from .model import ModelWeighted
 
 
 class ModelFamily():
