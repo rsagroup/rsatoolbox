@@ -8,8 +8,8 @@ Test for colors
 
 import unittest
 import numpy as np
-from pyrsa.vis.colors import color_scale
-from pyrsa.vis.colors import rdm_colormap
+from rsatoolbox.vis.colors import color_scale
+from rsatoolbox.vis.colors import rdm_colormap
 
 
 class ColorTests(unittest.TestCase):

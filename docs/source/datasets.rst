@@ -2,7 +2,7 @@
 
 Defining the data set
 =====================
-The first step in an RSA is to bring the data into the correct format. The PyRSA toolbox uses an own Class, ``rsa.dataset``. 
+The first step in an RSA is to bring the data into the correct format. The RSA toolbox uses an own Class, ``rsa.dataset``. 
 
 
 TODO: DESRIPTION AND EXAMPLE USUAGE OF DATASET SET OBJECT 
