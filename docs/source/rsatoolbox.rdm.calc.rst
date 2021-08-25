@@ -1,5 +1,5 @@
 rsatoolbox.rdm.calc module
-=====================
+==========================
 
 .. automodule:: rsatoolbox.rdm.calc
    :members:

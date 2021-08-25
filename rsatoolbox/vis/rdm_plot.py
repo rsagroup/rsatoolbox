@@ -79,11 +79,16 @@ def show_rdm(
             margin.  The default is 0.5 - set to 0. to disable the lines.
 
     Returns:
-        matplotlib.figure.Figure: Handle to created figure.
-        npt.ArrayLike: Subplot axis handles from plt.subplots.
-        collections.defaultdict: Nested dict containing handles to all other plotted
-            objects (icon labels, colorbars, etc). The keys at the first level are the
-            axis and figure handles.
+        Tuple[matplotlib.figure.Figure, npt.ArrayLike, collections.defaultdict]:
+
+        Tuple of
+
+            - Handle to created figure.
+            - Subplot axis handles from plt.subplots.
+            - Nested dict containing handles to all other plotted
+              objects (icon labels, colorbars, etc). The keys at the first level are the
+              axis and figure handles.
+
     """
 
     if show_colorbar and not show_colorbar in ("panel", "figure"):

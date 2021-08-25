@@ -1,5 +1,5 @@
 rsatoolbox.inference.evaluate module
-===============================
+====================================
 
 .. automodule:: rsatoolbox.inference.evaluate
    :members:

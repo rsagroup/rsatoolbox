@@ -6,7 +6,7 @@ Inference module utilities
 
 from collections.abc import Iterable
 import numpy as np
-import scipy.stats as stats
+from scipy import stats
 from scipy.stats import rankdata, wilcoxon
 from collections.abc import Iterable
 from rsatoolbox.model import Model
@@ -399,13 +399,16 @@ def extract_variances(variance, nc_included=True):
     the noise ceiling
 
     for 1D arrays we assume a diagonal covariance is meant
+
     for 2D arrays this is taken as the covariance of the model evals
+
     for 3D arrays we assume this is the result of a dual bootstrap and
-        perform the correction. Then there should be three covariances given
-        from double, rdm & pattern bootstrap in that order.
+    perform the correction. Then there should be three covariances given
+    from double, rdm & pattern bootstrap in that order.
 
     nc_included=True jields the result if the last two columns correspond
     to the noise ceiling results
+
     nc_included=False assumes that the noise ceiling is fixed instead.
     """
     if variance.ndim == 0:

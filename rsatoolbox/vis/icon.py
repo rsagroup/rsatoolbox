@@ -5,7 +5,7 @@ icon object which can be plotted into an axis
 """
 
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
+from matplotlib import cm
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox, DrawingArea
 import numpy as np
 import PIL
@@ -18,7 +18,8 @@ from rsatoolbox.util.pooling import pool_rdm
 
 
 class Icon:
-    """ Icon object, i.e. an object which can be plotted into an axis or as
+    """
+    Icon object, i.e. an object which can be plotted into an axis or as
     an axis label.
 
     Args:
@@ -27,45 +28,66 @@ class Icon:
             arrays and images should give the image directly
             RDMs takes the average RDM from the object
             If an Icon is passed its image property is used
+
         string (String)
             string to place on the icon
+
         color (color definition)
             background / border color
             default: None -> no border or background
+
         marker (matplotlib markertype)
             sets what kind of symbol to plot
+
         cmap (color map)
             color map applied to the image
+
         border_type (String)
-            None : default, puts the color as a background
-                where the alpha of the image is not 0
-            'pad' : pads the image with the border color -> square border
-            'conv' : extends the area by convolving with a circle
+
+            - None : default, puts the color as a background
+              where the alpha of the image is not 0
+
+            - 'pad' : pads the image with the border color -> square border
+
+            - 'conv' : extends the area by convolving with a circle
+
         border_width (integer)
             width of the border
+
         make_square (bool)
             if set to true the image is first reshaped into a square
+
         circ_cut (flag)
-            sets how the icon is cut into circular shape
-            None : default, no cutting
-            'cut' : sets alpha to 0 out of a circular aperture
-            'cosine' : sets alpha to a raised cosine window
-            a number between 0 and 1 : a tukey window with the flat proportion
-                of the aperture given by the number. For 0 this corresponds
-                to the cosine window, for 1 it corresponds to 'cut'.
-        resolution (1 or two numbers):
+            sets how the icon is cut into circular shape:
+
+            - None : default, no cutting
+
+            - 'cut' : sets alpha to 0 out of a circular aperture
+
+            - 'cosine' : sets alpha to a raised cosine window
+
+            - a number between 0 and 1 : a tukey window with the flat proportion
+              of the aperture given by the number. For 0 this corresponds
+              to the cosine window, for 1 it corresponds to 'cut'.
+
+        resolution (one or two numbers):
             sets a resolution for the icon to which the image is resized
             prior to all processing. If only one number is provided,
             the image is resized to a square with that size
+
         marker_front (bool):
             switches whether the marker is plotted in front or behind the
             image. If True the marker is plotted unfilled in front
             If False the marker is plotted behind the image filled.
+
             default = True
+
         font_size (float)
             size of any annotation text
+
         font_name (str):
             annotation font
+
         font_color (np.ndarray)
             font color for annotations
 

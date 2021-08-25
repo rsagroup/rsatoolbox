@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 Functions for data simulation a specific RSA-model
+
     make_design: creates design and condition vectors for fMRI design
+
     make_dataset: creates a data set based on an RDM model
+
 @author: jdiedrichsen
 """
 import numpy as np
@@ -88,7 +91,7 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     if signal_cov_channel is None:
         signal_chol_channel = None
     else:
-        if signal_cov_channel.shape is not (n_channel, n_channel):
+        if signal_cov_channel.shape != (n_channel, n_channel):
             raise ValueError("Signal covariance for channels needs to be \
                               n_channel x n_channel array")
         signal_chol_channel = np.linalg.cholesky(signal_cov_channel)
@@ -97,7 +100,7 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     if noise_cov_channel is None:
         noise_chol_channel = None
     else:
-        if noise_cov_channel.shape is not (n_channel, n_channel):
+        if noise_cov_channel.shape != (n_channel, n_channel):
             raise ValueError("noise covariance for channels needs to be \
                               n_channel x n_channel array")
         noise_chol_channel = np.linalg.cholesky(noise_cov_channel)
@@ -106,7 +109,7 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     if noise_cov_trial is None:
         noise_chol_trial = None
     else:
-        if noise_cov_trial.shape is not (n_channel, n_channel):
+        if noise_cov_trial.shape != (n_channel, n_channel):
             raise ValueError("noise covariance for trials needs to be \
                               n_obs x n_obs array")
         noise_chol_trial = np.linalg.cholesky(noise_cov_trial)

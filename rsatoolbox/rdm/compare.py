@@ -18,22 +18,32 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
+
         rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
-        method (string):
-            which method to use, options are:
+
+        method (string): which method to use, options are:
+
             'cosine' = cosine similarity
+
             'spearman' = spearman rank correlation
+
             'corr' = pearson correlation
+
             'kendall' = kendall-tau b
+
             'tau-a' = kendall-tau a
+
             'rho-a' = spearman correlation without tie correction
+
             'corr_cov' = pearson correlation after whitening
+
             'cosine_cov' = unbiased distance correlation
-                which is equivalent to the cosine dinstance after whitening
+            which is equivalent to the cosine dinstance after whitening
+
         sigma_k (numpy.ndarray):
-            covariance matrix of the pattern estimates
-            Used only for corr_cov and cosine_cov
+            covariance matrix of the pattern estimates.
+            Used only for methods 'corr_cov' and 'cosine_cov'.
 
     Returns:
         numpy.ndarray: dist:
@@ -193,14 +203,14 @@ def compare_kendall_tau(rdm1, rdm2):
     Kendall-tau b is the version, which corrects for ties.
     We here use the implementation from scipy.
 
-        Args:
-            rdm1 (rsatoolbox.rdm.RDMs):
-                first set of RDMs
-            rdm2 (rsatoolbox.rdm.RDMs):
-                second set of RDMs
-        Returns:
-            numpy.ndarray: dist:
-                kendall-tau correlation between the two RDMs
+    Args:
+        rdm1 (rsatoolbox.rdm.RDMs):
+            first set of RDMs
+        rdm2 (rsatoolbox.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            kendall-tau correlation between the two RDMs
     """
     vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
     sim = _all_combinations(vector1, vector2, _kendall_tau)
@@ -211,14 +221,14 @@ def compare_kendall_tau_a(rdm1, rdm2):
     """calculates the Kendall-tau a based distance between two RDMs objects.
     adequate when some models predict ties
 
-        Args:
-            rdm1 (rsatoolbox.rdm.RDMs):
-                first set of RDMs
-            rdm2 (rsatoolbox.rdm.RDMs):
-                second set of RDMs
-        Returns:
-            numpy.ndarray: dist:
-                kendall-tau a between the two RDMs
+    Args:
+        rdm1 (rsatoolbox.rdm.RDMs):
+            first set of RDMs
+        rdm2 (rsatoolbox.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            kendall-tau a between the two RDMs
     """
     vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
     sim = _all_combinations(vector1, vector2, _tau_a)
