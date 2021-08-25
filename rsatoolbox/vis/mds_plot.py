@@ -7,7 +7,7 @@ integrations of additional plotting options)
 @author: baihan
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 import numpy as np
 from sklearn.manifold import MDS
 from rsatoolbox.util.vis_utils import weight_to_matrices, Weighted_MDS
@@ -62,6 +62,10 @@ def mds(rdms, dim=2, weight=None):
     return rdm_dimension_reduction(rdms, mds_emb, dim, weight)
 
 
-def show_mds(rdms: RDMs) -> Figure:
+def show_mds(rdms: RDMs, pattern_descriptor: Optional[str]) -> Figure:
     coords = mds(rdms)
-    return show_scatter(rdms, coords)
+    return show_scatter(
+        rdms,
+        coords,
+        pattern_descriptor=pattern_descriptor
+    )
