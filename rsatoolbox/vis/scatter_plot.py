@@ -29,4 +29,9 @@ def show_scatter(rdms: RDMs, coords: NDArray, pattern_descriptor: Optional[str])
                 rdms.pattern_descriptors[pattern_descriptor][p],
                 (coords[0, p, 0], coords[0, p, 1])
             )
+
+    ## turn off all axis ticks and labels
+    ax.tick_params(axis='both', which='both', bottom=False, top=False,
+        right=False, left=False, labelbottom=False, labeltop=False, 
+        labelleft=False, labelright=False)
     return fig
