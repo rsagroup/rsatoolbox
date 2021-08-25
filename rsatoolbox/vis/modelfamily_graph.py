@@ -147,7 +147,6 @@ def show_family_graph(model_family, results, node_labels='presence',
         vmin = min(node_colors)
         vmax = max(node_colors)
         sm = plt.cm.ScalarMappable(norm=plt.Normalize(vmin=vmin, vmax=vmax), **kwargs)
-        sm._A = []
         cbar = plt.colorbar(sm)
         cbar.set_label(method, rotation=270, size='x-large', labelpad=20)
         plt.show()
