@@ -1,11 +1,11 @@
-***********************************************************
-Python Representational Similarity Analysis (PyRSA) toolbox
-***********************************************************
+****************************************************************
+Python Representational Similarity Analysis (rsatoolbox) toolbox
+****************************************************************
 
-The PyRSA toolbox is developed through a community effort by the labs of Nikolaus Kriegeskorte, Jörn Diedrichsen, Marieke Mur and Ian Charest. It was conceived during the RSA retreat 2019 in Blue Mountains, Ontario. The toolbox replaces the 2013 matlab version the toolbox of pyrsa previously at ilogue/pyrsa and reflects many of the new methodological developements. 
+The rsatoolbox is developed through a community effort by the labs of Nikolaus Kriegeskorte, Jörn Diedrichsen, Marieke Mur and Ian Charest. It was conceived during the RSA retreat 2019 in Blue Mountains, Ontario. The toolbox replaces the 2013 matlab version the toolbox of rsatoolbox previously at ilogue/rsatoolbox and reflects many of the new methodological developements.
 
 
-Documentation 
+Documentation
 =============
 
 .. toctree::
@@ -16,14 +16,14 @@ Documentation
    getting_started.rst
    datasets.rst
    distances.rst
-   model.rst
+   operations.rst
    comparing.rst
-   fitting.rst
+   model.rst
    inference.rst
    visualization.rst
    literature_cited.rst
    demos
-   pyrsa.rst
+   rsatoolbox.rst
 
 Indices and tables
 ==================
