@@ -332,7 +332,11 @@ class TestRDM(unittest.TestCase):
                          dissimilarity_measure=mes,
                          descriptors=des,
                          rdm_descriptors=rdm_des)
-        assert concat((rdms1, rdms2)) == concat(rdms1, rdms2)
+        rdm_c1 = concat((rdms1, rdms2))
+        rdm_c2 = concat(rdms1, rdms2)
+        self.assertEqual(rdm_c1.n_rdm, 16)
+        self.assertEqual(rdm_c2.n_rdm, 16)
+        assert_array_equal(rdm_c1.dissimilarities, rdm_c2.dissimilarities)
 
     def test_concat_varargs_one_rdm(self):
         from rsatoolbox.rdm import concat
@@ -346,7 +350,9 @@ class TestRDM(unittest.TestCase):
                         dissimilarity_measure=mes,
                         descriptors=des,
                         rdm_descriptors=rdm_des)
-        assert concat(rdms) == rdms
+        rdm_c1 = concat(rdms)
+        self.assertEqual(rdm_c1.n_rdm, 8)
+        assert_array_equal(rdm_c1.dissimilarities, rdms.dissimilarities)
 
     def test_categorical_rdm(self):
         from rsatoolbox.rdm import get_categorical_rdm

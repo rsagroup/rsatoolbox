@@ -502,7 +502,7 @@ def concat(*rdms):
             rdms_list = list(rdms[0])
     else:
         rdms_list = list(rdms)
-    rdm = rdms_list[0]
+    rdm = deepcopy(rdms_list[0])
     assert isinstance(rdm, RDMs), \
         'Supply list of RDMs objects, or RDMs objects as separate arguments'
     for rdm_new in rdms_list[1:]:
