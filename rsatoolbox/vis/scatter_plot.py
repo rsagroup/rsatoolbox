@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
+import math
 import matplotlib.pyplot
 import sklearn.manifold
 import numpy
@@ -32,30 +33,44 @@ def show_scatter(
     Returns:
         Figure: A matplotlib figure in which the plot is drawn
     """
-    fig, ax = matplotlib.pyplot.subplots()
-    ax.scatter(coords[0, :, 0], coords[0, :, 1])
-    ax.set_xlim(coords.min()*0.95, coords.max()*1.05)
-    ax.set_ylim(coords.min()*0.95, coords.max()*1.05)
+    frac, n = math.modf(math.sqrt(rdms.n_rdm))
+    nrows, ncols = math.floor(n), math.floor(n)
+    if frac > 0:
+        nrows += 1
+    if frac > 0.5:
+        ncols += 1
+    fig, axes = matplotlib.pyplot.subplots(nrows=nrows, ncols=ncols)
+    axes = numpy.array(axes)  ## it's now an array even if there's only one
+    for r, ax in enumerate(axes.ravel()):
 
-    ## RDM names
-    if rdm_descriptor is not None:
-        ax.set_title(rdms.rdm_descriptors[rdm_descriptor][0])
+        if r > (rdms.n_rdm - 1):
+            ## fewer rdms than rows x cols, hide the remaining axes
+            ax.axis('off')
+            break
 
-    ## print labels next to dots
-    if pattern_descriptor is not None:
-        for p in range(coords.shape[1]):
-            pat_desc = rdms.pattern_descriptors[pattern_descriptor][p]
-            pat_coords = (coords[0, p, 0], coords[0, p, 1])
-            if isinstance(pat_desc, Icon):
-                pat_desc.plot(pat_coords[0], pat_coords[1], ax=ax, size=0.1)
-            else:
-                label = ax.annotate(pat_desc, pat_coords)
-                label.set_alpha(.6)
+        ax.scatter(coords[r, :, 0], coords[r, :, 1])
+        ax.set_xlim(coords.min()*0.95, coords.max()*1.05)
+        ax.set_ylim(coords.min()*0.95, coords.max()*1.05)
 
-    ## turn off all axis ticks and labels
-    ax.tick_params(axis='both', which='both', bottom=False, top=False,
-        right=False, left=False, labelbottom=False, labeltop=False,
-        labelleft=False, labelright=False)
+        ## RDM names
+        if rdm_descriptor is not None:
+            ax.set_title(rdms.rdm_descriptors[rdm_descriptor][r])
+
+        ## print labels next to dots
+        if pattern_descriptor is not None:
+            for p in range(coords.shape[1]):
+                pat_desc = rdms.pattern_descriptors[pattern_descriptor][p]
+                pat_coords = (coords[r, p, 0], coords[r, p, 1])
+                if isinstance(pat_desc, Icon):
+                    pat_desc.plot(pat_coords[0], pat_coords[1], ax=ax, size=0.1)
+                else:
+                    label = ax.annotate(pat_desc, pat_coords)
+                    label.set_alpha(.6)
+
+        ## turn off all axis ticks and labels
+        ax.tick_params(axis='both', which='both', bottom=False, top=False,
+            right=False, left=False, labelbottom=False, labeltop=False,
+            labelleft=False, labelright=False)
     return fig
 
 def show_2d(
