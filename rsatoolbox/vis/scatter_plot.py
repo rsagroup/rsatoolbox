@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Optional
 import matplotlib.pyplot
 import sklearn.manifold
 import numpy
@@ -55,7 +55,7 @@ def show_scatter(
 
 def show_2d(
         rdms: RDMs,
-        method: Literal['MDS', 't-SNE', 'Isomap'],
+        method: str,
         weights: Optional[NDArray]=None,
         rdm_descriptor: Optional[str]=None,
         pattern_descriptor: Optional[str]=None
