@@ -1,9 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 import matplotlib.pyplot
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import sklearn.manifold
 import numpy
 from rsatoolbox.util.vis_utils import weight_to_matrices, Weighted_MDS
+from rsatoolbox.vis.icon import Icon
 if TYPE_CHECKING:
     from rsatoolbox.rdm import RDMs
     from numpy.typing import NDArray
@@ -33,6 +35,8 @@ def show_scatter(
     """
     fig, ax = matplotlib.pyplot.subplots()
     ax.scatter(coords[0, :, 0], coords[0, :, 1])
+    ax.set_xlim(coords.min()*0.95, coords.max()*1.05)
+    ax.set_ylim(coords.min()*0.95, coords.max()*1.05)
 
     ## RDM names
     if rdm_descriptor is not None:
@@ -41,11 +45,13 @@ def show_scatter(
     ## print labels next to dots
     if pattern_descriptor is not None:
         for p in range(coords.shape[1]):
-            label = ax.annotate(
-                rdms.pattern_descriptors[pattern_descriptor][p],
-                (coords[0, p, 0], coords[0, p, 1])
-            )
-            label.set_alpha(.6)
+            pat_desc = rdms.pattern_descriptors[pattern_descriptor][p]
+            pat_coords = (coords[0, p, 0], coords[0, p, 1])
+            if isinstance(pat_desc, Icon):
+                pat_desc.plot(pat_coords[0], pat_coords[1], ax=ax, size=0.1)
+            else:
+                label = ax.annotate(pat_desc, pat_coords)
+                label.set_alpha(.6)
 
     ## turn off all axis ticks and labels
     ax.tick_params(axis='both', which='both', bottom=False, top=False,
