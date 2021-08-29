@@ -74,9 +74,6 @@ def show_2d(
     Returns:
         Figure: A matplotlib figure in which the plot is drawn
     """
-    fitKwargs = dict()
-    if weights is not None:
-        fitKwargs['weight'] = weight_to_matrices(weights)
     if method == 'MDS':
         MDS = sklearn.manifold.MDS if weights is None else Weighted_MDS
         embedding = MDS(n_components=2, random_state=seed, dissimilarity='precomputed')
@@ -89,8 +86,10 @@ def show_2d(
     rdm_mats = rdms.get_matrices()
     coords = numpy.full((rdms.n_rdm, rdms.n_cond, 2), numpy.nan)
     for r in range(rdms.n_rdm):
+        fitKwargs = dict()
         if weights is not None:
-            coords[r, :, :] = embedding.fit_transform(rdm_mats[r, :, :], **fitKwargs)
+            fitKwargs['weight'] = weight_to_matrices(weights)[r, :, :]
+        coords[r, :, :] = embedding.fit_transform(rdm_mats[r, :, :], **fitKwargs)
     return show_scatter(
         rdms,
         coords,
