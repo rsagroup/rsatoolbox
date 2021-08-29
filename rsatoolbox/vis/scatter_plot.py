@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 import matplotlib.pyplot
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import sklearn.manifold
 import numpy
 from rsatoolbox.util.vis_utils import weight_to_matrices, Weighted_MDS
