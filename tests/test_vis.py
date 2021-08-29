@@ -23,7 +23,7 @@ class TestMDS(TestCase):
         des = {"session": 0, "subj": 0}
         rdms = rsr.RDMs(dissimilarities=dis, dissimilarity_measure=mes, descriptors=des)
         show_MDS(rdms)
-        coords = show_scatter.call_args.args[1]
+        coords = show_scatter.call_args[0][1]
         self.assertEqual(coords.shape, (8, 5, 2))
 
     @patch('rsatoolbox.vis.scatter_plot.show_scatter')
@@ -35,7 +35,7 @@ class TestMDS(TestCase):
         des = {"session": 0, "subj": 0}
         rdms = rsr.RDMs(dissimilarities=dis, dissimilarity_measure=mes, descriptors=des)
         show_MDS(rdms, weights=wes)
-        coords = show_scatter.call_args.args[1]
+        coords = show_scatter.call_args[0][1]
         self.assertEqual(coords.shape, (8, 5, 2))
 
     @patch('rsatoolbox.vis.scatter_plot.show_scatter')
@@ -47,9 +47,9 @@ class TestMDS(TestCase):
         des = {"session": 0, "subj": 0}
         rdms = rsr.RDMs(dissimilarities=dis, dissimilarity_measure=mes, descriptors=des)
         show_MDS(rdms)
-        mds_coords = show_scatter.call_args.args[1]
+        mds_coords = show_scatter.call_args[0][1]
         show_MDS(rdms, weights=wes)
-        wmds_coords = show_scatter.call_args.args[1]
+        wmds_coords = show_scatter.call_args[0][1]
         np.testing.assert_allclose(pdist(mds_coords[0]), pdist(wmds_coords[0]), atol=3e-1)
 
 

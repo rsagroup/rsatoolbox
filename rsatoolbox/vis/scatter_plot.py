@@ -96,7 +96,7 @@ def show_2d(
         rdm_descriptor=rdm_descriptor,
         pattern_descriptor=pattern_descriptor
     )
-    
+
 def show_MDS(
         rdms: RDMs,
         weights: Optional[NDArray]=None,
