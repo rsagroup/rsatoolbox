@@ -16,10 +16,10 @@ from matplotlib.gridspec import GridSpec
 from scipy.spatial.distance import squareform
 from scipy.special import comb
 
-from pyrsa.rdm import RDMs
-from pyrsa.util.matrix import square_category_binary_mask, \
+from rsatoolbox.rdm import RDMs
+from rsatoolbox.util.matrix import square_category_binary_mask, \
     square_between_category_binary_mask
-from pyrsa.util.rdm_utils import category_condition_idxs
+from rsatoolbox.util.rdm_utils import category_condition_idxs
 
 
 _Colour = Tuple[float, float, float]
