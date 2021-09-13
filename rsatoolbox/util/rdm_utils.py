@@ -119,9 +119,9 @@ def _parse_input_rdms(rdm1, rdm2):
     the two RDMs objects have different dimensions
 
     Args:
-        rdm1 (pyrsa.rdm.RDMs):
+        rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
+        rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
 
     """
@@ -170,7 +170,7 @@ def category_condition_idxs(rdms,
 
 
     Args:
-        rdms (pyrsa.rdm.RDMs):
+        rdms (rsatoolbox.rdm.RDMs):
             A reference RDM stack.
         category_selector (str or List[int]):
             Either: a string specifying the `rdms.pattern_descriptor` which
