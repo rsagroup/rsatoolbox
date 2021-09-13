@@ -94,7 +94,6 @@ def rdm_comparison_scatterplot(rdms,
     show_legend = _handle_args_legend(show_legend, highlight_categories)
 
     if colors is None and highlight_categories is not None:
-        # TODO: different colours
         colors = {
             highlight_category: _default_colour
             for highlight_category in highlight_categories
@@ -228,8 +227,8 @@ def _handle_args_rdms(rdms):
             rdms_x, rdms_y = rdms[0], rdms[1]
         assert len(rdms_x) > 0
         assert len(rdms_y) > 0
-    except TypeError:
-        raise ValueError(_msg_arg_rdms)
+    except TypeError as exc:
+        raise ValueError(_msg_arg_rdms) from exc
     except AssertionError as exc:
         raise ValueError(_msg_arg_rdms) from exc
     return rdms_x, rdms_y
@@ -474,7 +473,7 @@ def _get_within_category_idxs(
         n_cond: int) -> Dict[str, List[int]]:
 
     # category name -> [idxs]
-    idxs_within: Dict[str, List[int]] = dict()
+    idxs_within: Dict[str, List[int]] = {}
 
     for category_name in highlight_categories:
         # Get UTV binary mask for within-category dissims
@@ -491,7 +490,7 @@ def _get_within_category_idxs(
 def _get_between_category_idxs(category_idxs, highlight_categories, n_cond
                                ) -> Dict[frozenset, List[int]]:
     # {category1, category2} -> [idxs]
-    idxs_between: Dict[frozenset, List[int]] = dict()
+    idxs_between: Dict[frozenset, List[int]] = {}
     exhausted_categories = []
     for category_1_name in highlight_categories:
         for category_2_name in highlight_categories:
@@ -549,7 +548,7 @@ def _split_dissimilarities_within_between(
 def _colours_between_categories(highlight_categories, colours):
 
     # {category1, category2} -> colour
-    between_category_colours: Dict[frozenset, _Colour] = dict()
+    between_category_colours: Dict[frozenset, _Colour] = {}
 
     exhausted_categories = []
     for category_1_name in highlight_categories:
@@ -575,16 +574,15 @@ def _blend_rgb_colours(color, other_colour, method: str = "midpoint"):
             (color[1] + other_colour[1]) / 2,  # G
             (color[2] + other_colour[2]) / 2,  # B
         )
-    else:
-        raise NotImplementedError()
+    raise NotImplementedError()
 
 
-# TODO: this will go in the final Pull Request, it's just for local testing
+# TODO: this will be removed in the final Pull Request, it's just for local testing
 if __name__ == '__main__':
 
     import numpy as np
     from scipy.io import loadmat
-    from pyrsa.rdm import concat
+    from rsatoolbox.rdm import concat
 
     condition_descriptors = {
         'type': (["A"] * 23) + (["B"] * 23) + (["C"] * 46)
@@ -595,14 +593,14 @@ if __name__ == '__main__':
         '/Users/cai/Dox/Dev/pyrsa/pyrsa-caiw-hackathon-fork/'
         'demos/92imageData/92_brainRDMs.mat')['RDMs']
     n_rdms = len(matlab_data[0])
-    rdms = RDMs(np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
-                pattern_descriptors=condition_descriptors,
-                rdm_descriptors={'name': np.array([f"RDM{i}"
-                                                   for i in range(4)])}
-                )
+    rdms_ = RDMs(np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
+                 pattern_descriptors=condition_descriptors,
+                 rdm_descriptors={'name': np.array([f"RDM{i}"
+                                                    for i in range(4)])}
+                 )
 
-    rdms_a = concat([rdms[0], rdms[1]])
-    rdms_b = concat([rdms[2], rdms[3]])
+    rdms_a = concat([rdms_[0], rdms_[1]])
+    rdms_b = concat([rdms_[2], rdms_[3]])
 
     rdm_comparison_scatterplot((rdms_a, rdms_b),
                                show_marginal_distributions=True,
