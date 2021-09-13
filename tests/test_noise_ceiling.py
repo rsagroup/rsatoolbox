@@ -14,9 +14,9 @@ from parameterized import parameterized
 class TestNoiseCeiling(unittest.TestCase):
 
     def test_cv_noise_ceiling(self):
-        from pyrsa.inference import cv_noise_ceiling
-        from pyrsa.inference import sets_k_fold_rdm
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.inference import cv_noise_ceiling
+        from rsatoolbox.inference import sets_k_fold_rdm
+        from rsatoolbox.rdm import RDMs
         dis = np.random.rand(11, 10)  # 11 5x5 rdms
         mes = "Euclidean"
         des = {'subj': 0}
@@ -40,8 +40,8 @@ class TestNoiseCeiling(unittest.TestCase):
         ['corr'],
     ])
     def test_boot_noise_ceiling_runs_for_method(self, method):
-        from pyrsa.inference import boot_noise_ceiling
-        from pyrsa.rdm import RDMs
+        from rsatoolbox.inference import boot_noise_ceiling
+        from rsatoolbox.rdm import RDMs
         dis = np.random.rand(11, 10)  # 11 5x5 rdms
         mes = "Euclidean"
         des = {'subj': 0}
