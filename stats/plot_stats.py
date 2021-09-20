@@ -552,7 +552,7 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
         sns.despine(trim=True, offset=5)
 
         g9_m = sns.catplot(data=data_df, legend=False,
-                           x='sd', y='log-snr', hue='sigma_noise',
+                           x='sd', y='log-snr', hue='variation',
                            kind='point', ci='sd', palette='Greys', dodge=.2)
         g9_m.add_legend(
             frameon=False, title='noise std',
@@ -661,7 +661,7 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
 
         g8_m = sns.catplot(data=dat_both, col='boot_type', legend=False,
                            x='n_stim', y='std_relative', hue='n_subj',
-                           kind='point', ci='sd', palette='Blues', dodge=.2,
+                           kind='point', ci='sd', palette='Blues_d', dodge=.2,
                            order=[10, 20, 40, 80, 160])
         g8_m.axes[0, 0].plot([-0.3, 4.3], [1, 1], 'k--')
         g8_m.axes[0, 1].plot([-0.3, 4.3], [1, 1], 'k--')
@@ -672,8 +672,8 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                           facecolor='gray', zorder=-1, alpha=0.5)
         g8_m.axes[0, 1].add_patch(r)
         sns.despine(trim=True, offset=5)
-        g8_m.axes[0, 0].set_title('double-bootstrap, both varied')
-        g8_m.axes[0, 1].set_title('dual bootstrap, both varied')
+        g8_m.axes[0, 0].set_title('uncorrected\n two-factor bootstrap')
+        g8_m.axes[0, 1].set_title('corrected\n two-factor bootstrap')
         g8_m.add_legend(
             frameon=False, title='# of subjects',
             bbox_to_anchor=(1.0, 1.0), loc=2)
