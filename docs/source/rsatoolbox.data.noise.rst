@@ -1,5 +1,5 @@
 rsatoolbox.data.noise module
-=======================
+============================
 
 .. automodule:: rsatoolbox.data.noise
    :members:

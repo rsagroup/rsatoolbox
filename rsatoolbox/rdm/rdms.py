@@ -371,14 +371,26 @@ class RDMs:
 
         Pass keyword arguments that correspond to descriptors,
         with value indicating the sort type. Supported methods:
+
             'alpha': sort alphabetically (using np.sort)
+
             list/np.array: specify the new order explicitly. Values should
                 correspond to the descriptor values
 
-        Example:
-            Sorts the condition descriptor alphabetically:
+        Examples:
 
-            `rdms.sort(condition='alpha')`
+            The following code sorts the 'condition' descriptor alphabetically:
+
+            ::
+
+                rdms.sort_by(condition='alpha')
+
+            The following code sort the 'condition' descriptor in the order
+            1, 3, 2, 4, 5:
+
+            ::
+
+                rdms.sort_by(condition=[1, 3, 2, 4, 5])
 
         Raises:
             ValueError: Raised if the method chosen is not implemented
@@ -466,7 +478,7 @@ def load_rdm(filename, file_type=None):
     return rdms_from_dict(rdm_dict)
 
 
-def concat(rdms):
+def concat(*rdms):
     """ concatenates rdm objects
     requires that the rdms have the same shape
     descriptor and pattern descriptors are taken from the first rdms object
@@ -474,15 +486,24 @@ def concat(rdms):
     the rdm index is reinitialized
 
     Args:
-        rdms(list of rsatoolbox.rdm.RDMs): RDMs objects to be concatenated
+        rdms(iterable of pyrsa.rdm.RDMs): RDMs objects to be concatenated
+        or multiple RDMs as separate arguments
 
     Returns:
         rsatoolbox.rdm.RDMs: concatenated rdms object
 
     """
-    rdm = rdms[0]
-    assert isinstance(rdm, RDMs), 'rdms should be a list of RDMs objects'
-    for rdm_new in rdms[1:]:
+    if len(rdms) == 1:
+        if isinstance(rdms[0], RDMs):
+            rdms_list = [rdms[0]]
+        else:
+            rdms_list = list(rdms[0])
+    else:
+        rdms_list = list(rdms)
+    rdm = deepcopy(rdms_list[0])
+    assert isinstance(rdm, RDMs), \
+        'Supply list of RDMs objects, or RDMs objects as separate arguments'
+    for rdm_new in rdms_list[1:]:
         rdm.append(rdm_new)
     return rdm
 

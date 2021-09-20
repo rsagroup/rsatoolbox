@@ -1,5 +1,5 @@
 rsatoolbox.model.fitter module
-=========================
+==============================
 
 .. automodule:: rsatoolbox.model.fitter
    :members:

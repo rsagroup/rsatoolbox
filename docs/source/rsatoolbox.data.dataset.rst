@@ -1,5 +1,5 @@
 rsatoolbox.data.dataset module
-=========================
+==============================
 
 .. automodule:: rsatoolbox.data.dataset
    :members:

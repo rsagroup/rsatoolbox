@@ -6,6 +6,7 @@ from .rdms import rdms_from_dict
 from .transform import rank_transform
 from .transform import sqrt_transform
 from .transform import positive_transform
+from .transform import transform
 from .calc import calc_rdm
 from .calc import calc_rdm_movie
 from .calc import calc_rdm_euclid
@@ -20,3 +21,5 @@ from .compare import compare_cosine
 from .compare import compare_kendall_tau
 from .compare import compare_spearman
 from .compare import compare_rho_a
+from .compare import compare_correlation_cov_weighted
+from .compare import compare_cosine_cov_weighted
