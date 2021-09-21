@@ -11,9 +11,9 @@ import scipy.stats as sst
 from tqdm import tqdm
 import sys
 
-import pyrsa
-from pyrsa.util.inference_util import pair_tests
-from pyrsa.util.rdm_utils import batch_to_vectors
+import rsatoolbox
+from rsatoolbox.util.inference_util import pair_tests
+from rsatoolbox.util.rdm_utils import batch_to_vectors
 
 fs_small, fs, fs_large = 12, 18, 22
 fig_width, dpi = 10, 300
