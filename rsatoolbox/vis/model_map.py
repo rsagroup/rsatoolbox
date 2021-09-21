@@ -37,13 +37,13 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     significant deviations of the models from the data (noise floor).
 
     Args (All strings case insensitive):
-        result (pyrsa.inference.result.Result):
+        result (rsatoolbox.inference.result.Result):
             model evaluation result
-            result.models (list of pyrsa.model objects): the models in the
+            result.models (list of rsatoolbox.model objects): the models in the
                 order in which they were passed to the inference function to
                 produce the result argument. These need to be fixed RDM models.
                 (Flexible models will be handled in the near future.)
-        rdms_data (pyrsa.rdm.rdms.RDMs): single-subject data RDMs
+        rdms_data (rsatoolbox.rdm.rdms.RDMs): single-subject data RDMs
         RDM_dist_measure (string): measure used to express the 2nd-order
             distances among RDMs
             'cosine': cosine distance
@@ -256,7 +256,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
             'cosine distance '
             + '(proportional to squared Euclidean distance after RDM divisive normalizaton). ')
     else:
-        raise Exception('pyrsa.vis.map_model_comparison: result.method ' +
+        raise Exception('rsatoolbox.vis.map_model_comparison: result.method ' +
                         result.method + ' not yet handled.')
     inference_descr += 'Inter-RDM distances are mapped as '
     if RDM_dist_measure.lower() == 'corr':
@@ -369,7 +369,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                         bias_of_sq_data_model_dist))
         else:
             raise Exception(
-                'pyrsa.vis.map_model_comparison:'
+                'rsatoolbox.vis.map_model_comparison:'
                 + ' RDM comparison method must be "corr" or "cosine" for current implementation.')
 
     # DEBUG
@@ -701,7 +701,7 @@ def weighted_MDS(rdm_dists, n_weightings=1, n_MDS_runs=100):
     n_rdms = rdm_dists.shape[0]
     n_models = n_rdms - 1
     n_rdm_pairs = int((n_rdms**2 - n_rdms) / 2)
-    pyrsa_rdm_dists = pyrsa.rdm.RDMs(ssd.squareform(rdm_dists))
+    rdm_dists = rsatoolbox.rdm.RDMs(ssd.squareform(rdm_dists))
     rdm_dists_vec = ssd.squareform(rdm_dists)
 
     h = 1e2   # high weight assigned to model-data RDM distances
@@ -723,7 +723,7 @@ def weighted_MDS(rdm_dists, n_weightings=1, n_MDS_runs=100):
         for _ in tqdm(range(n_MDS_runs),
                               desc='{:.0f} of {:.0f}'.format(weighting_i + 1, n_weightings)):
             # perform weighted MDS
-            xy_try = pyrsa.vis.mds(pyrsa_rdm_dists, dim=2, weight=w)
+            xy_try = rsatoolbox.vis.mds(rdm_dists, dim=2, weight=w)
             xy_try = np.matrix(xy_try.squeeze())
             r_try = np.corrcoef(rdm_dists_vec, ssd.pdist(
                 xy_try, metric='euclidean'))[0, 1]
@@ -742,7 +742,7 @@ def weighted_MDS(rdm_dists, n_weightings=1, n_MDS_runs=100):
         w = w ** 0.9
 
     if r == 0:
-        raise Exception('pyrsa.vis.map_model_comparison:'
+        raise Exception('rsatoolbox.vis.map_model_comparison:'
                         + ' Could not find map that preserves model performance ranks.')
 
     # Center arrangement on the data RDM and orient the best model upward
