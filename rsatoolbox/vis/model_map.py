@@ -355,7 +355,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                     'Bootstrapping to estimate the bias of the squared data-model RDM distances...',
                     flush=True)
                 sys.stdout.flush()
-                for bootstrap_i in tqdm(range(n_bootstrap)):
+                for _ in tqdm(range(n_bootstrap)):
                     indices = np.random.choice(index_vals, N)
                     rdms_bs = rdms_data.dissimilarities[indices, :]
                     mean_rdm_bs = rdms_bs.mean(axis=0, keepdims=True)
@@ -608,7 +608,7 @@ def custom_MDS(rdm_dists, n_init=100, n_iter=500):
     two = 2  # minimizes sum(abs(errors)**two)
 
     # Run repeatedly with random initialization
-    for init_i in tqdm(range(n_init)):
+    for _ in tqdm(range(n_init)):
         locs2d = np.full((n_models + 1, 2), np.NaN)
         # place data RDM at the origin and the best model straight above it
         locs2d[0] = 0, 0
@@ -678,7 +678,7 @@ def place_model(model_i, locs2d, rdm_dists, n_scales=3, two=2):
     radius = rdm_dists[0, model_i + 1]
     start, stop = 0, 2 * np.pi
 
-    for scale_i in range(n_scales):
+    for _ in range(n_scales):
         angles = np.linspace(start, stop, n_angles)
         cand_locs = np.concatenate([np.sin(angles)[:, None], np.cos(angles)[:, None]], axis=1) \
             * radius
@@ -720,7 +720,7 @@ def weighted_MDS(rdm_dists, n_weightings=1, n_MDS_runs=100):
     n_weightings = 1
     print('Optimizing the mapping with weighted MDS...')
     for weighting_i in range(n_weightings):
-        for mds_run_i in tqdm(range(n_MDS_runs),
+        for _ in tqdm(range(n_MDS_runs),
                               desc='{:.0f} of {:.0f}'.format(weighting_i + 1, n_weightings)):
             # perform weighted MDS
             xy_try = pyrsa.vis.mds(pyrsa_rdm_dists, dim=2, weight=w)
