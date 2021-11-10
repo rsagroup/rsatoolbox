@@ -46,6 +46,8 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
             'cosine_cov' = unbiased distance correlation
             which is equivalent to the cosine dinstance after whitening
 
+            'neg_riem_dist' = negative riemannian distance
+
         sigma_k (numpy.ndarray):
             covariance matrix of the pattern estimates.
             Used only for methods 'corr_cov' and 'cosine_cov'.
@@ -71,6 +73,8 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
         sim = compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
     elif method == 'cosine_cov':
         sim = compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
+    elif method == 'riem_dist':
+        sim = compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=sigma_k)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
     return sim
