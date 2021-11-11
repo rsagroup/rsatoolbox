@@ -364,7 +364,6 @@ class TestDemos(unittest.TestCase):
         import os
         from scipy.io import loadmat
         import numpy as np
-        from matplotlib import pyplot
         from rsatoolbox.rdm import concat, RDMs
         from rsatoolbox.vis import rdm_comparison_scatterplot
         path = os.path.dirname(os.path.abspath(__file__))
