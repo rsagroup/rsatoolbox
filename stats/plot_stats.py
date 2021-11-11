@@ -7,6 +7,7 @@ Created on Mon Jun  1 22:29:52 2020
 """
 
 import os
+import pathlib
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
@@ -14,11 +15,12 @@ from matplotlib import rcParams
 import seaborn as sns
 import pandas as pd
 import scipy.stats
+from sklearn.manifold import MDS
+from sklearn.metrics import pairwise as dist
 from helpers import get_fname_base
 import rsatoolbox
-import pathlib
 import nn_simulations as dnn
-from helpers import get_stimuli_ecoset
+from helpers import get_stimuli_ecoset, get_fname_base, get_resname
 from stats import estimate_betas, get_residuals
 from allen_stats import _get_cells_list
 
@@ -422,6 +424,36 @@ def plot_eco(simulation_folder='sim_eco', variation='both', savefig=False):
             g9.fig.savefig('figures/std_std_stim_%s.pdf' % variation)
             g10.fig.savefig('figures/std_std_subj_%s.pdf' % variation)
             g11.fig.savefig('figures/std_std_rep_%s.pdf' % variation)
+
+
+def get_summary_stats(simulation_folder='sim_eco'):
+    labels = pd.read_csv(os.path.join(simulation_folder, 'labels.csv'))
+    means = np.load(os.path.join(simulation_folder, 'means.npy'))
+    stds = np.load(os.path.join(simulation_folder, 'stds.npy'))
+    idx_nan = ~np.any(np.isnan(means[:, :, 0]), axis=1)
+    labels = labels[list(idx_nan)]
+    means = means[idx_nan]
+    stds = stds[idx_nan]
+    m_true = np.array([means[i, :, min(l, 11)]
+                       for i, l in enumerate(np.array(labels['layer'], int))])
+    std_diff = np.array([stds[i, :, min(l, 11), min(l, 11)].reshape(-1, 1)
+                         + np.einsum('jkk->jk', stds[i])
+                         - 2 * stds[i, :, min(l, 11)] 
+                         for i, l in enumerate(np.array(labels['layer'], int))])
+    std_diff = np.sqrt(np.maximum(std_diff, 0))
+    m_diff = means - np.expand_dims(m_true, -1)
+    wrong_model = means > np.expand_dims(m_true, -1)
+    print('The true model performed worse than some other model:')
+    print('in %f %% of cases' %
+          (100 * np.sum(np.max(wrong_model,-1)) / np.prod(wrong_model.shape[:2])))
+    t_diff = m_diff / np.maximum(std_diff, 0.0001)
+    print('A significant result in the wrong direction occured:')
+    print('in %f %% of cases' %
+          (100 * np.sum(t_diff > scipy.stats.t.isf(0.025, 5))
+           / np.prod(t_diff.shape)))
+    print('and %f %% of cases with corrected 2 factor bootstrap' %
+          (100 * np.sum(t_diff[labels['boot_type'] == 'fancyboot'] > scipy.stats.t.isf(0.025, 5))
+           / np.prod(t_diff.shape)))
 
 
 def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
@@ -987,6 +1019,9 @@ def plot_metrics(simulation_folder='sim_metric', savefig=False):
 
 
 def plot_flex(simulation_folder='sim_flex', savefig=False):
+    # compute CI
+    std_expected = np.std(np.sqrt(scipy.stats.f(1000, 100).rvs(100000)))
+    CI = [1 - 2 * std_expected, 1 + 2 * std_expected]
     labels = pd.read_csv(os.path.join(simulation_folder, 'labels.csv'))
     means = np.load(os.path.join(simulation_folder, 'means.npy'))
     stds = np.load(os.path.join(simulation_folder, 'stds.npy'))
@@ -1038,6 +1073,68 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
     sns.set_context('paper', font_scale=1.5)
     sns.set_style("ticks", {"xtick.major.size": 8, "ytick.major.size": 8})
     sns.color_palette('muted')
+
+
+    f1 = plt.figure()
+    plt.plot(0, np.mean(data_df.loc[
+        (data_df['model_type'] == 'fixed_full') & (data_df['sd_fit'] == 0),'snr']),
+        '.', color=[.6,.6,0], markersize=9)
+    plt.plot(0, np.mean(data_df.loc[
+        (data_df['model_type'] == 'fixed_full') & (data_df['sd_fit'] == 0.05),'snr']),
+        '.', color=[.6,.6,0], markersize=14)
+    plt.plot(0, np.mean(data_df.loc[
+        (data_df['model_type'] == 'fixed_full') & (data_df['sd_fit'] == np.inf),'snr']),
+        '.', color=[.6,.6,0], markersize=20)
+    plt.plot(2, np.mean(data_df.loc[
+        (data_df['model_type'] == 'fixed_average') & (data_df['sd_fit'] == 0),'snr']),
+        '.', color=[.6,.6,1], markersize=9)
+    plt.plot(2, np.mean(data_df.loc[
+        (data_df['model_type'] == 'fixed_average') & (data_df['sd_fit'] == 0.05),'snr']),
+        '.', color=[.6,.6,1], markersize=14)
+    plt.plot(2, np.mean(data_df.loc[
+        (data_df['model_type'] == 'fixed_average') & (data_df['sd_fit'] == np.inf),'snr']),
+        '.', color=[.6,.6,1], markersize=20)
+    plt.plot(1, np.mean(data_df.loc[
+        (data_df['model_type'] == 'fixed_mean') & (data_df['sd_fit'] == 0), 'snr']),
+        '.', color=[.6,.6,.5], markersize=9)
+    plt.plot(1, np.mean(data_df.loc[
+        (data_df['model_type'] == 'fixed_mean') & (data_df['sd_fit'] == 0.05), 'snr']),
+        '.', color=[.6,.6,.5], markersize=14)
+    plt.plot(1, np.mean(data_df.loc[
+        (data_df['model_type'] == 'fixed_mean') & (data_df['sd_fit'] == np.inf), 'snr']),
+        '.', color=[.6,.6,.5], markersize=20)
+    plt.plot(4, np.mean(data_df.loc[
+        (data_df['model_type'] == 'select_full'),'snr']),
+        's', color=[.2,.2,0], markersize=10)
+    plt.plot(5, np.mean(data_df.loc[
+        (data_df['model_type'] == 'select_both'),'snr']),
+        's', color=[.2,.2,.4], markersize=10)
+    plt.plot(6, np.mean(data_df.loc[
+        (data_df['model_type'] == 'select_mean'), 'snr']),
+        's', color=[.2, .2, .7], markersize=10)
+    plt.plot(7, np.mean(data_df.loc[
+        (data_df['model_type'] == 'select_average'), 'snr']),
+        's', color=[.2, .2, 1], markersize=10)
+    plt.plot(9, np.mean(data_df.loc[
+        (data_df['model_type'] == 'weighted_avgfull'), 'snr']),
+        's', color=[.1, .1, .1], markersize=10)
+
+    plt.xlabel('model type')
+    plt.ylabel('signal to noise ratio')
+    plt.xticks(
+        [0, 1, 2, 4, 5, 6, 7, 9])
+    sns.despine(trim=True, offset=5)
+    plt.xticks(
+        [0, 1, 2, 4, 5, 6, 7, 9],
+        ['fixed: features',
+         'fixed: weighted',
+         'fixed: average',
+         'selection: features',
+         'selection: both',
+         'selection: weighted',
+         'selection: average',
+         'linear combination'], rotation=90)
+    
     g1 = sns.catplot(data=data_df, legend=False,
                      x='model_type', y='snr', hue='sd_fit',
                      kind='point', ci='sd', dodge=0,
@@ -1050,8 +1147,8 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
     g1.add_legend(
         frameon=False, title='assumed voxel size',
         bbox_to_anchor=(1.0, 1.0), loc=2)
-    g1.set_xlabels('model type')
-    g1.set_ylabels('signal to noise ratio')
+    plt.xlabel('model type')
+    plt.ylabel('signal to noise ratio')
     sns.despine(trim=True, offset=5)
     plt.xticks(
         [0, 1, 2, 4, 5, 6, 7, 9],
@@ -1144,25 +1241,50 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
     plt.plot([-0.5, 9.5], [1, 1], 'k--')
 
     plt.figure()
+    hue_order = ['fixed_full', 'fixed_mean', 'fixed_average',
+                 'select_full', 'select_both',
+                 'select_mean', 'select_average',
+                 'weighted_avgfull']
     g5 = sns.histplot(data=data_df, stat="count", multiple="stack",
-                      x='std_relative', hue='model_type')
+                      x='std_relative', hue='model_type',
+                      palette= 0.2 + 0.8 *np.array([
+                          [0.6, 0.6, 0],
+                          [0.6, 0.6, 0.5],
+                          [0.6, 0.6, 1],
+                          [0.2, 0.2, 0],
+                          [0.2, 0.2, 0.4],
+                          [0.2, 0.2, 0.7],
+                          [0.2, 0.2, 1],
+                          [0.1, 0.1, 0.1]
+                          ]),
+                     hue_order=hue_order,
+                     legend=False, alpha=1)
     plt.xticks([0.8, 0.9, 1, 1.1, 1.2, 1.3])
     plt.xlabel('Relative Uncertainty')
     sns.despine(trim=True, offset=5)
-    g5.legend(
-        ['f:f',
-         'f:a',
+    leg_str = ['f:f',
          'f:w',
+         'f:a',
          's:f',
-         's:a',
          's:b',
          's:w',
-         'lin'],
+         's:a',
+         'lin']
+    leg_str.reverse()
+    g5.legend(
+        leg_str,
         frameon=False, title='Model Type',
         bbox_to_anchor=(1.0, 0.5), loc=6)
+    plt.plot([1, 1], [0, 37], 'k--')
+    r = plt.Rectangle([CI[0], 0], CI[1]-CI[0], 37,
+                      facecolor='gray', zorder=-5, alpha=0.5)
+    g5.add_patch(r)
+    for child in g5.get_children():
+        child.set_zorder(1000)
+    r.set_zorder(0)
 
     if savefig:
-        g1.fig.savefig('figures/flex_snr.pdf', bbox_inches='tight')
+        f1.savefig('figures/flex_snr.pdf', bbox_inches='tight')
         g2.fig.savefig('figures/flex_true_perf.pdf', bbox_inches='tight')
         g3.fig.savefig('figures/flex_best.pdf', bbox_inches='tight')
         g4.fig.savefig('figures/flex_calibration.pdf', bbox_inches='tight')
@@ -1418,3 +1540,222 @@ def make_illustrations():
         ax.yaxis.set_ticks([])
         plt.tight_layout()
         plt.savefig(os.path.join(folder_out, 'timecourses_%d.pdf' % i_sub))
+
+
+def make_flex_illustration(i=0, layer_false=2,
+                           simulation_folder='sim_flex', show_labels=False,
+                           ecoset_path='~/ecoset/val/', save_fig=False):
+    layer_true = 8
+    # flex simulation settings
+    variation = 'both'
+    boot = 'fancy'
+    n_repeat = 4
+    n_stim = 40
+    n_vox = 100
+    n_subj = 20
+    sd = 0.05
+    smoothing = 0.05
+    sigma_noise = 1
+    rdm_type = 'crossnobis'
+    rdm_comparison = 'corr'
+    noise_type = 'residuals'
+    k_pattern = None
+    k_rdm = None
+    model_type = 'select_average'
+    # sim_eco defaults
+    duration = 1
+    pause = 1
+    endzeros = 25
+    resolution = 2
+    ar_coeff = 0.5
+    use_cor_noise = True
+    n_voxel = 100
+
+    ecoset_path = pathlib.Path(ecoset_path).expanduser()
+
+    fname_base = 'sim_flex/'
+    res_name = get_resname(boot, rdm_type, model_type,
+                           rdm_comparison, noise_type, n_stim,
+                           k_pattern, k_rdm, smoothing)
+    res_path = fname_base + res_name
+    model = dnn.get_default_model()
+
+    # get stimulus list
+    stim_list = []
+    f = open(os.path.join(fname_base, 'stim%04d.txt' % i))
+    stim_paths = f.read()
+    f.close()
+    stim_paths = stim_paths.split('\n')
+    stim_list = get_stimuli_ecoset(ecoset_path, stim_paths[:n_stim])
+    # Recalculate U_complete if necessary
+    U_complete = []
+    for i_stim in range(n_stim):
+        U_complete.append(
+            dnn.get_complete_representation(
+                model=model, layer=layer_true,
+                stimulus=stim_list[i_stim]))
+    U_shape = np.array(U_complete[0].shape)
+
+    # get sampling locations 
+    indices_space = np.load(fname_base + 'indices_space%04d.npy' % i)
+    weights = np.load(fname_base + 'weights%04d.npy' % i)
+    sigmaP = []
+    for i_subj in range(n_subj):
+        sigmaP_subj = dnn.get_sampled_sigmaP(
+            U_shape, indices_space[i_subj], weights[i_subj], [sd, sd])
+        sigmaP.append(sigmaP_subj)
+    sigmaP = np.array(sigmaP)
+
+    # extract new dnn activations
+    Utrue = []
+    for i_subj in range(n_subj):
+        Utrue_subj = [dnn.sample_representation(np.squeeze(U_c),
+                                                indices_space[i_subj],
+                                                weights[i_subj],
+                                                [sd, sd])
+                      for U_c in U_complete]
+        Utrue_subj = np.array(Utrue_subj)
+        Utrue_subj = Utrue_subj / np.sqrt(np.sum(Utrue_subj ** 2)) \
+            * np.sqrt(Utrue_subj.size)
+        Utrue.append(Utrue_subj)
+    Utrue = np.array(Utrue)
+
+    # run the fmri simulation
+    U = []
+    residuals = []
+    for i_subj in range(n_subj):
+        timecourses = []
+        Usamps = []
+        res_subj = []
+        for iSamp in range(n_repeat):
+            design = dnn.generate_design_random(
+                len(stim_list), repeats=1, duration=duration, pause=pause,
+                endzeros=endzeros)
+            if use_cor_noise:
+                timecourse = dnn.generate_timecourse(
+                    design, Utrue[i_subj],
+                    sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
+                    sigmaP=sigmaP[i_subj])
+            else:
+                timecourse = dnn.generate_timecourse(
+                    design, Utrue[i_subj],
+                    sigma_noise, resolution=resolution, ar_coeff=ar_coeff,
+                    sigmaP=None)
+            Usamp = estimate_betas(design, timecourse)
+            timecourses.append(timecourse)
+            Usamps.append(Usamp)
+            res_subj.append(get_residuals(design, timecourse, Usamp,
+                                          resolution=resolution))
+        res_subj = np.concatenate(res_subj, axis=0)
+        residuals.append(res_subj)
+        U.append(np.array(Usamps))
+    residuals = np.array(residuals)
+    U = np.array(U)
+
+    # calculate RDMs
+    data = []
+    desc = {'stim': np.tile(np.arange(n_stim), n_repeat),
+            'repeat': np.repeat(np.arange(n_repeat), n_stim)}
+    for i_subj in range(U.shape[0]):
+        u_subj = U[i_subj, :, :n_stim, :].reshape(n_repeat * n_stim,
+                                                  n_voxel)
+        data.append(rsatoolbox.data.Dataset(u_subj, obs_descriptors=desc))
+    if noise_type == 'eye':
+        noise = None
+    elif noise_type == 'residuals':
+        noise = rsatoolbox.data.prec_from_residuals(residuals)
+    rdms = rsatoolbox.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
+                                   cv_descriptor='repeat', noise=noise)
+    # get true U RDMs
+    dat_true = []
+    for i_subj in range(U.shape[0]):
+        dat_true.append(rsatoolbox.data.Dataset(Utrue[i_subj]))
+    rdms_true = rsatoolbox.rdm.calc_rdm(dat_true)
+
+    # calculate all rdms to put into mds
+    rdm_feat_8 = [dnn.get_true_RDM(model, layer_true, stim_list,
+                                   smoothing=sm, average=False)
+                  for sm in [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf]]
+    rdm_avg_8 = [dnn.get_true_RDM(model, layer_true, stim_list,
+                                  smoothing=sm, average=True)
+                 for sm in [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf]]
+    rdm_weighted_8 = [rsatoolbox.rdm.RDMs(3 * rdm1.get_vectors() + rdm2.get_vectors())
+                      for rdm1, rdm2 in zip(rdm_feat_8, rdm_avg_8)]
+    rdm_feat_2 = [dnn.get_true_RDM(model, layer_false, stim_list,
+                                   smoothing=sm, average=False)
+                  for sm in [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf]]
+    rdm_avg_2 = [dnn.get_true_RDM(model, layer_false, stim_list,
+                                  smoothing=sm, average=True)
+                 for sm in [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, np.inf]]
+    rdm_weighted_2 = [rsatoolbox.rdm.RDMs(3 * rdm1.get_vectors() + rdm2.get_vectors())
+                      for rdm1, rdm2 in zip(rdm_feat_2, rdm_avg_2)]
+    rdm_feat_8 = rsatoolbox.rdm.concat(rdm_feat_8)
+    rdm_avg_8 = rsatoolbox.rdm.concat(rdm_avg_8)
+    rdm_weighted_8 = rsatoolbox.rdm.concat(rdm_weighted_8)
+    rdm_feat_2 = rsatoolbox.rdm.concat(rdm_feat_2)
+    rdm_avg_2 = rsatoolbox.rdm.concat(rdm_avg_2)
+    rdm_weighted_2 = rsatoolbox.rdm.concat(rdm_weighted_2)
+    rdms_models = np.concatenate([
+        rdm_feat_8.get_vectors(), rdm_avg_8.get_vectors(), rdm_weighted_8.get_vectors(),
+        rdm_feat_2.get_vectors(), rdm_avg_2.get_vectors(), rdm_weighted_2.get_vectors()])
+    rdms_subj = rdms_true.get_vectors()
+    
+    rdms_all = np.concatenate([rdms_models, rdms_subj])
+    
+    dissimilarities = dist.cosine_distances(rdms_all)
+    
+    mds = MDS(dissimilarity='precomputed', random_state=1)
+    mds.fit(dissimilarities)
+    pos = mds.embedding_
+
+    angle = 1.25* np.pi
+    rot = np.array([[np.cos(angle), np.sin(angle)],
+                    [-np.sin(angle), np.cos(angle)]])
+    pos = pos @ rot
+
+    f_mds = plt.figure()
+    plt.plot(pos[:,0], pos[:,1], 'k.', markersize=5)
+    plt.axis('equal')
+    for i_size in range(8):
+        plt.plot(pos[i_size, 0], pos[i_size, 1], '.',
+                 markersize=2*i_size + 5, color=[0, 0.8, 0])
+        plt.plot(pos[i_size + 8, 0], pos[i_size + 8, 1], '.',
+                 markersize=2*i_size + 5, color=[0, 0.8, 1])
+        plt.plot(pos[i_size + 16, 0], pos[i_size + 16, 1], '.',
+                 markersize=2*i_size + 5, color=[0, 0.8, 0.5])
+        plt.plot(pos[i_size + 24, 0], pos[i_size + 24, 1], '.',
+                 markersize=2*i_size + 5, color=[0.8, 0, 0])
+        plt.plot(pos[i_size + 32, 0], pos[i_size + 32, 1], '.',
+                 markersize=2*i_size + 5, color=[0.8, 0, 1])
+        plt.plot(pos[i_size + 40, 0], pos[i_size + 40, 1], '.',
+                 markersize=2*i_size + 5, color=[0.8, 0, 0.5])
+    angle = 0.2
+    rot = np.array([[np.cos(angle), np.sin(angle)],
+                    [-np.sin(angle), np.cos(angle)]])
+    pos_rot = pos @ rot
+    if show_labels:
+        plt.annotate('feat %d' % layer_true, pos[7, :], pos_rot[7, :],
+                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     horizontalalignment='center', verticalalignment='center')
+        plt.annotate('avg %d' % layer_true, pos[15, :], pos_rot[15, :],
+                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     horizontalalignment='center', verticalalignment='center')
+        plt.annotate('weighted %d' % layer_true, pos[23, :], pos_rot[23, :],
+                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     horizontalalignment='center', verticalalignment='center')
+        plt.annotate('feat %d' % layer_false, pos[31, :], pos_rot[31, :],
+                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     horizontalalignment='center', verticalalignment='center')
+        plt.annotate('avg %d' % layer_false, pos[39, :], pos_rot[39, :],
+                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     horizontalalignment='center', verticalalignment='center')
+        plt.annotate('weighted %d' % layer_false, pos[47, :], pos_rot[47, :],
+                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     horizontalalignment='center', verticalalignment='center')
+    plt.axis('off')
+
+    if save_fig:
+        if isinstance(save_fig, str):
+            plt.savefig(save_fig, bbox_inches='tight')
+        else:
+            plt.savefig('figures/mds.pdf', bbox_inches='tight')
