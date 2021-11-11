@@ -6,13 +6,17 @@ For information on available file types see the meadows
 `documentation on downloads <https://meadows-research.com/documentation\
 /researcher/downloads/>`_.
 """
+from __future__ import annotations
 from os.path import basename
+from typing import TYPE_CHECKING, Dict, Union, Tuple, List
 import numpy
 from scipy.io import loadmat
 from rsatoolbox.rdm.rdms import RDMs
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
-def load_rdms(fpath, sort=True):
+def load_rdms(fpath: str, sort: bool=True) -> RDMs:
     """Read a Meadows results file and return any RDMs as an rsatoolbox object
 
     Args:
@@ -28,20 +32,12 @@ def load_rdms(fpath, sort=True):
         RDMs: All rdms found in the data file as an RDMs object
     """
     info = extract_filename_segments(fpath)
-    data = loadmat(fpath)
-    if info['participant_scope'] == 'single':
-        for var in ('stimuli', 'rdmutv'):
-            if var not in data:
-                raise ValueError(f'File missing variable: {var}')
-        utvs = data['rdmutv']
-        stimuli_fnames = data['stimuli']
-        pnames = [info['participant']]
+    if info['filetype'] == 'mat':
+        utvs, stimuli_fnames, pnames = load_rdms_comps_mat(fpath, info)
+    elif info['filetype'] == 'json':
+        utvs, stimuli_fnames, pnames = load_rdms_comps_mat(fpath, info)
     else:
-        stim_vars = [v for v in data.keys() if v[:7] == 'stimuli']
-        stimuli_fnames = data[stim_vars[0]]
-        pnames = ['-'.join(v.split('_')[1:]) for v in stim_vars]
-        utv_vars = ['rdmutv_' + p.replace('-', '_') for p in pnames]
-        utvs = numpy.squeeze(numpy.stack([data[v] for v in utv_vars]))
+        raise ValueError('Unsupported file type')
 
     desc_info_keys = (
         'participant',
@@ -62,7 +58,25 @@ def load_rdms(fpath, sort=True):
     return rdms
 
 
-def extract_filename_segments(fpath):
+def load_rdms_comps_mat(fpath, info) -> Tuple[NDArray, List[str], List[str]]:
+    data = loadmat(fpath)
+    if info['participant_scope'] == 'single':
+        for var in ('stimuli', 'rdmutv'):
+            if var not in data:
+                raise ValueError(f'File missing variable: {var}')
+        utvs = data['rdmutv']
+        stimuli_fnames = data['stimuli']
+        pnames = [info['participant']]
+    else:
+        stim_vars = [v for v in data.keys() if v[:7] == 'stimuli']
+        stimuli_fnames = data[stim_vars[0]]
+        pnames = ['-'.join(v.split('_')[1:]) for v in stim_vars]
+        utv_vars = ['rdmutv_' + p.replace('-', '_') for p in pnames]
+        utvs = numpy.squeeze(numpy.stack([data[v] for v in utv_vars]))
+    return utvs, stimuli_fnames, pnames
+
+
+def extract_filename_segments(fpath: str) -> Dict[str, Union[str, int]]:
     """Get information from the name of a downloaded results file
 
     Will determine:
