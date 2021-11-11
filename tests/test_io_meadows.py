@@ -108,3 +108,22 @@ class MeadowsIOTests(TestCase):
         self.assertEqual(info.get('filetype'), 'mat')
         self.assertIsNone(info.get('participant'))
         self.assertIsNone(info.get('task_index'))
+
+    def test_extract_filename_segments_1p_mt(self):
+        """Test interpretation of the filename of a Meadows results download
+
+        This case covers a filename for a single participant, multiple tasks,
+        downloaded in 2021.
+        """
+        from rsatoolbox.io.meadows import extract_filename_segments
+        fname = 'Meadows_myExp_v_v1_cuddly-bunny_tree.json'
+        info = extract_filename_segments(fname)
+        self.assertEqual(info.get('participant_scope'), 'single')
+        self.assertEqual(info.get('task_scope'), 'multiple')
+        self.assertEqual(info.get('participant'), 'cuddly-bunny')
+        self.assertIsNone(info.get('task_index'))
+        self.assertEqual(info.get('version'), '1')
+        self.assertEqual(info.get('experiment_name'), 'myExp')
+        self.assertEqual(info.get('structure'), 'tree')
+        self.assertEqual(info.get('filetype'), 'json')
+        self.assertIsNone(info.get('task_name'))

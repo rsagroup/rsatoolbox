@@ -9,11 +9,14 @@ For information on available file types see the meadows
 from __future__ import annotations
 from os.path import basename
 from typing import TYPE_CHECKING, Dict, Union, Tuple, List
+import json
+import petname
 import numpy
 from scipy.io import loadmat
 from rsatoolbox.rdm.rdms import RDMs
 if TYPE_CHECKING:
     from numpy.typing import NDArray
+    InfoDict = Dict[str, Union[str, int]]
 
 
 def load_rdms(fpath: str, sort: bool=True) -> RDMs:
@@ -33,9 +36,9 @@ def load_rdms(fpath: str, sort: bool=True) -> RDMs:
     """
     info = extract_filename_segments(fpath)
     if info['filetype'] == 'mat':
-        utvs, stimuli_fnames, pnames = load_rdms_comps_mat(fpath, info)
+        utvs, stimuli_fnames, pnames, tnames = load_rdms_comps_mat(fpath, info)
     elif info['filetype'] == 'json':
-        utvs, stimuli_fnames, pnames = load_rdms_comps_mat(fpath, info)
+        utvs, stimuli_fnames, pnames, tnames = load_rdms_comps_json(fpath, info)
     else:
         raise ValueError('Unsupported file type')
 
@@ -50,7 +53,7 @@ def load_rdms(fpath: str, sort: bool=True) -> RDMs:
         utvs,
         dissimilarity_measure='euclidean',
         descriptors={k: info[k] for k in desc_info_keys if k in info},
-        rdm_descriptors=dict(participants=pnames),
+        rdm_descriptors=dict(participants=pnames, tasks=tnames),
         pattern_descriptors=dict(conds=conds),
     )
     if sort:
@@ -58,7 +61,7 @@ def load_rdms(fpath: str, sort: bool=True) -> RDMs:
     return rdms
 
 
-def load_rdms_comps_mat(fpath, info) -> Tuple[NDArray, List[str], List[str]]:
+def load_rdms_comps_mat(fpath, info: InfoDict) -> Tuple[NDArray, List[str], List[str], List[str]]:
     data = loadmat(fpath)
     if info['participant_scope'] == 'single':
         for var in ('stimuli', 'rdmutv'):
@@ -67,16 +70,37 @@ def load_rdms_comps_mat(fpath, info) -> Tuple[NDArray, List[str], List[str]]:
         utvs = data['rdmutv']
         stimuli_fnames = data['stimuli']
         pnames = [info['participant']]
+        tnames = [str(info['task_index'])]
     else:
         stim_vars = [v for v in data.keys() if v[:7] == 'stimuli']
         stimuli_fnames = data[stim_vars[0]]
         pnames = ['-'.join(v.split('_')[1:]) for v in stim_vars]
         utv_vars = ['rdmutv_' + p.replace('-', '_') for p in pnames]
         utvs = numpy.squeeze(numpy.stack([data[v] for v in utv_vars]))
-    return utvs, stimuli_fnames, pnames
+        tnames = [info['task_name']]
+    return utvs, stimuli_fnames, pnames, tnames
 
 
-def extract_filename_segments(fpath: str) -> Dict[str, Union[str, int]]:
+def load_rdms_comps_json(fpath, info: InfoDict) -> Tuple[NDArray, List[str], List[str], List[str]]:
+    with open(fpath) as fhandle:
+        data = json.load(fhandle)
+    if info['participant_scope'] == 'single':
+        for var in ('stimuli', 'rdmutv'):
+            if var not in data:
+                raise ValueError(f'File missing variable: {var}')
+        utvs = numpy.asarray(data['rdmutv'])
+        stimuli_fnames = data['stimuli']
+        pnames = [info['participant']]
+    else:
+        stim_vars = [v for v in data.keys() if v[:7] == 'stimuli']
+        stimuli_fnames = data[stim_vars[0]]
+        pnames = ['-'.join(v.split('_')[1:]) for v in stim_vars]
+        utv_vars = ['rdmutv_' + p.replace('-', '_') for p in pnames]
+        utvs = numpy.squeeze(numpy.stack([data[v] for v in utv_vars]))
+    return utvs, stimuli_fnames, pnames, tnames
+
+
+def extract_filename_segments(fpath: str) -> InfoDict:
     """Get information from the name of a downloaded results file
 
     Will determine:
@@ -106,17 +130,31 @@ def extract_filename_segments(fpath: str) -> Dict[str, Union[str, int]]:
     fname, ext = basename(fpath).split('.')
     segments = fname.split('_')
     info = dict(
-        task_scope='single',
         version=segments[3].replace('v', ''),
         experiment_name=segments[1],
         structure=segments[-1],
         filetype=ext
     )
     if segments[-2].isdigit():
+        info['task_scope'] = 'single'
         info['participant_scope'] = 'single'
         info['participant'] = segments[-3]
         info['task_index'] = int(segments[-2])
+    elif is_petname(segments[-2]):
+        info['task_scope'] = 'multiple'
+        info['participant_scope'] = 'single'
+        info['participant'] = segments[-2]
     else:
+        info['task_scope'] = 'single'
         info['participant_scope'] = 'multiple'
         info['task_name'] = segments[-2]
     return info
+
+
+def is_petname(segment: str) -> bool:
+    if '-' in segment:
+        parts = segment.split('-')
+        if len(parts) == 2:
+            if parts[1] in petname.names:
+                return True
+    return False
