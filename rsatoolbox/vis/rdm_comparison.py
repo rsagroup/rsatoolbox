@@ -8,6 +8,7 @@ Created on 2020-09-17
 
 from typing import Tuple, List, Union, Dict, Optional
 
+import numpy as np
 from numpy import fill_diagonal, array
 from matplotlib import pyplot, rcParams
 from matplotlib.axes import Axes
@@ -575,44 +576,3 @@ def _blend_rgb_colours(color, other_colour, method: str = "midpoint"):
             (color[2] + other_colour[2]) / 2,  # B
         )
     raise NotImplementedError()
-
-
-# TODO: this will be removed in the final Pull Request, it's just for local testing
-if __name__ == '__main__':
-
-    import numpy as np
-    from scipy.io import loadmat
-    from rsatoolbox.rdm import concat
-
-    condition_descriptors = {
-        'type': (["A"] * 23) + (["B"] * 23) + (["C"] * 46)
-    }
-
-    matlab_data = loadmat(
-        # Replace with your toolbox location
-        '/Users/cai/Dox/Dev/pyrsa/pyrsa-caiw-hackathon-fork/'
-        'demos/92imageData/92_brainRDMs.mat')['RDMs']
-    n_rdms = len(matlab_data[0])
-    rdms_ = RDMs(np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
-                 pattern_descriptors=condition_descriptors,
-                 rdm_descriptors={'name': np.array([f"RDM{i}"
-                                                    for i in range(4)])}
-                 )
-
-    rdms_a = concat([rdms_[0], rdms_[1]])
-    rdms_b = concat([rdms_[2], rdms_[3]])
-
-    rdm_comparison_scatterplot((rdms_a, rdms_b),
-                               show_marginal_distributions=True,
-                               show_identity_line=True,
-                               show_legend=False,
-                               highlight_selector='type',
-                               highlight_categories=["A", "B", "C"],
-                               colors={
-                                   "A": (1, 0, 0),
-                                   "B": (0, 1, 0),
-                                   "C": (0, 0, 1),
-                               }
-                               )
-
-    pyplot.show()
