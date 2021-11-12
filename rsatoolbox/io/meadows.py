@@ -51,9 +51,6 @@ def load_rdms(fpath: str, sort: bool=True) -> RDMs:
     )
     conds = [f.split('.')[0] for f in stimuli]
 
-    # import pdb
-    # pdb.set_trace()
-
     rdm_descriptors = dict()
     rdm_descriptors['participant'] = pnames
     if tnames is not None:
@@ -64,7 +61,7 @@ def load_rdms(fpath: str, sort: bool=True) -> RDMs:
     rdms = RDMs(
         utvs,
         dissimilarity_measure='euclidean',
-        descriptors={k: info[k] for k in desc_info_keys if k in info},
+        descriptors=dict(experiment_name=info['experiment_name']),
         rdm_descriptors=rdm_descriptors,
         pattern_descriptors=dict(conds=conds),
     )

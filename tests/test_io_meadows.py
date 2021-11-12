@@ -17,9 +17,9 @@ class MeadowsIOTests(TestCase):
         fname = 'Meadows_myExp_v_v1_cuddly-bunny_3_1D.mat'
         fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
         rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=False)
-        self.assertEqual(rdms.descriptors.get('participant'), 'cuddly-bunny')
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
         self.assertEqual(rdms.rdm_descriptors.get('task_index'), [3])
+        self.assertEqual(rdms.rdm_descriptors.get('participant'), ['cuddly-bunny'])
         self.assertEqual(rdms.dissimilarity_measure, 'euclidean')
         conds = rdms.pattern_descriptors.get('conds')
         assert_array_equal(conds[:2], ['stim118', 'stim117'])
