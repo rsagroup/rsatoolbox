@@ -18,6 +18,7 @@ from rsatoolbox.rdm.rdms import RDMs
 if TYPE_CHECKING:
     from numpy.typing import NDArray
     InfoDict = Dict[str, Union[str, int]]
+    RdmsComps = Tuple[NDArray, List[str], List[str], List[str], List[int]]
 
 
 def load_rdms(fpath: str, sort: bool=True) -> RDMs:
@@ -45,7 +46,7 @@ def load_rdms(fpath: str, sort: bool=True) -> RDMs:
 
     conds = [f.split('.')[0] for f in stimuli]
 
-    rdm_descriptors = dict()
+    rdm_descriptors = {}
     rdm_descriptors['participant'] = pnames
     if tnames is not None:
         rdm_descriptors['task'] = tnames
@@ -64,7 +65,7 @@ def load_rdms(fpath: str, sort: bool=True) -> RDMs:
     return rdms
 
 
-def load_rdms_comps_mat(fpath: str, info: InfoDict) -> Tuple[NDArray, List[str], List[str], List[str], List[int]]:
+def load_rdms_comps_mat(fpath: str, info: InfoDict) -> RdmsComps:
     """Load rdms components from a Meadows mat file
 
     Args:
@@ -98,7 +99,7 @@ def load_rdms_comps_mat(fpath: str, info: InfoDict) -> Tuple[NDArray, List[str],
     return utvs, stimuli, pnames, tnames, tidx
 
 
-def load_rdms_comps_json(fpath: str, info: InfoDict) -> Tuple[NDArray, List[str], List[str], List[str], List[int]]:
+def load_rdms_comps_json(fpath: str, info: InfoDict) -> RdmsComps:
     """Load rdms components from a Meadows json file
 
     Args:
@@ -131,10 +132,10 @@ def load_rdms_comps_json(fpath: str, info: InfoDict) -> Tuple[NDArray, List[str]
     tnames = []
     tidx = []
     for t, task in enumerate(data['tasks']):
-        task_meta = task.get('task', dict())
-        if not task_meta['task_type'] == 'multiarrange':
+        task_meta = task.get('task', {})
+        if task_meta.get('task_type') != 'multiarrange':
             continue
-        
+
         task_stimuli = [s['name'] for s in task['stimuli']]
         if len(utvs) == 0:
             stimuli = task_stimuli
