@@ -10,6 +10,7 @@ from __future__ import annotations
 from os.path import basename
 from typing import TYPE_CHECKING, Dict, Union, Tuple, List
 import json
+import warnings
 import petname
 import numpy
 from scipy.io import loadmat
@@ -36,9 +37,9 @@ def load_rdms(fpath: str, sort: bool=True) -> RDMs:
     """
     info = extract_filename_segments(fpath)
     if info['filetype'] == 'mat':
-        utvs, stimuli_fnames, pnames, tnames = load_rdms_comps_mat(fpath, info)
+        utvs, stimuli, pnames, tnames, tidx = load_rdms_comps_mat(fpath, info)
     elif info['filetype'] == 'json':
-        utvs, stimuli_fnames, pnames, tnames = load_rdms_comps_json(fpath, info)
+        utvs, stimuli, pnames, tnames, tidx = load_rdms_comps_json(fpath, info)
     else:
         raise ValueError('Unsupported file type')
 
@@ -48,12 +49,23 @@ def load_rdms(fpath: str, sort: bool=True) -> RDMs:
         'task_name',
         'experiment_name'
     )
-    conds = [f.split('.')[0] for f in stimuli_fnames]
+    conds = [f.split('.')[0] for f in stimuli]
+
+    # import pdb
+    # pdb.set_trace()
+
+    rdm_descriptors = dict()
+    rdm_descriptors['participant'] = pnames
+    if tnames is not None:
+        rdm_descriptors['task'] = tnames
+    if tidx is not None:
+        rdm_descriptors['task_index'] = tidx
+
     rdms = RDMs(
         utvs,
         dissimilarity_measure='euclidean',
         descriptors={k: info[k] for k in desc_info_keys if k in info},
-        rdm_descriptors=dict(participants=pnames, tasks=tnames),
+        rdm_descriptors=rdm_descriptors,
         pattern_descriptors=dict(conds=conds),
     )
     if sort:
@@ -61,43 +73,66 @@ def load_rdms(fpath: str, sort: bool=True) -> RDMs:
     return rdms
 
 
-def load_rdms_comps_mat(fpath, info: InfoDict) -> Tuple[NDArray, List[str], List[str], List[str]]:
+def load_rdms_comps_mat(fpath, info: InfoDict) -> Tuple[NDArray, List[str], List[str], List[str], List[int]]:
     data = loadmat(fpath)
+    tidx = None
+    tnames = None
     if info['participant_scope'] == 'single':
         for var in ('stimuli', 'rdmutv'):
             if var not in data:
                 raise ValueError(f'File missing variable: {var}')
         utvs = data['rdmutv']
-        stimuli_fnames = data['stimuli']
+        stimuli = data['stimuli']
         pnames = [info['participant']]
-        tnames = [str(info['task_index'])]
+        tidx = [int(info['task_index'])]
     else:
         stim_vars = [v for v in data.keys() if v[:7] == 'stimuli']
-        stimuli_fnames = data[stim_vars[0]]
+        stimuli = data[stim_vars[0]]
         pnames = ['-'.join(v.split('_')[1:]) for v in stim_vars]
         utv_vars = ['rdmutv_' + p.replace('-', '_') for p in pnames]
         utvs = numpy.squeeze(numpy.stack([data[v] for v in utv_vars]))
-        tnames = [info['task_name']]
-    return utvs, stimuli_fnames, pnames, tnames
+        tnames = [info['task_name']] * len(pnames)
+    return utvs, stimuli, pnames, tnames, tidx
 
 
-def load_rdms_comps_json(fpath, info: InfoDict) -> Tuple[NDArray, List[str], List[str], List[str]]:
+def load_rdms_comps_json(fpath, info: InfoDict) -> Tuple[NDArray, List[str], List[str], List[str], List[int]]:
+    STIM_MISMATCH = 'Varying stimuli among ma tasks, only selecting matching'
+
+    if info['participant_scope'] == 'multiple':
+        raise ValueError('Multi-participant json files not supported yet')
+    if info['task_scope'] == 'single':
+        raise ValueError('Single-task json files not supported yet')
+
     with open(fpath) as fhandle:
         data = json.load(fhandle)
-    if info['participant_scope'] == 'single':
-        for var in ('stimuli', 'rdmutv'):
-            if var not in data:
-                raise ValueError(f'File missing variable: {var}')
-        utvs = numpy.asarray(data['rdmutv'])
-        stimuli_fnames = data['stimuli']
-        pnames = [info['participant']]
-    else:
-        stim_vars = [v for v in data.keys() if v[:7] == 'stimuli']
-        stimuli_fnames = data[stim_vars[0]]
-        pnames = ['-'.join(v.split('_')[1:]) for v in stim_vars]
-        utv_vars = ['rdmutv_' + p.replace('-', '_') for p in pnames]
-        utvs = numpy.squeeze(numpy.stack([data[v] for v in utv_vars]))
-    return utvs, stimuli_fnames, pnames, tnames
+
+    if not isinstance(data.get('tasks'), list):
+        raise ValueError('Unexpected structure in json file')
+
+    utvs = []
+    stimuli = []
+    tnames = []
+    tidx = []
+    for t, task in enumerate(data['tasks']):
+        task_meta = task.get('task', dict())
+        if not task_meta['task_type'] == 'multiarrange':
+            continue
+        
+        task_stimuli = [s['name'] for s in task['stimuli']]
+        if len(utvs) == 0:
+            stimuli = task_stimuli
+        else:
+            if stimuli != task_stimuli:
+                warnings.warn(STIM_MISMATCH)
+                continue
+
+        utvs.append(task['rdm'])
+        tnames.append(task_meta['name'])
+        tidx.append(t)
+
+    utvs = numpy.asarray(utvs)
+    pnames = [info['participant']] * len(tnames)
+    return utvs, stimuli, pnames, tnames, tidx
 
 
 def extract_filename_segments(fpath: str) -> InfoDict:
