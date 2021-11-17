@@ -434,6 +434,17 @@ def get_summary_stats(simulation_folder='sim_eco'):
     labels = labels[list(idx_nan)]
     means = means[idx_nan]
     stds = stds[idx_nan]
+    # exclude all variants with missmatch between simulated and fitted
+    # variance of interest
+    include = np.ones(labels.shape[0], np.bool)
+    # exclude no variation lines
+    include[labels.variation.isna()] = False
+    # exclude 'both' and 'fancy' as bootstrap
+    include[labels.boot_type == 'both'] = False
+    include[labels.boot_type == 'fancy'] = False
+    labels = labels[list(include)]
+    means = means[include]
+    stds = stds[include]
     m_true = np.array([means[i, :, min(l, 11)]
                        for i, l in enumerate(np.array(labels['layer'], int))])
     std_diff = np.array([stds[i, :, min(l, 11), min(l, 11)].reshape(-1, 1)
@@ -451,9 +462,28 @@ def get_summary_stats(simulation_folder='sim_eco'):
     print('in %f %% of cases' %
           (100 * np.sum(t_diff > scipy.stats.t.isf(0.025, 5))
            / np.prod(t_diff.shape)))
+    tdiff_2F = t_diff[labels['boot_type'] == 'fancyboot']
     print('and %f %% of cases with corrected 2 factor bootstrap' %
-          (100 * np.sum(t_diff[labels['boot_type'] == 'fancyboot'] > scipy.stats.t.isf(0.025, 5))
-           / np.prod(t_diff.shape)))
+          (100 * np.sum(tdiff_2F > scipy.stats.t.isf(0.025, 5))
+           / np.prod(tdiff_2F.shape)))
+    t_diff_best = []
+    # disregard layer 12 because then the true model was not among the tested models
+    for l in np.unique(labels['layer'])[:-1]: 
+        other_layers = np.setdiff1d(np.arange(12), l)
+        idx_best = other_layers[np.argmax(np.mean(np.mean(
+            means[labels['layer'] == l][:, :, other_layers], 0), 0))]
+        print('For true layer %d against layer %d:' % (l, idx_best))
+        t_diff_layer = t_diff[labels['layer'] == l, :, idx_best]
+        print('A significant result in the wrong direction occured:')
+        print('in %f %% of cases' %
+              (100 * np.sum(t_diff_layer > scipy.stats.t.isf(0.025, 5))
+               / np.prod(t_diff_layer.shape)))
+        t_diff_best.append(t_diff_layer)
+    t_diff_best = np.concatenate(t_diff_best)
+    print('Overall a significant test in favor of the best other model occured')
+    print('in %f %% of cases' %
+          (100 * np.sum(t_diff_best > scipy.stats.t.isf(0.025, 5))
+           / np.size(t_diff_best)))
 
 
 def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
