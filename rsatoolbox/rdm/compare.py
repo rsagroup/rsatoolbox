@@ -73,7 +73,7 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
         sim = compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
     elif method == 'cosine_cov':
         sim = compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
-    elif method == 'riem_dist':
+    elif method == 'neg_riem_dist':
         sim = compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=sigma_k)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
