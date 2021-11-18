@@ -35,7 +35,7 @@ def bool_index(descriptor, value):
     return index
 
 
-def num_index(descriptor, value):
+def num_index_slow(descriptor, value):
     """
     creates a boolean index vector where a descriptor has a value
 
@@ -58,6 +58,22 @@ def num_index(descriptor, value):
             if d == value:
                 index.append(j)
     return index
+
+
+def num_index(descriptor, value):
+    """
+    creates a boolean index vector where a descriptor has a value
+
+    Args:
+        descriptor (list-like): descriptor vector
+        value:                  value or list of values to mark
+
+    Returns:
+        numpy.ndarray:
+            bool_index: boolean index vector where descriptor == value
+
+    """
+    return np.where(bool_index(descriptor, value))[0]
 
 
 def format_descriptor(descriptors):
@@ -131,10 +147,11 @@ def subset_descriptor(descriptor, indices):
 
     """
     extracted_descriptor = {}
-    for k, v in descriptor.items():
-        if isinstance(indices, Iterable):
+    if isinstance(indices, Iterable):
+        for k, v in descriptor.items():
             extracted_descriptor[k] = [v[index] for index in indices]
-        else:
+    else:
+        for k, v in descriptor.items():
             extracted_descriptor[k] = [v[indices]]
     return extracted_descriptor
 
