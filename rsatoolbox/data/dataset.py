@@ -698,7 +698,7 @@ class TemporalDataset(Dataset):
         """
 
         time = get_unique_unsorted(self.time_descriptors[by])
-        sel_time = [t for t in time if t <= t_to and t >= t_from]
+        sel_time = [t for t in time if t_from <= t <= t_to]
 
         selection = num_index(self.time_descriptors[by], sel_time)
         measurements = self.measurements[:, :, selection]

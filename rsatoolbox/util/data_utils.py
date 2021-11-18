@@ -6,8 +6,8 @@ Collection of helper methods for data module
 @author: baihan
 """
 
-import numpy as np
 from collections.abc import Iterable
+import numpy as np
 
 
 def extract_dict(dictionary, indices):
