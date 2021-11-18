@@ -35,31 +35,6 @@ def bool_index(descriptor, value):
     return index
 
 
-def num_index_slow(descriptor, value):
-    """
-    creates a boolean index vector where a descriptor has a value
-
-    Args:
-        descriptor (list-like): descriptor vector
-        value:                  value or list of values to mark
-
-    Returns:
-        numpy.ndarray:
-            bool_index: boolean index vector where descriptor == value
-
-    """
-    index = []
-    if isinstance(value, (list, tuple, np.ndarray)):
-        for j, d in enumerate(descriptor):
-            if d in value:
-                index.append(j)
-    else:
-        for j, d in enumerate(descriptor):
-            if d == value:
-                index.append(j)
-    return index
-
-
 def num_index(descriptor, value):
     """
     creates a boolean index vector where a descriptor has a value
