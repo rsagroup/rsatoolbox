@@ -499,10 +499,10 @@ class TemporalDataset(Dataset):
         Returns:
             list of TemporalDataset, splitted by the selected obs_descriptor
         """
-        unique_values = get_unique_unsorted(self.obs_descriptors[by])
+        unique_values, inverse = get_unique_inverse(self.obs_descriptors[by])
         dataset_list = []
-        for v in unique_values:
-            selection = np.where(self.obs_descriptors[by] == v)[0]
+        for i_v, _ in enumerate(unique_values):
+            selection = np.where(inverse == i_v)[0]
             measurements = self.measurements[selection, :, :]
             descriptors = self.descriptors
             obs_descriptors = subset_descriptor(
@@ -528,10 +528,10 @@ class TemporalDataset(Dataset):
             list of TemporalDataset,
                 split by the selected channel_descriptor
         """
-        unique_values = get_unique_unsorted(self.channel_descriptors[by])
+        unique_values, inverse = get_unique_inverse(self.channel_descriptors[by])
         dataset_list = []
-        for v in unique_values:
-            selection = np.where(self.channel_descriptors[by] == v)[0]
+        for i_v, v in enumerate(unique_values):
+            selection = np.where(inverse == i_v)[0]
             measurements = self.measurements[:, selection, :]
             descriptors = self.descriptors.copy()
             descriptors[by] = v
