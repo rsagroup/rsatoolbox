@@ -54,7 +54,7 @@ def average_dataset_by(dataset, by):
     average = np.nan * np.empty(
         (len(unique_values), dataset.measurements.shape[1]))
     n_obs = np.nan * np.empty(len(unique_values))
-    for i_v, v in enumerate(unique_values):
+    for i_v, _ in enumerate(unique_values):
         measurements = dataset.measurements[inverse == i_v, :]
         average[i_v] = np.mean(measurements, axis=0)
         n_obs[i_v] = measurements.shape[0]
