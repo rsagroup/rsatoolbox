@@ -240,7 +240,8 @@ class Dataset(DatasetBase):
             dataset = Dataset(measurements=measurements,
                               descriptors=descriptors,
                               obs_descriptors=obs_descriptors,
-                              channel_descriptors=channel_descriptors)
+                              channel_descriptors=channel_descriptors,
+                              check_dims=False)
             dataset_list.append(dataset)
         return dataset_list
 
@@ -436,7 +437,7 @@ class TemporalDataset(Dataset):
 
     def __init__(self, measurements, descriptors=None,
                  obs_descriptors=None, channel_descriptors=None,
-                 time_descriptors=None):
+                 time_descriptors=None, check_dims=True):
 
         if measurements.ndim != 3:
             raise AttributeError(
@@ -453,18 +454,19 @@ class TemporalDataset(Dataset):
                 "there was no 'time' provided in dictionary time_descriptors"
                 "\n'time' will be set to (0, 1, ..., n_time-1)")
 
-        check_descriptor_length_error(obs_descriptors,
-                                      "obs_descriptors",
-                                      self.n_obs
-                                      )
-        check_descriptor_length_error(channel_descriptors,
-                                      "channel_descriptors",
-                                      self.n_channel
-                                      )
-        check_descriptor_length_error(time_descriptors,
-                                      "time_descriptors",
-                                      self.n_time
-                                      )
+        if check_dims:
+            check_descriptor_length_error(obs_descriptors,
+                                          "obs_descriptors",
+                                          self.n_obs
+                                          )
+            check_descriptor_length_error(channel_descriptors,
+                                          "channel_descriptors",
+                                          self.n_channel
+                                          )
+            check_descriptor_length_error(time_descriptors,
+                                          "time_descriptors",
+                                          self.n_time
+                                          )
         self.descriptors = parse_input_descriptor(descriptors)
         self.obs_descriptors = parse_input_descriptor(obs_descriptors)
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
@@ -514,7 +516,8 @@ class TemporalDataset(Dataset):
                 descriptors=descriptors,
                 obs_descriptors=obs_descriptors,
                 channel_descriptors=channel_descriptors,
-                time_descriptors=time_descriptors)
+                time_descriptors=time_descriptors,
+                check_dims=False)
             dataset_list.append(dataset)
         return dataset_list
 
@@ -544,7 +547,8 @@ class TemporalDataset(Dataset):
                 descriptors=descriptors,
                 obs_descriptors=obs_descriptors,
                 channel_descriptors=channel_descriptors,
-                time_descriptors=time_descriptors)
+                time_descriptors=time_descriptors,
+                check_dims=False)
             dataset_list.append(dataset)
         return dataset_list
 
@@ -574,7 +578,8 @@ class TemporalDataset(Dataset):
                 descriptors=descriptors,
                 obs_descriptors=obs_descriptors,
                 channel_descriptors=channel_descriptors,
-                time_descriptors=time_descriptors)
+                time_descriptors=time_descriptors,
+                check_dims=False)
             dataset_list.append(dataset)
         return dataset_list
 
