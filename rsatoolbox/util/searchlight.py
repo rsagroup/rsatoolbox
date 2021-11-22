@@ -10,6 +10,7 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
 from joblib import Parallel, delayed
+from rsatoolbox.util.data_utils import get_unique_unsorted
 from rsatoolbox.data.dataset import Dataset
 from rsatoolbox.rdm.calc import calc_rdm
 from rsatoolbox.rdm import RDMs
@@ -173,11 +174,90 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
         RDM = calc_rdm(center_data, method=method,
                        descriptor='events').dissimilarities
 
+    obs_descriptors = get_unique_unsorted(events)
     SL_rdms = RDMs(RDM,
+                   obs_descriptors=obs_descriptors,
                    rdm_descriptors={'voxel_index': centers},
                    dissimilarity_measure=method)
 
     return SL_rdms
+
+
+def get_searchlight_RDMs_parallel(data_2d, centers, neighbors, events,
+                                  method='correlation', verbose=0, n_jobs=1,
+                                  cv_descriptor=None):
+    """Iterates over all the searchlight centers and calculates the RDM
+
+    Args:
+
+        data_2d (2D numpy array): brain data,
+        shape n_observations x n_channels (i.e. voxels/vertices)
+
+        centers (1D numpy array): center indices for all searchlights as provided
+        by rsatoolbox.util.searchlight.get_volume_searchlight
+
+        neighbors (list): list of lists with neighbor voxel indices for all searchlights
+        as provided by rsatoolbox.util.searchlight.get_volume_searchlight
+
+        events (1D numpy array): 1D array of length n_observations
+
+        method (str, optional): distance metric,
+        see rsatoolbox.rdm.calc for options. Defaults to 'correlation'.
+
+        verbose (bool, optional): Defaults to True.
+
+    Returns:
+        RDM [rsatoolbox.rdm.RDMs]: RDMs object with the RDM for each searchlight
+                              the RDM.rdm_descriptors['voxel_index']
+                              describes the center voxel index each RDM is associated with
+    """
+    data_2d, centers = np.array(data_2d), np.array(centers)
+    n_centers = centers.shape[0]
+    iterator = _data_dist(data_2d, neighbors)
+    RDM = Parallel(n_jobs=n_jobs)(
+        delayed(_worker_fun_RDM)(
+            data, events=events, cv_desc=cv_descriptor, method=method)
+        for data in tqdm(iterator, desc='computing RDMs'))
+    pattern_descriptors = get_unique_unsorted(events)
+    SL_rdms = RDMs(RDM,
+                   pattern_descriptors= {'events':pattern_descriptors},
+                   rdm_descriptors={'voxel_index': centers},
+                   dissimilarity_measure=method)
+    return SL_rdms
+
+
+def _worker_fun_RDM(data, events, cv_desc, method):
+    if cv_desc is None:
+        ds = Dataset(data,
+                     obs_descriptors={'events': events})
+        cv_descriptor = None
+    else:
+        ds = Dataset(data,
+                     obs_descriptors={'events': events,
+                                      'runs': cv_desc})
+        cv_descriptor = 'runs'
+    RDM = calc_rdm(ds, method=method,
+                   descriptor='events', cv_descriptor=cv_descriptor).dissimilarities
+    return RDM
+
+
+class _data_dist:
+    """ implements the data distribution. This object contains the data and
+    neighbors only once and returns the different cuts of the data as if it
+    was the giant list of all search-light selections.
+    """
+
+    def __init__(self, data_2d, neighbors):
+        self.data_2d = data_2d.transpose()
+        self.neighbors = neighbors
+        assert len(self.neighbors) == self.data_2d.shape[0]
+
+    def __getitem__(self, index):
+        nb = self.neighbors[index]
+        return self.data_2d[nb].transpose()
+
+    def __len__(self):
+        return self.data_2d.shape[0]
 
 
 def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', theta=None, n_jobs=1):
@@ -198,7 +278,7 @@ def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', th
 
     Returns:
 
-        list: list of with the model evaluation for each searchlight center
+        list: list of the model evaluations for each searchlight center
     """
 
     results = Parallel(n_jobs=n_jobs)(
