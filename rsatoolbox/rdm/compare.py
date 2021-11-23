@@ -263,7 +263,7 @@ def compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=None):
     P = np.block([-1*np.ones((n_cond-1,1)),np.eye(n_cond-1)])
     sigma_k_hat = P@sigma_k@P.T
     # construct RDM to 2nd-moment (G) transformation
-    pairs = pairwise_contrast(np.arange(91))
+    pairs = pairwise_contrast(np.arange(n_cond-1))
     pairs[pairs==-1] = 1
     T = np.block([[np.eye(n_cond-1),np.zeros((n_cond-1,vector1.shape[1]-n_cond+1))],\
         [0.5*pairs,np.diag(-0.5*np.ones(vector1.shape[1]-n_cond+1))]])
