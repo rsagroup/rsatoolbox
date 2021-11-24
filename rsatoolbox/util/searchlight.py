@@ -10,6 +10,7 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
 from joblib import Parallel, delayed
+from joblib.externals.loky import set_loky_pickler
 from rsatoolbox.util.data_utils import get_unique_unsorted
 from rsatoolbox.data.dataset import Dataset
 from rsatoolbox.rdm.calc import calc_rdm
@@ -214,13 +215,15 @@ def get_searchlight_RDMs_parallel(data_2d, centers, neighbors, events,
     data_2d, centers = np.array(data_2d), np.array(centers)
     n_centers = centers.shape[0]
     iterator = _data_dist(data_2d, neighbors)
+    set_loky_pickler("pickle")
     RDM = Parallel(n_jobs=n_jobs)(
         delayed(_worker_fun_RDM)(
             data, events=events, cv_desc=cv_descriptor, method=method)
         for data in tqdm(iterator, desc='computing RDMs'))
+    set_loky_pickler()
     pattern_descriptors = get_unique_unsorted(events)
     SL_rdms = RDMs(RDM,
-                   pattern_descriptors= {'events':pattern_descriptors},
+                   pattern_descriptors= {'events': pattern_descriptors},
                    rdm_descriptors={'voxel_index': centers},
                    dissimilarity_measure=method)
     return SL_rdms
