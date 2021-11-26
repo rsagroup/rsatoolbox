@@ -106,7 +106,7 @@ def _covariance_full(matrix, dof):
     return np.einsum('ij, ik-> jk', matrix, matrix) / dof
 
 
-def _covariance_eye(matrix, dof, mem_threshold=(10**9)/8):
+def _covariance_eye(matrix, dof):
     """
     computes the sample covariance matrix from a 2d-array.
     matrix should be demeaned before!
@@ -121,12 +121,6 @@ def _covariance_eye(matrix, dof, mem_threshold=(10**9)/8):
         matrix (np.ndarray):
             n_conditions x n_channels
 
-        mem_threshold (scalar):
-            maximum number of entries for an intermediate array
-            if the intermediate array becomes too big the computation
-            switches to a less memory intensive loop
-            default 10**9/8, i.e. roughly 1GB
-
     Returns:
         numpy.ndarray, numpy.ndarray:
             s_mean: n_channels x n_channels sample covariance matrix
@@ -136,19 +130,14 @@ def _covariance_eye(matrix, dof, mem_threshold=(10**9)/8):
             of the 2d-array with itself
 
     """
-    if matrix.shape[0] * matrix.shape[1] * matrix.shape[1] < mem_threshold:
-        xt_x = np.einsum('ij, ik-> ijk', matrix, matrix)
-        s = np.mean(xt_x, axis=0)
-        b2 = np.sum((xt_x - s) ** 2) / xt_x.shape[0] / xt_x.shape[0]
-    else:
-        s_sum = np.zeros((matrix.shape[1], matrix.shape[1]))
-        s2_sum = np.zeros((matrix.shape[1], matrix.shape[1]))
-        for m_line in matrix:
-            xt_x = np.outer(m_line, m_line)
-            s_sum += xt_x
-            s2_sum += xt_x ** 2
-        s = s_sum / matrix.shape[0]
-        b2 = np.sum(s2_sum / matrix.shape[0] - s * s) / matrix.shape[0]
+    s_sum = np.zeros((matrix.shape[1], matrix.shape[1]))
+    s2_sum = np.zeros((matrix.shape[1], matrix.shape[1]))
+    for m_line in matrix:
+        xt_x = np.outer(m_line, m_line)
+        s_sum += xt_x
+        s2_sum += xt_x ** 2
+    s = s_sum / matrix.shape[0]
+    b2 = np.sum(s2_sum / matrix.shape[0] - s * s) / matrix.shape[0]
     # calculate the scalar estimators to find the optimal shrinkage:
     # m, d^2, b^2 as in Ledoit & Wolfe paper
     m = np.sum(np.diag(s)) / s.shape[0]
@@ -186,31 +175,19 @@ def _covariance_diag(matrix, dof, mem_threshold=(10**9)/8):
             of the 2d-array with itself
 
     """
-    if matrix.shape[0] * matrix.shape[1] * matrix.shape[1] < mem_threshold:
-        xt_x = np.einsum('ij, ik-> ijk', matrix, matrix)
-        s = np.mean(xt_x, axis=0)
-        s = s * xt_x.shape[0] / dof
-        var = np.diag(s)
-        std = np.sqrt(var)
-        xt_x_standard = xt_x / np.expand_dims(std, 0) / np.expand_dims(std, 1)
-        s_mean = np.mean(xt_x_standard, 0, keepdims=True)
-        var_hat = xt_x.shape[0] / dof ** 2 / (xt_x.shape[0] - 1) \
-            * np.sum((xt_x_standard - s_mean) ** 2, axis=0)
-        s_mean = s_mean[0]
-    else:
-        s_sum = np.zeros((matrix.shape[1], matrix.shape[1]))
-        s2_sum = np.zeros((matrix.shape[1], matrix.shape[1]))
-        for m_line in matrix:
-            xt_x = np.outer(m_line, m_line)
-            s_sum += xt_x
-            s2_sum += xt_x ** 2
-        s = s_sum / dof
-        var = np.diag(s)
-        std = np.sqrt(var)
-        s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / (matrix.shape[0] - 1)
-        s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / (matrix.shape[0] - 1)
-        var_hat = matrix.shape[0] / dof ** 2 \
-            * (s2_mean - s_mean ** 2)
+    s_sum = np.zeros((matrix.shape[1], matrix.shape[1]))
+    s2_sum = np.zeros((matrix.shape[1], matrix.shape[1]))
+    for m_line in matrix:
+        xt_x = np.outer(m_line, m_line)
+        s_sum += xt_x
+        s2_sum += xt_x ** 2
+    s = s_sum / dof
+    var = np.diag(s)
+    std = np.sqrt(var)
+    s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / (matrix.shape[0] - 1)
+    s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / (matrix.shape[0] - 1)
+    var_hat = matrix.shape[0] / dof ** 2 \
+        * (s2_mean - s_mean ** 2)
     mask = ~np.eye(s.shape[0], dtype=np.bool)
     lamb = np.sum(var_hat[mask]) / np.sum(s_mean[mask] ** 2)
     lamb = max(min(lamb, 1), 0)
@@ -262,7 +239,7 @@ def shrinkage_transform(s, xt_x, dof, target='eye'):
             switch to choose the shrinkage target
             'eye': multiple of the identity as a target. This is the simpler estimate
                 described by Ledoit and Wolfe
-            'diag': diagonal matrix as target. This is described by Schäfer & Strimmer. 
+            'diag': diagonal matrix as target. This is described by Schäfer & Strimmer.
                 results in a matrix with correct diagonal and shrunk off-diagonal values
 
     Returns:
