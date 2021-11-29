@@ -66,7 +66,7 @@ def _estimate_covariance(matrix, dof, method):
     elif method == 'shrinkage_diag':
         cov_mat = _covariance_diag(matrix, dof)
     elif method == 'diag':
-        cov_mat = _variance(matrix)
+        cov_mat = _variance(matrix, dof)
     elif method == 'full':
         cov_mat = _covariance_full(matrix, dof)
     return cov_mat
