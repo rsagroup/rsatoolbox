@@ -180,7 +180,7 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
     return SL_rdms
 
 
-def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', theta=None, n_jobs=1):
+def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', theta=None, n_jobs=1, returnNaN=False):
     """evaluates each searchlighth with the given model/models
 
     Args:
@@ -196,6 +196,8 @@ def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', th
 
         n_jobs (int, optional): how many jobs to run. Defaults to 1.
 
+        returnNaN (bool, optional): return NaN for patches with incompatible NaN
+
     Returns:
 
         list: list of with the model evaluation for each searchlight center
@@ -203,7 +205,7 @@ def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', th
 
     results = Parallel(n_jobs=n_jobs)(
         delayed(eval_function)(
-            models, x, method=method, theta=theta) for x in tqdm(
+            models, x, method=method, theta=theta, returnNaN) for x in tqdm(
             sl_RDM, desc='Evaluating models for each searchlight'))
 
     return results

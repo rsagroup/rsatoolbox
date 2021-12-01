@@ -229,7 +229,7 @@ def dual_bootstrap(models, data, method='cosine', fitter=None,
     return result
 
 
-def eval_fixed(models, data, theta=None, method='cosine'):
+def eval_fixed(models, data, theta=None, method='cosine', returnNaN=False):
     """evaluates models on data, without any bootstrapping or
     cross-validation
 
@@ -248,7 +248,7 @@ def eval_fixed(models, data, theta=None, method='cosine'):
                             data.n_rdm, -1)
     for k, model in enumerate(models):
         rdm_pred = model.predict_rdm(theta=theta[k])
-        evaluations[k] = compare(rdm_pred, data, method)
+        evaluations[k] = compare(rdm_pred, data, method, returnNaN)
     evaluations = evaluations.reshape((1, len(models), data.n_rdm))
     noise_ceil = boot_noise_ceiling(
         data, method=method, rdm_descriptor='index')
@@ -263,7 +263,7 @@ def eval_fixed(models, data, theta=None, method='cosine'):
 
 def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
                    pattern_descriptor='index', rdm_descriptor='index',
-                   boot_noise_ceil=True):
+                   boot_noise_ceil=True, returnNaN=False):
     """evaluates models on data
     performs bootstrapping to get a sampling distribution
 
@@ -294,7 +294,7 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_idx)
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample,
-                                                    method))
+                                                    method, returnNaN))
             if boot_noise_ceil:
                 noise_min_sample, noise_max_sample = boot_noise_ceiling(
                     sample, method=method, rdm_descriptor=rdm_descriptor)
@@ -323,7 +323,7 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
 
 def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
                            pattern_descriptor='index', rdm_descriptor='index',
-                           boot_noise_ceil=True):
+                           boot_noise_ceil=True, returnNaN=False):
     """evaluates a models on data
     performs bootstrapping over patterns to get a sampling distribution
 
@@ -354,7 +354,7 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
                 rdm_pred = rdm_pred.subsample_pattern(pattern_descriptor,
                                                       pattern_idx)
                 evaluations[i, j] = np.mean(compare(rdm_pred, sample,
-                                                    method))
+                                                    method, returnNaN))
             if boot_noise_ceil:
                 noise_min_sample, noise_max_sample = boot_noise_ceiling(
                     sample, method=method, rdm_descriptor=rdm_descriptor)
@@ -382,7 +382,7 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
 
 
 def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
-                       rdm_descriptor='index', boot_noise_ceil=True):
+                       rdm_descriptor='index', boot_noise_ceil=True, returnNaN=False):
     """evaluates models on data
     performs bootstrapping to get a sampling distribution
 
@@ -406,7 +406,7 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
         for j, mod in enumerate(models):
             rdm_pred = mod.predict_rdm(theta=theta[j])
             evaluations[i, j] = np.mean(compare(rdm_pred, sample,
-                                                method))
+                                                method, returnNaN))
         if boot_noise_ceil:
             noise_min_sample, noise_max_sample = boot_noise_ceiling(
                 sample, method=method, rdm_descriptor=rdm_descriptor)
@@ -431,7 +431,7 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
 
 
 def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
-             fitter=None, pattern_descriptor='index', calc_noise_ceil=True):
+             fitter=None, pattern_descriptor='index', calc_noise_ceil=True, returnNaN=False):
     """evaluates models on cross-validation sets
 
     Args:
@@ -473,7 +473,7 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
                 pred = model.predict_rdm(theta)
                 pred = pred.subsample_pattern(by=pattern_descriptor,
                                               value=test[1])
-                evals[j] = np.mean(compare(pred, test[0], method))
+                evals[j] = np.mean(compare(pred, test[0], method, returnNaN))
             if ceil_set is None and calc_noise_ceil:
                 noise_ceil.append(boot_noise_ceiling(
                     rdms.subsample_pattern(by=pattern_descriptor,
