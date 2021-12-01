@@ -12,7 +12,7 @@ from rsatoolbox.util.rdm_utils import _get_n_from_length
 from rsatoolbox.util.matrix import row_col_indicator_g
 
 
-def compare(rdm1, rdm2, method='cosine', sigma_k=None):
+def compare(rdm1, rdm2, method='cosine', sigma_k=None, returnNaN=False):
     """calculates the similarity between two RDMs objects using a chosen method
 
     Args:
@@ -45,33 +45,37 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
             covariance matrix of the pattern estimates.
             Used only for methods 'corr_cov' and 'cosine_cov'.
 
+        returnNaN :
+            If incompatible NaN's are found a NaN value is returned rather
+            than an error being raised
+
     Returns:
         numpy.ndarray: dist:
             pariwise similarities between the RDMs from the RDMs objects
 
     """
     if method == 'cosine':
-        sim = compare_cosine(rdm1, rdm2)
+        sim = compare_cosine(rdm1, rdm2, returnNaN)
     elif method == 'spearman':
-        sim = compare_spearman(rdm1, rdm2)
+        sim = compare_spearman(rdm1, rdm2, returnNaN)
     elif method == 'corr':
-        sim = compare_correlation(rdm1, rdm2)
+        sim = compare_correlation(rdm1, rdm2, returnNaN)
     elif method == 'kendall' or method == 'tau-b':
-        sim = compare_kendall_tau(rdm1, rdm2)
+        sim = compare_kendall_tau(rdm1, rdm2, returnNaN)
     elif method == 'tau-a':
-        sim = compare_kendall_tau_a(rdm1, rdm2)
+        sim = compare_kendall_tau_a(rdm1, rdm2, returnNaN)
     elif method == 'rho-a':
-        sim = compare_rho_a(rdm1, rdm2)
+        sim = compare_rho_a(rdm1, rdm2, returnNaN)
     elif method == 'corr_cov':
-        sim = compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
+        sim = compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=sigma_k, returnNaN)
     elif method == 'cosine_cov':
-        sim = compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
+        sim = compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=sigma_k, returnNaN)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
     return sim
 
 
-def compare_cosine(rdm1, rdm2):
+def compare_cosine(rdm1, rdm2, returnNaN):
     """calculates the cosine similarities between two RDMs objects
 
     Args:
@@ -84,12 +88,14 @@ def compare_cosine(rdm1, rdm2):
             cosine similarity between the two RDMs
 
     """
-    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2, returnNaN)
+    if np.isnan(vector1):
+        return np.NaN
     sim = _cosine(vector1, vector2)
     return sim
 
 
-def compare_correlation(rdm1, rdm2):
+def compare_correlation(rdm1, rdm2, returnNaN):
     """calculates the correlations between two RDMs objects
 
     Args:
@@ -102,7 +108,9 @@ def compare_correlation(rdm1, rdm2):
             correlations between the two RDMs
 
     """
-    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2, returnNaN)
+    if np.isnan(vector1):
+        return np.NaN
     # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
@@ -110,7 +118,7 @@ def compare_correlation(rdm1, rdm2):
     return sim
 
 
-def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
+def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None, returnNaN):
     """calculates the cosine similarities between two RDMs objects
 
     Args:
@@ -123,12 +131,14 @@ def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
             cosine similarities between the two RDMs
 
     """
-    vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2, returnNaN)
+    if np.isnan(vector1):
+        return np.NaN
     sim = _cosine_cov_weighted(vector1, vector2, sigma_k, nan_idx)
     return sim
 
 
-def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
+def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None, returnNaN):
     """calculates the correlations between two RDMs objects after whitening
     with the covariance of the entries
 
@@ -143,7 +153,9 @@ def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
             correlations between the two RDMs
 
     """
-    vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2, returnNaN)
+    if np.isnan(vector1):
+        return np.NaN
     # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
@@ -151,7 +163,7 @@ def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
     return sim
 
 
-def compare_spearman(rdm1, rdm2):
+def compare_spearman(rdm1, rdm2, returnNaN):
     """calculates the spearman rank correlations between
     two RDMs objects
 
@@ -165,7 +177,9 @@ def compare_spearman(rdm1, rdm2):
             rank correlations between the two RDMs
 
     """
-    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2, returnNaN)
+    if np.isnan(vector1):
+        return np.NaN
     vector1 = np.apply_along_axis(scipy.stats.rankdata, 1, vector1)
     vector2 = np.apply_along_axis(scipy.stats.rankdata, 1, vector2)
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
@@ -174,7 +188,7 @@ def compare_spearman(rdm1, rdm2):
     return sim
 
 
-def compare_rho_a(rdm1, rdm2):
+def compare_rho_a(rdm1, rdm2, returnNaN):
     """calculates the spearman rank correlations between
     two RDMs objects without tie correction
 
@@ -188,7 +202,9 @@ def compare_rho_a(rdm1, rdm2):
             rank correlations between the two RDMs
 
     """
-    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2, returnNaN)
+    if np.isnan(vector1):
+        return np.NaN
     vector1 = np.apply_along_axis(scipy.stats.rankdata, 1, vector1)
     vector2 = np.apply_along_axis(scipy.stats.rankdata, 1, vector2)
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
@@ -198,7 +214,7 @@ def compare_rho_a(rdm1, rdm2):
     return sim
 
 
-def compare_kendall_tau(rdm1, rdm2):
+def compare_kendall_tau(rdm1, rdm2, returnNaN):
     """calculates the Kendall-tau bs between two RDMs objects.
     Kendall-tau b is the version, which corrects for ties.
     We here use the implementation from scipy.
@@ -212,12 +228,14 @@ def compare_kendall_tau(rdm1, rdm2):
         numpy.ndarray: dist:
             kendall-tau correlation between the two RDMs
     """
-    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2, returnNaN)
+    if np.isnan(vector1):
+        return np.NaN
     sim = _all_combinations(vector1, vector2, _kendall_tau)
     return sim
 
 
-def compare_kendall_tau_a(rdm1, rdm2):
+def compare_kendall_tau_a(rdm1, rdm2, returnNaN):
     """calculates the Kendall-tau a based distance between two RDMs objects.
     adequate when some models predict ties
 
@@ -230,7 +248,9 @@ def compare_kendall_tau_a(rdm1, rdm2):
         numpy.ndarray: dist:
             kendall-tau a between the two RDMs
     """
-    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2, returnNaN)
+    if np.isnan(vector1):
+        return np.NaN
     sim = _all_combinations(vector1, vector2, _tau_a)
     return sim
 
@@ -517,7 +537,7 @@ def _get_v(n_cond, sigma_k):
     return v
 
 
-def _parse_input_rdms(rdm1, rdm2):
+def _parse_input_rdms(rdm1, rdm2, returnNaN=False):
     """Gets the vector representation of input RDMs, raises an error if
     the two RDMs objects have different dimensions
 
@@ -548,5 +568,8 @@ def _parse_input_rdms(rdm1, rdm2):
     vector1_no_nan = vector1[nan_idx].reshape(vector1.shape[0], -1)
     vector2_no_nan = vector2[~np.isnan(vector2)].reshape(vector2.shape[0], -1)
     if not vector1_no_nan.shape[1] == vector2_no_nan.shape[1]:
-        raise ValueError('rdm1 and rdm2 have different nan positions')
+        if returnNaN:
+            return np.NaN, np.NaN, np.NaN
+        else:
+            raise ValueError('rdm1 and rdm2 have different nan positions')
     return vector1_no_nan, vector2_no_nan, nan_idx[0]
