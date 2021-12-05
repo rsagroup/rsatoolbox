@@ -94,6 +94,32 @@ class TestCompareRDM(unittest.TestCase):
                                                   self.test_rdm2,
                                                   sigma_k=np.eye(6))
         assert np.all(result < 1)
+    
+    def test_compare_neg_riemannian_distance(self):
+        from rsatoolbox.rdm.compare import compare_neg_riemannian_distance
+        dataset1 = []
+        for i_subj in range(1):
+            dataset1.append(rsa.data.Dataset(np.random.rand(6, 20), descriptors={'subj':i_subj}))
+
+        dataset2 = []
+        for i_subj in range(5):
+            dataset2.append(rsa.data.Dataset(np.random.rand(6, 20), descriptors={'subj':i_subj}))
+
+        dataset3 = []
+        for i_subj in range(7):
+            dataset3.append(rsa.data.Dataset(np.random.rand(6, 20), descriptors={'subj':i_subj}))
+
+        rdms1 = rsa.rdm.calc_rdm(dataset1, method='euclidean')
+        rdms2 = rsa.rdm.calc_rdm(dataset2, method='euclidean')
+        rdms3 = rsa.rdm.calc_rdm(dataset3, method='euclidean')
+
+        result = compare_neg_riemannian_distance(rdms1, rdms1)
+        assert_array_almost_equal(result, 0)
+        result = compare_neg_riemannian_distance(rdms2, rdms3)
+        assert result.shape[0] == 5
+        assert result.shape[1] == 7
+        assert np.all(result < 0)
+
 
     def test_compare_corr_loop(self):
         from rsatoolbox.rdm.compare import compare_correlation
