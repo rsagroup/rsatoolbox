@@ -372,26 +372,34 @@ class TestNoiseComputations(unittest.TestCase):
     def test_cov(self):
         from rsatoolbox.data import cov_from_residuals
         cov = cov_from_residuals(self.residuals)
+        np.testing.assert_equal(cov.shape, [25, 25])
 
     def test_cov_list(self):
         from rsatoolbox.data import cov_from_residuals
         cov = cov_from_residuals(self.res_list)
+        assert len(cov) == 3
+        np.testing.assert_equal(cov[0].shape, [25, 25])
 
     def test_prec(self):
         from rsatoolbox.data import prec_from_residuals
         cov = prec_from_residuals(self.residuals)
+        np.testing.assert_equal(cov.shape, [25, 25])
 
     def test_prec_list(self):
         from rsatoolbox.data import prec_from_residuals
         cov = prec_from_residuals(self.res_list)
+        assert len(cov) == 3
+        np.testing.assert_equal(cov[0].shape, [25, 25])
 
     def test_unbalanced(self):
         from rsatoolbox.data import cov_from_unbalanced
         cov = cov_from_unbalanced(self.dataset, 'obs')
-        
+        np.testing.assert_equal(cov.shape, [25, 25])
+
     def test_dataset(self):
         from rsatoolbox.data import cov_from_measurements
         cov = cov_from_measurements(self.dataset, 'obs')
+        np.testing.assert_equal(cov.shape, [25, 25])
 
     def test_equal(self):
         from rsatoolbox.data import cov_from_measurements, cov_from_unbalanced

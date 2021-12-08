@@ -410,7 +410,7 @@ def cov_from_unbalanced(dataset, obs_desc, dof=None, method='shrinkage_diag'):
         assert obs_desc in dataset.obs_descriptors.keys(), \
             "obs_desc not contained in the dataset's obs_descriptors"
         matrix = dataset.measurements
-        means, values, counts = average_dataset_by(dataset, obs_desc)
+        means, values, _ = average_dataset_by(dataset, obs_desc)
         values, inverse = get_unique_inverse(dataset.obs_descriptors['obs'])
         matrix -= means[inverse]
         # calculate sample covariance matrix s
