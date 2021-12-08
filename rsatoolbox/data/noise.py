@@ -8,6 +8,8 @@ either the residuals (temporal based precision matrix) or of the measurements
 
 from collections.abc import Iterable
 import numpy as np
+from rsatoolbox.data import average_dataset_by
+from rsatoolbox.util.data_utils import get_unique_inverse
 
 
 def _check_demean(matrix):
@@ -31,9 +33,9 @@ def _check_demean(matrix):
         dof = matrix.shape[0] - 1
     elif matrix.ndim == 3:
         matrix -= np.mean(matrix, axis=2, keepdims=True)
+        dof = (matrix.shape[0] - 1) * matrix.shape[2]
         matrix = matrix.transpose(0, 2, 1).reshape(
             matrix.shape[0] * matrix.shape[2], matrix.shape[1])
-        dof = (matrix.shape[0] - 1) * matrix.shape[2]
     else:
         raise ValueError('Matrix for covariance estimation has wrong # of dimensions!')
     return matrix, dof
@@ -311,12 +313,25 @@ def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
         numpy.ndarray (or list): sigma_p: covariance matrix over channels
 
     """
-    assert "Dataset" in str(type(dataset)), "Provided object is not a dataset"
-    assert obs_desc in dataset.obs_descriptors.keys(), \
-        "obs_desc not contained in the dataset's obs_descriptors"
-    tensor, _ = dataset.get_measurements_tensor(obs_desc)
-    # calculate sample covariance matrix s
-    cov_mat = _estimate_covariance(tensor, dof, method)
+    if isinstance(dataset, Iterable):
+        cov_mat = []
+        for i, dat in enumerate(dataset):
+            if dof is None:
+                cov_mat.append(cov_from_unbalanced(
+                    dat, obs_desc=obs_desc, method=method))
+            elif isinstance(dof, Iterable):
+                cov_mat.append(cov_from_unbalanced(
+                    dat, obs_desc=obs_desc, method=method, dof=dof[i]))
+            else:
+                cov_mat.append(cov_from_unbalanced(
+                    dat, obs_desc=obs_desc, method=method, dof=dof))
+    else:
+        assert "Dataset" in str(type(dataset)), "Provided object is not a dataset"
+        assert obs_desc in dataset.obs_descriptors.keys(), \
+            "obs_desc not contained in the dataset's obs_descriptors"
+        tensor, _ = dataset.get_measurements_tensor(obs_desc)
+        # calculate sample covariance matrix s
+        cov_mat = _estimate_covariance(tensor, dof, method)
     return cov_mat
 
 
@@ -343,6 +358,91 @@ def prec_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag')
 
     """
     cov = cov_from_measurements(dataset, obs_desc, dof=dof, method=method)
+    if not isinstance(cov, np.ndarray):
+        prec = [None] * len(cov)
+        for i, cov_i in enumerate(cov):
+            prec[i] = np.linalg.inv(cov_i)
+    elif len(cov.shape) > 2:
+        prec = np.zeros(cov.shape)
+        for i, cov_i in enumerate(cov):
+            prec[i] = np.linalg.inv(cov_i)
+    else:
+        prec = np.linalg.inv(cov)
+    return prec
+
+
+def cov_from_unbalanced(dataset, obs_desc, dof=None, method='shrinkage_diag'):
+    """
+    Estimates a covariance matrix from an unbalanced dataset, i.e. from a
+    dataset that contains different numbers of samples for different
+    stimuli.
+
+    Args:
+        dataset(data.Dataset):
+            rsatoolbox Dataset object
+        dof(int or list of int): degrees of freedom for covariance estimation
+            defaults to n_measurements - n_stimuli, should be corrected
+            if this is not the case
+        method(str): which estimate to use:
+            'diag': provides a diagonal matrix, i.e. univariate noise normalizer
+            'full': computes the sample covariance without shrinkage
+            'shrinkage_eye': shrinks the data covariance towards a multiple of the identity.
+            'shrinkage_diag': shrinks the covariance matrix towards the diagonal covariance matrix.
+
+    Returns:
+        numpy.ndarray (or list): sigma_p: covariance matrix over channels
+
+    """
+    if isinstance(dataset, Iterable):
+        cov_mat = []
+        for i, dat in enumerate(dataset):
+            if dof is None:
+                cov_mat.append(cov_from_unbalanced(
+                    dat, obs_desc=obs_desc, method=method))
+            elif isinstance(dof, Iterable):
+                cov_mat.append(cov_from_unbalanced(
+                    dat, obs_desc=obs_desc, method=method, dof=dof[i]))
+            else:
+                cov_mat.append(cov_from_unbalanced(
+                    dat, obs_desc=obs_desc, method=method, dof=dof))
+    else:
+        assert "Dataset" in str(type(dataset)), "Provided object is not a dataset"
+        assert obs_desc in dataset.obs_descriptors.keys(), \
+            "obs_desc not contained in the dataset's obs_descriptors"
+        matrix = dataset.measurements
+        means, values, counts = average_dataset_by(dataset, obs_desc)
+        values, inverse = get_unique_inverse(dataset.obs_descriptors['obs'])
+        matrix -= means[inverse]
+        # calculate sample covariance matrix s
+        if dof is None:
+            dof = matrix.shape[0] - len(values)
+        cov_mat = _estimate_covariance(matrix, dof, method)
+    return cov_mat
+
+
+def prec_from_unbalanced(dataset, obs_desc, dof=None, method='shrinkage_diag'):
+    """
+    Estimates the covariance matrix from measurements and finds its multiplicative
+    inverse (= the precision matrix)
+    Use 'method' to choose which estimation method is used.
+
+    Args:
+        residuals(numpy.ndarray or list of these): n_residuals x n_channels
+            matrix of residuals
+        dof(int or list of int): degrees of freedom for covariance estimation
+            defaults to n_res - 1, should be corrected for the number
+            of regressors in a GLM if applicable.
+        method(str): which estimate to use:
+            'diag': provides a diagonal matrix, i.e. univariate noise normalizer
+            'full': computes the sample covariance without shrinkage
+            'shrinkage_eye': shrinks the data covariance towards a multiple of the identity.
+            'shrinkage_diag': shrinks the covariance matrix towards the diagonal covariance matrix.
+
+    Returns:
+        numpy.ndarray (or list): sigma_p: precision matrix over channels
+
+    """
+    cov = cov_from_unbalanced(dataset, obs_desc, dof=dof, method=method)
     if not isinstance(cov, np.ndarray):
         prec = [None] * len(cov)
         for i, cov_i in enumerate(cov):
