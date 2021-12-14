@@ -513,7 +513,6 @@ def _kendall_tau(vector1, vector2):
     return tau
 
 
-
 def _tau_a(vector1, vector2):
     """computes kendall-tau a between two vectors
     based on modifying scipy.stats.kendalltau
