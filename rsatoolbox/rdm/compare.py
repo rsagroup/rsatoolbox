@@ -246,7 +246,7 @@ def compare_kendall_tau_a(rdm1, rdm2):
 
 def compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=None):
     """calculates the negative Riemannian distance between two RDMs objects.
-    
+
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
@@ -260,20 +260,22 @@ def compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=None):
     n_cond = _get_n_from_length(vector1.shape[1])
     if sigma_k is None:
         sigma_k = np.eye(n_cond)
-    P = np.block([-1*np.ones((n_cond-1,1)),np.eye(n_cond-1)])
+    P = np.block([-1*np.ones((n_cond - 1, 1)), np.eye(n_cond - 1)])
     sigma_k_hat = P@sigma_k@P.T
     # construct RDM to 2nd-moment (G) transformation
     pairs = pairwise_contrast(np.arange(n_cond-1))
-    pairs[pairs==-1] = 1
-    T = np.block([[np.eye(n_cond-1),np.zeros((n_cond-1,vector1.shape[1]-n_cond+1))],\
-        [0.5*pairs,np.diag(-0.5*np.ones(vector1.shape[1]-n_cond+1))]])
+    pairs[pairs == -1] = 1
+    T = np.block([
+        [np.eye(n_cond - 1), np.zeros((n_cond-1, vector1.shape[1] - n_cond + 1))],
+        [0.5 * pairs, np.diag(-0.5 * np.ones(vector1.shape[1] - n_cond + 1))]])
     vec_G1 = vector1@np.transpose(T)
     vec_G2 = vector2@np.transpose(T)
 
-    sim = _all_combinations_passing_sigma(vec_G1, vec_G2, sigma_k_hat, _riemannian_distance)
+    sim = _all_combinations(vec_G1, vec_G2, _riemannian_distance, sigma_k_hat)
     return sim
 
-def _all_combinations_passing_sigma(vectors1, vectors2, sigma_k, func):
+
+def _all_combinations(vectors1, vectors2, func, *args, **kwargs):
     """runs a function func on all combinations of v1 in vectors1
     and v2 in vectors2 and puts the results into an array
 
@@ -294,33 +296,7 @@ def _all_combinations_passing_sigma(vectors1, vectors2, sigma_k, func):
     for v1 in vectors1:
         k2 = 0
         for v2 in vectors2:
-            value[k1, k2] = func(v1, v2, sigma_k)
-            k2 += 1
-        k1 += 1
-    return value
-
-def _all_combinations(vectors1, vectors2, func):
-    """runs a function func on all combinations of v1 in vectors1
-    and v2 in vectors2 and puts the results into an array
-
-    Args:
-        vectors1 (numpy.ndarray):
-            first set of values
-        vectors1 (numpy.ndarray):
-            second set of values
-        func (function):
-            function to be applied, should take two input vectors
-            and return one scalar
-    Returns:
-        numpy.ndarray: value: function result over all pairs
-
-    """
-    value = np.empty((len(vectors1), len(vectors2)))
-    k1 = 0
-    for v1 in vectors1:
-        k2 = 0
-        for v2 in vectors2:
-            value[k1, k2] = func(v1, v2)
+            value[k1, k2] = func(v1, v2, *args, **kwargs)
             k2 += 1
         k1 += 1
     return value
@@ -494,6 +470,7 @@ def _cosine(vector1, vector2):
     cos /= np.sqrt(np.einsum('ij,ij->i', vector2, vector2)).reshape((1, -1))
     return cos
 
+
 def _riemannian_distance(vec_G1, vec_G2, sigma_k):
     """computes the Riemannian distance between two vectorized second moments
 
@@ -505,16 +482,19 @@ def _riemannian_distance(vec_G1, vec_G2, sigma_k):
 
         Returns:
             neg_riem (float):
-                negative riemannian distance  
+                negative riemannian distance
     """
     n_cond = _get_n_from_length(len(vec_G1))
     G1 = np.diag(vec_G1[0:(n_cond-1)])+squareform(vec_G1[(n_cond-1):len(vec_G1)])
     G2 = np.diag(vec_G2[0:(n_cond-1)])+squareform(vec_G2[(n_cond-1):len(vec_G2)])
 
-    fun = lambda theta: np.sqrt((np.log(linalg.eigvalsh(np.exp(theta[0])*G1+np.exp(theta[1])*sigma_k,G2))**2).sum())
-    theta = minimize(fun,(0,0), method='Nelder-Mead')
-    neg_riem = -1*theta.fun
+    def fun(theta):
+        return np.sqrt((np.log(linalg.eigvalsh(
+            np.exp(theta[0]) * G1 + np.exp(theta[1]) * sigma_k, G2))**2).sum())
+    theta = minimize(fun, (0, 0), method='Nelder-Mead')
+    neg_riem = -1 * theta.fun
     return neg_riem
+
 
 def _kendall_tau(vector1, vector2):
     """computes the kendall-tau between two vectors
