@@ -411,7 +411,7 @@ def cov_from_unbalanced(dataset, obs_desc, dof=None, method='shrinkage_diag'):
             "obs_desc not contained in the dataset's obs_descriptors"
         matrix = dataset.measurements
         means, values, _ = average_dataset_by(dataset, obs_desc)
-        values, inverse = get_unique_inverse(dataset.obs_descriptors['obs'])
+        values, inverse = get_unique_inverse(dataset.obs_descriptors[obs_desc])
         matrix -= means[inverse]
         # calculate sample covariance matrix s
         if dof is None:
@@ -452,5 +452,7 @@ def prec_from_unbalanced(dataset, obs_desc, dof=None, method='shrinkage_diag'):
         for i, cov_i in enumerate(cov):
             prec[i] = np.linalg.inv(cov_i)
     else:
+        if (cov.ndim == 1):
+            cov = np.diag(cov)
         prec = np.linalg.inv(cov)
     return prec
