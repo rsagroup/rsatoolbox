@@ -322,7 +322,8 @@ def plot_model_comparison(result, sort=False, colors=None,
 
     # Plot bars and error bars
     if method == 'neg_riem_dist':
-        ax.bar(np.arange(evaluations.shape[1]), perf-np.min(perf), color=colors, bottom=np.min(perf))
+        ax.bar(np.arange(evaluations.shape[1]), perf-np.min(perf),
+               color=colors, bottom=np.min(perf))
     else:
         ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
     if error_bars is True:
@@ -695,7 +696,7 @@ def plot_arrows(axbar, significant):
     ah_L = Path(verts_L, codes)
 
     # Capture as many comparisons as possible with double arrows
-    double_arrows = list()
+    double_arrows = []
     for ambiguity_span in range(0, n-1):
         # consider short double arrows first (these cover many comparisons)
         for i in range(n-1, ambiguity_span, -1):
@@ -706,7 +707,7 @@ def plot_arrows(axbar, significant):
                 remaining[i:n, 0:i-ambiguity_span] = 0
 
     # Capture as many of the remaining comparisons as possible with arrows
-    arrows = list()
+    arrows = []
     for dist2diag in range(1, n):
         for i in range(n-1, dist2diag-1, -1):
             if significant[i, 0:i-dist2diag+1].all() and \
@@ -719,7 +720,7 @@ def plot_arrows(axbar, significant):
                 remaining[i:n, i-dist2diag] = 0
 
     # Capture the remaining comparisons with lines
-    lines = list()
+    lines = []
     for i in range(1, n):
         for j in range(0, i-1):
             if remaining[i, j]:

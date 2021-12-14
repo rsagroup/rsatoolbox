@@ -4,7 +4,6 @@
 Comparison methods for comparing two RDMs objects
 """
 import numpy as np
-from numpy.lib.nanfunctions import nanmean
 import scipy.stats
 from scipy import linalg
 from scipy.optimize import minimize
