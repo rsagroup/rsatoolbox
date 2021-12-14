@@ -498,7 +498,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.set_xticks(np.arange(n_models))
-    ax.spines['left'].set_bounds(np.min(perf), ytoptick)
+    ax.spines['left'].set_bounds(ymin, ytoptick)
     ax.spines['bottom'].set_bounds(0, n_models - 1)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
