@@ -88,7 +88,7 @@ def _variance(matrix, dof):
             variance vector
 
     """
-    return np.einsum('ij, ij-> j', matrix, matrix) / dof
+    return np.diag(np.einsum('ij, ij-> j', matrix, matrix) / dof)
 
 
 def _covariance_full(matrix, dof):
@@ -411,7 +411,7 @@ def cov_from_unbalanced(dataset, obs_desc, dof=None, method='shrinkage_diag'):
             "obs_desc not contained in the dataset's obs_descriptors"
         matrix = dataset.measurements
         means, values, _ = average_dataset_by(dataset, obs_desc)
-        values, inverse = get_unique_inverse(dataset.obs_descriptors['obs'])
+        values, inverse = get_unique_inverse(dataset.obs_descriptors[obs_desc])
         matrix -= means[inverse]
         # calculate sample covariance matrix s
         if dof is None:
