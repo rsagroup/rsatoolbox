@@ -88,7 +88,7 @@ def _variance(matrix, dof):
             variance vector
 
     """
-    return np.einsum('ij, ij-> j', matrix, matrix) / dof
+    return np.diag(np.einsum('ij, ij-> j', matrix, matrix) / dof)
 
 
 def _covariance_full(matrix, dof):
@@ -452,7 +452,5 @@ def prec_from_unbalanced(dataset, obs_desc, dof=None, method='shrinkage_diag'):
         for i, cov_i in enumerate(cov):
             prec[i] = np.linalg.inv(cov_i)
     else:
-        if (cov.ndim == 1):
-            cov = np.diag(cov)
         prec = np.linalg.inv(cov)
     return prec
