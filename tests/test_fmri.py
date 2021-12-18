@@ -7,7 +7,7 @@ Tests for BidsDerivatives class and subclasses
 
 import unittest
 import os
-import rsatoolbox.data.fmri as fmri
+import rsatoolbox.io.fmri as fmri
 import numpy as np
 
 def get_fmri_data():
