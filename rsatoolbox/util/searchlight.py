@@ -13,6 +13,7 @@ from joblib import Parallel, delayed
 from rsatoolbox.data.dataset import Dataset
 from rsatoolbox.rdm.calc import calc_rdm
 from rsatoolbox.rdm import RDMs
+from rsatoolbox.inference import eval_fixed
 
 
 def _get_searchlight_neighbors(mask, center, radius=3):
@@ -207,3 +208,70 @@ def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', th
             sl_RDM, desc='Evaluating models for each searchlight'))
 
     return results
+
+
+def pipeline_searchlight(data, models, mask, radius, threshold,
+                         events=None, rdm_method='correlation',
+                         eval_function=eval_fixed, comp_method='corr', theta=None, n_jobs=1):
+    """
+    runs a full searchlight pipeline, i.e. takes a fMRI-like dataset as input,
+    and does the following:
+        - generates searchlight subsets
+        - computes RDMs
+        - evaluates a set of models
+        - returns reduced result objects for each inference
+    
+    In particular this runs in parallel and can be fairly efficient
+    because intermediate results are not passed back through the main process
+    
+    Args:
+
+        sl_RDM ([rsatoolbox.rdm.RDMs]): RDMs object
+        as computed by rsatoolbox.util.searchlight.get_searchlight_RDMs
+
+        models ([rsatoolbox.model]: models to evaluate - can also be list of models
+
+        eval_function (rsatoolbox.inference evaluation-function): [description]
+
+        method (str, optional): see rsatoolbox.rdm.compare for specifics. Defaults to 'corr'.
+
+        n_jobs (int, optional): how many jobs to run. Defaults to 1.
+
+    """
+    def _pipe(x):
+        return _pipeline(models, x, rdm_method=rdm_method, theta=theta)
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(_pipe)(x) for x in tqdm(SearchlightIterator(mask, radius, threshold)
+            , desc='Running searchlight pipeline:'))
+
+    return results
+
+
+def _pipeline(data, ):
+    """ code that a single thread has to run to perform the pipeline operations
+    """
+
+
+class SearchlightIterator:
+    """
+    Returns
+    -------
+    None.
+
+    """
+    def __init__(self, mask=None, radius=2, threshold=1.0):
+        self.mask = np.array(mask)
+        self.radius = radius
+        self.threshold = threshold
+        assert mask.ndim == 3, "Mask needs to be a 3-dimensional numpy array"
+        self.centers = list(zip(*np.nonzero(mask)))
+
+    def __get_item(self, idx):
+        neighbors = _get_searchlight_neighbors(self.mask, self.centers[idx], self.radius)
+        if self.mask[neighbors].mean() >= self.threshold:
+            return self.centers[idx], neighbors
+        else:
+            return None
+
+    def __len__(self):
+        return self.centers.shape[0]
