@@ -14,6 +14,7 @@ from rsatoolbox.data.dataset import Dataset
 from rsatoolbox.rdm.calc import calc_rdm
 from rsatoolbox.rdm import RDMs
 
+
 def _get_searchlight_neighbors(mask, center, radius=3):
     """Return indices for searchlight where distance
         between a voxel and their center < radius (in voxels)
@@ -47,23 +48,30 @@ def _get_searchlight_neighbors(mask, center, radius=3):
 
 
 def get_volume_searchlight(mask, radius=2, threshold=1.0):
-    """Searches through the non-zero voxels of the mask, selects centers where
-        proportion of sphere voxels >= self.threshold.
+    """
+    Searches through the non-zero voxels of the mask, selects centers where
+    proportion of sphere voxels >= self.threshold.
 
     Args:
+
         mask ([numpy array]): binary brain mask
-        radius (int, optional): the radius of each searchlight, defined in voxels. Defaults to 2.
+
+        radius (int, optional): the radius of each searchlight, defined in voxels.
+        Defaults to 2.
+
         threshold (float, optional): Threshold of the proportion of voxels that need to
-                                     be inside the brain mask in order for it to be
-                                     considered a good searchlight center.
-                                     Values go between 0.0 - 1.0 where 1.0 means that
-                                     100% of the voxels need to be inside
-                                     the brain mask. Defaults to 1.0.
+        be inside the brain mask in order for it to be
+        considered a good searchlight center.
+        Values go between 0.0 - 1.0 where 1.0 means that
+        100% of the voxels need to be inside
+        the brain mask.
+        Defaults to 1.0.
 
     Returns:
-        [numpy array]: array of centers of size n_centers x 3
-        [list]: list of lists with neighbors - the length of the list will correspond to:
-                n_centers x 3 x n_neighbors
+        numpy array: array of centers of size n_centers x 3
+
+        list: list of lists with neighbors - the length of the list will correspond to:
+        n_centers x 3 x n_neighbors
     """
 
     mask = np.array(mask)
@@ -96,14 +104,21 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
     """Iterates over all the searchlight centers and calculates the RDM
 
     Args:
-        data_2d (2D numpy array): brain data, shape n_observations x n_channels (i.e. voxels/vertices)
+
+        data_2d (2D numpy array): brain data,
+        shape n_observations x n_channels (i.e. voxels/vertices)
+
         centers (1D numpy array): center indices for all searchlights as provided
-                                        by rsatoolbox.util.searchlight.get_volume_searchlight
+        by rsatoolbox.util.searchlight.get_volume_searchlight
+
         neighbors (list): list of lists with neighbor voxel indices for all searchlights
-                                        as provided by rsatoolbox.util.searchlight.get_volume_searchlight
+        as provided by rsatoolbox.util.searchlight.get_volume_searchlight
+
         events (1D numpy array): 1D array of length n_observations
+
         method (str, optional): distance metric,
-                                see rsatoolbox.rdm.calc for options. Defaults to 'correlation'.
+        see rsatoolbox.rdm.calc for options. Defaults to 'correlation'.
+
         verbose (bool, optional): Defaults to True.
 
     Returns:
@@ -141,7 +156,7 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
 
             RDM_corr = calc_rdm(center_data, method=method,
                                 descriptor='events')
-            RDM[chunk, :] = RDM_corr.dissimilarities
+            RDM[chunks, :] = RDM_corr.dissimilarities
     else:
         center_data = []
         for c in range(n_centers):
@@ -169,14 +184,21 @@ def evaluate_models_searchlight(sl_RDM, models, eval_function, method='corr', th
     """evaluates each searchlighth with the given model/models
 
     Args:
-        sl_RDM ([rsatoolbox.rdm.RDMs]): RDMs object as computed by rsatoolbox.util.searchlight.get_searchlight_RDMs
+
+        sl_RDM ([rsatoolbox.rdm.RDMs]): RDMs object
+        as computed by rsatoolbox.util.searchlight.get_searchlight_RDMs
+
         models ([rsatoolbox.model]: models to evaluate - can also be list of models
+
         eval_function (rsatoolbox.inference evaluation-function): [description]
+
         method (str, optional): see rsatoolbox.rdm.compare for specifics. Defaults to 'corr'.
+
         n_jobs (int, optional): how many jobs to run. Defaults to 1.
 
     Returns:
-        [list]: list of with the model evaluation for each searchlight center
+
+        list: list of with the model evaluation for each searchlight center
     """
 
     results = Parallel(n_jobs=n_jobs)(

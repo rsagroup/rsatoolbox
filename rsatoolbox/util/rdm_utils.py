@@ -5,6 +5,8 @@
 @author: baihan
 """
 
+from typing import Union, List, Dict
+
 import numpy as np
 from scipy.spatial.distance import squareform
 
@@ -117,9 +119,9 @@ def _parse_input_rdms(rdm1, rdm2):
     the two RDMs objects have different dimensions
 
     Args:
-        rdm1 (pyrsa.rdm.RDMs):
+        rdm1 (rsatoolbox.rdm.RDMs):
             first set of RDMs
-        rdm2 (pyrsa.rdm.RDMs):
+        rdm2 (rsatoolbox.rdm.RDMs):
             second set of RDMs
 
     """
@@ -159,3 +161,69 @@ def _extract_triu_(X):
     """
     mask = np.triu(np.ones_like(X, dtype=bool), k=1)
     return X[mask]
+
+
+def category_condition_idxs(rdms,
+                            category_selector: Union[str, List[int]]
+                            ) -> Dict[str, List[int]]:
+    """
+
+
+    Args:
+        rdms (rsatoolbox.rdm.RDMs):
+            A reference RDM stack.
+        category_selector (str or List[int]):
+            Either: a string specifying the `rdms.pattern_descriptor` which
+                    labels categories for each condition.
+            Or: a list of ints specifying the category label for each condition
+                in `rdms`.
+
+    Returns:
+        categories (Dict[str, List[int]]):
+            A dictionary mapping the strings in `category_names` to lists of
+            integer indices of categories within the RDMs.
+
+    @author: caiw
+    """
+
+    from rsatoolbox.rdm import RDMs
+    rdms: RDMs
+
+    _msg_arg_category_selector = (
+        "Argument category_selector must be a string specifying a "
+        "pattern_descriptor or a list of ints indicating RDM conditions."
+    )
+
+    # Dictionary maps category names to lists of condition indices
+    categories: Dict[str, List[int]]
+
+    if isinstance(category_selector, str):
+        categories = {
+            category_name: [
+                idx
+                for idx, cat in enumerate(rdms.pattern_descriptors[
+                                              category_selector])
+                if cat == category_name
+            ]
+            # Use a set to get unique category labels
+            for category_name in sorted(set(rdms.pattern_descriptors[
+                                                category_selector]))
+        }
+
+    elif (isinstance(category_selector, list)
+          and all(isinstance(i, int) for i in category_selector)):
+        if len(category_selector) != rdms.n_cond:
+            raise ValueError(_msg_arg_category_selector)
+        categories = {
+            f"Category {category_i}": [
+                idx
+                for idx, cat in enumerate(category_selector)
+                if cat == category_i
+            ]
+            for category_i in category_selector
+        }
+
+    else:
+        raise ValueError(_msg_arg_category_selector)
+
+    return categories

@@ -1,5 +1,5 @@
 rsatoolbox.model.model module
-========================
+=============================
 
 .. automodule:: rsatoolbox.model.model
    :members:

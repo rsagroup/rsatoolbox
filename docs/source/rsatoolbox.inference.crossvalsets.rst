@@ -1,5 +1,5 @@
 rsatoolbox.inference.crossvalsets module
-===================================
+========================================
 
 .. automodule:: rsatoolbox.inference.crossvalsets
    :members:

@@ -1,5 +1,5 @@
 rsatoolbox.rdm.compare module
-========================
+=============================
 
 .. automodule:: rsatoolbox.rdm.compare
    :members:

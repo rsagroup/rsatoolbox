@@ -5,6 +5,7 @@ Dataset computations
 """
 
 import numpy as np
+from rsatoolbox.util.data_utils import get_unique_inverse
 
 
 def average_dataset(dataset):
@@ -31,8 +32,12 @@ def average_dataset_by(dataset, by):
     Returns:
         numpy.ndarray: average: average activation vector
     """
-    datasets = dataset.split_obs(by)
-    descriptor = [d.obs_descriptors[by][0] for d in datasets]
-    average = [average_dataset(d) for d in datasets]
-    n_obs = [d.n_obs for d in datasets]
-    return np.array(average), descriptor, n_obs
+    unique_values, inverse = get_unique_inverse(dataset.obs_descriptors[by])
+    average = np.nan * np.empty(
+        (len(unique_values), dataset.measurements.shape[1]))
+    n_obs = np.nan * np.empty(len(unique_values))
+    for i_v, _ in enumerate(unique_values):
+        measurements = dataset.measurements[inverse == i_v, :]
+        average[i_v] = np.mean(measurements, axis=0)
+        n_obs[i_v] = measurements.shape[0]
+    return average, unique_values, n_obs

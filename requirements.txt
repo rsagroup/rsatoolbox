@@ -1,5 +1,5 @@
 coverage
-numpy
+numpy>=1.21.2
 scipy
 scikit-learn
 scikit-image
@@ -9,3 +9,4 @@ matplotlib
 joblib
 nibabel
 pandas
+petname==2.2
