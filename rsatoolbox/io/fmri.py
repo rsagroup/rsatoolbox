@@ -191,6 +191,11 @@ class BidsDerivativesSubject(BidsDerivatives):
     It contains data for only one subject
     """
 
+    def __init__(self, *args, **kwargs):
+        self.nifti_filename = None
+        self.csv_filename = None
+        super().__init__(*args, **kwargs)
+
     def __repr__(self):
         """
         Defines string which is printed for the object
@@ -342,19 +347,19 @@ class BidsDerivativesSubject(BidsDerivatives):
             and len(pooled_data_array.shape) == 4, "Wrong type of data provided"
 
         if output_dir is None:
-            self.output_dir = self.sub_dirs[0]
+            output_dir = self.sub_dirs[0]
         else:
             assert isinstance(output_dir, str) and os.path.isdir(output_dir), \
                "specified output dir object must be a string \
                    to an existing path"
-            self.output_dir = output_dir
+            output_dir = output_dir
 
         print("Saving", data_type, "to 4d-NIfTi file in",
-              self.output_dir, "...")
+              output_dir, "...")
         pooled_data = nifti1.Nifti1Image(pooled_data_array,
                                          self.subject_affine)
         self.nifti_filename = os.path.join(
-            self.output_dir, self.subject_list[0] + "_" +
+            output_dir, self.subject_list[0] + "_" +
             self.session_types[0] + "_" + data_type + ".nii.gz")
         nifti1.save(pooled_data, self.nifti_filename)
         print("Saved as", self.nifti_filename)
@@ -380,15 +385,15 @@ class BidsDerivativesSubject(BidsDerivatives):
             and isinstance(descriptors[0], str), "Wrong type of data provided"
 
         if output_dir is None:
-            self.output_dir = self.sub_dirs[0]
+            output_dir = self.sub_dirs[0]
         else:
             assert isinstance(output_dir, str) and os.path.isdir(output_dir), \
                 "specified output dir object must be a string \
                     to an existing path"
-            self.output_dir = output_dir
+            output_dir = output_dir
 
         self.csv_filename = os.path.join(
-            self.output_dir, self.subject_list[0] + "_" +
+            output_dir, self.subject_list[0] + "_" +
             self.session_types[0] + "_" + data_type + ".csv")
 
         df = pd.DataFrame({'descriptor': descriptors})
