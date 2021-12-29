@@ -321,7 +321,11 @@ def plot_model_comparison(result, sort=False, colors=None,
                                 axis=1)
 
     # Plot bars and error bars
-    ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
+    if method == 'neg_riem_dist':
+        ax.bar(np.arange(evaluations.shape[1]), perf-np.min(perf),
+               color=colors, bottom=np.min(perf))
+    else:
+        ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
     if error_bars is True:
         error_bars = 'sem'
     if error_bars:
@@ -485,12 +489,17 @@ def plot_model_comparison(result, sort=False, colors=None,
             plot_cliques(axbar, significant)
 
     # Floating axes
-    ytoptick = np.floor(min(1, noise_upper) * 10) / 10
-    ax.set_yticks(np.arange(0, ytoptick + 1e-6, step=0.1))
+    if method == 'neg_riem_dist':
+        ytoptick = noise_upper + 0.1
+        ymin = np.min(perf)
+    else:
+        ytoptick = np.floor(min(1, noise_upper) * 10) / 10
+        ymin = 0
+    ax.set_yticks(np.arange(ymin, ytoptick + 1e-6, step=0.1))
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.set_xticks(np.arange(n_models))
-    ax.spines['left'].set_bounds(0, ytoptick)
+    ax.spines['left'].set_bounds(ymin, ytoptick)
     ax.spines['bottom'].set_bounds(0, n_models - 1)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
@@ -501,15 +510,16 @@ def plot_model_comparison(result, sort=False, colors=None,
     ylabel_fig_x, ysublabel_fig_x = 0.07, 0.095
     trans = transforms.blended_transform_factory(fig.transFigure,
                                                  ax.get_yaxis_transform())
-    ax.text(ylabel_fig_x, ytoptick/2, 'RDM prediction accuracy',
+    ax.text(ylabel_fig_x, (ymin + ytoptick) / 2, 'RDM prediction accuracy',
             horizontalalignment='center', verticalalignment='center',
             rotation='vertical', fontsize=fs, fontweight='bold',
             transform=trans)
-    ax.text(ysublabel_fig_x, ytoptick/2,
+    ax.text(ysublabel_fig_x, (ymin+ytoptick)/2,
             y_label_string,
             horizontalalignment='center', verticalalignment='center',
             rotation='vertical', fontsize=fs2, fontweight='normal',
             transform=trans)
+
     if models is not None:
         ax.set_xticklabels([m.name for m in models], fontsize=fs2,
                            rotation=45)
@@ -686,7 +696,7 @@ def plot_arrows(axbar, significant):
     ah_L = Path(verts_L, codes)
 
     # Capture as many comparisons as possible with double arrows
-    double_arrows = list()
+    double_arrows = []
     for ambiguity_span in range(0, n-1):
         # consider short double arrows first (these cover many comparisons)
         for i in range(n-1, ambiguity_span, -1):
@@ -697,7 +707,7 @@ def plot_arrows(axbar, significant):
                 remaining[i:n, 0:i-ambiguity_span] = 0
 
     # Capture as many of the remaining comparisons as possible with arrows
-    arrows = list()
+    arrows = []
     for dist2diag in range(1, n):
         for i in range(n-1, dist2diag-1, -1):
             if significant[i, 0:i-dist2diag+1].all() and \
@@ -710,7 +720,7 @@ def plot_arrows(axbar, significant):
                 remaining[i:n, i-dist2diag] = 0
 
     # Capture the remaining comparisons with lines
-    lines = list()
+    lines = []
     for i in range(1, n):
         for j in range(0, i-1):
             if remaining[i, j]:
@@ -997,4 +1007,7 @@ def _get_y_label(method):
     elif method.lower() == 'tau-a':
         y_label = '[across-subject mean of ' \
             + 'Kendall tau-a rank correlation]'
+    elif method.lower() == 'neg_riem_dist':
+        y_label = '[across-subject mean of ' \
+            + 'negative riemannian distance]'
     return y_label
