@@ -128,7 +128,7 @@ def sets_k_fold(rdms, k_rdm=None, k_pattern=None, random=True,
         test_idx = np.arange(i_group * group_size_rdm,
                              (i_group + 1) * group_size_rdm)
         if i_group < additional_rdms:
-            test_idx = np.concatenate((test_idx, [-(i_group+1)]))
+            test_idx = np.concatenate((test_idx, [len(rdm_select)-(i_group+1)]))
         if k_rdm <= 1:
             train_idx = test_idx
         else:
@@ -242,7 +242,7 @@ def sets_k_fold_pattern(rdms, pattern_descriptor='index',
         test_idx = np.arange(i_group * group_size,
                              (i_group + 1) * group_size)
         if i_group < additional_patterns:
-            test_idx = np.concatenate((test_idx, [-(i_group+1)]))
+            test_idx = np.concatenate((test_idx, [len(pattern_select)-(i_group+1)]))
         if k <= 1:
             train_idx = test_idx
         else:

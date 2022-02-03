@@ -218,6 +218,11 @@ class TestCrossval(unittest.TestCase):
         assert test_set[1][0].n_cond == 3
         assert ceil_set[0][1] == test_set[0][1]
         assert ceil_set[0][0].n_rdm == train_set[0][0].n_rdm
+        assert train_set[0][0].n_cond == 3
+        assert train_set[1][0].n_cond == 2
+        for train, test in zip(train_set, test_set):
+            assert train[0].n_rdm + test[0].n_rdm == 8
+            assert train[0].n_cond + test[0].n_cond == 5
 
     def test_k_fold_rdm(self):
         from rsatoolbox.inference import sets_k_fold_rdm
@@ -251,8 +256,12 @@ class TestCrossval(unittest.TestCase):
         assert train_set[0][0].n_rdm == 5
         assert train_set[1][0].n_rdm == 5
         assert train_set[2][0].n_rdm == 6
+        for train, test in zip(train_set, test_set):
+            assert train[0].n_rdm + test[0].n_rdm == 8
         train_set, test_set, ceil_set = sets_k_fold_rdm(
             rdms, k_rdm=3, random=False)
+        for train, test in zip(train_set, test_set):
+            assert train[0].n_rdm + test[0].n_rdm == 8
 
     def test_sets_of_k_pattern(self):
         from rsatoolbox.inference import sets_of_k_pattern
@@ -272,3 +281,5 @@ class TestCrossval(unittest.TestCase):
             pattern_descriptor='category', random=False)
         assert test_set[0][0].n_cond == 2
         assert test_set[1][0].n_cond == 3
+        for train, test in zip(train_set, test_set):
+            assert train[0].n_cond + test[0].n_cond == 5
