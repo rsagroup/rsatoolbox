@@ -186,7 +186,7 @@ def sets_k_fold_rdm(rdms, k_rdm=None, random=True, rdm_descriptor='index'):
         test_idx = np.arange(i_group * group_size_rdm,
                              (i_group + 1) * group_size_rdm)
         if i_group < additional_rdms:
-            test_idx = np.concatenate((test_idx, [-(i_group+1)]))
+            test_idx = np.concatenate((test_idx, [len(rdm_select)-(i_group+1)]))
         train_idx = np.setdiff1d(np.arange(len(rdm_select)),
                                  test_idx)
         rdm_idx_test = [rdm_select[int(idx)] for idx in test_idx]
