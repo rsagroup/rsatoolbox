@@ -4,10 +4,10 @@
 generation of crossvalidation splits
 """
 
+from copy import deepcopy
 import numpy as np
 from rsatoolbox.util.rdm_utils import add_pattern_index
 from rsatoolbox.util.inference_util import default_k_pattern, default_k_rdm
-from copy import deepcopy
 
 
 def sets_leave_one_out_pattern(rdms, pattern_descriptor):
