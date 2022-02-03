@@ -7,6 +7,7 @@ generation of crossvalidation splits
 import numpy as np
 from rsatoolbox.util.rdm_utils import add_pattern_index
 from rsatoolbox.util.inference_util import default_k_pattern, default_k_rdm
+from copy import deepcopy
 
 
 def sets_leave_one_out_pattern(rdms, pattern_descriptor):
@@ -142,7 +143,7 @@ def sets_k_fold(rdms, k_rdm=None, k_pattern=None, random=True,
         train_new, test_new, _ = sets_k_fold_pattern(
             rdms_train, k=k_pattern,
             pattern_descriptor=pattern_descriptor, random=random)
-        ceil_new = test_new.copy()
+        ceil_new = deepcopy(test_new)
         for i_pattern in range(k_pattern):
             test_new[i_pattern][0] = rdms_test.subset_pattern(
                 by=pattern_descriptor,

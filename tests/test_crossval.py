@@ -200,7 +200,7 @@ class TestCrossval(unittest.TestCase):
     def test_k_fold(self):
         from rsatoolbox.inference import sets_k_fold
         import rsatoolbox.rdm as rsr
-        dis = np.zeros((8, 10))
+        dis = np.random.rand(8, 10)
         mes = "Euclidean"
         des = {'subj': 0}
         rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
@@ -216,6 +216,8 @@ class TestCrossval(unittest.TestCase):
             random=False)
         assert test_set[0][0].n_cond == 2
         assert test_set[1][0].n_cond == 3
+        assert ceil_set[0][1] == test_set[0][1]
+        assert ceil_set[0][0].n_rdm == train_set[0][0].n_rdm
 
     def test_k_fold_rdm(self):
         from rsatoolbox.inference import sets_k_fold_rdm
