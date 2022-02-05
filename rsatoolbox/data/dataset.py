@@ -6,8 +6,9 @@ Definition of RSA Dataset class and subclasses
 @author: baihan, jdiedrichsen, bpeters, adkipnis
 """
 
-
+from __future__ import annotations
 import numpy as np
+from pandas import DataFrame
 from rsatoolbox.util.data_utils import get_unique_unsorted
 from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.descriptor_utils import check_descriptor_length_error
@@ -185,6 +186,38 @@ class DatasetBase:
         data_dict['channel_descriptors'] = self.channel_descriptors
         data_dict['type'] = type(self).__name__
         return data_dict
+
+    @staticmethod
+    def from_DataFrame(df: DataFrame) -> Dataset:
+        """Create a Dataset from a Pandas DataFrame
+
+        Float columns are interpreted as channels, and their names stored as a
+        channel descriptor "name". 
+        Columns of any other datatype will be interpreted as observation 
+        descriptors, unless they have the same value throughout,
+        in which case they will be interpreted as Dataset descriptor.
+
+        Args:
+            df (DataFrame): DataFrame
+
+        Returns:
+            Dataset: RSAtoolbox Dataset representing the data from the DataFrame
+        """
+        return Dataset([])
+
+    def to_DataFrame(self) -> DataFrame:
+        """returns a Pandas DataFrame representing this Dataset
+
+        Channels, observation descriptors and Dataset descriptors make up the 
+        channels. Rows represent observations.
+
+        Note that channel descriptors beyond the one used for the column names
+        will not be represented.
+
+        Returns:
+            DataFrame: A pandas DataFrame representing the Dataset
+        """
+        return DataFrame([])
 
 
 class Dataset(DatasetBase):
