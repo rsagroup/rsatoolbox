@@ -26,7 +26,6 @@ class DatasetToDataframeTests(TestCase):
         )
         ds_out = Dataset.from_DataFrame(df)
         assert_array_equal(ds_out.measurements, ds_in.measurements)
-        self.assertEqual(ds_out.measurements, ds_in.measurements)
         self.assertEqual(ds_out.descriptors, ds_in.descriptors)
         self.assertEqual(ds_out.obs_descriptors, ds_in.obs_descriptors)
         self.assertEqual(ds_out.channel_descriptors, ds_in.channel_descriptors)

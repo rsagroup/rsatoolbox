@@ -198,12 +198,25 @@ class DatasetBase:
         in which case they will be interpreted as Dataset descriptor.
 
         Args:
-            df (DataFrame): DataFrame
+            df (DataFrame): a long-format DataFrame
 
         Returns:
             Dataset: RSAtoolbox Dataset representing the data from the DataFrame
         """
-        return Dataset([])
+        channels = [c for (c, t) in df.dtypes.items() if 'float' in str(t)]
+        descriptors = set(df.columns).difference(channels)
+        ds_descriptors, obs_descriptors = dict(), dict()
+        for desc in descriptors:
+            if df[desc].unique().size == 1:
+                ds_descriptors[desc] = df[desc][0]
+            else:
+                obs_descriptors[desc] = list(df[desc])
+        return Dataset(
+            measurements=df[channels].values,
+            descriptors=ds_descriptors,
+            obs_descriptors=obs_descriptors,
+            channel_descriptors=dict(name=channels)
+        )
 
     def to_DataFrame(self) -> DataFrame:
         """returns a Pandas DataFrame representing this Dataset
