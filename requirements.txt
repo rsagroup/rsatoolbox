@@ -8,3 +8,4 @@ h5py
 matplotlib
 joblib
 petname==2.2
+pandas
