@@ -192,8 +192,8 @@ class DatasetBase:
         """Create a Dataset from a Pandas DataFrame
 
         Float columns are interpreted as channels, and their names stored as a
-        channel descriptor "name". 
-        Columns of any other datatype will be interpreted as observation 
+        channel descriptor "name".
+        Columns of any other datatype will be interpreted as observation
         descriptors, unless they have the same value throughout,
         in which case they will be interpreted as Dataset descriptor.
 
@@ -221,7 +221,7 @@ class DatasetBase:
     def to_DataFrame(self) -> DataFrame:
         """returns a Pandas DataFrame representing this Dataset
 
-        Channels, observation descriptors and Dataset descriptors make up the 
+        Channels, observation descriptors and Dataset descriptors make up the
         columns. Rows represent observations.
 
         Note that channel descriptors beyond the one used for the column names
