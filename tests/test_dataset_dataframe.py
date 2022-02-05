@@ -19,8 +19,11 @@ class DatasetToDataframeTests(TestCase):
             channel_descriptors=dict(name=['x', 'y'])
         )
         df = ds_in.to_DataFrame()
-        self.assertEqual(df.x.values, ds_in.measurements[:, 0])
-        self.assertEqual(df.columns, ['x', 'y', 'participant', 'foo'])
+        assert_array_equal(df.x.values, ds_in.measurements[:, 0])
+        self.assertEqual(
+            df.columns.values.tolist(),
+            ['x', 'y', 'participant', 'foo']
+        )
         ds_out = Dataset.from_DataFrame(df)
         assert_array_equal(ds_out.measurements, ds_in.measurements)
         self.assertEqual(ds_out.measurements, ds_in.measurements)

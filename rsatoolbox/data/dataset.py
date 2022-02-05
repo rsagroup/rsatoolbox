@@ -209,7 +209,7 @@ class DatasetBase:
         """returns a Pandas DataFrame representing this Dataset
 
         Channels, observation descriptors and Dataset descriptors make up the 
-        channels. Rows represent observations.
+        columns. Rows represent observations.
 
         Note that channel descriptors beyond the one used for the column names
         will not be represented.
@@ -217,7 +217,11 @@ class DatasetBase:
         Returns:
             DataFrame: A pandas DataFrame representing the Dataset
         """
-        return DataFrame([])
+        ch_names = list(self.channel_descriptors.values())[0]
+        df = DataFrame(self.measurements, columns=ch_names)
+        for dname, dval in {**self.obs_descriptors, **self.descriptors}.items():
+            df[dname] = dval
+        return df
 
 
 class Dataset(DatasetBase):
