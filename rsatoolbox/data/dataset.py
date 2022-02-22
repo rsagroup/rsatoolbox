@@ -189,7 +189,7 @@ class DatasetBase:
         return data_dict
 
     @staticmethod
-    def from_DataFrame(
+    def from_df(
         df: DataFrame,
         channels: Optional[List]=None,
         channel_descriptor: Optional[str]=None) -> Dataset:
@@ -207,6 +207,7 @@ class DatasetBase:
                 By default all float columns are considered channels.
             channel_descriptor (str): Name of the channel descriptor to create
                 on the Dataset which contains the column names.
+                Default is "name".
 
         Returns:
             Dataset: RSAtoolbox Dataset representing the data from the DataFrame
@@ -229,7 +230,7 @@ class DatasetBase:
             channel_descriptors={channel_descriptor: channels}
         )
 
-    def to_DataFrame(self, channel_descriptor: Optional[str]=None) -> DataFrame:
+    def to_df(self, channel_descriptor: Optional[str]=None) -> DataFrame:
         """returns a Pandas DataFrame representing this Dataset
 
         Channels, observation descriptors and Dataset descriptors make up the

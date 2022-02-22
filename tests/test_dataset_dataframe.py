@@ -1,5 +1,9 @@
+"""Various tests for converting Datasets to pandas.DataFrame and reverse
+"""
+# pylint: disable=C0415 ## allow imports on test level
 from unittest import TestCase
-import numpy, pandas
+import numpy
+import pandas
 from numpy.testing import assert_array_equal
 
 
@@ -18,13 +22,13 @@ class DatasetToDataframeTests(TestCase):
             obs_descriptors=dict(participant=['a', 'b', 'c']),
             channel_descriptors=dict(name=['x', 'y'])
         )
-        df = ds_in.to_DataFrame()
+        df = ds_in.to_df()
         assert_array_equal(df.x.values, ds_in.measurements[:, 0])
         self.assertEqual(
             df.columns.values.tolist(),
             ['x', 'y', 'participant', 'foo']
         )
-        ds_out = Dataset.from_DataFrame(df)
+        ds_out = Dataset.from_df(df)
         assert_array_equal(ds_out.measurements, ds_in.measurements)
         self.assertEqual(ds_out.descriptors, ds_in.descriptors)
         self.assertEqual(ds_out.obs_descriptors, ds_in.obs_descriptors)
@@ -41,7 +45,7 @@ class DatasetToDataframeTests(TestCase):
             obs_descriptors=dict(participant=['a', 'b', 'c']),
             channel_descriptors=dict(foc=['x', 'y'], bac=[1, 2])
         )
-        df = ds_in.to_DataFrame(channel_descriptor='bac')
+        df = ds_in.to_df(channel_descriptor='bac')
         assert_array_equal(df[1].values, ds_in.measurements[:, 0])
         self.assertEqual(
             df.columns.values.tolist(),
@@ -59,7 +63,7 @@ class DatasetToDataframeTests(TestCase):
             {'a': 3.3, 'b': 3, 3: 3.33, 'd': 'thr', 'e': 3.333, 'f': 'bla'},
             {'a': 4.4, 'b': 4, 3: 4.44, 'd': 'fou', 'e': 4.444, 'f': 'bla'},
         ])
-        ds = Dataset.from_DataFrame(
+        ds = Dataset.from_df(
             df,
             channels=['a', 'b', 3],
             channel_descriptor='foo'
