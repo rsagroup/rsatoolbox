@@ -30,4 +30,4 @@ Please report:
 Add any other context about the problem here.
 
 **stack trace**
-This is the error information that python printed. You can add this in the body of this issue, wrapped in triple backticks (`````) or attach it in a text file
+This is the error information that python printed. You can add this in the body of this issue, wrapped in triple backticks (` ``` `) or attach it in a text file
