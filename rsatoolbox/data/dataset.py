@@ -6,8 +6,10 @@ Definition of RSA Dataset class and subclasses
 @author: baihan, jdiedrichsen, bpeters, adkipnis
 """
 
-
+from __future__ import annotations
+from typing import List, Optional
 import numpy as np
+from pandas import DataFrame
 from rsatoolbox.util.data_utils import get_unique_unsorted
 from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.descriptor_utils import check_descriptor_length_error
@@ -185,6 +187,72 @@ class DatasetBase:
         data_dict['channel_descriptors'] = self.channel_descriptors
         data_dict['type'] = type(self).__name__
         return data_dict
+
+    @staticmethod
+    def from_df(
+        df: DataFrame,
+        channels: Optional[List]=None,
+        channel_descriptor: Optional[str]=None) -> Dataset:
+        """Create a Dataset from a Pandas DataFrame
+
+        Float columns are interpreted as channels, and their names stored as a
+        channel descriptor "name".
+        Columns of any other datatype will be interpreted as observation
+        descriptors, unless they have the same value throughout,
+        in which case they will be interpreted as Dataset descriptor.
+
+        Args:
+            df (DataFrame): a long-format DataFrame
+            channels (list): list of column names to interpret as channels.
+                By default all float columns are considered channels.
+            channel_descriptor (str): Name of the channel descriptor to create
+                on the Dataset which contains the column names.
+                Default is "name".
+
+        Returns:
+            Dataset: RSAtoolbox Dataset representing the data from the DataFrame
+        """
+        if channels is None:
+            channels = [c for (c, t) in df.dtypes.items() if 'float' in str(t)]
+        if channel_descriptor is None:
+            channel_descriptor = 'name'
+        descriptors = set(df.columns).difference(channels)
+        ds_descriptors, obs_descriptors = dict(), dict()
+        for desc in descriptors:
+            if df[desc].unique().size == 1:
+                ds_descriptors[desc] = df[desc][0]
+            else:
+                obs_descriptors[desc] = list(df[desc])
+        return Dataset(
+            measurements=df[channels].values,
+            descriptors=ds_descriptors,
+            obs_descriptors=obs_descriptors,
+            channel_descriptors={channel_descriptor: channels}
+        )
+
+    def to_df(self, channel_descriptor: Optional[str]=None) -> DataFrame:
+        """returns a Pandas DataFrame representing this Dataset
+
+        Channels, observation descriptors and Dataset descriptors make up the
+        columns. Rows represent observations.
+
+        Note that channel descriptors beyond the one used for the column names
+        will not be represented.
+
+        Args:
+            channel_descriptor: Which channel descriptor to use to
+                label the data columns in the Dataframe. Defaults to the
+                first channel descriptor.
+
+        Returns:
+            DataFrame: A pandas DataFrame representing the Dataset
+        """
+        desc = channel_descriptor or list(self.channel_descriptors.keys())[0]
+        ch_names = self.channel_descriptors[desc]
+        df = DataFrame(self.measurements, columns=ch_names)
+        for dname, dval in {**self.obs_descriptors, **self.descriptors}.items():
+            df[dname] = dval
+        return df
 
 
 class Dataset(DatasetBase):
