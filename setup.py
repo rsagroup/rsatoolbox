@@ -14,7 +14,7 @@ with open('README.md', encoding='utf-8') as readmefile:
 
 setup(
     name='rsatoolbox',
-    version='0.0.3',
+    version='0.0.4',
     description='Representational Similarity Analysis (RSA) in Python',
     url='https://github.com/rsagroup/rsatoolbox',
     long_description=long_description,
