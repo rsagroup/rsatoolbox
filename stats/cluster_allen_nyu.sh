@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --cpus-per-task=1
-#SBATCH --time=96:00:00
-#SBATCH --mem=3500MB
+#SBATCH --time=48:00:00
+#SBATCH --mem=2000MB
 #SBATCH --job-name=allen
 #SBATCH --mail-type=END
 #SBATCH --mail-user=hhs4@nyu.edu
