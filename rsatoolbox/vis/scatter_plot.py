@@ -18,6 +18,7 @@ def show_scatter(
         coords: NDArray,
         rdm_descriptor: Optional[str]=None,
         pattern_descriptor: Optional[str]=None,
+        icon_size: float=0.1
     ) -> Figure:
     """Draw a 2-dimensional scatter plot based on the provided coordinates
 
@@ -29,6 +30,8 @@ def show_scatter(
             title for each individual RDM.
         pattern_descriptor (Optional[str]): If provided, the chosen pattern
             descriptor will be printed adjacent to each point in the plot
+        icon_size: relative size of icons if the pattern descriptor chosen
+            is of type Icon
 
     Returns:
         Figure: A matplotlib figure in which the plot is drawn
@@ -62,7 +65,7 @@ def show_scatter(
                 pat_desc = rdms.pattern_descriptors[pattern_descriptor][p]
                 pat_coords = (coords[r, p, 0], coords[r, p, 1])
                 if isinstance(pat_desc, Icon):
-                    pat_desc.plot(pat_coords[0], pat_coords[1], ax=ax, size=0.1)
+                    pat_desc.plot(pat_coords[0], pat_coords[1], ax=ax, size=icon_size)
                 else:
                     label = ax.annotate(pat_desc, pat_coords)
                     label.set_alpha(.6)
@@ -78,7 +81,8 @@ def show_2d(
         method: str,
         weights: Optional[NDArray]=None,
         rdm_descriptor: Optional[str]=None,
-        pattern_descriptor: Optional[str]=None
+        pattern_descriptor: Optional[str]=None,
+        icon_size: float=0.1
     ) -> Figure:
     """Draw a scatter plot of the RDMs reduced to two dimensions
 
@@ -90,6 +94,8 @@ def show_2d(
             title for each individual RDM.
         pattern_descriptor (Optional[str]): If provided, the chosen pattern
             descriptor will be printed adjacent to each point in the plot
+        icon_size: relative size of icons if the pattern descriptor chosen
+            is of type Icon
 
     Returns:
         Figure: A matplotlib figure in which the plot is drawn
@@ -114,14 +120,16 @@ def show_2d(
         rdms,
         coords,
         rdm_descriptor=rdm_descriptor,
-        pattern_descriptor=pattern_descriptor
+        pattern_descriptor=pattern_descriptor,
+        icon_size=icon_size
     )
 
 def show_MDS(
         rdms: RDMs,
         weights: Optional[NDArray]=None,
         rdm_descriptor: Optional[str]=None,
-        pattern_descriptor: Optional[str]=None
+        pattern_descriptor: Optional[str]=None,
+        icon_size: float=0.1
     ) -> Figure:
     """Draw a scatter plot based on Multidimensional Scaling dimensionality reduction
 
@@ -132,6 +140,8 @@ def show_MDS(
             title for each individual RDM.
         pattern_descriptor (Optional[str]): If provided, the chosen pattern
             descriptor will be printed adjacent to each point in the plot
+        icon_size: relative size of icons if the pattern descriptor chosen
+            is of type Icon
 
     Returns:
         Figure: A matplotlib figure in which the plot is drawn
@@ -141,13 +151,15 @@ def show_MDS(
         method='MDS',
         weights=weights,
         rdm_descriptor=rdm_descriptor,
-        pattern_descriptor=pattern_descriptor
+        pattern_descriptor=pattern_descriptor,
+        icon_size=icon_size
     )
 
 def show_tSNE(
         rdms: RDMs,
         rdm_descriptor: Optional[str]=None,
-        pattern_descriptor: Optional[str]=None
+        pattern_descriptor: Optional[str]=None,
+        icon_size: float=0.1
     ) -> Figure:
     """Draw a scatter plot based on t-SNE dimensionality reduction
 
@@ -157,6 +169,8 @@ def show_tSNE(
             title for each individual RDM.
         pattern_descriptor (Optional[str]): If provided, the chosen pattern
             descriptor will be printed adjacent to each point in the plot
+        icon_size: relative size of icons if the pattern descriptor chosen
+            is of type Icon
 
     Returns:
         Figure: A matplotlib figure in which the plot is drawn
@@ -165,13 +179,15 @@ def show_tSNE(
         rdms,
         method='t-SNE',
         rdm_descriptor=rdm_descriptor,
-        pattern_descriptor=pattern_descriptor
+        pattern_descriptor=pattern_descriptor,
+        icon_size=icon_size
     )
 
 def show_iso(
         rdms: RDMs,
         rdm_descriptor: Optional[str]=None,
-        pattern_descriptor: Optional[str]=None
+        pattern_descriptor: Optional[str]=None,
+        icon_size: float=0.1
     ) -> Figure:
     """Draw a scatter plot based on Isomap dimensionality reduction
 
@@ -181,6 +197,8 @@ def show_iso(
             title for each individual RDM.
         pattern_descriptor (Optional[str]): If provided, the chosen pattern
             descriptor will be printed adjacent to each point in the plot
+        icon_size: relative size of icons if the pattern descriptor chosen
+            is of type Icon
 
     Returns:
         Figure: A matplotlib figure in which the plot is drawn
@@ -189,5 +207,6 @@ def show_iso(
         rdms,
         method='Isomap',
         rdm_descriptor=rdm_descriptor,
-        pattern_descriptor=pattern_descriptor
+        pattern_descriptor=pattern_descriptor,
+        icon_size=icon_size
     )

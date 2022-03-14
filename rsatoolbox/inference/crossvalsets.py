@@ -4,6 +4,7 @@
 generation of crossvalidation splits
 """
 
+from copy import deepcopy
 import numpy as np
 from rsatoolbox.util.rdm_utils import add_pattern_index
 from rsatoolbox.util.inference_util import default_k_pattern, default_k_rdm
@@ -127,7 +128,7 @@ def sets_k_fold(rdms, k_rdm=None, k_pattern=None, random=True,
         test_idx = np.arange(i_group * group_size_rdm,
                              (i_group + 1) * group_size_rdm)
         if i_group < additional_rdms:
-            test_idx = np.concatenate((test_idx, [-(i_group+1)]))
+            test_idx = np.concatenate((test_idx, [len(rdm_select)-(i_group+1)]))
         if k_rdm <= 1:
             train_idx = test_idx
         else:
@@ -142,7 +143,7 @@ def sets_k_fold(rdms, k_rdm=None, k_pattern=None, random=True,
         train_new, test_new, _ = sets_k_fold_pattern(
             rdms_train, k=k_pattern,
             pattern_descriptor=pattern_descriptor, random=random)
-        ceil_new = test_new.copy()
+        ceil_new = deepcopy(test_new)
         for i_pattern in range(k_pattern):
             test_new[i_pattern][0] = rdms_test.subset_pattern(
                 by=pattern_descriptor,
@@ -185,7 +186,7 @@ def sets_k_fold_rdm(rdms, k_rdm=None, random=True, rdm_descriptor='index'):
         test_idx = np.arange(i_group * group_size_rdm,
                              (i_group + 1) * group_size_rdm)
         if i_group < additional_rdms:
-            test_idx = np.concatenate((test_idx, [-(i_group+1)]))
+            test_idx = np.concatenate((test_idx, [len(rdm_select)-(i_group+1)]))
         train_idx = np.setdiff1d(np.arange(len(rdm_select)),
                                  test_idx)
         rdm_idx_test = [rdm_select[int(idx)] for idx in test_idx]
@@ -241,7 +242,7 @@ def sets_k_fold_pattern(rdms, pattern_descriptor='index',
         test_idx = np.arange(i_group * group_size,
                              (i_group + 1) * group_size)
         if i_group < additional_patterns:
-            test_idx = np.concatenate((test_idx, [-(i_group+1)]))
+            test_idx = np.concatenate((test_idx, [len(pattern_select)-(i_group+1)]))
         if k <= 1:
             train_idx = test_idx
         else:

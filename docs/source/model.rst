@@ -81,7 +81,7 @@ functions.
 .. code-block:: python
 
     pred = model.predict() # returns a numpy vectorized format
-    pred_rdm = model.predict_rdm # returns a RDMs object
+    pred_rdm = model.predict_rdm() # returns a RDMs object
 
 These methods also take a ``theta`` argument, which corresponds to the parameter vector of the model. For fixed models, this input is ignored however.
 

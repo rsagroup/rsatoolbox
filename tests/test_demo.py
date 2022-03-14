@@ -267,7 +267,7 @@ class TestDemos(unittest.TestCase):
         cond_idx = dat['cond_idx']
         channel_names = dat['channel_names']
         times = dat['times']
-        print('there are %d observations (trials), %d channels, and %d time-points\n' % 
+        print('there are %d observations (trials), %d channels, and %d time-points\n' %
               (measurements.shape))
         print('conditions:')
         print(cond_names)
@@ -360,6 +360,42 @@ class TestDemos(unittest.TestCase):
         plt.ylabel('model-data cosine similarity')
         plt.legend()
 
+    def test_demo_rdm_scatterplot(self):
+        import os
+        from scipy.io import loadmat
+        import numpy as np
+        from rsatoolbox.rdm import concat, RDMs
+        from rsatoolbox.vis import rdm_comparison_scatterplot
+        path = os.path.dirname(os.path.abspath(__file__))
+
+        condition_descriptors = {
+         'type': (["A"] * 23) + (["B"] * 23) + (["C"] * 46)
+        }
+
+        matlab_data = loadmat(
+            os.path.join(path, '..', 'demos', '92imageData/92_brainRDMs.mat'))['RDMs']
+        n_rdms = len(matlab_data[0])
+        rdms_ = RDMs(np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
+                  pattern_descriptors=condition_descriptors,
+                  rdm_descriptors={'name': np.array([f"RDM{i}"
+                                                     for i in range(4)])}
+                  )
+
+        rdms_a = concat([rdms_[0], rdms_[1]])
+        rdms_b = concat([rdms_[2], rdms_[3]])
+
+        rdm_comparison_scatterplot((rdms_a, rdms_b),
+            show_marginal_distributions=True,
+            show_identity_line=True,
+            show_legend=False,
+            highlight_selector='type',
+            highlight_categories=["A", "B", "C"],
+            colors={
+                "A": (1, 0, 0),
+                "B": (0, 1, 0),
+                "C": (0, 0, 1),
+            }
+            )
 
 if __name__ == '__main__':
     unittest.main()
