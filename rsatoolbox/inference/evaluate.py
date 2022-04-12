@@ -240,8 +240,7 @@ def eval_fixed(models, data, theta=None, method='cosine'):
         method(string): comparison method to use
 
     Returns:
-        float: evaluation
-
+        result(Result): Result object with evaluations
     """
     models, evaluations, theta, _ = input_check_model(models, theta, None, 1)
     evaluations = np.repeat(np.expand_dims(evaluations, -1),
@@ -277,7 +276,7 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
         rdm_descriptor(string): descriptor to group rdms for bootstrap
 
     Returns:
-        numpy.ndarray: vector of evaluations
+        result(Result): Result class of evaluations
 
     """
     models, evaluations, theta, _ = \
@@ -338,7 +337,7 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
             ceiling calculation
 
     Returns:
-        numpy.ndarray: vector of evaluations
+        result(Result): Result class of evaluations
 
     """
     models, evaluations, theta, _ = \
@@ -395,7 +394,7 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
         rdm_descriptor(string): rdm_descriptor to group rdms for bootstrap
 
     Returns:
-        numpy.ndarray: vector of evaluations
+        result(Result): Result class of evaluations
 
     """
     models, evaluations, theta, _ = input_check_model(models, theta, None, N)
@@ -445,7 +444,7 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
         pattern_descriptor(string): descriptor to group patterns
 
     Returns:
-        numpy.ndarray: vector of evaluations
+        result(Result): Result object of evaluations
 
     """
     assert len(train_set) == len(test_set), \

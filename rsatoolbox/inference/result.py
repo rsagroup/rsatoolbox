@@ -35,7 +35,7 @@ class Result:
             bound and np.mean(noise_ceiling[1]) is the higher one.
 
     Attributes:
-        as inputs
+        Same as the inputs (see above)
 
     """
 

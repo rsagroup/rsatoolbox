@@ -40,9 +40,11 @@ def make_design(n_cond, n_part):
 def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
                  signal=1, noise=1, signal_cov_channel=None,
                  noise_cov_channel=None, noise_cov_trial=None,
-                 use_exact_signal=False, use_same_signal=False):
+                 use_exact_signal=False, use_same_signal=False,
+                 part_vec=None):
     """
-    Simulates a fMRI-style data set
+    Simulates a fMRI-style data set. Note that it assumes that the model predicts squared
+    Eucledian (sq. Mahalanbis of crossnobis) distances
 
     Args:
         model (rsatoolbox.Model):        the model from which to generate data
@@ -67,12 +69,13 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
                                   specified (default: False)
         use_same_signal (bool):   Uses the same signal for all simulation
                                   (default: False)
+        part_vec (numpy.ndarray): partition vectors (added as additional obs_descriptor)
     Returns:
         data (list):              List of rsatoolbox.Dataset with obs_descriptors
     """
 
     # Get the model prediction and build second moment matrix
-    # Note that this step assumes that RDM uses squared Euclidean distances
+    # Note that this step assumes that RDM uses Squared Euclidean distances
     RDM = model.predict(theta)
     D = squareform(RDM)
     H = rsatoolbox.util.matrix.centering(D.shape[0])
@@ -123,8 +126,10 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     # If noise covariance structure is given, it is assumed that it's the same
     # across different partitions
     obs_des = {"cond_vec": cond_vec}
+    if part_vec is not None:
+        obs_des['part_vec']=part_vec
     des = {"signal": signal, "noise": noise,
-           "model": model.name, "theta": theta}
+           "model": model.name}
     dataset_list = []
     for _ in range(0, n_sim):
         # If necessary - make a new signal
