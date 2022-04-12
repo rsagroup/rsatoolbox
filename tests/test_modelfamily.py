@@ -48,7 +48,7 @@ def component_inference(D,MF):
 
     fig=plt.figure(figsize=(18,3.5))
     plt.subplot(1,3,1)
-    rsa.vis.plot_tree(MF,mposterior,show_labels=False,show_edges=True)
+    rsa.vis.family_graph(MF,mposterior[0],node_facecolor=mposterior[0])
     ax=plt.subplot(1,3,2)
     rsa.vis.plot_component(cposterior,type='posterior')
     ax=plt.subplot(1,3,3)
@@ -101,6 +101,6 @@ def random_example(theta,N=10):
 
 
 if __name__ == '__main__':
-    sim_two_by_three(np.array([-1.0,-1.0,-1.0]))
+    sim_two_by_three(np.array([1.0,1.0,1.0]))
     # random_example(np.array([-1,-2,-np.inf,0,-np.inf]))
 

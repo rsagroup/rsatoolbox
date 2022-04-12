@@ -4,3 +4,4 @@ from .model_plot import plot_model_comparison
 from .icon import Icon
 from .icon import icons_from_folder
 from .rdm_comparison import rdm_comparison_scatterplot
+from .modelfamily_plot import family_graph
