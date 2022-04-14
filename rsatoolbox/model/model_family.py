@@ -147,12 +147,13 @@ class ModelFamily:
 
         # Get relative log-liklihood of the distances under the model
         # For linear regression the log-liklihood is (up to a constant)
-        # LL = log(1-R^2)
+        # LL = -n/2*log(1-R^2)
         if result.method in ['cosine','Pearson']:
             R=result.evaluations.mean(axis=0)
             R[np.isnan(R)]=0
             R[R<0]=0
-            rLL = np.log(1-R**2).T
+            n = self.rdm.shape[1]
+            rLL = -n/2*np.log(1-R**2).T
 
         # Correct for model df or rely on cv
         if method=='AIC':
@@ -205,12 +206,12 @@ class ModelFamily:
 
         return cposterior
 
-    def component_bayesfactor(self,likelihood,method='AIC',format='ndarray'):
+    def component_bayesfactor(self,result,method='AIC',format='ndarray'):
         """ Returns a log-bayes factor for each component
 
         Args:
-            likelihood ([np.array or DataFrame]):
-                N x n_models log-likelihoods
+            result (inference.Result):
+                Result object from the evaluation of the model family
             method (string):
                 Method by which to correct for number of parameters(k)
                 'AIC' (default): LL-k
@@ -224,7 +225,7 @@ class ModelFamily:
             posterior (DataFrame):
                 Component posterior - rows are data set, columns are components
         """
-        mposterior = self.model_posterior(likelihood,method)
+        mposterior = self.model_posterior(result,method)
         c_bf = np.empty((mposterior.shape[0],self.n_comp))
 
         for i in range(self.n_comp):
@@ -238,48 +239,3 @@ class ModelFamily:
         return c_bf
 
 
-
-    def get_family_member(self, family_index):
-        """returns family member given an input index
-
-        Parameters
-        ----------
-        family_index : int
-            Index corresponding to a family member
-
-        Returns
-        -------
-        weighted_model
-            family member corresponding to input index
-
-        """
-
-        member_indices = list(self.family_list[family_index])
-        family_member = [self.models[i] for i in member_indices]
-
-        return family_member
-
-    def get_all_family_members(self):
-        """returns a list of weighted models.
-
-        Returns
-        -------
-        list
-            list of weighted models.
-
-        """
-        all_family_members = []
-        for family_index in range(self.num_family_members):
-            family_member = self.get_family_member(family_index)
-            member_rdms = []
-            member_name = ""
-            for model in family_member:
-                member_rdms.append(model.predict_rdm().get_vectors().ravel())
-                member_name = member_name + "_" + model.name
-            member_rdms = np.array(member_rdms)
-            member_rdms = RDMs(member_rdms)
-
-            weighted_model = ModelWeighted(member_name, member_rdms)
-            all_family_members.append(weighted_model)
-
-        return all_family_members

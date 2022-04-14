@@ -42,9 +42,9 @@ def component_inference(D,MF):
     Res=rsa.inference.eval_fixed(MF.models,data_rdms,method='cosine')
 
     # pcm.vis.model_plot(T.likelihood-MF.num_comp_per_m)
-    mposterior = MF.model_posterior(Res,method='AIC',format='DataFrame')
-    cposterior = MF.component_posterior(Res,method='AIC',format='DataFrame')
-    c_bf = MF.component_bayesfactor(Res,method='AIC',format='DataFrame')
+    mposterior = MF.model_posterior(Res,method=None,format='ndarray')
+    cposterior = MF.component_posterior(Res,method=None,format='DataFrame')
+    c_bf = MF.component_bayesfactor(Res,method=None,format='DataFrame')
 
     fig=plt.figure(figsize=(6,6))
     plt.subplot(2,2,1)
@@ -64,11 +64,12 @@ def sim_two_by_three(theta):
     M,MF1 = two_by_three_design(orthogonalize=False)
     M,MF2 = two_by_three_design(orthogonalize=True)
     [cond_vec,part_vec]=rsa.simulation.make_design(6,8)
-    D = rsa.simulation.make_dataset(M,theta,
-                            signal=1.0,
+    D = rsa.simulation.make_dataset(M,
+                            theta=np.array([0.7,0,0]),
+                            cond_vec = cond_vec,
+                            signal=0.1,
                             n_sim = 20,
                             n_channel=20,
-                            cond_vec = cond_vec,
                             part_vec = part_vec)
     component_inference(D,MF1)
     component_inference(D,MF2)
@@ -103,6 +104,6 @@ def random_example(theta,N=10):
 
 
 if __name__ == '__main__':
-    sim_two_by_three(np.array([1.0,1.0,1.0]))
+    sim_two_by_three(np.array([0,0.0,20]))
     # random_example(np.array([-1,-2,-np.inf,0,-np.inf]))
 
