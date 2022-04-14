@@ -46,13 +46,15 @@ def component_inference(D,MF):
     cposterior = MF.component_posterior(Res,method='AIC',format='DataFrame')
     c_bf = MF.component_bayesfactor(Res,method='AIC',format='DataFrame')
 
-    fig=plt.figure(figsize=(18,3.5))
-    plt.subplot(1,3,1)
-    rsa.vis.family_graph(MF,mposterior[0],node_facecolor=mposterior[0])
-    ax=plt.subplot(1,3,2)
-    rsa.vis.plot_component(cposterior,type='posterior')
-    ax=plt.subplot(1,3,3)
-    rsa.vis.plot_component(c_bf,type='bf')
+    fig=plt.figure(figsize=(6,6))
+    plt.subplot(2,2,1)
+    rsa.vis.family_graph(MF,node_facecolor=mposterior[0])
+    ax=plt.subplot(2,2,2)
+    rsa.vis.family_graph(MF,node_size=mposterior[0])
+    ax=plt.subplot(2,2,3)
+    rsa.vis.component_barplot(cposterior,type='posterior')
+    ax=plt.subplot(2,2,4)
+    rsa.vis.component_barplot(c_bf,type='bf')
 
 
 def sim_two_by_three(theta):
@@ -66,7 +68,7 @@ def sim_two_by_three(theta):
                             signal=1.0,
                             n_sim = 20,
                             n_channel=20,
-                            cond_vec=cond_vec,
+                            cond_vec = cond_vec,
                             part_vec = part_vec)
     component_inference(D,MF1)
     component_inference(D,MF2)
@@ -91,7 +93,7 @@ def random_example(theta,N=10):
 
     [cond_vec,part_vec]=rsa.sim.make_design(N,8)
     D = rsa.sim.make_dataset(M,theta,
-                            signal=0.1,
+                            signal=1.0,
                             n_sim = 20,
                             n_channel=20,part_vec=part_vec,
                             cond_vec=cond_vec)
