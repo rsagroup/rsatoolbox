@@ -7,6 +7,7 @@ Inference module utilities
 import numpy as np
 from scipy import stats
 from scipy.stats import rankdata, wilcoxon
+from scipy.stats import t as tdist
 from collections.abc import Iterable
 from rsatoolbox.model import Model
 from rsatoolbox.rdm import RDMs
@@ -463,6 +464,64 @@ def extract_variances(variance, nc_included=True):
         nc_variances = _dual_bootstrap(nc_variances)
         diff_variances = _dual_bootstrap(diff_variances)
     return model_variances, diff_variances, nc_variances
+
+
+def get_errorbars(model_var, evaluations, dof, error_bars='sem',
+                  test_type='t-test'):
+    """ computes errorbars for the model-evaluations from a results object
+
+    Args:
+        results : rsatoolbox.inference.Results
+            the results object
+        eb_type : str, optional
+            which errorbars to compute
+
+    Returns:
+        evaluations : numpy.ndarray
+            empty evaluations-matrix
+        theta : list
+            the processed and checked model parameters
+        fitter : [list of] functions
+            checked and processed fitter functions
+
+    """
+    if error_bars.lower() == 'sem':
+        errorbar_low = np.sqrt(np.maximum(model_var, 0))
+        errorbar_high = np.sqrt(np.maximum(model_var, 0))
+    elif error_bars[0:2].lower() == 'ci':
+        if len(error_bars) == 2:
+            CI_percent = 95.0
+        else:
+            CI_percent = float(error_bars[2:])
+        prop_cut = (1 - CI_percent / 100) / 2
+        if test_type == 'bootstrap':
+            n_models = evaluations.shape[1]
+            framed_evals = np.concatenate(
+                (np.tile(np.array((-np.inf, np.inf)).reshape(2, 1),
+                         (1, n_models)),
+                 evaluations),
+                axis=0)
+            errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
+                             - perf)
+            errorbar_high = (np.quantile(framed_evals, 1 - prop_cut,
+                                         axis=0)
+                             - perf)
+        else:
+            std_eval = np.sqrt(np.maximum(model_var, 0))
+            errorbar_low = std_eval \
+                * tdist.ppf(prop_cut, dof)
+            errorbar_high = std_eval \
+                * tdist.ppf(prop_cut, dof)
+    else:
+        raise Exception('computing errorbars: Argument ' +
+                        'error_bars is incorrectly defined as '
+                        + str(error_bars) + '.')
+    limits = np.concatenate((errorbar_low, errorbar_high))
+    if np.isnan(limits).any() or (abs(limits) == np.inf).any():
+        raise Exception(
+            'computing errorbars: Too few bootstrap samples for the ' +
+            'requested confidence interval: ' + error_bars + '.')
+    return limits
 
 
 def _dual_bootstrap(variances):
