@@ -55,7 +55,7 @@ def component_inference(D,MF):
     rsa.vis.component_barplot(cposterior,type='posterior')
     ax=plt.subplot(2,2,4)
     rsa.vis.component_barplot(c_bf,type='bf')
-
+    pass
 
 def sim_two_by_three(theta):
     """Simulates a simple 2x3 factorial design
@@ -76,27 +76,27 @@ def sim_two_by_three(theta):
     pass
 
 def random_design(N=10,Q=5,num_feat=2,seed=1):
-    Gc = np.empty((Q,N,N))
     rng = np.random.default_rng(seed)
+    C =  rsa.util.matrix.pairwise_contrast(np.arange(N))
+    rdms = np.zeros((Q,N,N))
     for q in range(Q):
         X= rng.normal(0,1,(N,num_feat))
-        Gc[q,:,:]= X @ X.T
-    M = pcm.ComponentModel('A+B+I',Gc)
-    MF=pcm.model.ModelFamily(Gc)
+        rdms[q]=squareform(np.diag(C@X@X.T@C.T))
+    M = model.ModelWeighted('full',rdms)
+    MF= model.ModelFamily(rdms)
     return M,MF
 
 def random_example(theta,N=10):
     Q = theta.shape[0]
     M,MF = random_design(N=N,Q=Q)
-    for q in range(Q):
-        plt.subplot(1,Q,q+1)
-        plt.imshow(M.Gc[q,:,:])
+    rsa.vis.show_rdm(M.rdm_obj)
 
-    [cond_vec,part_vec]=rsa.sim.make_design(N,8)
-    D = rsa.sim.make_dataset(M,theta,
+    [cond_vec,part_vec]=rsa.simulation.make_design(N,8)
+    D = rsa.simulation.make_dataset(M,theta,
                             signal=1.0,
                             n_sim = 20,
-                            n_channel=20,part_vec=part_vec,
+                            n_channel=20,
+                            part_vec=part_vec,
                             cond_vec=cond_vec)
     component_inference(D,MF)
     pass
@@ -104,6 +104,6 @@ def random_example(theta,N=10):
 
 
 if __name__ == '__main__':
-    sim_two_by_three(np.array([0,0.0,20]))
-    # random_example(np.array([-1,-2,-np.inf,0,-np.inf]))
+    # sim_two_by_three(np.array([0,0.0,20]))
+    random_example(np.array([0,0,0,0,1]))
 
