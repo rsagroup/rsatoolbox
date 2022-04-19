@@ -39,12 +39,15 @@ def component_inference(D,MF):
     data_rdms = rsa.rdm.calc_rdm(D,method='crossnobis',
                             descriptor='cond_vec',
                             cv_descriptor='part_vec')
-    Res=rsa.inference.eval_fixed(MF.models,data_rdms,method='cosine')
+    theta = []
+    for model in MF.models:
+        theta.append(model.fit(data_rdms,method='cosine'))
+    Res=rsa.inference.eval_fixed(MF.models,data_rdms,theta=theta,method='cosine')
 
     # pcm.vis.model_plot(T.likelihood-MF.num_comp_per_m)
-    mposterior = MF.model_posterior(Res,method=None,format='ndarray')
-    cposterior = MF.component_posterior(Res,method=None,format='DataFrame')
-    c_bf = MF.component_bayesfactor(Res,method=None,format='DataFrame')
+    mposterior = MF.model_posterior(Res,method='AIC',format='ndarray')
+    cposterior = MF.component_posterior(Res,method='AIC',format='DataFrame')
+    c_bf = MF.component_bayesfactor(Res,method='AIC',format='DataFrame')
 
     fig=plt.figure(figsize=(6,6))
     plt.subplot(2,2,1)
@@ -104,6 +107,6 @@ def random_example(theta,N=10):
 
 
 if __name__ == '__main__':
-    # sim_two_by_three(np.array([0,0.0,20]))
-    random_example(np.array([0,0,0,0,1]))
+    sim_two_by_three(np.array([0,0.0,20]))
+    # random_example(np.array([0,0,0,0,1]))
 

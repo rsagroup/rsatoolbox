@@ -86,6 +86,7 @@ class ModelFamily:
             else:
                 name = '+'.join(self.comp_names[ind])
                 mod = ModelWeighted(name,self.rdm[ind,:])
+                mod.default_fitter = rsa.model.fitter.fit_optimize_positive
             self.model_names.append(name)
             self.models.append(mod)
 
