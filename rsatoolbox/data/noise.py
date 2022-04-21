@@ -105,7 +105,7 @@ def _covariance_full(matrix, dof):
             s_mean: n_channels x n_channels sample covariance matrix
 
     """
-    return np.einsum('ij, ik-> jk', matrix, matrix) / dof
+    return np.einsum('ij, ik-> jk', matrix, matrix, optimize=True) / dof
 
 
 def _covariance_eye(matrix, dof):
@@ -196,26 +196,6 @@ def _covariance_diag(matrix, dof, mem_threshold=(10**9)/8):
     scaling = np.eye(s.shape[0]) + (1-lamb) * mask
     s_shrink = s * scaling
     return s_shrink
-
-
-def sample_covariance_3d(tensor):
-    """
-    computes the sample covariance matrix from a tensor by estimating the
-    sample covariance for each slice along the third dimension and averaging
-    the estimated covariance matrices.
-
-    Args:
-        tensor (numpy.ndarray):
-            n_conditions x n_channels x n_measurements
-
-    Returns:
-         numpy.ndarray:
-            s_mean: n_channels x n_channels expected sample covariance matrix
-
-    """
-    xt_x = np.einsum('ij, ik-> ijk', tensor, tensor)
-    s = np.mean(xt_x, axis=0)
-    return s, xt_x
 
 
 def cov_from_residuals(residuals, dof=None, method='shrinkage_diag'):
