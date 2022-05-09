@@ -336,7 +336,7 @@ def fit_regress_nn(model, data, method='cosine', pattern_idx=None,
         v = v[nan_idx[0]][:, nan_idx[0]]
     else:
         raise ValueError('method argument invalid')
-    theta = _nn_least_squares(vectors, y, ridge_weight=ridge_weight, V=v)
+    theta, l = _nn_least_squares(vectors.T, y[0], ridge_weight=ridge_weight, V=v)
     return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
