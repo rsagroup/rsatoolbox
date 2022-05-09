@@ -244,6 +244,7 @@ class TestRDM(unittest.TestCase):
         rank_rdm = rank_transform(rdms)
         self.assertEqual(rank_rdm.n_rdm, rdms.n_rdm)
         self.assertEqual(rank_rdm.n_cond, rdms.n_cond)
+        self.assertEqual(rank_rdm.dissimilarity_measure, 'Euclidean (ranks)')
 
     def test_sqrt_transform(self):
         from rsatoolbox.rdm import sqrt_transform

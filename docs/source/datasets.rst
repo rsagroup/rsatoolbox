@@ -34,6 +34,13 @@ manipulating the data before RDM creation as well. It is thus convenient to add 
 To manipulate the datasets, have a look at the functions of the dataset object
 ``sort_by``, ``split_channel``, ``split_obs``, ``subset_channel``, ``subset_obs``.
 
+Datasets can also be created (and converted to) DataFrame objects from the pandas library:
+
+.. code-block:: python
+
+    df = data_in.to_DataFrame()
+    data_out = Dataset.from_DataFrame(df)
+
 The dataset objects can also be saved to hdf5 files using their method ``save`` as in and loaded with the ``rsatoolbox.data.load_dataset`` function:
 
 .. code-block:: python

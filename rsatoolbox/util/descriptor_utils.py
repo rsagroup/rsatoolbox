@@ -48,16 +48,7 @@ def num_index(descriptor, value):
             bool_index: boolean index vector where descriptor == value
 
     """
-    index = []
-    if isinstance(value, (list, tuple, np.ndarray)):
-        for j, d in enumerate(descriptor):
-            if d in value:
-                index.append(j)
-    else:
-        for j, d in enumerate(descriptor):
-            if d == value:
-                index.append(j)
-    return index
+    return np.where(bool_index(descriptor, value))[0]
 
 
 def format_descriptor(descriptors):
@@ -132,10 +123,11 @@ def subset_descriptor(descriptor, indices):
 
     """
     extracted_descriptor = {}
-    for k, v in descriptor.items():
-        if isinstance(indices, Iterable):
+    if isinstance(indices, Iterable):
+        for k, v in descriptor.items():
             extracted_descriptor[k] = [v[index] for index in indices]
-        else:
+    else:
+        for k, v in descriptor.items():
             extracted_descriptor[k] = [v[indices]]
     return extracted_descriptor
 

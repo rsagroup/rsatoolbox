@@ -139,7 +139,8 @@ disable=print-statement,
         deprecated-sys-function,
         exception-escape,
         comprehension-escape,
-        no-self-use
+        no-self-use,
+        use-dict-literal
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -422,7 +423,9 @@ good-names=i,
            X,
            Y,
            Z,
-           _
+           _,
+           df,
+           ds
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted

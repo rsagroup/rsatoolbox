@@ -200,7 +200,7 @@ class TestCrossval(unittest.TestCase):
     def test_k_fold(self):
         from rsatoolbox.inference import sets_k_fold
         import rsatoolbox.rdm as rsr
-        dis = np.zeros((8, 10))
+        dis = np.random.rand(8, 10)
         mes = "Euclidean"
         des = {'subj': 0}
         rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
@@ -216,6 +216,13 @@ class TestCrossval(unittest.TestCase):
             random=False)
         assert test_set[0][0].n_cond == 2
         assert test_set[1][0].n_cond == 3
+        assert ceil_set[0][1] == test_set[0][1]
+        assert ceil_set[0][0].n_rdm == train_set[0][0].n_rdm
+        assert train_set[0][0].n_cond == 3
+        assert train_set[1][0].n_cond == 2
+        for train, test in zip(train_set, test_set):
+            assert train[0].n_rdm + test[0].n_rdm == 8
+            assert train[0].n_cond + test[0].n_cond == 5
 
     def test_k_fold_rdm(self):
         from rsatoolbox.inference import sets_k_fold_rdm
@@ -243,8 +250,18 @@ class TestCrossval(unittest.TestCase):
         assert test_set[0][0].n_rdm == 3
         assert test_set[1][0].n_rdm == 3
         assert test_set[2][0].n_rdm == 2
+        assert ceil_set[0][0].n_rdm == 5
+        assert ceil_set[1][0].n_rdm == 5
+        assert ceil_set[2][0].n_rdm == 6
+        assert train_set[0][0].n_rdm == 5
+        assert train_set[1][0].n_rdm == 5
+        assert train_set[2][0].n_rdm == 6
+        for train, test in zip(train_set, test_set):
+            assert train[0].n_rdm + test[0].n_rdm == 8
         train_set, test_set, ceil_set = sets_k_fold_rdm(
             rdms, k_rdm=3, random=False)
+        for train, test in zip(train_set, test_set):
+            assert train[0].n_rdm + test[0].n_rdm == 8
 
     def test_sets_of_k_pattern(self):
         from rsatoolbox.inference import sets_of_k_pattern
@@ -264,3 +281,5 @@ class TestCrossval(unittest.TestCase):
             pattern_descriptor='category', random=False)
         assert test_set[0][0].n_cond == 2
         assert test_set[1][0].n_cond == 3
+        for train, test in zip(train_set, test_set):
+            assert train[0].n_cond + test[0].n_cond == 5
