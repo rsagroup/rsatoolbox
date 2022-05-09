@@ -8,7 +8,7 @@ model types. Any type of model needs to define three functions ``predict``, ``pr
 return the prediction of the model, taking a model parameter vector ``theta`` as input. ``predict`` returns a vectorized numpy array format for efficient computation, ``predict_rdm`` returns a RDMs object. For flexible models, the ``fit`` function estimates the parameter vector (``theta``) based on some data RDMs (see :ref:`model fitting <model_fitting>`).
 
 Model types are defined in ``rsatoolbox.model``. Most of them can be initialized with a name and an RDMs object, which defines the RDM(s), which
-are combined into a prediction. 
+are combined into a prediction.
 
 Fixed models
 ------------
@@ -26,7 +26,7 @@ could use the following code:
 
 
 To extract the prediction of this model, which will always be the RDM provided at its creation, you can use its ``predict`` and ``predict_rdm``
-functions. The ``fit`` function dos nothing. 
+functions. The ``fit`` function dos nothing.
 
 .. code-block:: python
 
@@ -52,7 +52,12 @@ To generate a model for a set of RDMs saved in rdm with name 'test' could use th
     import rsatoolbox
     model = rsatoolbox.model.ModelWeighted('test', rdms)
 
-The simplest method for fitting this kind of model is an unconstrained linear fit, which maximizes the chosen RDM similarity metric, allowing both negative and positive weights for the RDM. More correctly, the weights for each feature component should be constrained to be postive. See :ref:`model fitting <model_fitting>` for more information.
+The simplest method for fitting this kind of model is an unconstrained linear fit, which maximizes the chosen RDM similarity metric,
+allowing both negative and positive weights for the RDM. More correctly, the weights for each feature component should be constrained
+to be postive. See :ref:`model fitting <model_fitting>` for more information.
+
+Fitting this type of model generally works better with continuous RDM comparison measures than with the rank correlations.
+
 
 Selection models
 ----------------
@@ -82,5 +87,5 @@ Noise ceiling models
 .. _Model_nc:
 
 The computation of a noise ceiling is often conceptualized as evaluating a model, which can arbitrarily set all distances of the RDM.
-As the ``rsatoolbox`` currently computes the noise ceiling using analytic methods and does not explicily create this model, it currently does not
+As the ``rsatoolbox`` currently computes the noise ceiling using analytic methods and does not explicitly create this model, it currently does not
 provide an implementation of this maximally flexible model.

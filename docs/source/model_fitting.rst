@@ -3,12 +3,23 @@
 Model Fitting
 =============
 
-While fixed models (i.e. models that predict a fixed RDM) are important, many models have free parameters that can be fit to the data. All models come equipped with a default fitting function, which is called using the ``fit`` function of the model. This function takes a data RDMs object as input and returns a parameter value. 
+While fixed models (i.e. models that predict a fixed RDM) are important, many models have free parameters that can be fit to the data. All models come equipped with a default fitting function,
+which is called using the ``fit`` function of the model. This function takes a data RDMs object as input and returns a parameter value.
 
 Individual vs. group fits
 -------------------------
-In the RSA toolbox, the models will always be fit to all RDMs that are passed to the fitting routine. That is, if the different RDMs are calculated on different subjects, the fit will be a group fit, with one set of parameters for the whole group. If you require individual fits, you need to loop over participants pass each RDM seperately to the fitting function.  
+In the RSA toolbox, the models will always be fit to all RDMs that are passed to the fitting routine. That is, if the different RDMs are calculated on different subjects,
+the fit will be a group fit, with one set of parameters for the whole group. If you require individual fits, you need to loop over participants pass each RDM seperately to the fitting function.
 
+Continuous vs. rank-based evaluation metrics
+--------------------------------------------
+Most model fitting techniques require the evaluation metric to be differentiable with regard to the model parameters and this is true for most
+RDM comparison metrics provided by the toolbox. However, rank based evaluations (i.e. Spearman $\rho$ and Kendall's $\tau$) are not differentiable
+and thus often lead to problems for optimization. Thus, we generally do not recommend fitting models using these criteria.
+
+Two model types with their special fitting methods are exempt from this recommendation: :ref:`Selection models <ModelSelect>` and
+:ref:`Interpolation models <ModelInterpolate>`, which use a simple selection strategy and a derivative free bisection method for finding
+the best models respectively and can thus deal with discontinuous objective functions.
 
 Fitting algorithms
 ------------------
@@ -18,22 +29,21 @@ To use them you can either apply them manually you can set them as the default o
 
 Unconstrained optimization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-The function ``rsatoolbox.fitter.fit_optimize`` uses a general purpose optimization method. It simply maximizes the criterion using either positive or negative ``theta`` weights. 
-
-TO ADD: STUFF ABOUT FITTING OF RANK-BASED CRITERIA. 
+The function ``rsatoolbox.fitter.fit_optimize`` uses a general purpose optimization method. It simply maximizes the criterion using either positive or negative ``theta`` weights.
 
 Non-negative optimization
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-The function ``rsatoolbox.fitter.fit_optimize_positive`` maximizes the fit, but constraints the parameter values to be non-negative. This is the most appropriate  
+The function ``rsatoolbox.fitter.fit_optimize_positive`` maximizes the fit, but constraints the parameter values to be non-negative.
+This is the most appropriate fitting method for weighting RDMs, because weighting features in an underlying representation can only add to
+the distances between points not subtract from them.
 
 Regression-based methods
 ^^^^^^^^^^^^^^^^^^^^^^^^
-The ``rsatoolbox.fitter.fit_regress`` which employs linear algebra analytic solutions.
+For correlation and cosine distances and weighted models,  ``rsatoolbox.fitter.fit_regress`` provides more reliable and faster solutions
+based on linear algebra. Being specialized this method works only for the 'cosine', 'corr', 'cosine_cov' and 'corr_cov'
+comparison methods.
 
-TO ADD: INFORMATION ABOUT NON-NEGATIVE REGRESSION - DOES NOT SEEM TO WORK. 
-
-Fitting this type of model generally works better with continuous RDM comparison measures than with the rank correlations.
-
+Analogously, ``rsatoolbox.fitter.fit_regress_nn`` provides a method for non-negative fits of such models.
 
 
 Calling the fitting function directly
@@ -84,4 +94,3 @@ Observe that this does indeed slightly change the fitted parameters compared to 
 
 Both the fitting functions themselves and the fitter objects can be used as inputs to the crossvalidation and bootstrap-crossvalidation
 methods to change how models are fit to data.
-
