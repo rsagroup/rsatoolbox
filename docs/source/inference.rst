@@ -43,11 +43,16 @@ type of evaluation. It should then be a list of numpy array parameter values in 
 
 Cross-validation across participants / data sets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TO DO: DESCRIBE 
+
+When evaluating models with flexible parameters, we need to control for the different complexity of the models. For example, a weighted model with 3 components will fit the data less good than a weighted model with that has those 3 components plus 2 extra components. A good way to evaluate those models is to use leave-one-out cross-validation: The parameters of the rsa model will be fit to N-1 subjects (or data sets) and then evaluated on the Nth subject. 
+
+.. code-block:: python
+
+    train_set, test_set, ceil_set = rsatoolbox.inference.sets_leave_one_out_rdm(rdms_data)
+    results_cv = rsatoolbox.inference.crossval(models_flex, rdms_data, train_set, test_set, ceil_set=ceil_set, method='corr')
 
 Bootstrap across participants / data sets 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-NOT 100% CLEAR - DESCRIBE BETTER? 
 
 The variance caused by random sampling of the subjects can also be estimated by using bootstrapping.
 This is implemented in ``rsatoolbox.inference.eval_bootstrap_rdm``. In expectation the variance computed by this method is the same as the one
@@ -57,7 +62,6 @@ computed by ``eval_fixed``. For this type of analysis it is thus not recommended
 Generalization over conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-MORE GENERAL INTRO INTO IDEA - HIGHLIGHT THAT THIS IS NOT NEcESSARILY COMMON PRACtiCE YET. 
 There is no direct formula for the variance caused by random sampling of the conditions. Thus, we resort to bootstrapping to estimate this variance.
 
 If we want to generalize only to the population of conditions for the exact subjects measured we can use ``rsatoolbox.inference.eval_bootstrap_pattern``.
