@@ -48,12 +48,6 @@ class TestCrossval(unittest.TestCase):
         crossval(m, rdms, train_set, test_set, ceil_set,
                  pattern_descriptor='type')
 
-    def test_eval_fancy(self):
-        from rsatoolbox.inference import eval_fancy
-        eval_fancy(self.m, self.rdms, N=10, k_rdm=2, k_pattern=2,
-                   pattern_descriptor='type',
-                   rdm_descriptor='session')
-
     def test_bootstrap_crossval(self):
         from rsatoolbox.inference import bootstrap_crossval
         from rsatoolbox.rdm import RDMs
@@ -75,8 +69,8 @@ class TestCrossval(unittest.TestCase):
                            pattern_descriptor='type',
                            rdm_descriptor='session')
 
-    def test_bootstrap_cv_random(self):
-        from rsatoolbox.inference import bootstrap_cv_random
+    def test_dual_bootstrap_random(self):
+        from rsatoolbox.inference import eval_dual_bootstrap_random
         from rsatoolbox.rdm import RDMs
         from rsatoolbox.model import ModelFixed
         dis = np.random.rand(11, 190)  # 11 10x10 rdms
@@ -92,7 +86,7 @@ class TestCrossval(unittest.TestCase):
                     dissimilarity_measure=mes,
                     descriptors=des)
         m = ModelFixed('test', rdms[0])
-        res = bootstrap_cv_random(
+        res = eval_dual_bootstrap_random(
             m, rdms, N=10, n_rdm=2, n_pattern=4,
             pattern_descriptor='type',
             rdm_descriptor='session')
