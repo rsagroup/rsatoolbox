@@ -56,7 +56,7 @@ To do so, requires a covariance estimate for the measurement noise :math:`\Sigma
     \end{equation}
 
 This dissimilarity is normalized for the number of channels just as the Euclidean distance.
-Also, both math:`d_{i,j}^2` and math:`d_{i,j}` have been used to produce RDMs. rsatoolbox returns math:`d_{i,j}^2` by default. Use rsatoolbox.rdm.sqrt_transform to get math:`d_{i,j}`.
+Also, both :math:`d_{i,j}^2` and :math:`d_{i,j}` have been used to produce RDMs. rsatoolbox returns :math:`d_{i,j}^2` by default. Use rsatoolbox.rdm.sqrt_transform to get :math:`d_{i,j}`.
 
 In rsatoolbox the computing the Mahalanobis distances is achieved by passing method='mahalanobis' and the noise precision math:`\Sigma^{-1}` as 'noise'.
 The precision is the inverse of the noise covariance, which we use for computational efficiency reasons.
