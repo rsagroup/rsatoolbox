@@ -5,8 +5,9 @@
 
 import unittest
 from unittest.mock import Mock, patch
+from copy import deepcopy
 import numpy as np
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 from scipy.spatial.distance import pdist, squareform
 import rsatoolbox.rdm as rsr
 import rsatoolbox as rsa
@@ -27,10 +28,11 @@ class TestCalcRDM(unittest.TestCase):
                    'fold': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
                    }
-        obs_balanced = {'conds': np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4,
-                                           0, 0, 1, 1, 2, 2, 3, 3, 4, 4]),
-                        'fold': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                          1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+        self.obs_balanced = {
+            'conds': np.array([4, 4, 1, 1, 2, 2, 3, 3, 0, 0,
+                               0, 0, 1, 1, 2, 2, 3, 3, 4, 4]),
+            'fold': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
                         }
         chn_des = {'rois': np.array(['V1', 'V1', 'IT', 'IT', 'V4'])}
         self.test_data = rsa.data.Dataset(
@@ -42,7 +44,7 @@ class TestCalcRDM(unittest.TestCase):
         self.test_data_balanced = rsa.data.Dataset(
             measurements=measurements,
             descriptors=des,
-            obs_descriptors=obs_balanced,
+            obs_descriptors=self.obs_balanced,
             channel_descriptors=chn_des
             )
         self.test_data_deterministic = rsa.data.Dataset(
@@ -202,6 +204,21 @@ class TestCalcRDM(unittest.TestCase):
                            cv_descriptor='fold',
                            method='poisson_cv')
         assert rdm.n_cond == 6
+
+    def test_calc_crossnobis_sorting(self):
+        """ check that sorting the data does not change results
+        This catches errors due to mix ups of indices.
+        """
+        data2 = deepcopy(self.test_data_balanced)
+        data2.sort_by('conds')
+        rdm1 = rsr.calc_rdm_crossnobis(self.test_data_balanced,
+                                       descriptor='conds', cv_descriptor='fold')
+        rdm2 = rsr.calc_rdm_crossnobis(data2,
+                                       descriptor='conds', cv_descriptor='fold')
+        assert_array_almost_equal(rdm1.dissimilarities, rdm2.dissimilarities)
+        assert_array_equal(
+            self.test_data_balanced.obs_descriptors['conds'],
+            self.obs_balanced['conds'])
 
 
 class TestCalcRDMMovie(unittest.TestCase):

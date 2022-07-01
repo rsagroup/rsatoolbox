@@ -204,6 +204,41 @@ class TestConsistency(unittest.TestCase):
                 places=4, msg='regression fit differs from optimization fit!'
                 + '\nfor %s' % i_method)
 
+    def test_two_rdms_nn(self):
+        from rsatoolbox.model import ModelInterpolate, ModelWeighted
+        from rsatoolbox.model.fitter import fit_regress_nn, fit_optimize_positive
+        from rsatoolbox.rdm import concat, compare
+        model_rdms = concat([self.rdms[0], self.rdms[1]])
+        model_weighted = ModelWeighted(
+            'm_weighted',
+            model_rdms)
+        model_interpolate = ModelInterpolate(
+            'm_interpolate',
+            model_rdms)
+        for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
+            theta_m_i = model_interpolate.fit(self.rdms, method=i_method)
+            theta_m_w = model_weighted.fit(self.rdms, method=i_method)
+            theta_m_w_pos = fit_optimize_positive(
+                model_weighted, self.rdms, method=i_method)
+            theta_m_w_linear = fit_regress_nn(
+                model_weighted, self.rdms, method=i_method)
+            eval_m_i = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_i), self.rdms, method=i_method))
+            eval_m_w = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w), self.rdms, method=i_method))
+            eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w_pos), self.rdms, method=i_method))
+            eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
+                theta_m_w_linear), self.rdms, method=i_method))
+            self.assertAlmostEqual(
+                eval_m_i, eval_m_w_pos,
+                places=4, msg='weighted fit differs from interpolation fit!'
+                + '\nfor %s' % i_method)
+            self.assertAlmostEqual(
+                eval_m_w, eval_m_w_linear,
+                places=4, msg='regression fit differs from optimization fit!'
+                + '\nfor %s' % i_method)
+
     def test_two_rdms_nan(self):
         from rsatoolbox.model import ModelInterpolate, ModelWeighted
         from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive
