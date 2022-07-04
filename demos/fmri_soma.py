@@ -2,6 +2,7 @@
 
 ## demo todo:
 - loop over runs
+- ciftify/sub/native -> aparcaseg
 
 ## functionality todo's:
 - function which gather fmriprep datasets
@@ -94,8 +95,8 @@ for c, condition in enumerate(conditions):
         yvals = yvals + numpy.nan_to_num(f)
     dm[:, c] = yvals
 
-## wdata, wdesign = whiten_data(data, design) ## adds polynomials
-## pdata = wdata / wdata.mean(axis=0)
+## add polynomials
+pdata = wdata / wdata.mean(axis=0)
 
 ## least square fitting
 # The matrix addition is equivalent to concatenating the list of data and the list of
