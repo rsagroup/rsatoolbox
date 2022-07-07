@@ -497,7 +497,7 @@ def get_errorbars(model_var, evaluations, dof, error_bars='sem',
                 axis=0)
             perf = np.mean(evaluations, 0)
             while perf.ndim > 1:
-                 perf = np.mean(perf, -1)
+                perf = np.mean(perf, -1)
             errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
                              - perf)
             errorbar_high = (np.quantile(framed_evals, 1 - prop_cut,

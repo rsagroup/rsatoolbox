@@ -3,13 +3,13 @@
 Created on Thu Sep 17 17:09:00 2020
 """
 
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import scipy.spatial.distance as ssd
 import scipy.stats as sst
 from tqdm import tqdm
-import sys
 
 import rsatoolbox
 from rsatoolbox.util.inference_util import pair_tests
