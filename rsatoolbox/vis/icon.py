@@ -94,23 +94,12 @@ class Icon:
     """
 
     def __init__(
-        self,
-        image=None,
-        string=None,
-        color=None,
-        marker=None,
-        cmap=None,
-        border_type=None,
-        border_width=2,
-        make_square=False,
-        circ_cut=None,
-        resolution=None,
-        marker_front=True,
-        markeredgewidth=2,
-        font_size=None,
-        font_name=None,
-        font_color=None,
-    ):
+        self, image=None, string=None, color=None, marker=None,
+        cmap=None, border_type=None, border_width=2, make_square=False,
+        circ_cut=None, resolution=None, marker_front=True,
+        markeredgewidth=2, font_size=None, font_name=None,
+        font_color=None):
+        self.final_image = None
         self.font_size = font_size
         self.font_name = font_name
         self.string = string
@@ -231,7 +220,7 @@ class Icon:
             self._circ_cut = 1
         elif circ_cut == "cosine":
             self._circ_cut = 0
-        elif circ_cut <= 1 and circ_cut >= 0:
+        elif 0 <= circ_cut <= 1:
             self._circ_cut = circ_cut
         else:
             raise ValueError("circ_cut must be in [0,1]")
