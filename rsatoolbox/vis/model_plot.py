@@ -6,7 +6,6 @@ Barplot for model comparison based on a results file
 
 import warnings
 import numpy as np
-import scipy.stats
 import matplotlib.pyplot as plt
 from matplotlib import patches
 from matplotlib.path import Path
