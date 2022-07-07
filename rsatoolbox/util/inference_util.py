@@ -510,7 +510,7 @@ def get_errorbars(model_var, evaluations, dof, error_bars='sem',
         raise Exception('computing errorbars: Argument ' +
                         'error_bars is incorrectly defined as '
                         + str(error_bars) + '.')
-    limits = np.concatenate((errorbar_low, errorbar_high))
+    limits = np.stack((errorbar_low, errorbar_high))
     if np.isnan(limits).any() or (abs(limits) == np.inf).any():
         raise Exception(
             'computing errorbars: Too few bootstrap samples for the ' +
