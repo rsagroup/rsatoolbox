@@ -477,13 +477,7 @@ def get_errorbars(model_var, evaluations, dof, error_bars='sem',
             which errorbars to compute
 
     Returns:
-        evaluations : numpy.ndarray
-            empty evaluations-matrix
-        theta : list
-            the processed and checked model parameters
-        fitter : [list of] functions
-            checked and processed fitter functions
-
+        limits (np.array)
     """
     if error_bars.lower() == 'sem':
         errorbar_low = np.sqrt(np.maximum(model_var, 0))

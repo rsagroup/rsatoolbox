@@ -327,7 +327,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     else:
         ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
     if error_bars:
-        limits = get_errorbars(result, error_bars)
+        limits = get_errorbars(model_var, evaluations, dof, error_bars, test_type)
         ax.errorbar(np.arange(evaluations.shape[1]), perf,
                     yerr=limits, fmt='none', ecolor='k',
                     capsize=0, linewidth=3)
