@@ -317,7 +317,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     if MDS_method == 'custom':
         locs2d = custom_MDS(rdm_dists, n_init=10, n_iter=500)
     elif MDS_method == 'weighted':
-        locs2d = weighted_MDS(rdm_dists, n_weightings=1, n_MDS_runs=400)
+        locs2d = weighted_MDS(rdm_dists, n_MDS_runs=400)
 
     # ensure canonical reflection
     if bool(locs2d[1, 0] < locs2d[2, 0]) == fliplr:
@@ -709,7 +709,7 @@ def place_model(model_i, locs2d, rdm_dists, n_scales=3, two=2):
     return cand_locs[best_angle_i, :]
 
 
-def weighted_MDS(rdm_dists, n_weightings=1, n_MDS_runs=100):
+def weighted_MDS(rdm_dists, n_MDS_runs=100):
     """Perform MDS using the general function for weighted MDS with very high
     weight assigned to the model-data RDM distances"""
     n_rdms = rdm_dists.shape[0]
