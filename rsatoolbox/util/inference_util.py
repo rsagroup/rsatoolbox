@@ -178,7 +178,7 @@ def all_tests(evaluations, noise_ceil, test_type='t-test',
             (should be 3D: bootstrap x models x subjects or repeats)
         noise_ceil (numpy.ndarray):
             noise_ceiling estimate(s) to compare against
-        test_type(Strinng):
+        test_type(String):
             't-test' : t-test bases tests using variances
             'bootstrap' : Direct bootstrap sample based tests
             'ranksum' : Wilcoxon signed rank-sum tests
@@ -479,7 +479,9 @@ def get_errorbars(model_var, evaluations, dof, error_bars='sem',
     Returns:
         limits (np.array)
     """
-    if error_bars.lower() == 'sem':
+    if model_var is None:
+        return np.full((2, evaluations.shape[1]), np.nan)
+    elif error_bars.lower() == 'sem':
         errorbar_low = np.sqrt(np.maximum(model_var, 0))
         errorbar_high = np.sqrt(np.maximum(model_var, 0))
     elif error_bars[0:2].lower() == 'ci':

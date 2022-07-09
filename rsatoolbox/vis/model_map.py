@@ -12,7 +12,7 @@ import scipy.stats as sst
 from tqdm import tqdm
 
 import rsatoolbox
-from rsatoolbox.util.inference_util import pair_tests
+from rsatoolbox.util.inference_util import pair_tests, get_errorbars, all_tests
 from rsatoolbox.util.rdm_utils import batch_to_vectors
 
 fs_small, fs, fs_large = 12, 18, 22
@@ -25,7 +25,8 @@ fig_width, dpi = 10, 300
 
 
 def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
-                         colors=None, alpha=0.01, test_pair_comparisons=True,
+                         colors=None, alpha=0.01, test_type='t-test',
+                         test_pair_comparisons=True,
                          multiple_pair_testing='fdr', test_above_0=True,
                          test_below_noise_ceil=True, error_bars='ci99',
                          label_orientation='tangential', fliplr=False):
@@ -112,12 +113,16 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
         ---
 
     """
-
+    if result.cv_method == 'crossvalidation':
+        print('Tests deactivated because crossvalidation alone gives no uncertainty estimate.\n')
+        test_pair_comparisons = False
+        test_above_0 = False
+        test_below_noise_ceil = False
     # %% Prepare and sort data
     evaluations = result.evaluations
     models = result.models
     noise_ceiling = result.noise_ceiling
-    inference_descr = ''
+    n_models = result.n_model
 
     # average the bootstrap evaluations
     while len(evaluations.shape) > 2:
@@ -126,55 +131,46 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     evaluations = evaluations[~np.isnan(evaluations[:, 0])]
     noise_ceiling = np.array(noise_ceiling)
     perf = np.mean(evaluations, axis=0)  # average across bootstrap samples
-    n_bootstraps, n_models = evaluations.shape
+    n_bootstraps = evaluations.shape[0]
+
+    if multiple_pair_testing is None:
+        multiple_pair_testing = 'uncorrected'
+
+    # run tests
+    if any([test_pair_comparisons, test_above_0, test_below_noise_ceil]):
+        p_pairwise, p_zero, p_noise = all_tests(
+            evaluations, noise_ceiling, test_type,
+            model_var=result.model_var, diff_var=result.diff_var,
+            noise_ceil_var=result.noise_ceil_var, dof=result.dof)
 
     # %% Test each model RDM for relatedness to and distinctness from the data RDM
     # test if model RDMs are significantly related to data RDM
     # (above 0)
     if test_above_0:  # one-sided test
-        p = ((evaluations < 0).sum(axis=0) + 1) / n_bootstraps
-        model_significant = p < alpha / n_models  # Bonferroni-corrected
+        model_significant = p_zero < alpha / n_models  # Bonferroni-corrected
 
     # test if model RDMs are significantly distinct from the data RDM
     # (below the noise ceiling's lower bound)
     if test_below_noise_ceil:  # one-sided test
-        if len(noise_ceiling.shape) > 1:
-            noise_lower_bs = noise_ceiling[0]
-            noise_lower_bs = noise_lower_bs.reshape(noise_lower_bs.shape[0], 1)
-        else:
-            noise_lower_bs = noise_ceiling[0].reshape(1, 1)
-        diffs = noise_lower_bs - evaluations  # positive if below lower bound
-        p = ((diffs < 0).sum(axis=0) + 1) / n_bootstraps
-        model_below_lower_bound = p < alpha / n_models  # Bonferroni-corrected
+        model_below_lower_bound = p_noise < alpha / n_models  # Bonferroni-corrected
 
     # %% Perform pairwise model comparisons
+    n_tests = int((n_models**2 - n_models) / 2)
     if test_pair_comparisons:
-        inference_descr += 'Model comparisons: two-tailed, '
-        p_values = pair_tests(evaluations)
-        n_tests = int((n_models**2 - n_models) / 2)
-        if multiple_pair_testing is None:
-            multiple_pair_testing = 'uncorrected'
         if multiple_pair_testing.lower() == 'bonferroni' or \
            multiple_pair_testing.lower() == 'fwer':
-            significant = p_values < (alpha / n_tests)
-            inference_descr += ('p < {:<.5g}'.format(alpha) +
-                                ', Bonferroni-corrected for ' +
-                                str(n_tests) +
-                                ' model-pair comparisons')
+            significant = p_pairwise < (alpha / n_tests)
         elif multiple_pair_testing.lower() == 'fdr':
-            ps = batch_to_vectors(np.array([p_values]))[0][0]
+            ps = batch_to_vectors(np.array([p_pairwise]))[0][0]
             ps = np.sort(ps)
             criterion = alpha * (np.arange(ps.shape[0]) + 1) / ps.shape[0]
             k_ok = ps < criterion
             if np.any(k_ok):
-                k_max = np.max(np.where(ps < criterion)[0])
+                k_max = np.where(k_ok)[0][-1]
                 crit = criterion[k_max]
             else:
                 crit = 0
-            significant = p_values < crit
-            inference_descr += ('FDR q < {:<.5g}'.format(alpha) +
-                                ' (' + str(n_tests) +
-                                ' model-pair comparisons)')
+            significant = p_pairwise < crit
         else:
             if 'uncorrected' not in multiple_pair_testing.lower():
                 raise Exception(
@@ -182,129 +178,18 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                     'multiple_pair_testing is incorrectly defined as ' +
                     multiple_pair_testing + '.')
             significant = p_values < alpha
-            inference_descr = (inference_descr +
-                               'p < {:<.5g}'.format(alpha) +
-                               ', uncorrected (' + str(n_tests) +
-                               ' model-pair comparisons)')
-        if result.cv_method in ['bootstrap_rdm', 'bootstrap_pattern',
-                                'bootstrap_crossval']:
-            inference_descr = inference_descr + \
-                '\nInference by bootstrap resampling ' + \
-                '({:<,.0f}'.format(n_bootstraps) + ' bootstrap samples) of '
-        if result.cv_method == 'bootstrap_rdm':
-            inference_descr = inference_descr + 'subjects. '
-        elif result.cv_method == 'bootstrap_pattern':
-            inference_descr = inference_descr + 'experimental conditions. '
-        elif result.cv_method in ['bootstrap', 'bootstrap_crossval']:
-            inference_descr = inference_descr + \
-                'subjects and experimental conditions. '
 
     # %% Compute the errorbars
-    if error_bars is True:
-        error_bars = 'sem'
-    if error_bars.lower() == 'sem':
-        errorbar_low = np.std(evaluations, axis=0)
-        errorbar_high = np.std(evaluations, axis=0)
-    elif error_bars[0:2].lower() == 'ci':
-        if len(error_bars) == 2:
-            CI_percent = 95
-        else:
-            CI_percent = int(error_bars[2:])
-        prop_cut = (1 - CI_percent / 100) / 2
-        framed_evals = np.concatenate(
-            (np.tile(np.array((-np.inf, np.inf)).reshape(2, 1), (1, n_models)),
-             evaluations), axis=0)
-        errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
-                         - perf)
-        errorbar_high = (np.quantile(framed_evals, 1 - prop_cut, axis=0)
-                         - perf)
-        limits = np.concatenate((errorbar_low, errorbar_high))
-        if np.isnan(limits).any() or (abs(limits) == np.inf).any():
-            raise Exception(
-                'plot_model_comparison: Too few bootstrap samples for the ' +
-                'requested confidence interval: ' + error_bars + '.')
-    elif error_bars:
-        raise Exception('plot_model_comparison: Argument ' +
-                        'error_bars is incorrectly defined as '
-                        + error_bars + '.')
-
-    # %% Print description of inferential methods
-    inference_descr += 'Error bars indicate the'
-    if error_bars[0:2].lower() == 'ci':
-        inference_descr += ' ' + str(CI_percent) + '% confidence interval.'
-    elif error_bars.lower() == 'sem':
-        inference_descr += ' standard error of the mean.'
-    if test_above_0 or test_below_noise_ceil:
-        inference_descr += '\nOne-sided comparisons of each model performance '
-    if test_above_0:
-        inference_descr += 'against 0 '
-    if test_above_0 and test_below_noise_ceil:
-        inference_descr += 'and '
-    if test_below_noise_ceil:
-        inference_descr += 'against the lower-bound estimate of the noise ceiling '
-    if test_above_0 or test_below_noise_ceil:
-        inference_descr += ('are Bonferroni-corrected for ' +
-                            str(n_models) + ' models.\n')
-    inference_descr += 'Inter-RDM distances were measured by the '
-    if result.method == 'corr':
-        inference_descr += (
-            'Pearson correlation distance '
-            + '(proportional to squared Euclidean distance'
-            + ' after RDM centering and divisive normalization).')
-    elif result.method == 'cosine':
-        inference_descr += (
-            'cosine distance '
-            + '(proportional to squared Euclidean distance after RDM divisive normalizaton). ')
-    else:
-        raise Exception('rsatoolbox.vis.map_model_comparison: result.method ' +
-                        result.method + ' not yet handled.')
-    inference_descr += 'Inter-RDM distances are mapped as '
-    if RDM_dist_measure.lower() == 'corr':
-        inference_descr += (
-            'Pearson correlation distance '
-            + '(proportional to squared Euclidean distance'
-            + ' after RDM centering and divisive normalization).')
-    elif RDM_dist_measure.lower() == 'cosine':
-        inference_descr += (
-            'cosine distance '
-            + '(proportional to squared Euclidean distance after RDM divisive normalizaton). ')
-    elif RDM_dist_measure.lower() == 'euclidean':
-        inference_descr += (
-            'Euclidean distance '
-            + '(proportional to the square root of correlation or cosine distance'
-            + ' if RDMs were appropriately normalized).')
-
+    limits = get_errorbars(result.model_var, evaluations, result.dof, error_bars)
+    inference_descr = _get_description(
+        test_pair_comparisons, multiple_pair_testing, error_bars,
+        test_above_0, test_below_noise_ceil,
+        result.cv_method, result.method, RDM_dist_measure,
+        alpha, n_tests, n_models, n_bootstraps)
     print(inference_descr)
 
     # Define the model colors
-    if colors is None:  # no color passed...
-        colors = np.array([0, 0.4, 0.9, 1])[None, :]  # use default blue
-    elif isinstance(colors, cm.colors.LinearSegmentedColormap):
-        cmap = cm.get_cmap(colors)
-        colors = cmap(np.linspace(0, 1, 100))[np.newaxis, :, :3].squeeze()
-    colors = np.array([np.array(col) for col in colors])
-    if len(colors.shape) == 1:  # one color passed...
-        n_col, n_chan = 1, colors.shape[0]
-        colors.shape = (n_col, n_chan)
-    else:  # multiple colors passed...
-        n_col, n_chan = colors.shape
-        if n_col == n_models:  # one color passed for each model...
-            cols2 = colors
-        else:  # number of colors passed does not match number of models...
-            # interpolate colors to define a color for each model
-            cols2 = np.empty((n_models, n_chan))
-            for c in range(n_chan):
-                cols2[:, c] = np.interp(np.array(range(n_models)),
-                                        np.array(range(n_col)) /
-                                        (n_col - 1) * (n_models - 1),
-                                        colors[:, c])
-        colors = cols2
-    # if there is no alpha channel, make opaque
-    if colors.shape[1] == 3:
-        colors = np.concatenate((colors, np.ones((colors.shape[0], 1))),
-                                axis=1)
-    if colors.shape[0] == 1:
-        colors = np.tile(colors, (n_models, 1))
+    colors = _parse_colors(colors, n_models)
 
     # %% Compute data-model distance estimates
     # We assume performance estimates p are correlations or cosines.
@@ -387,10 +272,14 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                       bias_of_sq_data_model_dist)**dist_pow
 
     # %% Compute intermodel distances
-    n_dissim = models[0].rdm.shape[0]
+    n_dissim = int(models[0].n_cond * (models[0].n_cond - 1) / 2)
     modelRDMs = np.empty((n_models, n_dissim))
-    for model_i in range(n_models):
-        modelRDMs[model_i, :] = models[model_i].rdm
+    for idx, model_i in enumerate(models):
+        if rdms_data is not None:
+            theta = model_i.fit(rdms_data)
+            modelRDMs[idx, :] = model_i.predict(theta)
+        else:
+            modelRDMs[idx, :] = model_i.predict()
 
     if result.method == 'corr':
         modelRDMs = modelRDMs - modelRDMs.mean(axis=1, keepdims=True)
@@ -446,7 +335,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
 
     # %% Draw the map with error bars
     rdm_dot_size = 200  # size of dots representing RDMs [pt]
-    noise_halo_col = [0.85, 0.85, 0.85, 1]  # color of the noise halo
+    noise_halo_col = [0.7, 0.7, 0.7, 1]  # color of the noise halo
     orbit_col = [0.85, 0.85, 0.85, 0.4]   # color of the orbits
     ns_lw = 6  # line width for non-significance cords and rays
     ns_col = [0, 0, 0, 0.15]  # color for non-significance cords and rays
@@ -464,28 +353,29 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     plt.scatter([-rng, 0, rng, 0], [0, rng, 0, -rng], c='none')
 
     # plot non-significance arches
-    for i in range(n_models - 1):
-        for j in range(i + 1, n_models):
-            if not significant[i, j]:
-                # draw non-significance arch
-                xi, yi = np.array(locs2d[i + 1]).squeeze()
-                xj, yj = np.array(locs2d[j + 1]).squeeze()
-                rad_i, rad_j = np.sqrt(xi**2 + yi**2), np.sqrt(xj**2 + yj**2)
-                angle_i, angle_j = np.arctan2(xi, yi), np.arctan2(xj, yj)
-                angle_diff = angle_j - angle_i  # pos if angle_j is greater
-                if (angle_diff > 0 and abs(angle_diff) <= np.pi) or \
-                   (angle_diff <= 0 and abs(angle_diff) > np.pi):
-                    # clockwise from i to j is shorter
-                    angles = np.linspace(
-                        angle_i, angle_i + min(abs(angle_diff), 2 * np.pi - abs(angle_diff)), 360)
-                    radii = np.linspace(rad_i, rad_j, 360)
-                else:
-                    # clockwise from j to i is shorter
-                    angles = np.linspace(
-                        angle_j, angle_j + min(abs(angle_diff), 2 * np.pi - abs(angle_diff)), 360)
-                    radii = np.linspace(rad_j, rad_i, 360)
-                xx, yy = np.sin(angles) * radii, np.cos(angles) * radii
-                plt.plot(xx, yy, color=ns_col, linewidth=ns_lw)
+    if test_pair_comparisons:
+        for i in range(n_models - 1):
+            for j in range(i + 1, n_models):
+                if not significant[i, j]:
+                    # draw non-significance arch
+                    xi, yi = np.array(locs2d[i + 1]).squeeze()
+                    xj, yj = np.array(locs2d[j + 1]).squeeze()
+                    rad_i, rad_j = np.sqrt(xi**2 + yi**2), np.sqrt(xj**2 + yj**2)
+                    angle_i, angle_j = np.arctan2(xi, yi), np.arctan2(xj, yj)
+                    angle_diff = angle_j - angle_i  # pos if angle_j is greater
+                    if (angle_diff > 0 and abs(angle_diff) <= np.pi) or \
+                       (angle_diff <= 0 and abs(angle_diff) > np.pi):
+                        # clockwise from i to j is shorter
+                        angles = np.linspace(
+                            angle_i, angle_i + min(abs(angle_diff), 2 * np.pi - abs(angle_diff)), 360)
+                        radii = np.linspace(rad_i, rad_j, 360)
+                    else:
+                        # clockwise from j to i is shorter
+                        angles = np.linspace(
+                            angle_j, angle_j + min(abs(angle_diff), 2 * np.pi - abs(angle_diff)), 360)
+                        radii = np.linspace(rad_j, rad_i, 360)
+                    xx, yy = np.sin(angles) * radii, np.cos(angles) * radii
+                    plt.plot(xx, yy, color=ns_col, linewidth=ns_lw)
 
     # plot orbits, relatedness and distinctness tests, error bars, and model
     # labels
@@ -493,35 +383,37 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
         # orbits
         v = locs2d[model_i + 1]
         rad = np.sqrt(v * v.T)
-        orbit = plt.Circle((0, 0), rad, color='none', ec=orbit_col, lw=1)
+        orbit = plt.Circle((0, 0), rad, color='none', ec=orbit_col, lw=1, zorder=12)
         ax.add_artist(orbit)
         # plt.plot(v[0, 0], v[0, 1], ms=200, color='r')
 
         # indicate whether model RDM is significantly related to data RDM
-        if not model_significant[model_i]:
-            x0, y0 = locs2d[model_i + 1, 0], locs2d[model_i + 1, 1]
-            x1, y1 = np.array((x0, y0)) / np.sqrt(np.sum(x0 **
-                                                         2 + y0**2)) * r_max * clearance_fac * 0.98
-            # plot outer non-significance ray
-            plt.plot([x0, x1], [y0, y1], color=ns_col, linewidth=ns_lw)
+        if test_above_0:
+            if not model_significant[model_i]:
+                x0, y0 = locs2d[model_i + 1, 0], locs2d[model_i + 1, 1]
+                x1, y1 = np.array((x0, y0)) / np.sqrt(np.sum(x0 **
+                                                             2 + y0**2)) * r_max * clearance_fac * 0.98
+                # plot outer non-significance ray
+                plt.plot([x0, x1], [y0, y1], color=ns_col, linewidth=ns_lw)
 
         # indicate whether model RDM is significantly distinct from data RDM
-        if not model_below_lower_bound[model_i]:
-            x, y = locs2d[model_i + 1, 0], locs2d[model_i + 1, 1]
-            # plot outer non-significance ray
-            plt.plot([0, x], [0, y], color=ns_col, linewidth=ns_lw)
+        if test_below_noise_ceil:
+            if not model_below_lower_bound[model_i]:
+                x, y = locs2d[model_i + 1, 0], locs2d[model_i + 1, 1]
+                # plot outer non-significance ray
+                plt.plot([0, x], [0, y], color=ns_col, linewidth=ns_lw)
 
         # error bars
         vn = v / rad
-        errbar_dist_low = (2 * (noise_upper - (perf[model_i] - errorbar_low[model_i]))
+        errbar_dist_low = (2 * (noise_upper - (perf[model_i] - limits[0][model_i]))
                            - bias_of_sq_data_model_dist)**dist_pow
-        errbar_dist_high = (2 * (noise_upper - (perf[model_i] + errorbar_high[model_i]))
+        errbar_dist_high = (2 * (noise_upper - (perf[model_i] + limits[1][model_i]))
                             - bias_of_sq_data_model_dist)**dist_pow
         low_high = np.array((errbar_dist_low, errbar_dist_high))
 
         edlx = vn[0, 0] * low_high
         edly = vn[0, 1] * low_high
-        plt.plot(edlx, edly, color=colors[model_i])
+        plt.plot(edlx, edly, color=colors[model_i], zorder=15)
 
         # model labels
         tx = vn[0, 0] * r_max * clearance_fac
@@ -542,13 +434,13 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
 
     # plot the data RDM with its noise halo
     noise_halo = plt.Circle((0, 0), noise_halo_rad,
-                            color=noise_halo_col, zorder=10)
+                            color=noise_halo_col, zorder=5)
     ax.add_artist(noise_halo)
     plt.scatter(0, 0, s=rdm_dot_size, c='k', zorder=20)
 
     # plot the model RDMs
     x, y = np.array(locs2d[1:, 0]).squeeze(), np.array(locs2d[1:, 1]).squeeze()
-    plt.scatter(x, y, s=rdm_dot_size, c=colors, zorder=10)
+    plt.scatter(x, y, s=rdm_dot_size, c=colors, zorder=15)
 
     # add a scalebar
     approx_frac_of_max = 0.15
@@ -578,6 +470,126 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     plt.axis('equal')
     plt.axis('off')
     plt.show()
+
+
+def _parse_colors(colors, n_models):
+    """ parses a color argument into an array of RGB values
+    """
+    if colors is None:  # no color passed...
+        colors = np.array([0, 0.4, 0.9, 1])[None, :]  # use default blue
+    elif isinstance(colors, cm.colors.LinearSegmentedColormap):
+        cmap = cm.get_cmap(colors)
+        colors = cmap(np.linspace(0, 1, 100))[np.newaxis, :, :3].squeeze()
+    colors = np.array([np.array(col) for col in colors])
+    if len(colors.shape) == 1:  # one color passed...
+        n_col, n_chan = 1, colors.shape[0]
+        colors.shape = (n_col, n_chan)
+    else:  # multiple colors passed...
+        n_col, n_chan = colors.shape
+        if n_col == n_models:  # one color passed for each model...
+            cols2 = colors
+        else:  # number of colors passed does not match number of models...
+            # interpolate colors to define a color for each model
+            cols2 = np.empty((n_models, n_chan))
+            for c in range(n_chan):
+                cols2[:, c] = np.interp(np.array(range(n_models)),
+                                        np.array(range(n_col)) /
+                                        (n_col - 1) * (n_models - 1),
+                                        colors[:, c])
+        colors = cols2
+    # if there is no alpha channel, make opaque
+    if colors.shape[1] == 3:
+        colors = np.concatenate((colors, np.ones((colors.shape[0], 1))),
+                                axis=1)
+    if colors.shape[0] == 1:
+        colors = np.tile(colors, (n_models, 1))
+    return colors
+
+
+def _get_description(test_pair_comparisons, multiple_pair_testing, error_bars,
+                     test_above_0, test_below_noise_ceil,
+                     cv_method, method, RDM_dist_measure,
+                     alpha, n_tests, n_models, n_bootstraps):
+    inference_descr = ''
+    if test_pair_comparisons:
+        inference_descr += 'Model comparisons: two-tailed, '
+    if multiple_pair_testing.lower() == 'bonferroni' or \
+       multiple_pair_testing.lower() == 'fwer':
+        inference_descr += ('p < {:<.5g}'.format(alpha) +
+                            ', Bonferroni-corrected for ' +
+                            str(n_tests) +
+                            ' model-pair comparisons')
+    elif multiple_pair_testing.lower() == 'fdr':
+        inference_descr += ('FDR q < {:<.5g}'.format(alpha) +
+                            ' (' + str(n_tests) +
+                            ' model-pair comparisons)')
+    else:
+        inference_descr = (inference_descr +
+                           'p < {:<.5g}'.format(alpha) +
+                           ', uncorrected (' + str(n_tests) +
+                           ' model-pair comparisons)')
+    if cv_method in ['bootstrap_rdm', 'bootstrap_pattern', 'bootstrap_crossval']:
+        inference_descr = inference_descr + \
+            '\nInference by bootstrap resampling ' + \
+            '({:<,.0f}'.format(n_bootstraps) + ' bootstrap samples) of '
+    if cv_method == 'bootstrap_rdm':
+        inference_descr = inference_descr + 'subjects. '
+    elif cv_method == 'bootstrap_pattern':
+        inference_descr = inference_descr + 'experimental conditions. '
+    elif cv_method in ['bootstrap', 'bootstrap_crossval']:
+        inference_descr = inference_descr + \
+        'subjects and experimental conditions. '
+
+    # %% Print description of inferential methods
+    inference_descr += 'Error bars indicate the'
+    if error_bars[0:2].lower() == 'ci':
+        if len(error_bars) == 2:
+            CI_percent = 95.0
+        else:
+            CI_percent = float(error_bars[2:])
+        inference_descr += ' ' + str(CI_percent) + '% confidence interval.'
+    elif error_bars.lower() == 'sem':
+        inference_descr += ' standard error of the mean.'
+    if test_above_0 or test_below_noise_ceil:
+        inference_descr += '\nOne-sided comparisons of each model performance '
+    if test_above_0:
+        inference_descr += 'against 0 '
+    if test_above_0 and test_below_noise_ceil:
+        inference_descr += 'and '
+    if test_below_noise_ceil:
+        inference_descr += 'against the lower-bound estimate of the noise ceiling '
+    if test_above_0 or test_below_noise_ceil:
+        inference_descr += ('are Bonferroni-corrected for ' +
+                            str(n_models) + ' models.\n')
+    inference_descr += 'Inter-RDM distances were measured by the '
+    if method == 'corr':
+        inference_descr += (
+            'Pearson correlation distance '
+            + '(proportional to squared Euclidean distance'
+            + ' after RDM centering and divisive normalization).')
+    elif method == 'cosine':
+        inference_descr += (
+            'cosine distance '
+            + '(proportional to squared Euclidean distance after RDM divisive normalizaton). ')
+    else:
+        raise Exception('rsatoolbox.vis.map_model_comparison: result.method ' +
+                        result.method + ' not yet handled.')
+    inference_descr += 'Inter-RDM distances are mapped as '
+    if RDM_dist_measure.lower() == 'corr':
+        inference_descr += (
+            'Pearson correlation distance '
+            + '(proportional to squared Euclidean distance'
+            + ' after RDM centering and divisive normalization).')
+    elif RDM_dist_measure.lower() == 'cosine':
+        inference_descr += (
+            'cosine distance '
+            + '(proportional to squared Euclidean distance after RDM divisive normalizaton). ')
+    elif RDM_dist_measure.lower() == 'euclidean':
+        inference_descr += (
+            'Euclidean distance '
+            + '(proportional to the square root of correlation or cosine distance'
+            + ' if RDMs were appropriately normalized).')
+    return inference_descr
 
 
 # Custom multidimensional scaling
@@ -717,29 +729,26 @@ def weighted_MDS(rdm_dists, n_weightings=1, n_MDS_runs=100):
     # plt.show()
 
     r = 0
-    n_weightings = 1
     print('Optimizing the mapping with weighted MDS...')
-    for weighting_i in range(n_weightings):
-        for _ in tqdm(range(n_MDS_runs),
-                              desc='{:.0f} of {:.0f}'.format(weighting_i + 1, n_weightings)):
-            # perform weighted MDS
-            xy_try = rsatoolbox.vis.mds(rdm_dists, dim=2, weight=w)
-            xy_try = np.matrix(xy_try.squeeze())
-            r_try = np.corrcoef(rdm_dists_vec, ssd.pdist(
-                xy_try, metric='euclidean'))[0, 1]
-            Spearman_r_model_data_try = sst.spearmanr(
-                rdm_dists_vec[:n_models],
-                ssd.pdist(xy_try, metric='euclidean')[:n_models]).correlation
-            # print(r, Spearman_r_model_data)
-            if r_try > r:
-                print('  r(dist RDM, dists_2d) = {:.3f}'.format(r_try))
-                if Spearman_r_model_data_try == 1.0:
-                    r = r_try
-                    # Spearman_r_model_data = Spearman_r_model_data_try
-                    xy = xy_try
-                    print('Improved map preserves model ranks:'
-                          + ' r(dist RDM, dists_2d) = {:.3f}'.format(r))
-        w = w ** 0.9
+    for _ in tqdm(range(n_MDS_runs),
+                          desc='{:.0f} of {:.0f}'.format(weighting_i + 1, n_weightings)):
+        # perform weighted MDS
+        xy_try = rsatoolbox.vis.mds(rdm_dists, dim=2, weight=w)
+        xy_try = np.matrix(xy_try.squeeze())
+        r_try = np.corrcoef(rdm_dists_vec, ssd.pdist(
+            xy_try, metric='euclidean'))[0, 1]
+        Spearman_r_model_data_try = sst.spearmanr(
+            rdm_dists_vec[:n_models],
+            ssd.pdist(xy_try, metric='euclidean')[:n_models]).correlation
+        # print(r, Spearman_r_model_data)
+        if r_try > r:
+            print('  r(dist RDM, dists_2d) = {:.3f}'.format(r_try))
+            if Spearman_r_model_data_try == 1.0:
+                r = r_try
+                # Spearman_r_model_data = Spearman_r_model_data_try
+                xy = xy_try
+                print('Improved map preserves model ranks:'
+                      + ' r(dist RDM, dists_2d) = {:.3f}'.format(r))
 
     if r == 0:
         raise Exception('rsatoolbox.vis.map_model_comparison:'
