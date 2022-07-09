@@ -481,7 +481,7 @@ def get_errorbars(model_var, evaluations, dof, error_bars='sem',
     """
     if model_var is None:
         return np.full((2, evaluations.shape[1]), np.nan)
-    elif error_bars.lower() == 'sem':
+    if error_bars.lower() == 'sem':
         errorbar_low = np.sqrt(np.maximum(model_var, 0))
         errorbar_high = np.sqrt(np.maximum(model_var, 0))
     elif error_bars[0:2].lower() == 'ci':

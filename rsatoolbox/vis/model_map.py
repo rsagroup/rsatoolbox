@@ -12,7 +12,7 @@ import scipy.stats as sst
 from tqdm import tqdm
 
 import rsatoolbox
-from rsatoolbox.util.inference_util import pair_tests, get_errorbars, all_tests
+from rsatoolbox.util.inference_util import get_errorbars, all_tests
 from rsatoolbox.util.rdm_utils import batch_to_vectors
 
 fs_small, fs, fs_large = 12, 18, 22
@@ -177,7 +177,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                     'plot_model_comparison: Argument ' +
                     'multiple_pair_testing is incorrectly defined as ' +
                     multiple_pair_testing + '.')
-            significant = p_values < alpha
+            significant = p_pairwise < alpha
 
     # %% Compute the errorbars
     limits = get_errorbars(result.model_var, evaluations, result.dof, error_bars)
@@ -367,12 +367,14 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                        (angle_diff <= 0 and abs(angle_diff) > np.pi):
                         # clockwise from i to j is shorter
                         angles = np.linspace(
-                            angle_i, angle_i + min(abs(angle_diff), 2 * np.pi - abs(angle_diff)), 360)
+                            angle_i, angle_i + min(abs(angle_diff),
+                            2 * np.pi - abs(angle_diff)), 360)
                         radii = np.linspace(rad_i, rad_j, 360)
                     else:
                         # clockwise from j to i is shorter
                         angles = np.linspace(
-                            angle_j, angle_j + min(abs(angle_diff), 2 * np.pi - abs(angle_diff)), 360)
+                            angle_j, angle_j + min(abs(angle_diff),
+                            2 * np.pi - abs(angle_diff)), 360)
                         radii = np.linspace(rad_j, rad_i, 360)
                     xx, yy = np.sin(angles) * radii, np.cos(angles) * radii
                     plt.plot(xx, yy, color=ns_col, linewidth=ns_lw)
@@ -391,8 +393,8 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
         if test_above_0:
             if not model_significant[model_i]:
                 x0, y0 = locs2d[model_i + 1, 0], locs2d[model_i + 1, 1]
-                x1, y1 = np.array((x0, y0)) / np.sqrt(np.sum(x0 **
-                                                             2 + y0**2)) * r_max * clearance_fac * 0.98
+                x1, y1 = np.array((x0, y0)) / np.sqrt(np.sum(
+                    x0**2 + y0**2)) * r_max * clearance_fac * 0.98
                 # plot outer non-significance ray
                 plt.plot([x0, x1], [y0, y1], color=ns_col, linewidth=ns_lw)
 
@@ -573,7 +575,7 @@ def _get_description(test_pair_comparisons, multiple_pair_testing, error_bars,
             + '(proportional to squared Euclidean distance after RDM divisive normalizaton). ')
     else:
         raise Exception('rsatoolbox.vis.map_model_comparison: result.method ' +
-                        result.method + ' not yet handled.')
+                        method + ' not yet handled.')
     inference_descr += 'Inter-RDM distances are mapped as '
     if RDM_dist_measure.lower() == 'corr':
         inference_descr += (
@@ -730,8 +732,7 @@ def weighted_MDS(rdm_dists, n_weightings=1, n_MDS_runs=100):
 
     r = 0
     print('Optimizing the mapping with weighted MDS...')
-    for _ in tqdm(range(n_MDS_runs),
-                          desc='{:.0f} of {:.0f}'.format(weighting_i + 1, n_weightings)):
+    for _ in tqdm(range(n_MDS_runs)):
         # perform weighted MDS
         xy_try = rsatoolbox.vis.mds(rdm_dists, dim=2, weight=w)
         xy_try = np.matrix(xy_try.squeeze())
