@@ -29,7 +29,7 @@ class TestModelFixed(unittest.TestCase):
         assert np.all(pred == rdm)
 
     def test_creation_matrix(self):
-        rdm = np.array(np.ones(6, 6))
+        rdm = np.array(np.ones((6, 6)))
         m = model.ModelFixed('Test Model', rdm)
         m.fit([])
         pred = m.predict()
