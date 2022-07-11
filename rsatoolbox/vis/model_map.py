@@ -123,6 +123,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     models = result.models
     noise_ceiling = result.noise_ceiling
     n_models = result.n_model
+    names = [m.name for m in models]
 
     # average the bootstrap evaluations
     while len(evaluations.shape) > 2:
@@ -270,6 +271,11 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                         bias_of_sq_data_model_dist)**dist_pow
     noise_halo_rad = (2 * (noise_upper - noise_lower) -
                       bias_of_sq_data_model_dist)**dist_pow
+    errbar_dist_low = (2 * (noise_upper - (perf - limits[0]))
+                       - bias_of_sq_data_model_dist)**dist_pow
+    errbar_dist_high = (2 * (noise_upper - (perf + limits[1]))
+                        - bias_of_sq_data_model_dist)**dist_pow
+    eb_low_high = np.array((errbar_dist_low, errbar_dist_high))
 
     # %% Compute intermodel distances
     n_dissim = int(models[0].n_cond * (models[0].n_cond - 1) / 2)
@@ -332,7 +338,35 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     print(
         'Spearman r(RDM dist, 2d-map dist) for model-data dists: {:.4f}'.format(
             Spearman_r_model_data))
+    # compute scale bar
+    approx_frac_of_max = 0.15
+    dists_2d_vec = ssd.pdist(locs2d)
+    rdm_dists_vec = ssd.squareform(rdm_dists)
+    distortion_facs = dists_2d_vec / rdm_dists_vec
+    percent_covered = 100
+    prop_cut = (1 - percent_covered / 100) / 2
+    qnts = np.quantile(distortion_facs, [prop_cut, 1 - prop_cut], axis=0)
+    np.max(distortion_facs)
+    dist_2d_max = np.max(dists_2d_vec)
+    scalebar_length = round(approx_frac_of_max * dist_2d_max * 10) / 10
+    scalebar_descr = '{:.1f} [a.u.]\n'.format(scalebar_length)
+    if RDM_dist_measure.lower() == 'corr':
+        scalebar_descr += ('Pearson corr. dist.')
+    elif RDM_dist_measure.lower() == 'cosine':
+        scalebar_descr += ('cosine dist.')
+    elif RDM_dist_measure.lower() == 'euclidean':
+        scalebar_descr += ('normalized-pattern Eucl. dist.')
+    plt.figure(figsize=(fig_width, fig_width), dpi=dpi)
+    plot_model_map(locs2d, significant, model_significant, model_below_lower_bound,
+                   colors, eb_low_high, noise_halo_rad, scalebar_length, scalebar_descr, qnts,
+                   label_orientation, names)
+    plt.show()
 
+
+def plot_model_map(locs2d, significant, model_significant, model_below_lower_bound,
+                   colors, eb_low_high, noise_halo_rad, scalebar_length, scalebar_descr, qnts,
+                   label_orientation='tangential', names=None):
+    n_models = locs2d.shape[0] - 1
     # %% Draw the map with error bars
     rdm_dot_size = 200  # size of dots representing RDMs [pt]
     noise_halo_col = [0.7, 0.7, 0.7, 1]  # color of the noise halo
@@ -342,7 +376,6 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
 
     # prepare axes for map
     l, b, w, h = 0.15, 0.15, 0.85, 0.85
-    plt.figure(figsize=(fig_width, fig_width), dpi=dpi)
     ax = plt.axes((l, b, w, h))
     r_max = np.max(np.sqrt(np.sum(np.array(locs2d)**2, axis=1)))
     clearance_fac = 1.08  # factor by which the maximum radius is multiplied
@@ -353,7 +386,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     plt.scatter([-rng, 0, rng, 0], [0, rng, 0, -rng], c='none')
 
     # plot non-significance arches
-    if test_pair_comparisons:
+    if significant is not None:
         for i in range(n_models - 1):
             for j in range(i + 1, n_models):
                 if not significant[i, j]:
@@ -390,7 +423,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
         # plt.plot(v[0, 0], v[0, 1], ms=200, color='r')
 
         # indicate whether model RDM is significantly related to data RDM
-        if test_above_0:
+        if model_significant is not None:
             if not model_significant[model_i]:
                 x0, y0 = locs2d[model_i + 1, 0], locs2d[model_i + 1, 1]
                 x1, y1 = np.array((x0, y0)) / np.sqrt(np.sum(
@@ -399,7 +432,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                 plt.plot([x0, x1], [y0, y1], color=ns_col, linewidth=ns_lw)
 
         # indicate whether model RDM is significantly distinct from data RDM
-        if test_below_noise_ceil:
+        if model_below_lower_bound is not None:
             if not model_below_lower_bound[model_i]:
                 x, y = locs2d[model_i + 1, 0], locs2d[model_i + 1, 1]
                 # plot outer non-significance ray
@@ -407,32 +440,27 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
 
         # error bars
         vn = v / rad
-        errbar_dist_low = (2 * (noise_upper - (perf[model_i] - limits[0][model_i]))
-                           - bias_of_sq_data_model_dist)**dist_pow
-        errbar_dist_high = (2 * (noise_upper - (perf[model_i] + limits[1][model_i]))
-                            - bias_of_sq_data_model_dist)**dist_pow
-        low_high = np.array((errbar_dist_low, errbar_dist_high))
-
-        edlx = vn[0, 0] * low_high
-        edly = vn[0, 1] * low_high
+        edlx = vn[0, 0] * eb_low_high[:, model_i]
+        edly = vn[0, 1] * eb_low_high[:, model_i]
         plt.plot(edlx, edly, color=colors[model_i], zorder=15)
 
         # model labels
-        tx = vn[0, 0] * r_max * clearance_fac
-        ty = vn[0, 1] * r_max * clearance_fac
-        if label_orientation == 'tangential':
-            angle_deg = (np.arctan2(vn[0, 1], vn[0, 0]) /
-                         np.pi * 180) % 180 - 90  # tangential
-            horAlign = 'center'
-            verAlign = 'bottom' if ty > 0 else 'top'
-        elif label_orientation == 'radial':
-            angle_deg = (np.arctan2(vn[0, 1], vn[0, 0]) /
-                         np.pi * 180 - 90) % 180 - 90  # radial
-            horAlign = 'right' if tx <= 1e-5 else 'left'
-            verAlign = 'center'
-        plt.text(tx, ty, models[model_i].name, va=verAlign, ha=horAlign,
-                 rotation_mode='anchor', family='sans-serif', size=fs, rotation=angle_deg)
-        # plt.plot(tx, ty, 'r.')
+        if names is not None:
+            tx = vn[0, 0] * r_max * clearance_fac
+            ty = vn[0, 1] * r_max * clearance_fac
+            if label_orientation == 'tangential':
+                angle_deg = (np.arctan2(vn[0, 1], vn[0, 0]) /
+                             np.pi * 180) % 180 - 90  # tangential
+                horAlign = 'center'
+                verAlign = 'bottom' if ty > 0 else 'top'
+            elif label_orientation == 'radial':
+                angle_deg = (np.arctan2(vn[0, 1], vn[0, 0]) /
+                             np.pi * 180 - 90) % 180 - 90  # radial
+                horAlign = 'right' if tx <= 1e-5 else 'left'
+                verAlign = 'center'
+            plt.text(tx, ty, names[model_i], va=verAlign, ha=horAlign,
+                     rotation_mode='anchor', family='sans-serif', size=fs,
+                     rotation=angle_deg)
 
     # plot the data RDM with its noise halo
     noise_halo = plt.Circle((0, 0), noise_halo_rad,
@@ -445,33 +473,15 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     plt.scatter(x, y, s=rdm_dot_size, c=colors, zorder=15)
 
     # add a scalebar
-    approx_frac_of_max = 0.15
-    dists_2d_vec = ssd.pdist(locs2d)
-    rdm_dists_vec = ssd.squareform(rdm_dists)
-    distortion_facs = dists_2d_vec / rdm_dists_vec
-    percent_covered = 100
-    prop_cut = (1 - percent_covered / 100) / 2
-    qnts = np.quantile(distortion_facs, [prop_cut, 1 - prop_cut], axis=0)
-    np.max(distortion_facs)
-    dist_2d_max = np.max(dists_2d_vec)
-    scalebar_length = round(approx_frac_of_max * dist_2d_max * 10) / 10
     plt.plot([-rng, -rng + scalebar_length],
              [-rng, -rng], color='k', linewidth=6)
     plt.plot([-rng + scalebar_length * qnts[0], -rng + scalebar_length * qnts[1]], [-rng, -rng],
              color=[0.5, 0.5, 0.5], linewidth=2)
-    descr = '{:.1f} [a.u.]\n'.format(scalebar_length)
-    if RDM_dist_measure.lower() == 'corr':
-        descr += ('Pearson corr. dist.')
-    elif RDM_dist_measure.lower() == 'cosine':
-        descr += ('cosine dist.')
-    elif RDM_dist_measure.lower() == 'euclidean':
-        descr += ('normalized-pattern Eucl. dist.')
-    plt.text(-rng + 0.5 * scalebar_length, -rng * 1.02, descr, va='top', ha='center',
+    plt.text(-rng + 0.5 * scalebar_length, -rng * 1.02, scalebar_descr, va='top', ha='center',
              family='sans-serif', size=fs_small)
-    # ax.autoscale()
     plt.axis('equal')
     plt.axis('off')
-    plt.show()
+
 
 
 def _parse_colors(colors, n_models):
