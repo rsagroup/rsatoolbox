@@ -377,6 +377,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
 def plot_model_map(locs2d, significant, model_significant, model_below_lower_bound,
                    eb_low_high, noise_halo_rad, scalebar_length, scalebar_descr, qnts,
                    colors=None, label_orientation='tangential', names=None):
+    """ Plots the model map result illustration """
     n_models = locs2d.shape[0] - 1
     # Define the model colors
     colors = _parse_colors(colors, n_models)
