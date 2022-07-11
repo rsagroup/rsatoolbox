@@ -337,7 +337,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
 
     # show Shepard plot and rubberband plot of mapping distortions
     r, r_model_data, Spearman_r_model_data = show_Shepard_plot(
-        locs2d, rdm_dists, models, colors)
+        locs2d, rdm_dists, colors)
     print('Pearson r(RDM dist, 2d-map dist): {:.4f}'.format(r))
     print(
         'Pearson r(RDM dist, 2d-map dist) for model-data dists: {:.4f}'.format(r_model_data))
@@ -764,10 +764,10 @@ def weighted_MDS(rdm_dists, n_MDS_runs=100, verbose=0):
     r = 0
     if verbose > 0:
         print('Optimizing the mapping with weighted MDS...')
-        iter = trange(n_MDS_runs)
+        iterator = trange(n_MDS_runs)
     else:
-        iter = range(n_MDS_runs)
-    for _ in iter:
+        iterator = range(n_MDS_runs)
+    for _ in iterator:
         # perform weighted MDS
         xy_try = rsatoolbox.vis.mds(rdm_dists, dim=2, weight=w)
         xy_try = np.matrix(xy_try.squeeze())
@@ -878,7 +878,7 @@ def plot_model_map_elastic(locs2d, rdm_dists, names, colors=None):
     plt.axis('equal')
     plt.axis('off')
 
-def show_Shepard_plot(locs2d, rdm_dists, models, colors=None):
+def show_Shepard_plot(locs2d, rdm_dists, colors=None):
     """ Show shepard plot """
     rdm_dists_vec = ssd.squareform(rdm_dists)
     n_models = locs2d.shape[0] - 1
