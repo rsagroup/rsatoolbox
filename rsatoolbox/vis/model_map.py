@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import scipy.spatial.distance as ssd
 import scipy.stats as sst
-from tqdm import tqdm, trange
+from tqdm import trange
 
 import rsatoolbox
 from rsatoolbox.util.inference_util import get_errorbars, all_tests
@@ -244,10 +244,10 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                 print(
                     'Bootstrapping to estimate the bias of the squared data-model RDM distances...')
                 if verbose > 0:
-                    iter = trange(n_bootstrap)
+                    iterator = trange(n_bootstrap)
                 else:
-                    iter = range(n_bootstrap)
-                for _ in iter:
+                    iterator = range(n_bootstrap)
+                for _ in iterator:
                     indices = np.random.choice(index_vals, N)
                     rdms_bs = rdms_data.dissimilarities[indices, :]
                     mean_rdm_bs = rdms_bs.mean(axis=0, keepdims=True)
@@ -648,10 +648,10 @@ def custom_MDS(rdm_dists, n_init=100, n_iter=500, verbose=0):
 
     # Run repeatedly with random initialization
     if verbose > 0:
-        iter = trange(n_init)
+        iterator = trange(n_init)
     else:
-        iter = range(n_init)
-    for _ in iter:
+        iterator = range(n_init)
+    for _ in iterator:
         locs2d = np.full((n_models + 1, 2), np.NaN)
         # place data RDM at the origin and the best model straight above it
         locs2d[0] = 0, 0
@@ -883,7 +883,6 @@ def show_Shepard_plot(locs2d, rdm_dists, models, colors=None):
     rdm_dists_vec = ssd.squareform(rdm_dists)
     n_models = locs2d.shape[0] - 1
     dists_2d_vec = ssd.pdist(locs2d, metric='euclidean')
-    dists_2d = ssd.squareform(dists_2d_vec)
     mx = max(dists_2d_vec)
     # Define the model colors
     colors = _parse_colors(colors, n_models)
