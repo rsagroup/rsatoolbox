@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import scipy.spatial.distance as ssd
 import scipy.stats as sst
-from tqdm import tqdm
+from tqdm import tqdm, trange
 
 import rsatoolbox
 from rsatoolbox.util.inference_util import get_errorbars, all_tests
@@ -29,7 +29,8 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                          test_pair_comparisons=True,
                          multiple_pair_testing='fdr', test_above_0=True,
                          test_below_noise_ceil=True, error_bars='ci99',
-                         label_orientation='tangential', fliplr=False):
+                         label_orientation='tangential', fliplr=False,
+                         verbose=0):
     """ Maps the model RDMs around the data RDM to reveal the pairwise
     similarities among the model-predicted RDMs along with each
     model-predicted RDM's similarity to the data RDM. The model map
@@ -149,11 +150,15 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     # (above 0)
     if test_above_0:  # one-sided test
         model_significant = p_zero < alpha / n_models  # Bonferroni-corrected
+    else:
+        model_significant = None
 
     # test if model RDMs are significantly distinct from the data RDM
     # (below the noise ceiling's lower bound)
     if test_below_noise_ceil:  # one-sided test
         model_below_lower_bound = p_noise < alpha / n_models  # Bonferroni-corrected
+    else:
+        model_below_lower_bound = None
 
     # %% Perform pairwise model comparisons
     n_tests = int((n_models**2 - n_models) / 2)
@@ -179,6 +184,8 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                     'multiple_pair_testing is incorrectly defined as ' +
                     multiple_pair_testing + '.')
             significant = p_pairwise < alpha
+    else:
+        significant = None
 
     # %% Compute the errorbars
     limits = get_errorbars(result.model_var, evaluations, result.dof, error_bars)
@@ -188,9 +195,6 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
         result.cv_method, result.method, RDM_dist_measure,
         alpha, n_tests, n_models, n_bootstraps)
     print(inference_descr)
-
-    # Define the model colors
-    colors = _parse_colors(colors, n_models)
 
     # %% Compute data-model distance estimates
     # We assume performance estimates p are correlations or cosines.
@@ -238,10 +242,12 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                 index_vals = np.array(range(N))
                 SSQD = 0
                 print(
-                    'Bootstrapping to estimate the bias of the squared data-model RDM distances...',
-                    flush=True)
-                sys.stdout.flush()
-                for _ in tqdm(range(n_bootstrap)):
+                    'Bootstrapping to estimate the bias of the squared data-model RDM distances...')
+                if verbose > 0:
+                    iter = trange(n_bootstrap)
+                else:
+                    iter = range(n_bootstrap)
+                for _ in iter:
                     indices = np.random.choice(index_vals, N)
                     rdms_bs = rdms_data.dissimilarities[indices, :]
                     mean_rdm_bs = rdms_bs.mean(axis=0, keepdims=True)
@@ -321,9 +327,9 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
           MDS_method + ' MDS...', flush=True)
     sys.stdout.flush()
     if MDS_method == 'custom':
-        locs2d = custom_MDS(rdm_dists, n_init=10, n_iter=500)
+        locs2d = custom_MDS(rdm_dists, n_init=10, n_iter=500, verbose=verbose)
     elif MDS_method == 'weighted':
-        locs2d = weighted_MDS(rdm_dists, n_MDS_runs=400)
+        locs2d = weighted_MDS(rdm_dists, n_MDS_runs=400, verbose=verbose)
 
     # ensure canonical reflection
     if bool(locs2d[1, 0] < locs2d[2, 0]) == fliplr:
@@ -338,6 +344,11 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     print(
         'Spearman r(RDM dist, 2d-map dist) for model-data dists: {:.4f}'.format(
             Spearman_r_model_data))
+    # show Elastic plot
+    plt.figure(figsize=(fig_width, fig_width), dpi=dpi)
+    plot_model_map_elastic(locs2d, rdm_dists, names, colors)
+    plt.show()
+
     # compute scale bar
     approx_frac_of_max = 0.15
     dists_2d_vec = ssd.pdist(locs2d)
@@ -358,16 +369,18 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
         scalebar_descr += ('normalized-pattern Eucl. dist.')
     plt.figure(figsize=(fig_width, fig_width), dpi=dpi)
     plot_model_map(locs2d, significant, model_significant, model_below_lower_bound,
-                   colors, eb_low_high, noise_halo_rad, scalebar_length, scalebar_descr, qnts,
-                   label_orientation, names)
+                   eb_low_high, noise_halo_rad, scalebar_length, scalebar_descr, qnts,
+                   colors, label_orientation, names)
     plt.show()
 
 
 def plot_model_map(locs2d, significant, model_significant, model_below_lower_bound,
-                   colors, eb_low_high, noise_halo_rad, scalebar_length, scalebar_descr, qnts,
-                   label_orientation='tangential', names=None):
+                   eb_low_high, noise_halo_rad, scalebar_length, scalebar_descr, qnts,
+                   colors=None, label_orientation='tangential', names=None):
     n_models = locs2d.shape[0] - 1
-    # %% Draw the map with error bars
+    # Define the model colors
+    colors = _parse_colors(colors, n_models)
+    # Draw the map with error bars
     rdm_dot_size = 200  # size of dots representing RDMs [pt]
     noise_halo_col = [0.7, 0.7, 0.7, 1]  # color of the noise halo
     orbit_col = [0.85, 0.85, 0.85, 0.4]   # color of the orbits
@@ -493,9 +506,11 @@ def _parse_colors(colors, n_models):
         cmap = cm.get_cmap(colors)
         colors = cmap(np.linspace(0, 1, 100))[np.newaxis, :, :3].squeeze()
     colors = np.array([np.array(col) for col in colors])
-    if len(colors.shape) == 1:  # one color passed...
+    if colors.ndim == 1:  # one color passed...
         n_col, n_chan = 1, colors.shape[0]
-        colors.shape = (n_col, n_chan)
+        colors = colors.reshape(n_col, n_chan)
+    elif colors.ndim == 2 and colors.shape[0] == 1:
+        n_col, n_chan = colors.shape
     else:  # multiple colors passed...
         n_col, n_chan = colors.shape
         if n_col == n_models:  # one color passed for each model...
@@ -504,8 +519,8 @@ def _parse_colors(colors, n_models):
             # interpolate colors to define a color for each model
             cols2 = np.empty((n_models, n_chan))
             for c in range(n_chan):
-                cols2[:, c] = np.interp(np.array(range(n_models)),
-                                        np.array(range(n_col)) /
+                cols2[:, c] = np.interp(np.arange(n_models),
+                                        np.arange(n_col) /
                                         (n_col - 1) * (n_models - 1),
                                         colors[:, c])
         colors = cols2
@@ -553,7 +568,7 @@ def _get_description(test_pair_comparisons, multiple_pair_testing, error_bars,
         'subjects and experimental conditions. '
 
     # %% Print description of inferential methods
-    inference_descr += 'Error bars indicate the'
+    inference_descr += '\nError bars indicate the'
     if error_bars[0:2].lower() == 'ci':
         if len(error_bars) == 2:
             CI_percent = 95.0
@@ -605,7 +620,7 @@ def _get_description(test_pair_comparisons, multiple_pair_testing, error_bars,
 
 
 # Custom multidimensional scaling
-def custom_MDS(rdm_dists, n_init=100, n_iter=500):
+def custom_MDS(rdm_dists, n_init=100, n_iter=500, verbose=0):
     """ Performs multidimensional scaling (MDS) using the metric stress cost
     function (sum of squared distance deviations) for the intermodel RDM
     distances while exactly preserving the model-data RDM distances.
@@ -632,7 +647,11 @@ def custom_MDS(rdm_dists, n_init=100, n_iter=500):
     two = 2  # minimizes sum(abs(errors)**two)
 
     # Run repeatedly with random initialization
-    for _ in tqdm(range(n_init)):
+    if verbose > 0:
+        iter = trange(n_init)
+    else:
+        iter = range(n_init)
+    for _ in iter:
         locs2d = np.full((n_models + 1, 2), np.NaN)
         # place data RDM at the origin and the best model straight above it
         locs2d[0] = 0, 0
@@ -660,8 +679,9 @@ def custom_MDS(rdm_dists, n_init=100, n_iter=500):
                 locs2d[model_i + 1,
                        :] = place_model(model_i, locs2d, rdm_dists, n_scales, two)
             if np.max(abs(locs2d_prev - locs2d)) < 1e-8:
-                print('MDS converged after {:.0f} iterations using {:.0f} scales.'.format(
-                    iter_i, n_scales))
+                if verbose > 0:
+                    print('MDS converged after {:.0f} iterations using {:.0f} scales.'.format(
+                        iter_i, n_scales))
                 n_scales += 1
                 if n_scales > n_scales_max:
                     break
@@ -673,8 +693,9 @@ def custom_MDS(rdm_dists, n_init=100, n_iter=500):
             r_0fixed = np.sum(rdm_dists_vec * dists_2d) \
                 / (np.sum(rdm_dists_vec ** 2) + np.sum(dists_2d ** 2))
             locs2d_best = locs2d.copy()
-            print(' SSQD: {:.4f}, corr_0fixed(RDM dist, map dist): {:.4f}'.format(
-                ssqd, r_0fixed))
+            if verbose > 0:
+                print(' SSQD: {:.4f}, corr_0fixed(RDM dist, map dist): {:.4f}'.format(
+                    ssqd, r_0fixed))
         if iter_i == n_iter - 1:
             print(' MDS did not converge. Doubling number of iterations.')
             n_iter *= 2
@@ -719,7 +740,7 @@ def place_model(model_i, locs2d, rdm_dists, n_scales=3, two=2):
     return cand_locs[best_angle_i, :]
 
 
-def weighted_MDS(rdm_dists, n_MDS_runs=100):
+def weighted_MDS(rdm_dists, n_MDS_runs=100, verbose=0):
     """Perform MDS using the general function for weighted MDS with very high
     weight assigned to the model-data RDM distances"""
     n_rdms = rdm_dists.shape[0]
@@ -741,8 +762,12 @@ def weighted_MDS(rdm_dists, n_MDS_runs=100):
     # plt.show()
 
     r = 0
-    print('Optimizing the mapping with weighted MDS...')
-    for _ in tqdm(range(n_MDS_runs)):
+    if verbose > 0:
+        print('Optimizing the mapping with weighted MDS...')
+        iter = trange(n_MDS_runs)
+    else:
+        iter = range(n_MDS_runs)
+    for _ in iter:
         # perform weighted MDS
         xy_try = rsatoolbox.vis.mds(rdm_dists, dim=2, weight=w)
         xy_try = np.matrix(xy_try.squeeze())
@@ -782,14 +807,86 @@ def weighted_MDS(rdm_dists, n_MDS_runs=100):
 
     return locs2d
 
+def plot_model_map_elastic(locs2d, rdm_dists, names, colors=None):
+    """ Plots the models with an indiciation how strongly their distances were
+    distorted.
+    """
+    # parsing input
+    n_models = locs2d.shape[0] - 1
+    dists_2d_vec = ssd.pdist(locs2d, metric='euclidean')
+    dists_2d = ssd.squareform(dists_2d_vec)
+    rdm_dists_vec = ssd.squareform(rdm_dists)
+    # Define the model colors
+    colors = _parse_colors(colors, n_models)
+    # distance-distortion plot
+    r_max = np.max(np.sqrt(np.sum(np.array(locs2d)**2, axis=1)))
+    rng = r_max * 1.2  # ...and minimum extent shown in the axes.
+    # plt.axis([-rng, rng, -rng, rng])
+    # ensure axes shows the largest orbit completely
+    plt.scatter([-rng, 0, rng, 0], [0, rng, 0, -rng], c='none')
 
-def show_Shepard_plot(locs2d, rdm_dists, models, colors):
+    # model labels
+    clearance_fac = 1.05  # factor by which the maximum radius is multiplied
+    for model_i in range(n_models):
+        v = locs2d[model_i + 1]
+        rad = np.sqrt(v * v.T)
+        vn = v / rad
+        tx = vn[0, 0] * r_max * clearance_fac
+        ty = vn[0, 1] * r_max * clearance_fac
+        angle_deg = (np.arctan2(vn[0, 1], vn[0, 0]) /
+                     np.pi * 180) % 180 - 90  # tangential
+        horAlign = 'center'
+        verAlign = 'bottom' if ty > 0 else 'top'
+        plt.text(tx, ty, names[model_i], va=verAlign, ha=horAlign,
+                 rotation_mode='anchor', family='sans-serif',
+                 size=fs, rotation=angle_deg)
+
+    # plot the data RDM
+    rdm_dot_size = 50
+    plt.scatter(0, 0, s=rdm_dot_size, c='k', zorder=20)
+
+    # plot the distortion-indicating rubberbands
+    stretched_col = np.array([0, 0.5, 1])
+    squeezed_col = np.array([0.8, 0, 0])
+    correct_col = np.array([0.5, 0.5, 0.5])
+    lw_undistorted = 3
+
+    # slackstringplot(rdm_dists)
+    for i in range(n_models - 1):
+        for j in range(i + 1, n_models):
+            distortion = dists_2d[i + 1, j + 1] - rdm_dists[i + 1, j + 1]
+            w = abs(distortion) / np.max(abs(dists_2d_vec - rdm_dists_vec))
+            if distortion <= 0:
+                col = w * squeezed_col + (1 - w) * correct_col
+            else:
+                col = w * stretched_col + (1 - w) * correct_col
+            # if abs(distortion) < 0.1:
+            #     col = correct_col
+            # else:
+            #     col = stretched_col if distortion > 0 else squeezed_col
+            lw = lw_undistorted / dists_2d[i +
+                                           1, j + 1] * rdm_dists[i + 1, j + 1]
+            plt.plot(locs2d[[i + 1, j + 1], 0], locs2d[[i + 1, j + 1], 1],
+                     color=col, linewidth=lw, solid_capstyle='round')
+
+    # plot the model RDMs
+    x, y = np.array(locs2d[1:, 0]).squeeze(), np.array(locs2d[1:, 1]).squeeze()
+    plt.scatter(x, y, s=rdm_dot_size, c=colors, zorder=10)
+
+    plt.title('Rubberband plot of inter-RDM-distance distortions\n' +
+              '(thin & blue: stretched, thick & red: squeezed)', fontsize=fs_large)
+    plt.axis('equal')
+    plt.axis('off')
+
+def show_Shepard_plot(locs2d, rdm_dists, models, colors=None):
     """ Show shepard plot """
     rdm_dists_vec = ssd.squareform(rdm_dists)
     n_models = locs2d.shape[0] - 1
     dists_2d_vec = ssd.pdist(locs2d, metric='euclidean')
     dists_2d = ssd.squareform(dists_2d_vec)
-    mx = max(max(dists_2d_vec), max(rdm_dists_vec))
+    mx = max(dists_2d_vec)
+    # Define the model colors
+    colors = _parse_colors(colors, n_models)
 
     r = np.corrcoef(rdm_dists_vec, dists_2d_vec)[0, 1]
     r_model_data = np.corrcoef(
@@ -832,67 +929,5 @@ def show_Shepard_plot(locs2d, rdm_dists, models, colors):
              [scalebar_length * qnts[0], scalebar_length * qnts[1]],
              color=[0.5, 0.5, 0.5], linewidth=2)
 
-    # distance-distortion plot
-    plt.figure(figsize=(fig_width, fig_width), dpi=dpi)
-    r_max = np.max(np.sqrt(np.sum(np.array(locs2d)**2, axis=1)))
-    rng = r_max * 1.2  # ...and minimum extent shown in the axes.
-    # plt.axis([-rng, rng, -rng, rng])
-    # ensure axes shows the largest orbit completely
-    plt.scatter([-rng, 0, rng, 0], [0, rng, 0, -rng], c='none')
-
-    # model labels
-    r_max = np.max(np.sqrt(np.sum(np.array(locs2d)**2, axis=1)))
-    clearance_fac = 1.05  # factor by which the maximum radius is multiplied
-    for model_i in range(n_models):
-        v = locs2d[model_i + 1]
-        rad = np.sqrt(v * v.T)
-        vn = v / rad
-        tx = vn[0, 0] * r_max * clearance_fac
-        ty = vn[0, 1] * r_max * clearance_fac
-        angle_deg = (np.arctan2(vn[0, 1], vn[0, 0]) /
-                     np.pi * 180) % 180 - 90  # tangential
-        horAlign = 'center'
-        verAlign = 'bottom' if ty > 0 else 'top'
-        plt.text(tx, ty, models[model_i].name, va=verAlign, ha=horAlign,
-                 rotation_mode='anchor', family='sans-serif',
-                 size=fs, rotation=angle_deg)
-
-    # plot the data RDM
-    rdm_dot_size = 50
-    plt.scatter(0, 0, s=rdm_dot_size, c='k', zorder=20)
-
-    # plot the distortion-indicating rubberbands
-    stretched_col = np.array([0, 0.5, 1])
-    squeezed_col = np.array([0.8, 0, 0])
-    correct_col = np.array([0.5, 0.5, 0.5])
-    lw_undistorted = 3
-
-    # slackstringplot(rdm_dists)
-    for i in range(n_models - 1):
-        for j in range(i + 1, n_models):
-            distortion = dists_2d[i + 1, j + 1] - rdm_dists[i + 1, j + 1]
-            w = abs(distortion) / np.max(abs(dists_2d_vec - rdm_dists_vec))
-            if distortion <= 0:
-                col = w * squeezed_col + (1 - w) * correct_col
-            else:
-                col = w * stretched_col + (1 - w) * correct_col
-            # if abs(distortion) < 0.1:
-            #     col = correct_col
-            # else:
-            #     col = stretched_col if distortion > 0 else squeezed_col
-            lw = lw_undistorted / dists_2d[i +
-                                           1, j + 1] * rdm_dists[i + 1, j + 1]
-            plt.plot(locs2d[[i + 1, j + 1], 0], locs2d[[i + 1, j + 1], 1],
-                     color=col, linewidth=lw, solid_capstyle='round')
-
-    # plot the model RDMs
-    x, y = np.array(locs2d[1:, 0]).squeeze(), np.array(locs2d[1:, 1]).squeeze()
-    plt.scatter(x, y, s=rdm_dot_size, c=colors, zorder=10)
-
-    plt.title('Rubberband plot of inter-RDM-distance distortions\n' +
-              '(thin & blue: stretched, thick & red: squeezed)', fontsize=fs_large)
-    plt.axis('equal')
-    plt.axis('off')
-    plt.show()
 
     return r, r_model_data, Spearman_r_model_data
