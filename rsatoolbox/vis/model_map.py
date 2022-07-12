@@ -11,7 +11,6 @@ import scipy.spatial.distance as ssd
 import scipy.stats as sst
 from tqdm import trange
 
-import rsatoolbox
 from rsatoolbox.util.inference_util import get_errorbars, all_tests
 from rsatoolbox.util.rdm_utils import batch_to_vectors
 
@@ -322,14 +321,11 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     plt.show()
 
     # %% Perform MDS to map model RDMs around the data RDM
-    MDS_method = 'custom'  # 'custom', 'weighted'
-    print('\nPerforming MDS to map model RDMs around the data RDM, using ' +
-          MDS_method + ' MDS...', flush=True)
-    sys.stdout.flush()
-    if MDS_method == 'custom':
-        locs2d = custom_MDS(rdm_dists, n_init=10, n_iter=500, verbose=verbose)
-    elif MDS_method == 'weighted':
-        locs2d = weighted_MDS(rdm_dists, n_MDS_runs=400, verbose=verbose)
+    if verbose > 0:
+        print('\nPerforming MDS to map model RDMs around the data RDM, using ' +
+              'custom MDS...', flush=True)
+        sys.stdout.flush()
+    locs2d = custom_MDS(rdm_dists, n_init=10, n_iter=500, verbose=verbose)
 
     # ensure canonical reflection
     if bool(locs2d[1, 0] < locs2d[2, 0]) == fliplr:
@@ -740,73 +736,6 @@ def place_model(model_i, locs2d, rdm_dists, n_scales=3, two=2):
 
     return cand_locs[best_angle_i, :]
 
-
-def weighted_MDS(rdm_dists, n_MDS_runs=100, verbose=0):
-    """Perform MDS using the general function for weighted MDS with very high
-    weight assigned to the model-data RDM distances"""
-    n_rdms = rdm_dists.shape[0]
-    n_models = n_rdms - 1
-    n_rdm_pairs = int((n_rdms**2 - n_rdms) / 2)
-    rdm_dists = rsatoolbox.rdm.RDMs(ssd.squareform(rdm_dists))
-    rdm_dists_vec = ssd.squareform(rdm_dists)
-
-    h = 1e2   # high weight assigned to model-data RDM distances
-    l = 1  # low weight assigned to model-model RDM distances
-    W = np.zeros((n_models + 1, n_models + 1))
-    W[1:, 0] = h
-    W[0, 1:] = h
-    W[1:, 1:] = l
-    W[np.eye(n_models + 1) == 1] = 0
-    w = ssd.squareform(W).reshape((1, n_rdm_pairs))
-    # plt.imshow(W)
-    # plt.colorbar()
-    # plt.show()
-
-    r = 0
-    if verbose > 0:
-        print('Optimizing the mapping with weighted MDS...')
-        iterator = trange(n_MDS_runs)
-    else:
-        iterator = range(n_MDS_runs)
-    for _ in iterator:
-        # perform weighted MDS
-        xy_try = rsatoolbox.vis.mds(rdm_dists, dim=2, weight=w)
-        xy_try = np.matrix(xy_try.squeeze())
-        r_try = np.corrcoef(rdm_dists_vec, ssd.pdist(
-            xy_try, metric='euclidean'))[0, 1]
-        Spearman_r_model_data_try = sst.spearmanr(
-            rdm_dists_vec[:n_models],
-            ssd.pdist(xy_try, metric='euclidean')[:n_models]).correlation
-        # print(r, Spearman_r_model_data)
-        if r_try > r:
-            print('  r(dist RDM, dists_2d) = {:.3f}'.format(r_try))
-            if Spearman_r_model_data_try == 1.0:
-                r = r_try
-                # Spearman_r_model_data = Spearman_r_model_data_try
-                xy = xy_try
-                print('Improved map preserves model ranks:'
-                      + ' r(dist RDM, dists_2d) = {:.3f}'.format(r))
-
-    if r == 0:
-        raise Exception('rsatoolbox.vis.map_model_comparison:'
-                        + ' Could not find map that preserves model performance ranks.')
-
-    # Center arrangement on the data RDM and orient the best model upward
-    xy = xy - xy[0]  # center on the data RDM
-    best_model_i = np.argmin(rdm_dists[1:, 0])
-    xy_best = xy[best_model_i + 1]
-
-    baseVec1 = np.matrix(xy_best / np.sqrt(xy_best * xy_best.T))
-    baseVec2 = np.matrix([baseVec1[0, 1], -baseVec1[0, 0]])
-    baseVec2 *= -1
-    basis = np.concatenate((baseVec2.T, baseVec1.T), axis=1)
-    locs2d = xy * basis  # new basis
-
-    # checks out: identical geometry
-    # ssd.pdist(xy, metric='euclidean')
-    # ssd.pdist(locs2d, metric='euclidean')
-
-    return locs2d
 
 def plot_model_map_elastic(locs2d, rdm_dists, names, colors=None):
     """ Plots the models with an indiciation how strongly their distances were
