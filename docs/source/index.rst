@@ -23,7 +23,7 @@ Documentation
    inference.rst
    visualization.rst
    literature_cited.rst
-   demos
+   demos.rst
    rsatoolbox.rst
 
 Indices and tables
