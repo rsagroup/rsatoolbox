@@ -1,21 +1,10 @@
 """"
 
-## demo todo:
+## this demo todos:
 - loop over runs
 - ciftify/sub/native -> aparcaseg
-
-## functionality todo's:
-- function which gather fmriprep datasets
-- fmri dataset (pre-patterns)
-- SpatialDataSet (for patterns)
-
-- space desc
-- atlas option
-- events -> volume-wise event descriptor + cond
-- option to add predictors + hrf
-
-- transform to voxels x conditions
-- one option to keep runs separate but collapse repetitions
+- polynomials
+- pct signal change
 
 
 "Motor tasks of several major body parts, including toe, ankle, left leg, right leg, finger, wrist, forearm, upper arm, jaw, lip, tongue, eye"

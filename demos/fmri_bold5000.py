@@ -1,3 +1,11 @@
+""""
+
+The 214 repeated images are spread out over 100 runs in 10 sessions (2 images per run).
+
+GLMsingle valid?
+
+"""
+
 from os.path import expanduser, join
 import datalad.api as datalad
 import json
@@ -37,13 +45,3 @@ dl.get('derivatives/fmriprep/sub-CSI1/ses-01/')
 
 ## gather fmriprep datasets
 ## fmri dataset: 
-""""
-- space desc
-- atlas option
-- events -> volume-wise event descriptor + cond
-- option to add predictors + hrf
-
-- transform to voxels x conditions
-- one option to keep runs separate but collapse repetitions
-
-"""
