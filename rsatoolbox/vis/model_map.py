@@ -222,10 +222,14 @@ def map_model_comparison(result, rdms_data=None,
     # bias_of_sq_data_model_dist = 2*(noise_upper - noise_lower)  # collapse
     # the noise ceiling: lower bound is at the center (0)
 
-    data_model_dists = np.sqrt(2 * np.maximum(1 - correction * perf, np.finfo(float).eps))
-    noise_halo_rad = np.sqrt(2 * np.maximum(1 - correction * noise_lower, np.finfo(float).eps))
-    errbar_dist_low = np.sqrt(2 * np.maximum(1 - correction * (perf - limits[0]), np.finfo(float).eps))
-    errbar_dist_high = np.sqrt(2 * np.maximum(1 - correction * (perf + limits[1]), np.finfo(float).eps))
+    data_model_dists = np.sqrt(2 * np.maximum(
+        1 - correction * perf, np.finfo(float).eps))
+    noise_halo_rad = np.sqrt(2 * np.maximum(
+        1 - correction * noise_lower, np.finfo(float).eps))
+    errbar_dist_low = np.sqrt(2 * np.maximum(
+        1 - correction * (perf - limits[0]), np.finfo(float).eps))
+    errbar_dist_high = np.sqrt(2 * np.maximum(
+        1 - correction * (perf + limits[1]), np.finfo(float).eps))
 
     # data_model_dists = np.sqrt(2 * (noise_upper - perf)
     #                    - bias_of_sq_data_model_dist)
@@ -803,12 +807,10 @@ def show_Shepard_plot(locs2d, rdm_dists, colors=None):
     plt.plot([scalebar_length, scalebar_length],
              [scalebar_length * qnts[0], scalebar_length * qnts[1]],
              color=[0.5, 0.5, 0.5], linewidth=2)
-
-
     return r, r_model_data, Spearman_r_model_data
 
-def _correct_model_dist(rdms_data, method='corr',
-                        verbose=0):
+
+def _correct_model_dist(rdms_data, method='corr'):
     if rdms_data is None:
         print('No data RDMs passed. Omitting noise correction.'
               + ' Data-model RDM distances will be positively biased.')
