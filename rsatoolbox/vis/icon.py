@@ -250,12 +250,21 @@ class Icon:
         im = im.convert("RGBA")
         if self.make_square:
             new_size = max(im.width, im.height)
-            im = im.resize((new_size, new_size), PIL.Image.Resampling.NEAREST)
+            if  int(PIL.__version__[0]) >= 9:
+                im = im.resize((new_size, new_size), PIL.Image.Resampling.NEAREST)
+            else:
+                im = im.resize((new_size, new_size), PIL.Image.NEAREST)
         if self.resolution is not None:
             if self.resolution.size == 1:
-                im = im.resize((self.resolution, self.resolution), PIL.Image.Resampling.NEAREST)
+                if  int(PIL.__version__[0]) >= 9:
+                    im = im.resize((self.resolution, self.resolution), PIL.Image.Resampling.NEAREST)
+                else:
+                    im = im.resize((self.resolution, self.resolution), PIL.Image.NEAREST)
             else:
-                im = im.resize(self.resolution, PIL.Image.Resampling.NEAREST)
+                if  int(PIL.__version__[0]) >= 9:
+                    im = im.resize(self.resolution, PIL.Image.Resampling.NEAREST)
+                else:
+                    im = im.resize(self.resolution, PIL.Image.NEAREST)
         if self.circ_cut is not None:
             middle = np.array(im.size) / 2
             x = np.arange(im.size[0]) - middle[0] + 0.5
