@@ -222,10 +222,10 @@ def map_model_comparison(result, rdms_data=None,
     # bias_of_sq_data_model_dist = 2*(noise_upper - noise_lower)  # collapse
     # the noise ceiling: lower bound is at the center (0)
 
-    data_model_dists = np.sqrt(2 * (1 - correction * perf))
-    noise_halo_rad = np.sqrt(2 * (1 - correction * noise_lower))
-    errbar_dist_low = np.sqrt(2 * (1 - correction * (perf - limits[0])))
-    errbar_dist_high = np.sqrt(2 * (1 - correction * (perf + limits[1])))
+    data_model_dists = np.sqrt(2 * np.maximum(1 - correction * perf, np.finfo(float).eps))
+    noise_halo_rad = np.sqrt(2 * np.maximum(1 - correction * noise_lower, np.finfo(float).eps))
+    errbar_dist_low = np.sqrt(2 * np.maximum(1 - correction * (perf - limits[0]), np.finfo(float).eps))
+    errbar_dist_high = np.sqrt(2 * np.maximum(1 - correction * (perf + limits[1]), np.finfo(float).eps))
 
     # data_model_dists = np.sqrt(2 * (noise_upper - perf)
     #                    - bias_of_sq_data_model_dist)
@@ -823,7 +823,7 @@ def _correct_model_dist(rdms_data, method='corr',
         mean_rdm /= np.sqrt(np.sum(mean_rdm**2))
         dist = np.sum((rdms - mean_rdm)**2) / (N-1)
         print(
-            '\nFormula-based average distance: {:.4f}'.format(dist2))
+            '\nFormula-based average distance: {:.4f}'.format(dist))
         correction = 2 / (2 - dist)
     else:
         raise Exception(
