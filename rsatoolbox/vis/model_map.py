@@ -23,9 +23,9 @@ fig_width, dpi = 10, 300
 # rc('text', usetex=True)
 
 
-def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
+def map_model_comparison(result, rdms_data=None,
                          colors=None, alpha=0.01, test_type='t-test',
-                         test_pair_comparisons=True,
+                         test_pair_comparisons=True, bias_correction=True,
                          multiple_pair_testing='fdr', test_above_0=True,
                          test_below_noise_ceil=True, error_bars='ci99',
                          label_orientation='tangential', fliplr=False,
@@ -45,11 +45,6 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
                 produce the result argument. These need to be fixed RDM models.
                 (Flexible models will be handled in the near future.)
         rdms_data (rsatoolbox.rdm.rdms.RDMs): single-subject data RDMs
-        RDM_dist_measure (string): measure used to express the 2nd-order
-            distances among RDMs
-            'cosine': cosine distance
-            'Euclidean': Euclidean distance between normalized RDMs
-                (proportional to the square root of the cosine distance)
         colors (list of lists, numpy array, matplotlib colormap):
             None (default): default blue for all bars
             single color: list or numpy array of 3 or 4 values (RGB, RGBA)
@@ -191,7 +186,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     inference_descr = _get_description(
         test_pair_comparisons, multiple_pair_testing, error_bars,
         test_above_0, test_below_noise_ceil,
-        result.cv_method, result.method, RDM_dist_measure,
+        result.cv_method, result.method,
         alpha, n_tests, n_models, n_bootstraps)
     print(inference_descr)
 
@@ -216,70 +211,31 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     # estimate true model-data distances
     # (assuming noise and intersubject variation displace RDMs orthogonally to
     # the model-brain RDM-space axis)
-    print('\nEstimating the bias due to noise of the inter-RDM distance estimates...')
-    model_data_dist_bias_corr = 'bootstrap'  # 'SE' or 'bootstrap'
-    if rdms_data is None:
-        print('No data RDMs passed. Omitting noise correction.'
-              + ' Data-model RDM distances will be positively biased.')
-        bias_of_sq_data_model_dist = 0
-    else:
-        N = rdms_data.n_rdm
-        if result.method in ['corr', 'cosine']:
-            bias_of_sq_data_model_dist = 2 * (1 - noise_upper) / (N - 1)
-            print(
-                'SE-based bias_of_sq_data_model_dist: {:.4f}'.format(bias_of_sq_data_model_dist))
-            if model_data_dist_bias_corr == 'bootstrap':
-                n_bootstrap = 500
-                rdms = rdms_data.dissimilarities
-                if result.method == 'corr':
-                    rdms -= rdms.mean(axis=1, keepdims=True)
-                rdms /= np.sqrt(np.einsum('ij,ij->i', rdms, rdms))[:, None]
-                mean_rdm = rdms.mean(axis=0, keepdims=True)
-                if result.method == 'corr':
-                    mean_rdm -= mean_rdm.mean(axis=1)
-                mean_rdm /= np.sqrt(np.sum(mean_rdm**2))
-                index_vals = np.array(range(N))
-                SSQD = 0
-                print(
-                    'Bootstrapping to estimate the bias of the squared data-model RDM distances...')
-                if verbose > 0:
-                    iterator = trange(n_bootstrap)
-                else:
-                    iterator = range(n_bootstrap)
-                for _ in iterator:
-                    indices = np.random.choice(index_vals, N)
-                    rdms_bs = rdms_data.dissimilarities[indices, :]
-                    mean_rdm_bs = rdms_bs.mean(axis=0, keepdims=True)
-                    if result.method == 'corr':
-                        mean_rdm_bs -= mean_rdm_bs.mean(axis=1)
-                    mean_rdm_bs /= np.sqrt(np.sum(mean_rdm_bs**2))
-                    SSQD += np.sum((mean_rdm_bs - mean_rdm)**2)
-                bias_of_sq_data_model_dist = SSQD / n_bootstrap
-                print(
-                    '\nBootstrap-based bias_of_sq_data_model_dist: {:.4f}'.format(
-                        bias_of_sq_data_model_dist))
-        else:
-            raise Exception(
-                'rsatoolbox.vis.map_model_comparison:'
-                + ' RDM comparison method must be "corr" or "cosine" for current implementation.')
-
+    if verbose > 0:
+        print('\nEstimating the bias due to noise of the inter-RDM distance estimates...')
+    if bias_correction is None or bias_correction == 'none':
+        correction = 1 / noise_upper
+    elif bias_correction == 'bootstrap' or bias_correction:
+        correction = _correct_model_dist(rdms_data, method=result.method)
     # DEBUG
     # bias_of_sq_data_model_dist = 0  # no correction: upper bound is at the center (0)
     # bias_of_sq_data_model_dist = 2*(noise_upper - noise_lower)  # collapse
     # the noise ceiling: lower bound is at the center (0)
 
-    if RDM_dist_measure.lower() in ['corr', 'cosine']:
-        dist_pow = 1
-    elif RDM_dist_measure.lower() == 'euclidean':
-        dist_pow = 1 / 2
-    data_model_dists = (2 * (noise_upper - perf) -
-                        bias_of_sq_data_model_dist)**dist_pow
-    noise_halo_rad = (2 * (noise_upper - noise_lower) -
-                      bias_of_sq_data_model_dist)**dist_pow
-    errbar_dist_low = (2 * (noise_upper - (perf - limits[0]))
-                       - bias_of_sq_data_model_dist)**dist_pow
-    errbar_dist_high = (2 * (noise_upper - (perf + limits[1]))
-                        - bias_of_sq_data_model_dist)**dist_pow
+    data_model_dists = np.sqrt(2 * (1 - correction * perf))
+    noise_halo_rad = np.sqrt(2 * (1 - correction * noise_lower))
+    errbar_dist_low = np.sqrt(2 * (1 - correction * (perf - limits[0])))
+    errbar_dist_high = np.sqrt(2 * (1 - correction * (perf + limits[1])))
+
+    # data_model_dists = np.sqrt(2 * (noise_upper - perf)
+    #                    - bias_of_sq_data_model_dist)
+    # noise_halo_rad = np.sqrt(2 * (noise_upper - noise_lower) -
+    #                    - bias_of_sq_data_model_dist)
+    # errbar_dist_low = np.sqrt(2 * (noise_upper - (perf - limits[0]))
+    #                    - bias_of_sq_data_model_dist)
+    # errbar_dist_high = np.sqrt(2 * (noise_upper - (perf + limits[1]))
+    #                    - bias_of_sq_data_model_dist)
+
     eb_low_high = np.array((errbar_dist_low, errbar_dist_high))
 
     # %% Compute intermodel distances
@@ -294,9 +250,11 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
 
     if result.method == 'corr':
         modelRDMs = modelRDMs - modelRDMs.mean(axis=1, keepdims=True)
-    modelRDMs /= np.sqrt(np.einsum('ij,ij->i', modelRDMs, modelRDMs))[:, None]
+        modelRDMs /= np.sqrt(np.einsum('ij,ij->i', modelRDMs, modelRDMs))[:, None]
+    elif result.method == 'cosine':
+        modelRDMs /= np.sqrt(np.einsum('ij,ij->i', modelRDMs, modelRDMs))[:, None]
     intermodelDists = ssd.squareform(
-        ssd.pdist(modelRDMs, metric='euclidean'))**(2 * dist_pow)
+        ssd.pdist(modelRDMs, metric='euclidean'))
     # the below yield identical results...
     # intermodelDists2 = np.sqrt(2*(1 - np.einsum('ik,jk', modelRDMs, modelRDMs)))
     # intermodelDists3 = ssd.squareform(np.sqrt(2*ssd.pdist(modelRDMs, metric='correlation')))
@@ -357,12 +315,7 @@ def map_model_comparison(result, rdms_data=None, RDM_dist_measure='corr',
     dist_2d_max = np.max(dists_2d_vec)
     scalebar_length = round(approx_frac_of_max * dist_2d_max * 10) / 10
     scalebar_descr = '{:.1f} [a.u.]\n'.format(scalebar_length)
-    if RDM_dist_measure.lower() == 'corr':
-        scalebar_descr += ('Pearson corr. dist.')
-    elif RDM_dist_measure.lower() == 'cosine':
-        scalebar_descr += ('cosine dist.')
-    elif RDM_dist_measure.lower() == 'euclidean':
-        scalebar_descr += ('normalized-pattern Eucl. dist.')
+    scalebar_descr += ('normalized-pattern Eucl. dist.')
     plt.figure(figsize=(fig_width, fig_width), dpi=dpi)
     plot_model_map(locs2d, significant, model_significant, model_below_lower_bound,
                    eb_low_high, noise_halo_rad, scalebar_length, scalebar_descr, qnts,
@@ -532,7 +485,7 @@ def _parse_colors(colors, n_models):
 
 def _get_description(test_pair_comparisons, multiple_pair_testing, error_bars,
                      test_above_0, test_below_noise_ceil,
-                     cv_method, method, RDM_dist_measure,
+                     cv_method, method,
                      alpha, n_tests, n_models, n_bootstraps):
     inference_descr = ''
     if test_pair_comparisons:
@@ -599,26 +552,17 @@ def _get_description(test_pair_comparisons, multiple_pair_testing, error_bars,
         raise Exception('rsatoolbox.vis.map_model_comparison: result.method ' +
                         method + ' not yet handled.')
     inference_descr += 'Inter-RDM distances are mapped as '
-    if RDM_dist_measure.lower() == 'corr':
-        inference_descr += (
-            'Pearson correlation distance '
-            + '(proportional to squared Euclidean distance'
-            + ' after RDM centering and divisive normalization).')
-    elif RDM_dist_measure.lower() == 'cosine':
-        inference_descr += (
-            'cosine distance '
-            + '(proportional to squared Euclidean distance after RDM divisive normalizaton). ')
-    elif RDM_dist_measure.lower() == 'euclidean':
-        inference_descr += (
-            'Euclidean distance '
-            + '(proportional to the square root of correlation or cosine distance'
-            + ' if RDMs were appropriately normalized).')
+    inference_descr += (
+        'Euclidean distance '
+        + '(proportional to the square root of correlation or cosine distance'
+        + ' if RDMs were appropriately normalized).')
     return inference_descr
 
 
-# Custom multidimensional scaling
 def custom_MDS(rdm_dists, n_init=100, n_iter=500, verbose=0):
-    """ Performs multidimensional scaling (MDS) using the metric stress cost
+    """ Custom multidimensional scaling
+
+    Performs multidimensional scaling (MDS) using the metric stress cost
     function (sum of squared distance deviations) for the intermodel RDM
     distances while exactly preserving the model-data RDM distances.
     Assumes that the data RDM has index 0 in the passed vectorized matrix of
@@ -633,12 +577,14 @@ def custom_MDS(rdm_dists, n_init=100, n_iter=500, verbose=0):
     position) is re-placed in random order. Models are adjusted until
     convergence in random order. The entire process, including the
     initialization, is repeated n_init times. The best arrangement (the one
-    with minimum sum of squared deviations) is returned."""
+    with minimum sum of squared deviations) is returned.
 
+    """
     # Preparations
     n_models = rdm_dists.shape[0] - 1
     best_model_i = np.argmin(rdm_dists[0, 1:])
     other_model_is = [i for i in range(0, n_models) if i != best_model_i]
+    print(rdm_dists.shape)
     rdm_dists_vec = ssd.squareform(rdm_dists)
     ssqd_min = np.inf
     two = 2  # minimizes sum(abs(errors)**two)
@@ -703,16 +649,16 @@ def place_model(model_i, locs2d, rdm_dists, n_scales=3, two=2):
     """ place a model
 
     Args:
-        model_i : TYPE
-            DESCRIPTION.
-        locs2d : TYPE
-            DESCRIPTION.
-        rdm_dists : TYPE
-            DESCRIPTION.
-        n_scales : TYPE, optional
-            DESCRIPTION. The default is 3.
+        model_i : int
+            which model to update.
+        locs2d : np.array
+            The current positions in 2D space.
+        rdm_dists : np.array
+            The desired distances between models.
+        n_scales : int, optional
+            How many scales to test at. The default is 3.
         two : TYPE, optional
-            DESCRIPTION. The default is 2.
+            Exponent for the error weighting. The default is 2.
 
     """
     n_angles = 180
@@ -860,3 +806,27 @@ def show_Shepard_plot(locs2d, rdm_dists, colors=None):
 
 
     return r, r_model_data, Spearman_r_model_data
+
+def _correct_model_dist(rdms_data, method='corr',
+                        verbose=0):
+    if rdms_data is None:
+        print('No data RDMs passed. Omitting noise correction.'
+              + ' Data-model RDM distances will be positively biased.')
+        return 1
+    N = rdms_data.n_rdm
+    if method in ['corr', 'cosine']:
+        rdms = rdms_data.dissimilarities
+        if method == 'corr':
+            rdms -= rdms.mean(axis=1, keepdims=True)
+        rdms /= np.sqrt(np.einsum('ij,ij->i', rdms, rdms))[:, None]
+        mean_rdm = rdms.mean(axis=0, keepdims=True)
+        mean_rdm /= np.sqrt(np.sum(mean_rdm**2))
+        dist = np.sum((rdms - mean_rdm)**2) / (N-1)
+        print(
+            '\nFormula-based average distance: {:.4f}'.format(dist2))
+        correction = 2 / (2 - dist)
+    else:
+        raise Exception(
+            'rsatoolbox.vis.map_model_comparison:'
+            + ' RDM comparison method must be "corr" or "cosine" for current implementation.')
+    return correction
