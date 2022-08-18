@@ -82,19 +82,21 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
                 warnings.warn('cv_descriptor not set, using index for now.'
                               + 'This will only remove self-similarities.'
                               + 'Effectively this assumes independent trials')
+        data_separated = dataset.split_obs(descriptor)
         unique_cond = set(dataset.obs_descriptors[descriptor])
-        for i, i_des in enumerate(unique_cond):
+
+        for i, data_i in enumerate(data_separated):
             v, _ = calc_one_similarity(
-                dataset, descriptor, i_des, i_des, method=method,
+                data_i, data_i, method=method,
                 noise=noise, weighting=weighting,
                 prior_lambda=prior_lambda,
                 prior_weight=prior_weight,
                 cv_descriptor=cv_descriptor)
             self_sim.append(v)
-            for j, j_des in enumerate(unique_cond):
+            for j, data_j in enumerate(data_separated):
                 if j > i:
                     v, w = calc_one_similarity(
-                        dataset, descriptor, i_des, j_des, method=method,
+                        data_i, data_j, method=method,
                         noise=noise, weighting=weighting,
                         prior_lambda=prior_lambda,
                         prior_weight=prior_weight,
@@ -201,7 +203,7 @@ def calc_one_similarity_small(
     return value, weight
 
 
-def calc_one_similarity(dataset, descriptor, i_des, j_des,
+def calc_one_similarity(dataset1, dataset2,
                         method='euclidean',
                         noise=None, weighting='number',
                         prior_lambda=1, prior_weight=0.1,
@@ -210,17 +212,13 @@ def calc_one_similarity(dataset, descriptor, i_des, j_des,
     finds all pairs of vectors to be compared and calculates one distance
 
     Args:
-        dataset (rsatoolbox.data.DatasetBase):
-            dataset to extract from
-        descriptor (String):
-            key for the descriptor defining the conditions
-        i_des : descriptor value
-            the value of the first condition
-        j_des : descriptor value
-            the value of the second condition
-        noise : numpy.ndarray (n_channels x n_channels), optional
-            the covariance or precision matrix over channels
-            necessary for calculation of mahalanobis distances
+        dataset1 (rsatoolbox.data.DatasetBase):
+            dataset for first condition
+        dataset2 (rsatoolbox.data.DatasetBase):
+            dataset for second condition
+        method (string):
+            method for comparing the similarity
+            default:'euclidean'
 
     Returns:
         (np.ndarray, np.ndarray) : (value, weight)
@@ -228,27 +226,27 @@ def calc_one_similarity(dataset, descriptor, i_des, j_des,
             weight is the weight of the samples
 
     """
-    data_i = dataset.subset_obs(descriptor, i_des)
-    data_j = dataset.subset_obs(descriptor, j_des)
-    values = []
-    weights = []
-    for i in range(data_i.n_obs):
-        for j in range(data_j.n_obs):
+    values = np.zeros(dataset1.n_obs * dataset2.n_obs)
+    weights = np.zeros(dataset1.n_obs * dataset2.n_obs)
+    k = 0
+    for i in range(dataset1.n_obs):
+        for j in range(dataset2.n_obs):
             if cv_descriptor is None:
                 accepted = True
             else:
-                if (data_i.obs_descriptors[cv_descriptor][i]
-                        == data_j.obs_descriptors[cv_descriptor][j]):
+                if (dataset1.obs_descriptors[cv_descriptor][i]
+                        == dataset2.obs_descriptors[cv_descriptor][j]):
                     accepted = False
                 else:
                     accepted = True
             if accepted:
-                vec_i = data_i.measurements[i]
-                vec_j = data_j.measurements[j]
+                vec_i = dataset1.measurements[i]
+                vec_j = dataset2.measurements[j]
                 finite = np.isfinite(vec_i) & np.isfinite(vec_j)
-                if np.any(finite):
+                n_ok = np.sum(finite)
+                if n_ok > 0:
                     if weighting == 'number':
-                        weight = np.sum(finite)
+                        weight = n_ok
                     elif weighting == 'equal':
                         weight = 1
                     sim = similarity(
@@ -257,17 +255,15 @@ def calc_one_similarity(dataset, descriptor, i_des, j_des,
                         noise=noise,
                         prior_lambda=prior_lambda,
                         prior_weight=prior_weight) \
-                        / np.sum(finite)
-                    values.append(sim)
-                    weights.append(weight)
-    weights = np.array(weights)
-    values = np.array(values)
-    if np.sum(weights) > 0:
-        weight = np.sum(weights)
+                        / n_ok
+                    values[k] = sim
+                    weights[k] = weight
+                    k = k + 1
+    weight = np.sum(weights)
+    if weight > 0:
         value = np.sum(weights * values) / weight
     else:
         value = np.nan
-        weight = 0
     return value, weight
 
 
@@ -325,10 +321,10 @@ def calc_one_dissimilarity_cv(dataset, descriptor, i_des, j_des,
                             accepted = True
                         if enforce_same:
                             if (data_i.obs_descriptors[cv_descriptor][i]
-                                != data_j.obs_descriptors[cv_descriptor][j]):
+                                    != data_j.obs_descriptors[cv_descriptor][j]):
                                 accepted = False
                             if (data_i.obs_descriptors[cv_descriptor][k]
-                                != data_j.obs_descriptors[cv_descriptor][l]):
+                                    != data_j.obs_descriptors[cv_descriptor][l]):
                                 accepted = False
                     if accepted:
                         vec_i = data_i.measurements[i]
