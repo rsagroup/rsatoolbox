@@ -1,4 +1,6 @@
 from setuptools import setup, find_packages
+from Cython.Build import cythonize
+import numpy
 
 requires = []
 with open('requirements.txt') as reqfile:
@@ -39,4 +41,6 @@ setup(
     install_requires=requires,
     tests_require=test_requires,
     test_suite='tests',
+    ext_modules = cythonize("rsatoolbox/cutil/*.pyx",
+                            include_path = [numpy.get_include()])
 )
