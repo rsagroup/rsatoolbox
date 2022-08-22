@@ -6,10 +6,9 @@ from cython.view cimport array as cvarray
 from libc.math cimport log, sqrt
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 cimport scipy.linalg.cython_blas as blas
-cimport numpy as np
 import numpy as np
 
-np.import_array()
+# np.import_array()
 
 
 @cython.boundscheck(False)

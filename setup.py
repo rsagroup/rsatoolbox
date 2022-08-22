@@ -41,6 +41,6 @@ setup(
     install_requires=requires,
     tests_require=test_requires,
     test_suite='tests',
-    ext_modules = cythonize("rsatoolbox/cutil/*.pyx",
-                            include_path = [numpy.get_include()])
+    ext_modules=cythonize("rsatoolbox/cutil/*.pyx",
+                          include_path=[])
 )
