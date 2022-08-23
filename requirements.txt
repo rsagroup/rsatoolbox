@@ -9,3 +9,4 @@ matplotlib
 joblib
 petname==2.2
 pandas
+cython
