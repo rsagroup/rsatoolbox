@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 from Cython.Build import cythonize
-import numpy
 
 requires = []
 with open('requirements.txt') as reqfile:
