@@ -15,7 +15,12 @@ import numpy as np
 cpdef double similarity(double [:] vec_i, double [:] vec_j, int method_idx,
                        double [:, :] noise=None,
                        double prior_lambda=1, double prior_weight=0.1):
-    """ This is a single similarity computation in cython.
+    """ 
+    double similarity(double [:] vec_i, double [:] vec_j, int method_idx,
+                      double [:, :] noise=None,
+                      double prior_lambda=1, double prior_weight=0.1)
+                       
+    This is a single similarity computation in cython.
     remember to call everything with continuous numpy arrays.
     In particular, noise must be such an array for Mahalanobis distances!
     """
@@ -49,7 +54,7 @@ cdef double poisson_cv(double [:] vec_i, double [:] vec_j, int n_dim,
         double sim = 0
     for i in range(n_dim):
         vi = (vec_i[i] + prior_lambda_l) / prior_weight_l
-        vj = (vec_i[i] + prior_lambda_l) / prior_weight_l
+        vj = (vec_j[i] + prior_lambda_l) / prior_weight_l
         sim += (vj - vi) * (log(vi) - log(vj))
     sim = sim / 2.0
     return sim
@@ -95,10 +100,10 @@ cdef double correlation(double [:] vec_i, double [:] vec_j, int n_dim):
         sij += vec_i[i] * vec_j[i]
     if si2 > 0 and sj2 > 0:
         # sim = (np.sum(vec_i * vec_j) / np.sqrt(norm_i) / np.sqrt(norm_j))
-        sim = sij - si * sj
-        sim /= sqrt(si2 - si * si)
-        sim /= sqrt(sj2 - sj * sj)
+        sim = sij - (si * sj / n_dim)
+        sim /= sqrt(si2 - (si * si / n_dim))
+        sim /= sqrt(sj2 - (sj * sj / n_dim))
     else:
         sim = 1
-    sim = sim * n_dim
+    sim = sim * n_dim / 2
     return sim
