@@ -1,3 +1,5 @@
+# c files resulting from cython
+rsatoolbox/cutil/*.c
 
 # IDEs
 .vscode/
