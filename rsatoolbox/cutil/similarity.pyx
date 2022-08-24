@@ -22,7 +22,7 @@ cpdef (double, double) calc_one(
     cdef:
         #double [:] values = np.zeros(n_i * n_j)
         #double [:] weights = np.zeros(n_i * n_j)
-        double [:] vec_i
+        double [:] vec_if
         double [:] vec_j
         double weight, sim, weight_sum, value
         int i, j
@@ -130,7 +130,7 @@ cdef double mahalanobis(double [:] vec_i, double [:] vec_j, int n_dim,
         int one = 1
         double onef = 1.0
         double zerof = 0.0
-        char trans = 'n'
+        char trans = b'n'
         double sim = 0.0
         int i
     #vec2 = cvarray(shape=n_dim, itemsize=sizeof(double), format="d")
