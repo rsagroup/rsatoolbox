@@ -13,6 +13,7 @@ import warnings
 import numpy as np
 from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox.rdm.rdms import concat
+from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.matrix import row_col_indicator_rdm
 from rsatoolbox.cutil.similarity import calc_one
 
@@ -83,23 +84,33 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
                 warnings.warn('cv_descriptor not set, using index for now.'
                               + 'This will only remove self-similarities.'
                               + 'Effectively this assumes independent trials')
-        unique_cond = set(dataset.obs_descriptors[descriptor])
-        for i, i_des in enumerate(unique_cond):
+        unique_cond, cond_indices = get_unique_inverse(dataset.obs_descriptors[descriptor])
+        #unique_cond = set(dataset.obs_descriptors[descriptor])
+        if cv_descriptor is None:
+            cv_desc_int = np.arange(dataset.n_obs, dtype=int)
+        else:
+            _, indices = np.unique(dataset.obs_descriptors[cv_descriptor], return_inverse=True)
+            cv_desc_int = indices.astype(int)
+        data_split = dataset.split_obs(descriptor)
+        cv_desc_list = []
+        for i, _ in enumerate(unique_cond):
+            cv_desc_list.append(cv_desc_int[cond_indices==i])
+        for i, data_i in enumerate(data_split):
             v, _ = calc_one_similarity(
-                dataset, descriptor, i_des, i_des, method=method,
+                data_i, data_i, method=method,
                 noise=noise, weighting=weighting,
                 prior_lambda=prior_lambda,
                 prior_weight=prior_weight,
-                cv_descriptor=cv_descriptor)
+                cv_desc_i=cv_desc_list[i], cv_desc_j=cv_desc_list[i])
             self_sim.append(v)
-            for j, j_des in enumerate(unique_cond):
+            for j, data_j in enumerate(data_split):
                 if j > i:
                     v, w = calc_one_similarity(
-                        dataset, descriptor, i_des, j_des, method=method,
+                        data_i, data_j, method=method,
                         noise=noise, weighting=weighting,
                         prior_lambda=prior_lambda,
                         prior_weight=prior_weight,
-                        cv_descriptor=cv_descriptor)
+                        cv_desc_i=cv_desc_list[i], cv_desc_j=cv_desc_list[j])
                     rdm.append(v)
                     weights.append(w)
         row_idx, col_idx = row_col_indicator_rdm(len(unique_cond))
@@ -202,11 +213,11 @@ def calc_one_similarity_small(
     return value, weight
 
 
-def calc_one_similarity(dataset, descriptor, i_des, j_des,
+def calc_one_similarity(data_i, data_j,
+                        cv_desc_i, cv_desc_j,
                         method='euclidean',
                         noise=None, weighting='number',
-                        prior_lambda=1, prior_weight=0.1,
-                        cv_descriptor=None):
+                        prior_lambda=1, prior_weight=0.1):
     """
     finds all pairs of vectors to be compared and calculates one distance
 
@@ -229,16 +240,6 @@ def calc_one_similarity(dataset, descriptor, i_des, j_des,
             weight is the weight of the samples
 
     """
-    data_i = dataset.subset_obs(descriptor, i_des)
-    data_j = dataset.subset_obs(descriptor, j_des)
-    if cv_descriptor is None:
-        cv_desc_i = np.arange(data_i.n_obs, dtype=int)
-        cv_desc_j = np.arange(data_i.n_obs, data_i.n_obs + data_j.n_obs, dtype=int)
-    else:
-        all_cv = data_i.obs_descriptors[cv_descriptor] + data_j.obs_descriptors[cv_descriptor]
-        _, indices = np.unique(all_cv, return_inverse=True)
-        cv_desc_i = indices[:data_i.n_obs].astype(int)
-        cv_desc_j = indices[data_i.n_obs:].astype(int)
     if method == 'euclidean':
         method_idx = 1
     elif method == 'correlation':

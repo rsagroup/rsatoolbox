@@ -1,1 +1,1 @@
-from .similarity import similarity
+from .similarity import similarity, calc_one
