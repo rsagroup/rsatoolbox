@@ -3,11 +3,7 @@ import warnings
 import numpy as np
 
 from joblib import Parallel, delayed, cpu_count
-from scipy.stats import pearsonr
-from scipy.spatial.distance import cdist, pdist, squareform
-from scipy.optimize import nnls
 from sklearn.exceptions import ConvergenceWarning
-from sklearn.model_selection import KFold
 from sklearn import neighbors
 from nilearn import datasets, surface
 import rsatoolbox.data as rsd
