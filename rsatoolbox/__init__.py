@@ -10,3 +10,4 @@ from . import rdm
 from . import simulation
 from . import util
 from . import vis
+from . import searchlight
