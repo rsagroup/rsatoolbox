@@ -81,8 +81,14 @@ def compute_searchlight_rdms(
     betas,
     des,
     obs_des,
-    method='correlation',  cv_descriptor=None, prior_lambda=1,
-    prior_weight=0.1, noise=None, n_jobs=-1, verbose=0):
+    method='correlation',
+    cv_descriptor=None,
+    prior_lambda=1,
+    prior_weight=0.1,
+    noise=None,
+    n_jobs=-1,
+    verbose=0
+    ):
     """compute searchlight RDMs takes a list of indices
        and maps the betas to compute an RDM for each
        searchlight of surface vertices.
@@ -114,8 +120,8 @@ def compute_searchlight_rdms(
                 descriptors=des,
                 obs_descriptors=obs_des,
                 channel_descriptors=chan_des,
-                )
             )
+        )
 
     # next we call calc_rdm. we use joblib parallel
     # to distribute it if multiple cpus are present.
@@ -166,23 +172,28 @@ def compute_searchlight_rdms(
         # and chan descriptors.
         # the descriptor here becomes the index of the
         # centre of sphere related to the spherical indices
-        RDMs = [
+        rdm_objects = [
             rsr.RDMs(
                 dissimilarities=x,
                 dissimilarity_measure=method,
                 descriptors=des,
                 rdm_descriptors=deepcopy(data[y].descriptors),
-                pattern_descriptors=obs_des
-                ) for y, x in enumerate(rdms)
-            ]
+                pattern_descriptors=obs_des)
+                for y, x in enumerate(rdms)
+        ]
 
-    return RDMs
+    return rdm_objects
 
 
 def calc_rdm_batch(
     data_batch,
-    method='correlation', descriptor='conds', cv_descriptor=None, prior_lambda=1,
-    prior_weight=0.1, noise=None):
+    method='correlation',
+    descriptor='conds',
+    cv_descriptor=None,
+    prior_lambda=1,
+    prior_weight=0.1,
+    noise=None
+    ):
     """ calc rdm batch
 
     Args:
@@ -210,13 +221,13 @@ def calc_rdm_batch(
     rdms = []
     for data in data_batch:
         rdm = rsr.calc_rdm(
-                    data,
-                    method=method,
-                    descriptor=descriptor,
-                    noise=noise,
-                    cv_descriptor=cv_descriptor,
-                    prior_lambda=prior_lambda,
-                    prior_weight=prior_weight)
+            data,
+            method=method,
+            descriptor=descriptor,
+            noise=noise,
+            cv_descriptor=cv_descriptor,
+            prior_lambda=prior_lambda,
+            prior_weight=prior_weight)
         rdms.append(rdm.dissimilarities)
     
     return np.concatenate(rdms)
