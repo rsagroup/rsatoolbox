@@ -1,9 +1,9 @@
 
 import warnings
 from collections.abc import Iterable
+from copy import deepcopy
 
 import numpy as np
-from copy import deepcopy
 
 from joblib import Parallel, delayed, cpu_count
 from sklearn.exceptions import ConvergenceWarning
