@@ -1,8 +1,9 @@
 
 import warnings
+from collections.abc import Iterable
+
 import numpy as np
 from copy import deepcopy
-from collections.abc import Iterable
 
 from joblib import Parallel, delayed, cpu_count
 from sklearn.exceptions import ConvergenceWarning
@@ -12,7 +13,7 @@ import rsatoolbox.data as rsd
 import rsatoolbox.rdm as rsr
 
 
-class GroupIterator(object):
+class GroupIterator():
     """Group iterator. cf. nilearn.
     Provides group of features for search_light loop
     that may be used with Parallel.
@@ -163,7 +164,7 @@ def compute_searchlight_rdms(
 
         # repack to list of RDMs object with descriptors
         # and chan descriptors.
-        # the descriptor here becomes the index of the 
+        # the descriptor here becomes the index of the
         # centre of sphere related to the spherical indices
         RDMs = [
             rsr.RDMs(
@@ -187,9 +188,9 @@ def calc_rdm_batch(
     Args:
         data_batch (list): list of rsa datasets
         method (str, optional): metric to use. Defaults to 'correlation'.
-        descriptor (dict, optional): key in the dataset descriptors object. 
+        descriptor (dict, optional): key in the dataset descriptors object.
                                      Defaults to conds.
-        noise (numpy.ndarray or list): 
+        noise (numpy.ndarray or list):
             dataset.n_channel x dataset.n_channel
             precision matrix used to calculate the RDM
             used only for Mahalanobis and Crossnobis estimators
