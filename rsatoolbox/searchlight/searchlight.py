@@ -140,7 +140,6 @@ def compute_searchlight_rdms(
                     prior_lambda=prior_lambda,
                     prior_weight=prior_weight)
                 for list_i in group_iter)
-
         elif isinstance(noise, np.ndarray) and noise.ndim == 2:
             rdms = Parallel(n_jobs=n_jobs, verbose=verbose)(
                 delayed(calc_rdm_batch)(
@@ -152,7 +151,6 @@ def compute_searchlight_rdms(
                     prior_lambda=prior_lambda,
                     prior_weight=prior_weight)
                 for list_i in group_iter)
-
         elif isinstance(noise, Iterable):
             rdms = Parallel(n_jobs=n_jobs, verbose=verbose)(
                 delayed(calc_rdm_batch)(
