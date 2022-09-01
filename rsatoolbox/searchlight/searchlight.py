@@ -42,14 +42,14 @@ def fetch_surf(fspath, targetspace):
         fspath (os.path): the absolute path pointing
                         to the fs subjects directory
         targetspace (string): targetspace of the data preparation
-                        e.g. 'fsaverage' if the data is prepared on 
-                        the fsaverage common space, 'subject01' if 
+                        e.g. 'fsaverage' if the data is prepared on
+                        the fsaverage common space, 'subject01' if
                         the data is prepared on subject01's native
-                        surface space. 
+                        surface space.
 
     Returns:
-        surface (list): list of absolute paths for 
-                        fs subjects inflated left and 
+        surface (list): list of absolute paths for
+                        fs subjects inflated left and
                         right surfaces.
     """
 
@@ -57,12 +57,12 @@ def fetch_surf(fspath, targetspace):
     infl_list = glob(os.path.join(fspath, targetspace, 'surf', '*.inflated'))
     infl_list.sort()
 
-    surface = {
+    surfaces= {
         'infl_left': infl_list[0],
         'infl_right': infl_list[1]
     }
 
-    return surface
+    return surfaces
 
 
 
