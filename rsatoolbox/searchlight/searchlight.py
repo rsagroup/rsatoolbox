@@ -9,7 +9,7 @@ import numpy as np
 from joblib import Parallel, delayed, cpu_count
 from sklearn.exceptions import ConvergenceWarning
 from sklearn import neighbors
-from nilearn import datasets, surface
+from nilearn import surface
 import rsatoolbox.data as rsd
 import rsatoolbox.rdm as rsr
 
