@@ -1,8 +1,9 @@
 
 import warnings
+import os
 from collections.abc import Iterable
 from copy import deepcopy
-
+from glob import glob
 import numpy as np
 
 from joblib import Parallel, delayed, cpu_count
@@ -34,15 +35,47 @@ class GroupIterator():
         for list_i in split:
             yield list_i
 
+def fetch_surf(fspath, targetspace):
+    """ find a subject's native surface files
 
-def prepare_surf_indices(targetspace, radius):
+    Args:
+        fspath (os.path): the absolute path pointing
+                        to the fs subjects directory
+        targetspace (string): targetspace of the data preparation
+                        e.g. 'fsaverage' if the data is prepared on 
+                        the fsaverage common space, 'subject01' if 
+                        the data is prepared on subject01's native
+                        surface space. 
+
+    Returns:
+        surface (list): list of absolute paths for 
+                        fs subjects inflated left and 
+                        right surfaces.
+    """
+
+    # if usual recon, surfaces are .inflated format
+    infl_list = glob(os.path.join(fspath, targetspace, 'surf', '*.inflated'))
+    infl_list.sort()
+
+    surface = {
+        'infl_left': infl_list[0],
+        'infl_right': infl_list[1]
+    }
+
+    return surface
+
+
+
+def prepare_surf_indices(fspath, targetspace, radius):
     """prepare searchlight indices to be used to
        sample searchlights from fMRI betas prepared
        in surface space.
 
     Args:
+        fspath (os.path): the path where your freesurfer subject's
+                          live. e.g. /opt/freesurfer/subjects
         targetspace (string): what surface space are your betas
-                              prepared in? e.g. 'fsaverage'
+                              prepared in? e.g. 'fsaverage', 'subject01'
         radius (int): what radius do you want the searchlight 'spheres'
                       to cover?
 
@@ -52,7 +85,7 @@ def prepare_surf_indices(targetspace, radius):
                     searchlight RSA, indexing the surface prepared betas
     """
 
-    fsaverage = datasets.fetch_surf_fsaverage(mesh=targetspace)
+    surf = fetch_surf(fspath, targetspace)
 
     hemis = ['left', 'right']
 
@@ -61,7 +94,7 @@ def prepare_surf_indices(targetspace, radius):
     for hemi in hemis:
 
         # we piggy back on nilearn to get inflated coordinates
-        infl_mesh = fsaverage['infl_' + hemi]
+        infl_mesh = surf['infl_' + hemi]
         coords, _ = surface.load_surf_mesh(infl_mesh)
 
         # prepare the nearest neighbours algo
