@@ -15,13 +15,14 @@ from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox.rdm.rdms import concat
 from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.matrix import row_col_indicator_rdm
-from rsatoolbox.cutil.similarity import calc_one
+from rsatoolbox.cutil.similarity import calc_one, calc
 
 
 def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
                         noise=None, cv_descriptor=None,
                         prior_lambda=1, prior_weight=0.1,
-                        weighting='number', enforce_same=False):
+                        weighting='number', enforce_same=False,
+                        more_to_c=True):
     """
     calculate a RDM from an input dataset for unbalanced datasets.
 
@@ -88,41 +89,69 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
         #unique_cond = set(dataset.obs_descriptors[descriptor])
         if cv_descriptor is None:
             cv_desc_int = np.arange(dataset.n_obs, dtype=int)
+            crossval = 0
         else:
             _, indices = np.unique(dataset.obs_descriptors[cv_descriptor], return_inverse=True)
             cv_desc_int = indices.astype(int)
-        data_split = dataset.split_obs(descriptor)
-        cv_desc_list = []
-        for i, _ in enumerate(unique_cond):
-            cv_desc_list.append(cv_desc_int[cond_indices==i])
-        for i, data_i in enumerate(data_split):
-            v, _ = calc_one_similarity(
-                data_i, data_i, method=method,
-                noise=noise, weighting=weighting,
-                prior_lambda=prior_lambda,
-                prior_weight=prior_weight,
-                cv_desc_i=cv_desc_list[i], cv_desc_j=cv_desc_list[i])
-            self_sim.append(v)
-            for j, data_j in enumerate(data_split):
-                if j > i:
-                    v, w = calc_one_similarity(
-                        data_i, data_j, method=method,
-                        noise=noise, weighting=weighting,
-                        prior_lambda=prior_lambda,
-                        prior_weight=prior_weight,
-                        cv_desc_i=cv_desc_list[i], cv_desc_j=cv_desc_list[j])
-                    rdm.append(v)
-                    weights.append(w)
+            crossval = 1
+        print(crossval)
+        if not more_to_c:
+            data_split = dataset.split_obs(descriptor)
+            cv_desc_list = []
+            for i, _ in enumerate(unique_cond):
+                cv_desc_list.append(cv_desc_int[cond_indices==i])
+            for i, data_i in enumerate(data_split):
+                v, _ = calc_one_similarity(
+                    data_i, data_i, method=method,
+                    noise=noise, weighting=weighting,
+                    prior_lambda=prior_lambda,
+                    prior_weight=prior_weight,
+                    cv_desc_i=cv_desc_list[i], cv_desc_j=cv_desc_list[i])
+                self_sim.append(v)
+                for j, data_j in enumerate(data_split):
+                    if j > i:
+                        v, w = calc_one_similarity(
+                            data_i, data_j, method=method,
+                            noise=noise, weighting=weighting,
+                            prior_lambda=prior_lambda,
+                            prior_weight=prior_weight,
+                            cv_desc_i=cv_desc_list[i], cv_desc_j=cv_desc_list[j])
+                        rdm.append(v)
+                        weights.append(w)
+            self_sim = np.array(self_sim)
+        else:
+            if method == 'euclidean':
+                method_idx = 1
+            elif method == 'correlation':
+                method_idx = 2
+            elif method in ['mahalanobis', 'crossnobis']:
+                method_idx = 3
+            elif method in ['poisson', 'poisson_cv']:
+                method_idx = 4
+            if weighting == 'equal':
+                weight_idx = 0
+            else:
+                weight_idx = 1
+            cond_indices_int = cond_indices.astype(int)
+            rdm = calc(
+                dataset.measurements, cond_indices_int,
+                cv_desc_int, len(unique_cond),
+                method_idx, noise,
+                prior_lambda, prior_weight,
+                weight_idx, crossval)
+            self_sim = rdm[:len(unique_cond)]
+            rdm = rdm[len(unique_cond):]
         row_idx, col_idx = row_col_indicator_rdm(len(unique_cond))
-        self_sim = np.array(self_sim)
         rdm = np.array(rdm)
+        self_sim = np.array(self_sim)
+        print(self_sim[:2])
+        print(rdm[:2])
         rdm = row_idx @ self_sim + col_idx @ self_sim - 2 * rdm
         rdm = RDMs(
             dissimilarities=np.array([rdm]),
             dissimilarity_measure=method,
             rdm_descriptors=deepcopy(dataset.descriptors))
         rdm.pattern_descriptors[descriptor] = list(unique_cond)
-        rdm.rdm_descriptors['weights'] = [weights]
     return rdm
 
 

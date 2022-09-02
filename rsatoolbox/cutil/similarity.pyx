@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# cython: profile=False
 
 import cython
 from cython.view cimport array as cvarray
@@ -9,6 +10,80 @@ cimport scipy.linalg.cython_blas as blas
 # import numpy as np
 
 # np.import_array()
+
+@cython.boundscheck(False)
+@cython.cdivision(True)
+cpdef double [:] calc(
+    double [:, :] data, long [:] desc,
+    long [:] cv_desc, int n,
+    int method_idx, double [:, :] noise=None,
+    double prior_lambda=1, double prior_weight=0.1,
+    int weighting=1, int crossval=0):
+    # calculates an RDM from a double array of data with integer descriptors
+    # There are no checks or saveguards in this function!
+    # All entries in desc should be in [0, n-1]. They will be used for indexing
+    # into the RDM running into segfaults if they are outside the range.
+    # Inputs:
+    # double [:, :] data : the data
+    # long [:] desc : defines the patterns
+    # long [:] cv_desc : rows with equal values are excluded from the computation
+    # int n : defines the RDM size, all desc should be < n
+    # int method_idx: which method to use:
+    #     1: method == 'euclidean'
+    #     2: method == 'correlation'
+    #     3: method in ['mahalanobis', 'crossnobis']
+    #     4: method in ['poisson', 'poisson_cv']
+    # double [:, :] noise = None: noise for Mahalanobis/Crossnobis
+    # double prior_lambda=1 : for poisson KL
+    # double prior_weight=0.1 : for poisson KL
+    # int weighting=1 : controls weighting of rows:
+    #     0: each row has equal weight
+    #     1: rows weighted by number of valid measurements
+    cdef:
+        double [:] vec_i
+        double [:] vec_j
+        double weight, sim
+        double [:] weights
+        double [:] values
+        int i, j, idx
+        int n_rdm = (n * (n-1)) / 2
+    weights = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
+    values = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
+    for idx in range(n_rdm + n):
+        weights[idx] = 0
+        values[idx] = 0
+    for i in range(data.shape[0]):
+        for j in range(i, data.shape[0]):
+            if not crossval or not cv_desc[i] == cv_desc[j]:
+                #vec_i = data[i]
+                #vec_j = data[j]
+                sim, weight = similarity(
+                    data[i], data[j],
+                    method_idx,
+                    noise=noise,
+                    prior_lambda=prior_lambda,
+                    prior_weight=prior_weight)
+                if weight > 0:
+                    if desc[i] == desc[j]:
+                        idx = desc[i]
+                    else:
+                        if desc[j] > desc[i]:
+                            idx = (n - 1) * desc[i] - (((desc[i] + 1) * desc[i]) / 2) + desc[j] - 1 + n
+                        else:
+                            idx = (n - 1) * desc[j] - (((desc[j] + 1) * desc[j]) / 2) + desc[i] - 1 + n
+                    if weighting == 1: #'number':
+                        values[idx] += sim
+                        weights[idx] += weight
+                    elif weighting == 0: #'equal':
+                        values[idx] += sim / weight
+                        weights[idx] += 1
+    for idx in range(n_rdm + n):
+        if weights[idx] > 0:
+            values[idx] = values[idx] / weights[idx]
+        else:
+            values[idx] = NAN
+    return values
+
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
@@ -22,7 +97,7 @@ cpdef (double, double) calc_one(
     cdef:
         #double [:] values = np.zeros(n_i * n_j)
         #double [:] weights = np.zeros(n_i * n_j)
-        double [:] vec_if
+        double [:] vec_i
         double [:] vec_j
         double weight, sim, weight_sum, value
         int i, j
@@ -55,15 +130,15 @@ cpdef (double, double) calc_one(
 cpdef (double, double) similarity(double [:] vec_i, double [:] vec_j, int method_idx,
                        double [:, :] noise=None,
                        double prior_lambda=1, double prior_weight=0.1):
-    """ 
+    """
     double similarity(double [:] vec_i, double [:] vec_j, int method_idx,
                       double [:, :] noise=None,
                       double prior_lambda=1, double prior_weight=0.1)
-                       
+
     This is a single similarity computation in cython.
     remember to call everything with continuous numpy arrays.
     In particular, noise must be such an array for Mahalanobis distances!
-    
+
     Mahalanobis distances require full measurement vectors at the moment!
     """
     cdef double sim
