@@ -1,5 +1,3 @@
 recursive-include rsatoolbox *.mplstyle
-recursive-include rsatoolbox/cutil *.pyx
-recursive-include rsatoolbox/cutil *.pxd
 include requirements.txt
 include tests/requirements.txt
