@@ -11,6 +11,6 @@ setup(
     test_suite='tests',
     url = "https://github.com/rsagroup/rsatoolbox",
     zip_safe = False,
-    extensions = [Extension("*", ["*.pyx"])],
+    ext_modules = [Extension("rsatoolbox.cutil.similarity", ["src/rsatoolbox/cutil/similarity.pyx"])],
     cmdclass={'build_ext': build_ext}
 )

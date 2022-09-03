@@ -34,6 +34,7 @@ dynamic = ["readme", "dependencies"]
 
 [tool.setuptools]
 packages = ["rsatoolbox"]
+package-dir = {"" = "src"}
 
 [tool.setuptools.dynamic]
 readme = {file = "README.md"}
