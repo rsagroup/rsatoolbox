@@ -142,7 +142,8 @@ def _nan_mean(rdm_vector):
     """
     nan_idx = ~np.isnan(rdm_vector[0])
     mean_values = np.mean(rdm_vector[:, nan_idx], axis=0)
-    rdm_mean = np.empty((1, rdm_vector.shape[1])) * np.nan
+    rdm_mean = np.empty((1, rdm_vector.shape[1]))
+    rdm_mean.fill(np.nan)
     rdm_mean[:, nan_idx] = mean_values
     return rdm_mean
 
