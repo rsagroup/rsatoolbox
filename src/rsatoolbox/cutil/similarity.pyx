@@ -53,7 +53,21 @@ cpdef double [:] calc(
         weights[idx] = 0
         values[idx] = 0
     for i in range(data.shape[0]):
-        for j in range(i, data.shape[0]):
+        if not crossval:
+            sim, weight = similarity(
+                data[i], data[i],
+                method_idx,
+                noise=noise,
+                prior_lambda=prior_lambda,
+                prior_weight=prior_weight)
+            idx = desc[i]
+            if weighting == 1: #'number':
+                values[idx] += sim / 2.0
+                weights[idx] += weight / 2.0
+            elif weighting == 0: #'equal':
+                values[idx] += sim / weight / 2.0
+                weights[idx] += 1 / 2.0
+        for j in range(i + 1, data.shape[0]):
             if not crossval or not cv_desc[i] == cv_desc[j]:
                 #vec_i = data[i]
                 #vec_j = data[j]
