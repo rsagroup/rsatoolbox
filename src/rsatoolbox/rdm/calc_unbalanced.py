@@ -199,7 +199,7 @@ def calc_one_similarity_small(
         j_des : descriptor value
             the value of the second condition
         noise : numpy.ndarray (n_channels x n_channels), optional
-            the covariance or precision matrix over channels
+            the precision matrix over channels
             necessary for calculation of mahalanobis distances
 
     Returns:

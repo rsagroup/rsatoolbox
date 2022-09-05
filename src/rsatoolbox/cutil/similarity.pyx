@@ -214,22 +214,49 @@ cdef (double, double) poisson_cv(double [:] vec_i, double [:] vec_j, int n_dim,
 cdef double mahalanobis(double [:] vec_i, double [:] vec_j, int n_dim,
                         double [:, :] noise):
     cdef:
+        double *vec1
         double *vec2
+        int *finite
         int zero = 0
         int one = 1
         double onef = 1.0
         double zerof = 0.0
         char trans = b'n'
         double sim = 0.0
-        int i
-    #vec2 = cvarray(shape=n_dim, itemsize=sizeof(double), format="d")
-    vec2 = <double*> PyMem_Malloc(n_dim * sizeof(double))
-    #blas.dgemv(&1.0, &noise[0], &vec_j[0], &0.0, &vec2[0], &zero, &one, &zero, &one, &zero, &one)
-    #blas.dgemv(&onef, &noise[0, 0], &vec_j[0], &zerof, &vec2[0], &zerof, &one, &zero, &one, &zero, &one)
-    blas.dgemv(&trans, &n_dim, &n_dim, &onef, &noise[0, 0], &n_dim, &vec_j[0], &one, &zerof, vec2, &one)
+        int i, j, k, l, n_finite
+        double [:, :] noise_small
+    finite = <int*> PyMem_Malloc(n_dim * sizeof(int))
+    # use finite as a bool to choose the non-nan values
+    n_finite = 0
     for i in range(n_dim):
-        sim += vec_i[i] * vec2[i]
+        if not isnan(vec_i[i]) and not isnan(vec_j[i]):
+            finite[i] = 1
+            n_finite += 1
+        else:
+            finite[i] = 0
+    vec1 = <double*> PyMem_Malloc(n_finite * sizeof(double))
+    vec2 = <double*> PyMem_Malloc(n_finite * sizeof(double))
+    vec3 = <double*> PyMem_Malloc(n_finite * sizeof(double))
+    #noise_small = <double [:n_finite, :n_finite]> PyMem_Malloc(n_finite * n_finite * sizeof(double))
+    noise_small = cvarray(shape=(n_finite, n_finite), itemsize=sizeof(double), format="d")
+    k = 0
+    for i in range(n_dim):
+        if finite[i]:
+            vec1[k] = vec_i[i]
+            vec2[k] = vec_j[i]
+            l = 0
+            for j in range(n_dim):
+                if finite[j]:
+                    noise_small[k, l] = noise[i, j]
+                    l += 1
+            k += 1
+    blas.dgemv(&trans, &n_finite, &n_finite, &onef, &noise_small[0, 0], &n_finite, vec2, &one, &zerof, vec3, &one)
+    for i in range(n_dim):
+        sim += vec1[i] * vec3[i]
+    PyMem_Free(vec1)
     PyMem_Free(vec2)
+    PyMem_Free(vec3)
+    PyMem_Free(finite)
     return sim
 
 
