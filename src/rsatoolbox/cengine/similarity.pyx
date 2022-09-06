@@ -97,7 +97,7 @@ cpdef double [:] calc(
                     sim, weight = correlation(data[i], data[j], n_dim)
                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
                     if noise is None:
-                        sim, weight = euclid(data[i], data[i], n_dim)
+                        sim, weight = euclid(data[i], data[j], n_dim)
                     else:
                         sim = mahalanobis(data[i], data[j], n_dim, noise)
                         weight = <double> n_dim

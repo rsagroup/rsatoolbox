@@ -121,10 +121,10 @@ class TestCalcRDM(unittest.TestCase):
             method='mahalanobis')
         assert rdm.n_cond == 6
         rdm_bal = rsr.calc_rdm_unbalanced(
-            self.test_data, descriptor='conds',
+            self.test_data_balanced, descriptor='conds',
             method='mahalanobis')
         rdm_check = rsr.calc_rdm(
-            self.test_data, descriptor='conds',
+            self.test_data_balanced, descriptor='conds',
             method='mahalanobis')
         assert_array_almost_equal(
             rdm_bal.dissimilarities.flatten(),
@@ -138,11 +138,13 @@ class TestCalcRDM(unittest.TestCase):
                                       method='crossnobis')
         assert rdm.n_cond == 6
         rdm_bal = rsr.calc_rdm_unbalanced(
-            self.test_data, descriptor='conds',
+            self.test_data_balanced,
+            descriptor='conds',
             cv_descriptor='fold',
             method='crossnobis')
         rdm_check = rsr.calc_rdm(
-            self.test_data, descriptor='conds',
+            self.test_data_balanced,
+            descriptor='conds',
             cv_descriptor='fold',
             method='crossnobis')
         assert_array_almost_equal(
@@ -151,18 +153,20 @@ class TestCalcRDM(unittest.TestCase):
             )
 
     def test_calc_crossnobis_no_descriptor(self):
-        rdm = rsr.calc_rdm_unbalanced(self.test_data,
-                                      descriptor='conds',
-                                      method='crossnobis')
+        rdm = rsr.calc_rdm_unbalanced(
+            self.test_data,
+            descriptor='conds',
+            method='crossnobis')
         assert rdm.n_cond == 6
 
     def test_calc_crossnobis_noise(self):
         noise = np.random.randn(10, 5)
         noise = np.matmul(noise.T, noise)
-        rdm = rsr.calc_rdm_unbalanced(self.test_data,
-                                      descriptor='conds', cv_descriptor='fold',
-                                      noise=noise,
-                                      method='crossnobis')
+        rdm = rsr.calc_rdm_unbalanced(
+            self.test_data,
+            descriptor='conds', cv_descriptor='fold',
+            noise=noise,
+            method='crossnobis')
         assert rdm.n_cond == 6
         rdm_bal = rsr.calc_rdm_unbalanced(
             self.test_data_balanced, descriptor='conds',

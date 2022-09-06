@@ -5226,7 +5226,7 @@ __pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_correlation(__pyx_t_23, 
  *                     sim, weight = correlation(data[i], data[j], n_dim)
  *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
  *                     if noise is None:             # <<<<<<<<<<<<<<
- *                         sim, weight = euclid(data[i], data[i], n_dim)
+ *                         sim, weight = euclid(data[i], data[j], n_dim)
  *                     else:
  */
           __pyx_t_1 = (((PyObject *) __pyx_v_noise.memview) == Py_None);
@@ -5235,7 +5235,7 @@ __pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_correlation(__pyx_t_23, 
             /* "rsatoolbox/cengine/similarity.pyx":100
  *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
  *                     if noise is None:
- *                         sim, weight = euclid(data[i], data[i], n_dim)             # <<<<<<<<<<<<<<
+ *                         sim, weight = euclid(data[i], data[j], n_dim)             # <<<<<<<<<<<<<<
  *                     else:
  *                         sim = mahalanobis(data[i], data[j], n_dim, noise)
  */
@@ -5259,7 +5259,7 @@ __pyx_t_23.data = __pyx_v_data.data;
             __pyx_t_23.memview = __pyx_v_data.memview;
             __PYX_INC_MEMVIEW(&__pyx_t_23, 1);
             {
-    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
         Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
         if (__pyx_tmp_idx < 0)
@@ -5285,14 +5285,14 @@ __pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_euclid(__pyx_t_24, __pyx
  *                     sim, weight = correlation(data[i], data[j], n_dim)
  *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
  *                     if noise is None:             # <<<<<<<<<<<<<<
- *                         sim, weight = euclid(data[i], data[i], n_dim)
+ *                         sim, weight = euclid(data[i], data[j], n_dim)
  *                     else:
  */
             goto __pyx_L22;
           }
 
           /* "rsatoolbox/cengine/similarity.pyx":102
- *                         sim, weight = euclid(data[i], data[i], n_dim)
+ *                         sim, weight = euclid(data[i], data[j], n_dim)
  *                     else:
  *                         sim = mahalanobis(data[i], data[j], n_dim, noise)             # <<<<<<<<<<<<<<
  *                         weight = <double> n_dim
@@ -5353,7 +5353,7 @@ __pyx_v_sim = __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__pyx_t_23,
  *                     sim, weight = correlation(data[i], data[j], n_dim)
  *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:             # <<<<<<<<<<<<<<
  *                     if noise is None:
- *                         sim, weight = euclid(data[i], data[i], n_dim)
+ *                         sim, weight = euclid(data[i], data[j], n_dim)
  */
           break;
           case 4:
