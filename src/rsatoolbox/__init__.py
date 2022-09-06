@@ -3,7 +3,7 @@
 """ Top level package: Only imports and organisation
 """
 
-from . import cutil
+from . import cengine
 from . import data
 from . import inference
 from . import model

@@ -15,7 +15,7 @@ from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox.rdm.rdms import concat
 from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.matrix import row_col_indicator_rdm
-from rsatoolbox.cutil.similarity import calc_one, calc
+from rsatoolbox.cengine.similarity import calc_one, calc
 
 
 def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,

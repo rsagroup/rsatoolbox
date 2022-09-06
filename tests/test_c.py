@@ -8,7 +8,7 @@ from unittest.mock import patch
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 import rsatoolbox as rsa
-from rsatoolbox.cutil.similarity import similarity as similarity_c
+from rsatoolbox.cengine.similarity import similarity as similarity_c
 from rsatoolbox.rdm.calc_unbalanced import calc_one_similarity as calc_one_similarity_c
 
 
