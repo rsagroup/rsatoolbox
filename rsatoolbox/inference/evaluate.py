@@ -198,9 +198,13 @@ def eval_fixed(models, data, theta=None, method='cosine'):
     evaluations = evaluations.reshape((1, len(models), data.n_rdm))
     noise_ceil = boot_noise_ceiling(
         data, method=method, rdm_descriptor='index')
-    variances = np.cov(evaluations[0], ddof=1) \
-        / evaluations.shape[-1]
-    dof = evaluations.shape[-1] - 1
+    if data.n_rdm > 1:
+        variances = np.cov(evaluations[0], ddof=1) \
+            / evaluations.shape[-1]
+        dof = evaluations.shape[-1] - 1
+    else:
+        variances = None
+        dof = 0
     result = Result(models, evaluations, method=method,
                     cv_method='fixed', noise_ceiling=noise_ceil,
                     variances=variances, dof=dof)
