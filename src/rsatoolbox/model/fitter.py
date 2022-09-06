@@ -165,7 +165,10 @@ def fit_optimize_positive(
                      pattern_descriptor=pattern_descriptor,
                      sigma_k=sigma_k, ridge_weight=ridge_weight)
     theta0 = np.random.rand(model.n_param)
-    theta = opt.minimize(_loss_opt, theta0)
+    theta = opt.minimize(_loss_opt, theta0,
+        options={
+            'xatol': 0.000001,
+            'fatol': 0.000001})
     return theta.x ** 2 / np.sqrt(np.sum(theta.x ** 4))
 
 
