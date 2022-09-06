@@ -89,14 +89,13 @@ class TestCalc(unittest.TestCase):
             # calc_unbalanced call
             b = rsatoolbox.rdm.calc_rdm_unbalanced(
                 self.data, descriptor='obs', method=method)
+            # calc balanced call
+            c = rsatoolbox.rdm.calc_rdm(
+                self.data, descriptor='obs', method=method)
             np.testing.assert_allclose(np.expand_dims(rdm, 0), b.dissimilarities,
                 err_msg='C unequal to python for %s' % method)
-            if method == 'euclidean':
-                # calc balanced call
-                c = rsatoolbox.rdm.calc_rdm(
-                    self.data, descriptor='obs', method=method)
-                np.testing.assert_allclose(np.expand_dims(rdm, 0), c.dissimilarities,
-                    err_msg='unbalanced unequal to balanced for %s' % method)
+            np.testing.assert_allclose(np.expand_dims(rdm, 0), c.dissimilarities,
+                err_msg='unbalanced unequal to balanced for %s' % method)
 
 
 ## Original Python version used as reference implementation:

@@ -94,6 +94,7 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
             _, indices = np.unique(dataset.obs_descriptors[cv_descriptor], return_inverse=True)
             cv_desc_int = indices.astype(int)
             crossval = 1
+        print(crossval)
         if not more_to_c:
             data_split = dataset.split_obs(descriptor)
             cv_desc_list = []
@@ -143,6 +144,8 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
         row_idx, col_idx = row_col_indicator_rdm(len(unique_cond))
         rdm = np.array(rdm)
         self_sim = np.array(self_sim)
+        print(self_sim[:2])
+        print(rdm[:2])
         rdm = row_idx @ self_sim + col_idx @ self_sim - 2 * rdm
         rdm = RDMs(
             dissimilarities=np.array([rdm]),
