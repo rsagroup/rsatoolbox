@@ -163,6 +163,7 @@ cpdef (double, double) calc_one(
                 data_j[i, j] = (data_j[i, j] + prior_lambda_l) / prior_weight_l
                 log_data_j[i, j] = log(data_j[i, j])
     weight_sum = 0
+    value = 0
     for i in range(n_i):
         for j in range(n_j):
             if not cv_desc_i[i] == cv_desc_j[j]:
