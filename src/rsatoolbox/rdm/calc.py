@@ -179,8 +179,6 @@ def calc_rdm_euclid(dataset, descriptor=None):
     sum_sq_measurements = np.sum(measurements**2, axis=1, keepdims=True)
     rdm = sum_sq_measurements + sum_sq_measurements.T \
         - 2 * np.dot(measurements, measurements.T)
-    print(sum_sq_measurements[:2])
-    print(np.dot(measurements, measurements.T)[0,:3])
     rdm = _extract_triu_(rdm) / measurements.shape[1]
     rdm = RDMs(dissimilarities=np.array([rdm]),
                dissimilarity_measure='squared euclidean',

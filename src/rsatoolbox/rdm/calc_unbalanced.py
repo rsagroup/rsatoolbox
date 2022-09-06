@@ -94,7 +94,6 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
             _, indices = np.unique(dataset.obs_descriptors[cv_descriptor], return_inverse=True)
             cv_desc_int = indices.astype(int)
             crossval = 1
-        print(crossval)
         if not more_to_c:
             data_split = dataset.split_obs(descriptor)
             cv_desc_list = []
