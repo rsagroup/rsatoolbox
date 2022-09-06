@@ -143,8 +143,6 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
         row_idx, col_idx = row_col_indicator_rdm(len(unique_cond))
         rdm = np.array(rdm)
         self_sim = np.array(self_sim)
-        print(self_sim[:2])
-        print(rdm[:2])
         rdm = row_idx @ self_sim + col_idx @ self_sim - 2 * rdm
         rdm = RDMs(
             dissimilarities=np.array([rdm]),

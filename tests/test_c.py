@@ -22,14 +22,30 @@ class TestSimilarity(unittest.TestCase):
         self.vec_j = np.array([0.13, 0.14, 0.21, 0.29, 0.28])
 
     def test_basic(self):
-        for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis', 'poisson']):
+        for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis']):
             sim = similarity(self.vec_i, self.vec_j, method=method)
-            sim_c, w = similarity_c(self.vec_i, self.vec_j, i + 1)
+            sim_c, w = similarity_c(self.vec_i, self.vec_j, i + 1, self.vec_i.shape[0], noise=None)
             self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
-        for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis', 'poisson']):
+        for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis']):
             sim = similarity(self.v_i, self.v_j, method=method)
-            sim_c, w = similarity_c(self.v_i, self.v_j, i + 1)
+            sim_c, w = similarity_c(self.v_i, self.v_j, i + 1, self.v_i.shape[0], noise=None)
             self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
+
+    def test_poisson(self):
+        prior_lambda=1
+        prior_weight=0.1
+        prior_lambda_l = prior_lambda * prior_weight
+        prior_weight_l = 1 + prior_weight
+        vi = (self.vec_i + prior_lambda_l) / prior_weight_l
+        vj = (self.vec_j + prior_lambda_l) / prior_weight_l
+        sim = similarity(self.vec_i, self.vec_j, method='poisson')
+        sim_c, w = similarity_c(vi, vj, 4, vi.shape[0], noise=None)
+        self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for poisson')
+        vi = (self.v_i + prior_lambda_l) / prior_weight_l
+        vj = (self.v_j + prior_lambda_l) / prior_weight_l
+        sim = similarity(self.v_i, self.v_j, method='poisson')
+        sim_c, w = similarity_c(vi, vj, 4, vi.shape[0], noise=None)
+        self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for poisson')
 
     def test_noise(self):
         i = 2
@@ -39,7 +55,7 @@ class TestSimilarity(unittest.TestCase):
         noise[0, 1] = 0.2
         noise[1, 0] = 0.2
         sim = similarity(self.vec_i, self.vec_j, method=method, noise=noise)
-        sim_c, w = similarity_c(self.vec_i, self.vec_j, i + 1, noise=noise)
+        sim_c, w = similarity_c(self.vec_i, self.vec_j, i + 1, self.vec_i.shape[0], noise=noise)
         self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
 
 
@@ -65,7 +81,7 @@ class TestCalcOne(unittest.TestCase):
 class TestCalc(unittest.TestCase):
 
     def setUp(self):
-        self.dat = np.random.randn(300, 100)
+        self.dat = np.random.rand(300, 100)
         self.data = rsatoolbox.data.Dataset(
             self.dat,
             obs_descriptors={'obs': np.repeat(np.arange(50), 6),

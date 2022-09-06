@@ -18,6 +18,7 @@ __pycache__/
 
 # C extensions
 *.so
+src/rsatoolbox/*.html
 
 # Distribution / packaging
 .Python
