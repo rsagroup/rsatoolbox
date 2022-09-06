@@ -31,22 +31,6 @@ class TestSimilarity(unittest.TestCase):
             sim_c, w = similarity_c(self.v_i, self.v_j, i + 1, self.v_i.shape[0], noise=None)
             self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
 
-    def test_poisson(self):
-        prior_lambda=1
-        prior_weight=0.1
-        prior_lambda_l = prior_lambda * prior_weight
-        prior_weight_l = 1 + prior_weight
-        vi = (self.vec_i + prior_lambda_l) / prior_weight_l
-        vj = (self.vec_j + prior_lambda_l) / prior_weight_l
-        sim = similarity(self.vec_i, self.vec_j, method='poisson')
-        sim_c, w = similarity_c(vi, vj, 4, vi.shape[0], noise=None)
-        self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for poisson')
-        vi = (self.v_i + prior_lambda_l) / prior_weight_l
-        vj = (self.v_j + prior_lambda_l) / prior_weight_l
-        sim = similarity(self.v_i, self.v_j, method='poisson')
-        sim_c, w = similarity_c(vi, vj, 4, vi.shape[0], noise=None)
-        self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for poisson')
-
     def test_noise(self):
         i = 2
         method = 'mahalanobis'
@@ -74,8 +58,8 @@ class TestCalcOne(unittest.TestCase):
             sim, w = calc_one_similarity(self.data, method=method,
                                       descriptor='idx', i_des=1, j_des=2)
             sim_c, w_c = calc_one_similarity_c(d1, d2, np.array([0,1,2]), np.array([3,4]), method=method)
-            self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
             self.assertAlmostEqual(w, w_c, None, 'C unequal to python for %s weight' % method)
+            self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
 
 
 class TestCalc(unittest.TestCase):

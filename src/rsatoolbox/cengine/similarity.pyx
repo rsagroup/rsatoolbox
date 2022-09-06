@@ -50,14 +50,17 @@ cpdef double [:] calc(
         int n_dim = data.shape[1]
         double prior_lambda_l = prior_lambda * prior_weight
         double prior_weight_l = 1 + prior_weight
+        double [:, :] log_data
     if (method_idx > 4) or (method_idx < 1):
         raise ValueError('dissimilarity method not recognized!')
     # precompute stuff for poisson KL
     if method_idx == 4:
         data = data.copy()
+        log_data = data.copy()
         for i in range(data.shape[0]):
             for j in range(n_dim):
                 data[i, j] = (data[i, j] + prior_lambda_l) / prior_weight_l
+                log_data[i, j] = log(data[i, j])
     weights = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
     values = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
     for idx in range(n_rdm + n):
@@ -65,31 +68,41 @@ cpdef double [:] calc(
         values[idx] = 0
     for i in range(data.shape[0]):
         if not crossval:
-            sim, weight = similarity(
-                data[i], data[i],
-                method_idx,
-                n_dim=n_dim,
-                noise=noise,
-                prior_lambda=prior_lambda,
-                prior_weight=prior_weight)
+            if method_idx == 1: # method == 'euclidean':
+                sim, weight = euclid(data[i], data[i], n_dim)
+            elif method_idx == 2: # method == 'correlation':
+                sim, weight = correlation(data[i], data[i], n_dim)
+            elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+                if noise is None:
+                    sim, weight = euclid(data[i], data[i], n_dim)
+                else:
+                    sim = mahalanobis(data[i], data[i], n_dim, noise)
+                    weight = <double> n_dim
+            elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+                sim, weight = poisson_cv(data[i], data[i], log_data[i], log_data[i], n_dim)
             idx = desc[i]
             if weighting == 1: #'number':
-                values[idx] += sim / 2.0
-                weights[idx] += weight / 2.0
+                values[idx] += sim / 2
+                weights[idx] += weight / 2
             elif weighting == 0: #'equal':
-                values[idx] += sim / weight / 2.0
-                weights[idx] += 1 / 2.0
+                values[idx] += sim / weight / 2
+                weights[idx] += 1 / 2
         for j in range(i + 1, data.shape[0]):
             if not crossval or not cv_desc[i] == cv_desc[j]:
                 #vec_i = data[i]
                 #vec_j = data[j]
-                sim, weight = similarity(
-                    data[i], data[j],
-                    method_idx,
-                    n_dim=n_dim,
-                    noise=noise,
-                    prior_lambda=prior_lambda,
-                    prior_weight=prior_weight)
+                if method_idx == 1: # method == 'euclidean':
+                    sim, weight = euclid(data[i], data[j], n_dim)
+                elif method_idx == 2: # method == 'correlation':
+                    sim, weight = correlation(data[i], data[j], n_dim)
+                elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+                    if noise is None:
+                        sim, weight = euclid(data[i], data[i], n_dim)
+                    else:
+                        sim = mahalanobis(data[i], data[j], n_dim, noise)
+                        weight = <double> n_dim
+                elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+                    sim, weight = poisson_cv(data[i], data[j], log_data[i], log_data[j], n_dim)
                 if weight > 0:
                     if desc[i] == desc[j]:
                         idx = desc[i]
@@ -131,30 +144,40 @@ cpdef (double, double) calc_one(
         int n_dim = data_i.shape[1]
         double prior_lambda_l = prior_lambda * prior_weight
         double prior_weight_l = 1 + prior_weight
+        double [:, :] log_data_i
+        double [:, :] log_data_j
     if (method_idx > 4) or (method_idx < 1):
         raise ValueError('dissimilarity method not recognized!')
     # precompute stuff for poisson KL
     if method_idx == 4:
         data_i = data_i.copy()
+        log_data_i = data_i.copy()
         for i in range(data_i.shape[0]):
             for j in range(n_dim):
                 data_i[i, j] = (data_i[i, j] + prior_lambda_l) / prior_weight_l
+                log_data_i[i, j] = log(data_i[i, j])
         data_j = data_j.copy()
+        log_data_j = data_j.copy()
         for i in range(data_j.shape[0]):
             for j in range(n_dim):
                 data_j[i, j] = (data_j[i, j] + prior_lambda_l) / prior_weight_l
+                log_data_j[i, j] = log(data_j[i, j])
+    weight_sum = 0
     for i in range(n_i):
         for j in range(n_j):
             if not cv_desc_i[i] == cv_desc_j[j]:
-                vec_i = data_i[i]
-                vec_j = data_j[j]
-                sim, weight = similarity(
-                    vec_i, vec_j,
-                    method_idx,
-                    n_dim=n_dim,
-                    noise=noise,
-                    prior_lambda=prior_lambda,
-                    prior_weight=prior_weight)
+                if method_idx == 1: # method == 'euclidean':
+                    sim, weight = euclid(data_i[i], data_j[j], n_dim)
+                elif method_idx == 2: # method == 'correlation':
+                    sim, weight = correlation(data_i[i], data_j[j], n_dim)
+                elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+                    if noise is None:
+                        sim, weight = euclid(data_i[i], data_j[j], n_dim)
+                    else:
+                        sim = mahalanobis(data_i[i], data_j[j], n_dim, noise)
+                        weight = <double> n_dim
+                elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+                    sim, weight = poisson_cv(data_i[i], data_j[j], log_data_i[i], log_data_j[j], n_dim)
                 if weight > 0:
                     if weighting == 1: #'number':
                         value += sim
@@ -194,8 +217,6 @@ cpdef (double, double) similarity(double [:] vec_i, double [:] vec_j, int method
         else:
             sim = mahalanobis(vec_i, vec_j, n_dim, noise)
             weight = <double> n_dim
-    elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
-        sim, weight = poisson_cv(vec_i, vec_j, n_dim)
     return sim, weight
 
 
@@ -212,17 +233,18 @@ cdef (double, double) euclid(double [:] vec_i, double [:] vec_j, int n_dim):
     return sim, weight
 
 
-
 @cython.boundscheck(False)
 @cython.cdivision(True)
-cdef (double, double) poisson_cv(double [:] vec_i, double [:] vec_j, int n_dim):
+cdef (double, double) poisson_cv(double [:] vec_i, double [:] vec_j,
+                                 double [:] log_vec_i, double [:] log_vec_j,
+                                 int n_dim):
     cdef:
         double sim = 0
         double weight = 0
         int i
     for i in range(n_dim):
         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
-            sim += (vec_j[i] - vec_i[i]) * (log(vec_i[i]) - log(vec_j[i]))
+            sim += (vec_j[i] - vec_i[i]) * (log_vec_i[i] - log_vec_j[i])
             weight += 1
     sim = sim / 2.0
     return (sim, weight)

@@ -1450,7 +1450,6 @@ struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_calc;
 struct __pyx_ctuple_double__and_double;
 typedef struct __pyx_ctuple_double__and_double __pyx_ctuple_double__and_double;
 struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_calc_one;
-struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_similarity;
 
 /* "rsatoolbox/cengine/similarity.pyx":16
  * @cython.boundscheck(False)
@@ -1468,7 +1467,7 @@ struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_calc {
   int crossval;
 };
 
-/* "rsatoolbox/cengine/similarity.pyx":117
+/* "rsatoolbox/cengine/similarity.pyx":130
  * @cython.boundscheck(False)
  * @cython.cdivision(True)
  * cpdef (double, double) calc_one(             # <<<<<<<<<<<<<<
@@ -1485,19 +1484,6 @@ struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_calc_one {
   double prior_lambda;
   double prior_weight;
   int weighting;
-};
-
-/* "rsatoolbox/cengine/similarity.pyx":173
- * 
- * @cython.boundscheck(False)
- * cpdef (double, double) similarity(double [:] vec_i, double [:] vec_j, int method_idx,             # <<<<<<<<<<<<<<
- *                        int n_dim, double [:, :] noise,
- *                        double prior_lambda=1, double prior_weight=0.1):
- */
-struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_similarity {
-  int __pyx_n;
-  double prior_lambda;
-  double prior_weight;
 };
 
 /* "View.MemoryView":113
@@ -2006,6 +1992,9 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg
 /* RaiseException.proto */
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause);
 
+/* RaiseUnboundLocalError.proto */
+static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
+
 /* TupleAndListFromArray.proto */
 #if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE PyObject* __Pyx_PyList_FromArray(PyObject *const *src, Py_ssize_t n);
@@ -2060,9 +2049,6 @@ static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject *const *kwvalues
     PyObject **argnames[],
     PyObject *kwds2, PyObject *values[], Py_ssize_t num_pos_args,
     const char* function_name);
-
-/* RaiseUnboundLocalError.proto */
-static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
 
 /* WriteUnraisableException.proto */
 static void __Pyx_WriteUnraisable(const char *name, int clineno,
@@ -2939,9 +2925,9 @@ static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
 static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int, int, int __pyx_skip_dispatch, struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_calc *__pyx_optional_args); /*proto*/
 static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_calc_one(__Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int, int, int, int __pyx_skip_dispatch, struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_calc_one *__pyx_optional_args); /*proto*/
-static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_similarity(__Pyx_memviewslice, __Pyx_memviewslice, int, int, __Pyx_memviewslice, int __pyx_skip_dispatch, struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_similarity *__pyx_optional_args); /*proto*/
+static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_similarity(__Pyx_memviewslice, __Pyx_memviewslice, int, int, __Pyx_memviewslice, int __pyx_skip_dispatch); /*proto*/
 static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_euclid(__Pyx_memviewslice, __Pyx_memviewslice, int); /*proto*/
-static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_poisson_cv(__Pyx_memviewslice, __Pyx_memviewslice, int, double, double); /*proto*/
+static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_poisson_cv(__Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int); /*proto*/
 static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memviewslice, __Pyx_memviewslice, int, __Pyx_memviewslice); /*proto*/
 static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_correlation(__Pyx_memviewslice, __Pyx_memviewslice, int); /*proto*/
 static int __pyx_array_allocate_buffer(struct __pyx_array_obj *); /*proto*/
@@ -3019,7 +3005,7 @@ static const char __pyx_k_T[] = "T{";
 static const char __pyx_k__18[] = "}";
 static const char __pyx_k__19[] = "(";
 static const char __pyx_k__20[] = ",";
-static const char __pyx_k__36[] = "?";
+static const char __pyx_k__35[] = "?";
 static const char __pyx_k_abc[] = "abc";
 static const char __pyx_k_and[] = " and ";
 static const char __pyx_k_got[] = " (got ";
@@ -3190,7 +3176,7 @@ static PyObject *__pyx_kp_b__17;
 static PyObject *__pyx_kp_b__18;
 static PyObject *__pyx_kp_u__19;
 static PyObject *__pyx_kp_u__20;
-static PyObject *__pyx_n_s__36;
+static PyObject *__pyx_n_s__35;
 static PyObject *__pyx_kp_u__7;
 static PyObject *__pyx_kp_u__8;
 static PyObject *__pyx_n_s__9;
@@ -3306,7 +3292,7 @@ static PyObject *__pyx_n_s_weighting;
 /* #### Code section: decls ### */
 static PyObject *__pyx_pf_10rsatoolbox_7cengine_10similarity_calc(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_desc, __Pyx_memviewslice __pyx_v_cv_desc, int __pyx_v_n, int __pyx_v_method_idx, __Pyx_memviewslice __pyx_v_noise, double __pyx_v_prior_lambda, double __pyx_v_prior_weight, int __pyx_v_weighting, int __pyx_v_crossval); /* proto */
 static PyObject *__pyx_pf_10rsatoolbox_7cengine_10similarity_2calc_one(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_data_i, __Pyx_memviewslice __pyx_v_data_j, __Pyx_memviewslice __pyx_v_cv_desc_i, __Pyx_memviewslice __pyx_v_cv_desc_j, int __pyx_v_n_i, int __pyx_v_n_j, int __pyx_v_method_idx, __Pyx_memviewslice __pyx_v_noise, double __pyx_v_prior_lambda, double __pyx_v_prior_weight, int __pyx_v_weighting); /* proto */
-static PyObject *__pyx_pf_10rsatoolbox_7cengine_10similarity_4similarity(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_vec_i, __Pyx_memviewslice __pyx_v_vec_j, int __pyx_v_method_idx, int __pyx_v_n_dim, __Pyx_memviewslice __pyx_v_noise, double __pyx_v_prior_lambda, double __pyx_v_prior_weight); /* proto */
+static PyObject *__pyx_pf_10rsatoolbox_7cengine_10similarity_4similarity(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_vec_i, __Pyx_memviewslice __pyx_v_vec_j, int __pyx_v_method_idx, int __pyx_v_n_dim, __Pyx_memviewslice __pyx_v_noise); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -3383,11 +3369,10 @@ static PyObject *__pyx_tuple__30;
 static PyObject *__pyx_tuple__31;
 static PyObject *__pyx_tuple__32;
 static PyObject *__pyx_tuple__33;
-static PyObject *__pyx_tuple__34;
 static PyObject *__pyx_codeobj__2;
 static PyObject *__pyx_codeobj__5;
 static PyObject *__pyx_codeobj__6;
-static PyObject *__pyx_codeobj__35;
+static PyObject *__pyx_codeobj__34;
 #endif
 /* #### Code section: late_includes ### */
 /* #### Code section: module_state ### */
@@ -3452,7 +3437,7 @@ typedef struct {
   PyObject *__pyx_kp_b__18;
   PyObject *__pyx_kp_u__19;
   PyObject *__pyx_kp_u__20;
-  PyObject *__pyx_n_s__36;
+  PyObject *__pyx_n_s__35;
   PyObject *__pyx_kp_u__7;
   PyObject *__pyx_kp_u__8;
   PyObject *__pyx_n_s__9;
@@ -3592,11 +3577,10 @@ typedef struct {
   PyObject *__pyx_tuple__31;
   PyObject *__pyx_tuple__32;
   PyObject *__pyx_tuple__33;
-  PyObject *__pyx_tuple__34;
   PyObject *__pyx_codeobj__2;
   PyObject *__pyx_codeobj__5;
   PyObject *__pyx_codeobj__6;
-  PyObject *__pyx_codeobj__35;
+  PyObject *__pyx_codeobj__34;
 } __pyx_mstate;
 
 #ifdef __cplusplus
@@ -3677,7 +3661,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_kp_b__18);
   Py_CLEAR(clear_module_state->__pyx_kp_u__19);
   Py_CLEAR(clear_module_state->__pyx_kp_u__20);
-  Py_CLEAR(clear_module_state->__pyx_n_s__36);
+  Py_CLEAR(clear_module_state->__pyx_n_s__35);
   Py_CLEAR(clear_module_state->__pyx_kp_u__7);
   Py_CLEAR(clear_module_state->__pyx_kp_u__8);
   Py_CLEAR(clear_module_state->__pyx_n_s__9);
@@ -3817,11 +3801,10 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_tuple__31);
   Py_CLEAR(clear_module_state->__pyx_tuple__32);
   Py_CLEAR(clear_module_state->__pyx_tuple__33);
-  Py_CLEAR(clear_module_state->__pyx_tuple__34);
   Py_CLEAR(clear_module_state->__pyx_codeobj__2);
   Py_CLEAR(clear_module_state->__pyx_codeobj__5);
   Py_CLEAR(clear_module_state->__pyx_codeobj__6);
-  Py_CLEAR(clear_module_state->__pyx_codeobj__35);
+  Py_CLEAR(clear_module_state->__pyx_codeobj__34);
   return 0;
 }
 #endif
@@ -3889,7 +3872,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_kp_b__18);
   Py_VISIT(traverse_module_state->__pyx_kp_u__19);
   Py_VISIT(traverse_module_state->__pyx_kp_u__20);
-  Py_VISIT(traverse_module_state->__pyx_n_s__36);
+  Py_VISIT(traverse_module_state->__pyx_n_s__35);
   Py_VISIT(traverse_module_state->__pyx_kp_u__7);
   Py_VISIT(traverse_module_state->__pyx_kp_u__8);
   Py_VISIT(traverse_module_state->__pyx_n_s__9);
@@ -4029,11 +4012,10 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_tuple__31);
   Py_VISIT(traverse_module_state->__pyx_tuple__32);
   Py_VISIT(traverse_module_state->__pyx_tuple__33);
-  Py_VISIT(traverse_module_state->__pyx_tuple__34);
   Py_VISIT(traverse_module_state->__pyx_codeobj__2);
   Py_VISIT(traverse_module_state->__pyx_codeobj__5);
   Py_VISIT(traverse_module_state->__pyx_codeobj__6);
-  Py_VISIT(traverse_module_state->__pyx_codeobj__35);
+  Py_VISIT(traverse_module_state->__pyx_codeobj__34);
   return 0;
 }
 #endif
@@ -4098,7 +4080,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_kp_b__18 __pyx_mstate_global->__pyx_kp_b__18
 #define __pyx_kp_u__19 __pyx_mstate_global->__pyx_kp_u__19
 #define __pyx_kp_u__20 __pyx_mstate_global->__pyx_kp_u__20
-#define __pyx_n_s__36 __pyx_mstate_global->__pyx_n_s__36
+#define __pyx_n_s__35 __pyx_mstate_global->__pyx_n_s__35
 #define __pyx_kp_u__7 __pyx_mstate_global->__pyx_kp_u__7
 #define __pyx_kp_u__8 __pyx_mstate_global->__pyx_kp_u__8
 #define __pyx_n_s__9 __pyx_mstate_global->__pyx_n_s__9
@@ -4238,11 +4220,10 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_tuple__31 __pyx_mstate_global->__pyx_tuple__31
 #define __pyx_tuple__32 __pyx_mstate_global->__pyx_tuple__32
 #define __pyx_tuple__33 __pyx_mstate_global->__pyx_tuple__33
-#define __pyx_tuple__34 __pyx_mstate_global->__pyx_tuple__34
 #define __pyx_codeobj__2 __pyx_mstate_global->__pyx_codeobj__2
 #define __pyx_codeobj__5 __pyx_mstate_global->__pyx_codeobj__5
 #define __pyx_codeobj__6 __pyx_mstate_global->__pyx_codeobj__6
-#define __pyx_codeobj__35 __pyx_mstate_global->__pyx_codeobj__35
+#define __pyx_codeobj__34 __pyx_mstate_global->__pyx_codeobj__34
 #endif
 /* #### Code section: module_code ### */
 
@@ -4278,6 +4259,7 @@ static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_
   int __pyx_v_n_dim;
   double __pyx_v_prior_lambda_l;
   double __pyx_v_prior_weight_l;
+  __Pyx_memviewslice __pyx_v_log_data = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_r = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -4301,11 +4283,12 @@ static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_
   __Pyx_memviewslice __pyx_t_18 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_t_19 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __pyx_ctuple_double__and_double __pyx_t_20;
-  struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_similarity __pyx_t_21;
+  double __pyx_t_21;
   double __pyx_t_22;
-  double __pyx_t_23;
-  Py_ssize_t __pyx_t_24;
+  __Pyx_memviewslice __pyx_t_23 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_t_24 = { 0, 0, { 0 }, { 0 }, { 0 } };
   Py_ssize_t __pyx_t_25;
+  Py_ssize_t __pyx_t_26;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -4354,7 +4337,7 @@ static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_
  *         int n_dim = data.shape[1]
  *         double prior_lambda_l = prior_lambda * prior_weight             # <<<<<<<<<<<<<<
  *         double prior_weight_l = 1 + prior_weight
- *     if (method_idx > 4) or (method_idx < 1):
+ *         double [:, :] log_data
  */
   __pyx_v_prior_lambda_l = (__pyx_v_prior_lambda * __pyx_v_prior_weight);
 
@@ -4362,14 +4345,14 @@ static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_
  *         int n_dim = data.shape[1]
  *         double prior_lambda_l = prior_lambda * prior_weight
  *         double prior_weight_l = 1 + prior_weight             # <<<<<<<<<<<<<<
+ *         double [:, :] log_data
  *     if (method_idx > 4) or (method_idx < 1):
- *         raise ValueError('dissimilarity method not recognized!')
  */
   __pyx_v_prior_weight_l = (1.0 + __pyx_v_prior_weight);
 
-  /* "rsatoolbox/cengine/similarity.pyx":53
- *         double prior_lambda_l = prior_lambda * prior_weight
+  /* "rsatoolbox/cengine/similarity.pyx":54
  *         double prior_weight_l = 1 + prior_weight
+ *         double [:, :] log_data
  *     if (method_idx > 4) or (method_idx < 1):             # <<<<<<<<<<<<<<
  *         raise ValueError('dissimilarity method not recognized!')
  *     # precompute stuff for poisson KL
@@ -4385,54 +4368,66 @@ static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_
   __pyx_L4_bool_binop_done:;
   if (unlikely(__pyx_t_1)) {
 
-    /* "rsatoolbox/cengine/similarity.pyx":54
- *         double prior_weight_l = 1 + prior_weight
+    /* "rsatoolbox/cengine/similarity.pyx":55
+ *         double [:, :] log_data
  *     if (method_idx > 4) or (method_idx < 1):
  *         raise ValueError('dissimilarity method not recognized!')             # <<<<<<<<<<<<<<
  *     # precompute stuff for poisson KL
  *     if method_idx == 4:
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 54, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 55, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 54, __pyx_L1_error)
+    __PYX_ERR(0, 55, __pyx_L1_error)
 
-    /* "rsatoolbox/cengine/similarity.pyx":53
- *         double prior_lambda_l = prior_lambda * prior_weight
+    /* "rsatoolbox/cengine/similarity.pyx":54
  *         double prior_weight_l = 1 + prior_weight
+ *         double [:, :] log_data
  *     if (method_idx > 4) or (method_idx < 1):             # <<<<<<<<<<<<<<
  *         raise ValueError('dissimilarity method not recognized!')
  *     # precompute stuff for poisson KL
  */
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":56
+  /* "rsatoolbox/cengine/similarity.pyx":57
  *         raise ValueError('dissimilarity method not recognized!')
  *     # precompute stuff for poisson KL
  *     if method_idx == 4:             # <<<<<<<<<<<<<<
  *         data = data.copy()
- *         for i in range(data.shape[0]):
+ *         log_data = data.copy()
  */
   __pyx_t_1 = (__pyx_v_method_idx == 4);
   if (__pyx_t_1) {
 
-    /* "rsatoolbox/cengine/similarity.pyx":57
+    /* "rsatoolbox/cengine/similarity.pyx":58
  *     # precompute stuff for poisson KL
  *     if method_idx == 4:
  *         data = data.copy()             # <<<<<<<<<<<<<<
+ *         log_data = data.copy()
  *         for i in range(data.shape[0]):
- *             for j in range(n_dim):
  */
-    __pyx_t_4 = __pyx_memoryview_copy_slice_d_dc_double_c(__pyx_v_data); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 57, __pyx_L1_error)
+    __pyx_t_4 = __pyx_memoryview_copy_slice_d_dc_double_c(__pyx_v_data); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 58, __pyx_L1_error)
     __PYX_XCLEAR_MEMVIEW(&__pyx_v_data, 1);
     __pyx_v_data = __pyx_t_4;
     __pyx_t_4.memview = NULL;
     __pyx_t_4.data = NULL;
 
-    /* "rsatoolbox/cengine/similarity.pyx":58
+    /* "rsatoolbox/cengine/similarity.pyx":59
  *     if method_idx == 4:
  *         data = data.copy()
+ *         log_data = data.copy()             # <<<<<<<<<<<<<<
+ *         for i in range(data.shape[0]):
+ *             for j in range(n_dim):
+ */
+    __pyx_t_4 = __pyx_memoryview_copy_slice_d_dc_double_c(__pyx_v_data); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 59, __pyx_L1_error)
+    __pyx_v_log_data = __pyx_t_4;
+    __pyx_t_4.memview = NULL;
+    __pyx_t_4.data = NULL;
+
+    /* "rsatoolbox/cengine/similarity.pyx":60
+ *         data = data.copy()
+ *         log_data = data.copy()
  *         for i in range(data.shape[0]):             # <<<<<<<<<<<<<<
  *             for j in range(n_dim):
  *                 data[i, j] = (data[i, j] + prior_lambda_l) / prior_weight_l
@@ -4442,24 +4437,24 @@ static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_
     for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
       __pyx_v_i = __pyx_t_7;
 
-      /* "rsatoolbox/cengine/similarity.pyx":59
- *         data = data.copy()
+      /* "rsatoolbox/cengine/similarity.pyx":61
+ *         log_data = data.copy()
  *         for i in range(data.shape[0]):
  *             for j in range(n_dim):             # <<<<<<<<<<<<<<
  *                 data[i, j] = (data[i, j] + prior_lambda_l) / prior_weight_l
- *     weights = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
+ *                 log_data[i, j] = log(data[i, j])
  */
       __pyx_t_8 = __pyx_v_n_dim;
       __pyx_t_9 = __pyx_t_8;
       for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
         __pyx_v_j = __pyx_t_10;
 
-        /* "rsatoolbox/cengine/similarity.pyx":60
+        /* "rsatoolbox/cengine/similarity.pyx":62
  *         for i in range(data.shape[0]):
  *             for j in range(n_dim):
  *                 data[i, j] = (data[i, j] + prior_lambda_l) / prior_weight_l             # <<<<<<<<<<<<<<
+ *                 log_data[i, j] = log(data[i, j])
  *     weights = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
- *     values = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
  */
         __pyx_t_11 = __pyx_v_i;
         __pyx_t_12 = __pyx_v_j;
@@ -4470,21 +4465,38 @@ static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_
         if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_data.shape[0];
         if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_data.shape[1];
         *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data.data + __pyx_t_13 * __pyx_v_data.strides[0]) ) + __pyx_t_14 * __pyx_v_data.strides[1]) )) = (((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data.data + __pyx_t_11 * __pyx_v_data.strides[0]) ) + __pyx_t_12 * __pyx_v_data.strides[1]) ))) + __pyx_v_prior_lambda_l) / __pyx_v_prior_weight_l);
+
+        /* "rsatoolbox/cengine/similarity.pyx":63
+ *             for j in range(n_dim):
+ *                 data[i, j] = (data[i, j] + prior_lambda_l) / prior_weight_l
+ *                 log_data[i, j] = log(data[i, j])             # <<<<<<<<<<<<<<
+ *     weights = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
+ *     values = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
+ */
+        __pyx_t_12 = __pyx_v_i;
+        __pyx_t_11 = __pyx_v_j;
+        if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_data.shape[0];
+        if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_data.shape[1];
+        __pyx_t_14 = __pyx_v_i;
+        __pyx_t_13 = __pyx_v_j;
+        if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_log_data.shape[0];
+        if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_log_data.shape[1];
+        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_log_data.data + __pyx_t_14 * __pyx_v_log_data.strides[0]) ) + __pyx_t_13 * __pyx_v_log_data.strides[1]) )) = log((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data.data + __pyx_t_12 * __pyx_v_data.strides[0]) ) + __pyx_t_11 * __pyx_v_data.strides[1]) ))));
       }
     }
 
-    /* "rsatoolbox/cengine/similarity.pyx":56
+    /* "rsatoolbox/cengine/similarity.pyx":57
  *         raise ValueError('dissimilarity method not recognized!')
  *     # precompute stuff for poisson KL
  *     if method_idx == 4:             # <<<<<<<<<<<<<<
  *         data = data.copy()
- *         for i in range(data.shape[0]):
+ *         log_data = data.copy()
  */
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":61
- *             for j in range(n_dim):
+  /* "rsatoolbox/cengine/similarity.pyx":64
  *                 data[i, j] = (data[i, j] + prior_lambda_l) / prior_weight_l
+ *                 log_data[i, j] = log(data[i, j])
  *     weights = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))             # <<<<<<<<<<<<<<
  *     values = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
  *     for idx in range(n_rdm + n):
@@ -4492,24 +4504,24 @@ static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_
   __pyx_t_15 = PyMem_Malloc(((__pyx_v_n_rdm + __pyx_v_n) * (sizeof(double))));
   if (!__pyx_t_15) {
     PyErr_SetString(PyExc_ValueError,"Cannot create cython.array from NULL pointer");
-    __PYX_ERR(0, 61, __pyx_L1_error)
+    __PYX_ERR(0, 64, __pyx_L1_error)
   }
-  __pyx_t_17 = __pyx_format_from_typeinfo(&__Pyx_TypeInfo_double); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_t_17 = __pyx_format_from_typeinfo(&__Pyx_TypeInfo_double); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_17);
-  __pyx_t_3 = Py_BuildValue((char*) "("  __PYX_BUILD_PY_SSIZE_T  ")", ((Py_ssize_t)(__pyx_v_n_rdm + __pyx_v_n))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_t_3 = Py_BuildValue((char*) "("  __PYX_BUILD_PY_SSIZE_T  ")", ((Py_ssize_t)(__pyx_v_n_rdm + __pyx_v_n))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_16 = __pyx_array_new(__pyx_t_3, sizeof(double), PyBytes_AS_STRING(__pyx_t_17), (char *) "c", (char *) __pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_t_16 = __pyx_array_new(__pyx_t_3, sizeof(double), PyBytes_AS_STRING(__pyx_t_17), (char *) "c", (char *) __pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF((PyObject *)__pyx_t_16);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
-  __pyx_t_18 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(((PyObject *)__pyx_t_16), PyBUF_WRITABLE); if (unlikely(!__pyx_t_18.memview)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_t_18 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(((PyObject *)__pyx_t_16), PyBUF_WRITABLE); if (unlikely(!__pyx_t_18.memview)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_DECREF((PyObject *)__pyx_t_16); __pyx_t_16 = 0;
   __pyx_v_weights = __pyx_t_18;
   __pyx_t_18.memview = NULL;
   __pyx_t_18.data = NULL;
 
-  /* "rsatoolbox/cengine/similarity.pyx":62
- *                 data[i, j] = (data[i, j] + prior_lambda_l) / prior_weight_l
+  /* "rsatoolbox/cengine/similarity.pyx":65
+ *                 log_data[i, j] = log(data[i, j])
  *     weights = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
  *     values = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))             # <<<<<<<<<<<<<<
  *     for idx in range(n_rdm + n):
@@ -4518,23 +4530,23 @@ static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_
   __pyx_t_15 = PyMem_Malloc(((__pyx_v_n_rdm + __pyx_v_n) * (sizeof(double))));
   if (!__pyx_t_15) {
     PyErr_SetString(PyExc_ValueError,"Cannot create cython.array from NULL pointer");
-    __PYX_ERR(0, 62, __pyx_L1_error)
+    __PYX_ERR(0, 65, __pyx_L1_error)
   }
-  __pyx_t_3 = __pyx_format_from_typeinfo(&__Pyx_TypeInfo_double); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_3 = __pyx_format_from_typeinfo(&__Pyx_TypeInfo_double); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_17 = Py_BuildValue((char*) "("  __PYX_BUILD_PY_SSIZE_T  ")", ((Py_ssize_t)(__pyx_v_n_rdm + __pyx_v_n))); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_17 = Py_BuildValue((char*) "("  __PYX_BUILD_PY_SSIZE_T  ")", ((Py_ssize_t)(__pyx_v_n_rdm + __pyx_v_n))); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_17);
-  __pyx_t_16 = __pyx_array_new(__pyx_t_17, sizeof(double), PyBytes_AS_STRING(__pyx_t_3), (char *) "c", (char *) __pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_16 = __pyx_array_new(__pyx_t_17, sizeof(double), PyBytes_AS_STRING(__pyx_t_3), (char *) "c", (char *) __pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF((PyObject *)__pyx_t_16);
   __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_18 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(((PyObject *)__pyx_t_16), PyBUF_WRITABLE); if (unlikely(!__pyx_t_18.memview)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_18 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(((PyObject *)__pyx_t_16), PyBUF_WRITABLE); if (unlikely(!__pyx_t_18.memview)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_DECREF((PyObject *)__pyx_t_16); __pyx_t_16 = 0;
   __pyx_v_values = __pyx_t_18;
   __pyx_t_18.memview = NULL;
   __pyx_t_18.data = NULL;
 
-  /* "rsatoolbox/cengine/similarity.pyx":63
+  /* "rsatoolbox/cengine/similarity.pyx":66
  *     weights = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
  *     values = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
  *     for idx in range(n_rdm + n):             # <<<<<<<<<<<<<<
@@ -4546,62 +4558,72 @@ static __Pyx_memviewslice __pyx_f_10rsatoolbox_7cengine_10similarity_calc(__Pyx_
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_idx = __pyx_t_9;
 
-    /* "rsatoolbox/cengine/similarity.pyx":64
+    /* "rsatoolbox/cengine/similarity.pyx":67
  *     values = <double [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(double))
  *     for idx in range(n_rdm + n):
  *         weights[idx] = 0             # <<<<<<<<<<<<<<
  *         values[idx] = 0
  *     for i in range(data.shape[0]):
  */
-    __pyx_t_12 = __pyx_v_idx;
-    if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_weights.shape[0];
-    *((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_12 * __pyx_v_weights.strides[0]) )) = 0.0;
+    __pyx_t_11 = __pyx_v_idx;
+    if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_weights.shape[0];
+    *((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_11 * __pyx_v_weights.strides[0]) )) = 0.0;
 
-    /* "rsatoolbox/cengine/similarity.pyx":65
+    /* "rsatoolbox/cengine/similarity.pyx":68
  *     for idx in range(n_rdm + n):
  *         weights[idx] = 0
  *         values[idx] = 0             # <<<<<<<<<<<<<<
  *     for i in range(data.shape[0]):
  *         if not crossval:
  */
-    __pyx_t_12 = __pyx_v_idx;
-    if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_values.shape[0];
-    *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_12 * __pyx_v_values.strides[0]) )) = 0.0;
+    __pyx_t_11 = __pyx_v_idx;
+    if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_values.shape[0];
+    *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_11 * __pyx_v_values.strides[0]) )) = 0.0;
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":66
+  /* "rsatoolbox/cengine/similarity.pyx":69
  *         weights[idx] = 0
  *         values[idx] = 0
  *     for i in range(data.shape[0]):             # <<<<<<<<<<<<<<
  *         if not crossval:
- *             sim, weight = similarity(
+ *             if method_idx == 1: # method == 'euclidean':
  */
   __pyx_t_5 = (__pyx_v_data.shape[0]);
   __pyx_t_6 = __pyx_t_5;
   for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
     __pyx_v_i = __pyx_t_7;
 
-    /* "rsatoolbox/cengine/similarity.pyx":67
+    /* "rsatoolbox/cengine/similarity.pyx":70
  *         values[idx] = 0
  *     for i in range(data.shape[0]):
  *         if not crossval:             # <<<<<<<<<<<<<<
- *             sim, weight = similarity(
- *                 data[i], data[i],
+ *             if method_idx == 1: # method == 'euclidean':
+ *                 sim, weight = euclid(data[i], data[i], n_dim)
  */
     __pyx_t_1 = (!(__pyx_v_crossval != 0));
     if (__pyx_t_1) {
 
-      /* "rsatoolbox/cengine/similarity.pyx":69
+      /* "rsatoolbox/cengine/similarity.pyx":71
+ *     for i in range(data.shape[0]):
  *         if not crossval:
- *             sim, weight = similarity(
- *                 data[i], data[i],             # <<<<<<<<<<<<<<
- *                 method_idx,
- *                 n_dim=n_dim,
+ *             if method_idx == 1: # method == 'euclidean':             # <<<<<<<<<<<<<<
+ *                 sim, weight = euclid(data[i], data[i], n_dim)
+ *             elif method_idx == 2: # method == 'correlation':
  */
-      __pyx_t_18.data = __pyx_v_data.data;
-      __pyx_t_18.memview = __pyx_v_data.memview;
-      __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
-      {
+      switch (__pyx_v_method_idx) {
+        case 1:
+
+        /* "rsatoolbox/cengine/similarity.pyx":72
+ *         if not crossval:
+ *             if method_idx == 1: # method == 'euclidean':
+ *                 sim, weight = euclid(data[i], data[i], n_dim)             # <<<<<<<<<<<<<<
+ *             elif method_idx == 2: # method == 'correlation':
+ *                 sim, weight = correlation(data[i], data[i], n_dim)
+ */
+        __pyx_t_18.data = __pyx_v_data.data;
+        __pyx_t_18.memview = __pyx_v_data.memview;
+        __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
+        {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
         Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
@@ -4615,9 +4637,9 @@ __pyx_t_18.strides[0] = __pyx_v_data.strides[1];
     __pyx_t_18.suboffsets[0] = -1;
 
 __pyx_t_19.data = __pyx_v_data.data;
-      __pyx_t_19.memview = __pyx_v_data.memview;
-      __PYX_INC_MEMVIEW(&__pyx_t_19, 1);
-      {
+        __pyx_t_19.memview = __pyx_v_data.memview;
+        __PYX_INC_MEMVIEW(&__pyx_t_19, 1);
+        {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
         Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
@@ -4630,162 +4652,32 @@ __pyx_t_19.shape[0] = __pyx_v_data.shape[1];
 __pyx_t_19.strides[0] = __pyx_v_data.strides[1];
     __pyx_t_19.suboffsets[0] = -1;
 
-__pyx_t_21.__pyx_n = 2;
+__pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_euclid(__pyx_t_18, __pyx_t_19, __pyx_v_n_dim);
+        __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+        __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
+        __PYX_XCLEAR_MEMVIEW(&__pyx_t_19, 1);
+        __pyx_t_19.memview = NULL; __pyx_t_19.data = NULL;
+        __pyx_t_21 = __pyx_t_20.f0;
+        __pyx_t_22 = __pyx_t_20.f1;
+        __pyx_v_sim = __pyx_t_21;
+        __pyx_v_weight = __pyx_t_22;
 
-      /* "rsatoolbox/cengine/similarity.pyx":68
+        /* "rsatoolbox/cengine/similarity.pyx":71
  *     for i in range(data.shape[0]):
  *         if not crossval:
- *             sim, weight = similarity(             # <<<<<<<<<<<<<<
- *                 data[i], data[i],
- *                 method_idx,
- */
-      __pyx_t_21.prior_lambda = __pyx_v_prior_lambda;
-      __pyx_t_21.prior_weight = __pyx_v_prior_weight;
-      __pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_similarity(__pyx_t_18, __pyx_t_19, __pyx_v_method_idx, __pyx_v_n_dim, __pyx_v_noise, 0, &__pyx_t_21); 
-      __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
-      __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
-      __PYX_XCLEAR_MEMVIEW(&__pyx_t_19, 1);
-      __pyx_t_19.memview = NULL; __pyx_t_19.data = NULL;
-      __pyx_t_22 = __pyx_t_20.f0;
-      __pyx_t_23 = __pyx_t_20.f1;
-      __pyx_v_sim = __pyx_t_22;
-      __pyx_v_weight = __pyx_t_23;
-
-      /* "rsatoolbox/cengine/similarity.pyx":75
- *                 prior_lambda=prior_lambda,
- *                 prior_weight=prior_weight)
- *             idx = desc[i]             # <<<<<<<<<<<<<<
- *             if weighting == 1: #'number':
- *                 values[idx] += sim / 2.0
- */
-      __pyx_t_12 = __pyx_v_i;
-      if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_desc.shape[0];
-      __pyx_v_idx = (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_12 * __pyx_v_desc.strides[0]) )));
-
-      /* "rsatoolbox/cengine/similarity.pyx":76
- *                 prior_weight=prior_weight)
- *             idx = desc[i]
- *             if weighting == 1: #'number':             # <<<<<<<<<<<<<<
- *                 values[idx] += sim / 2.0
- *                 weights[idx] += weight / 2.0
- */
-      switch (__pyx_v_weighting) {
-        case 1:
-
-        /* "rsatoolbox/cengine/similarity.pyx":77
- *             idx = desc[i]
- *             if weighting == 1: #'number':
- *                 values[idx] += sim / 2.0             # <<<<<<<<<<<<<<
- *                 weights[idx] += weight / 2.0
- *             elif weighting == 0: #'equal':
- */
-        __pyx_t_12 = __pyx_v_idx;
-        if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_values.shape[0];
-        *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_12 * __pyx_v_values.strides[0]) )) += (__pyx_v_sim / 2.0);
-
-        /* "rsatoolbox/cengine/similarity.pyx":78
- *             if weighting == 1: #'number':
- *                 values[idx] += sim / 2.0
- *                 weights[idx] += weight / 2.0             # <<<<<<<<<<<<<<
- *             elif weighting == 0: #'equal':
- *                 values[idx] += sim / weight / 2.0
- */
-        __pyx_t_12 = __pyx_v_idx;
-        if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_weights.shape[0];
-        *((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_12 * __pyx_v_weights.strides[0]) )) += (__pyx_v_weight / 2.0);
-
-        /* "rsatoolbox/cengine/similarity.pyx":76
- *                 prior_weight=prior_weight)
- *             idx = desc[i]
- *             if weighting == 1: #'number':             # <<<<<<<<<<<<<<
- *                 values[idx] += sim / 2.0
- *                 weights[idx] += weight / 2.0
+ *             if method_idx == 1: # method == 'euclidean':             # <<<<<<<<<<<<<<
+ *                 sim, weight = euclid(data[i], data[i], n_dim)
+ *             elif method_idx == 2: # method == 'correlation':
  */
         break;
-        case 0:
+        case 2:
 
-        /* "rsatoolbox/cengine/similarity.pyx":80
- *                 weights[idx] += weight / 2.0
- *             elif weighting == 0: #'equal':
- *                 values[idx] += sim / weight / 2.0             # <<<<<<<<<<<<<<
- *                 weights[idx] += 1 / 2.0
- *         for j in range(i + 1, data.shape[0]):
- */
-        __pyx_t_12 = __pyx_v_idx;
-        if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_values.shape[0];
-        *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_12 * __pyx_v_values.strides[0]) )) += ((__pyx_v_sim / __pyx_v_weight) / 2.0);
-
-        /* "rsatoolbox/cengine/similarity.pyx":81
- *             elif weighting == 0: #'equal':
- *                 values[idx] += sim / weight / 2.0
- *                 weights[idx] += 1 / 2.0             # <<<<<<<<<<<<<<
- *         for j in range(i + 1, data.shape[0]):
- *             if not crossval or not cv_desc[i] == cv_desc[j]:
- */
-        __pyx_t_12 = __pyx_v_idx;
-        if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_weights.shape[0];
-        *((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_12 * __pyx_v_weights.strides[0]) )) += (1.0 / 2.0);
-
-        /* "rsatoolbox/cengine/similarity.pyx":79
- *                 values[idx] += sim / 2.0
- *                 weights[idx] += weight / 2.0
- *             elif weighting == 0: #'equal':             # <<<<<<<<<<<<<<
- *                 values[idx] += sim / weight / 2.0
- *                 weights[idx] += 1 / 2.0
- */
-        break;
-        default: break;
-      }
-
-      /* "rsatoolbox/cengine/similarity.pyx":67
- *         values[idx] = 0
- *     for i in range(data.shape[0]):
- *         if not crossval:             # <<<<<<<<<<<<<<
- *             sim, weight = similarity(
- *                 data[i], data[i],
- */
-    }
-
-    /* "rsatoolbox/cengine/similarity.pyx":82
- *                 values[idx] += sim / weight / 2.0
- *                 weights[idx] += 1 / 2.0
- *         for j in range(i + 1, data.shape[0]):             # <<<<<<<<<<<<<<
- *             if not crossval or not cv_desc[i] == cv_desc[j]:
- *                 #vec_i = data[i]
- */
-    __pyx_t_24 = (__pyx_v_data.shape[0]);
-    __pyx_t_25 = __pyx_t_24;
-    for (__pyx_t_8 = (__pyx_v_i + 1); __pyx_t_8 < __pyx_t_25; __pyx_t_8+=1) {
-      __pyx_v_j = __pyx_t_8;
-
-      /* "rsatoolbox/cengine/similarity.pyx":83
- *                 weights[idx] += 1 / 2.0
- *         for j in range(i + 1, data.shape[0]):
- *             if not crossval or not cv_desc[i] == cv_desc[j]:             # <<<<<<<<<<<<<<
- *                 #vec_i = data[i]
- *                 #vec_j = data[j]
- */
-      __pyx_t_2 = (!(__pyx_v_crossval != 0));
-      if (!__pyx_t_2) {
-      } else {
-        __pyx_t_1 = __pyx_t_2;
-        goto __pyx_L19_bool_binop_done;
-      }
-      __pyx_t_12 = __pyx_v_i;
-      if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_cv_desc.shape[0];
-      __pyx_t_11 = __pyx_v_j;
-      if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_cv_desc.shape[0];
-      __pyx_t_2 = (!((*((long *) ( /* dim=0 */ (__pyx_v_cv_desc.data + __pyx_t_12 * __pyx_v_cv_desc.strides[0]) ))) == (*((long *) ( /* dim=0 */ (__pyx_v_cv_desc.data + __pyx_t_11 * __pyx_v_cv_desc.strides[0]) )))));
-      __pyx_t_1 = __pyx_t_2;
-      __pyx_L19_bool_binop_done:;
-      if (__pyx_t_1) {
-
-        /* "rsatoolbox/cengine/similarity.pyx":87
- *                 #vec_j = data[j]
- *                 sim, weight = similarity(
- *                     data[i], data[j],             # <<<<<<<<<<<<<<
- *                     method_idx,
- *                     n_dim=n_dim,
+        /* "rsatoolbox/cengine/similarity.pyx":74
+ *                 sim, weight = euclid(data[i], data[i], n_dim)
+ *             elif method_idx == 2: # method == 'correlation':
+ *                 sim, weight = correlation(data[i], data[i], n_dim)             # <<<<<<<<<<<<<<
+ *             elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                 if noise is None:
  */
         __pyx_t_19.data = __pyx_v_data.data;
         __pyx_t_19.memview = __pyx_v_data.memview;
@@ -4807,7 +4699,7 @@ __pyx_t_18.data = __pyx_v_data.data;
         __pyx_t_18.memview = __pyx_v_data.memview;
         __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
         {
-    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
         Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
         if (__pyx_tmp_idx < 0)
@@ -4819,30 +4711,754 @@ __pyx_t_18.shape[0] = __pyx_v_data.shape[1];
 __pyx_t_18.strides[0] = __pyx_v_data.strides[1];
     __pyx_t_18.suboffsets[0] = -1;
 
-__pyx_t_21.__pyx_n = 2;
-
-        /* "rsatoolbox/cengine/similarity.pyx":86
- *                 #vec_i = data[i]
- *                 #vec_j = data[j]
- *                 sim, weight = similarity(             # <<<<<<<<<<<<<<
- *                     data[i], data[j],
- *                     method_idx,
- */
-        __pyx_t_21.prior_lambda = __pyx_v_prior_lambda;
-        __pyx_t_21.prior_weight = __pyx_v_prior_weight;
-        __pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_similarity(__pyx_t_19, __pyx_t_18, __pyx_v_method_idx, __pyx_v_n_dim, __pyx_v_noise, 0, &__pyx_t_21); 
+__pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_correlation(__pyx_t_19, __pyx_t_18, __pyx_v_n_dim);
         __PYX_XCLEAR_MEMVIEW(&__pyx_t_19, 1);
         __pyx_t_19.memview = NULL; __pyx_t_19.data = NULL;
         __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
         __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
-        __pyx_t_23 = __pyx_t_20.f0;
-        __pyx_t_22 = __pyx_t_20.f1;
-        __pyx_v_sim = __pyx_t_23;
-        __pyx_v_weight = __pyx_t_22;
+        __pyx_t_22 = __pyx_t_20.f0;
+        __pyx_t_21 = __pyx_t_20.f1;
+        __pyx_v_sim = __pyx_t_22;
+        __pyx_v_weight = __pyx_t_21;
 
-        /* "rsatoolbox/cengine/similarity.pyx":93
- *                     prior_lambda=prior_lambda,
- *                     prior_weight=prior_weight)
+        /* "rsatoolbox/cengine/similarity.pyx":73
+ *             if method_idx == 1: # method == 'euclidean':
+ *                 sim, weight = euclid(data[i], data[i], n_dim)
+ *             elif method_idx == 2: # method == 'correlation':             # <<<<<<<<<<<<<<
+ *                 sim, weight = correlation(data[i], data[i], n_dim)
+ *             elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ */
+        break;
+        case 3:
+
+        /* "rsatoolbox/cengine/similarity.pyx":76
+ *                 sim, weight = correlation(data[i], data[i], n_dim)
+ *             elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                 if noise is None:             # <<<<<<<<<<<<<<
+ *                     sim, weight = euclid(data[i], data[i], n_dim)
+ *                 else:
+ */
+        __pyx_t_1 = (((PyObject *) __pyx_v_noise.memview) == Py_None);
+        if (__pyx_t_1) {
+
+          /* "rsatoolbox/cengine/similarity.pyx":77
+ *             elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                 if noise is None:
+ *                     sim, weight = euclid(data[i], data[i], n_dim)             # <<<<<<<<<<<<<<
+ *                 else:
+ *                     sim = mahalanobis(data[i], data[i], n_dim, noise)
+ */
+          __pyx_t_18.data = __pyx_v_data.data;
+          __pyx_t_18.memview = __pyx_v_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_18.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_18.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_18.suboffsets[0] = -1;
+
+__pyx_t_19.data = __pyx_v_data.data;
+          __pyx_t_19.memview = __pyx_v_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_19, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_19.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_19.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_19.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_19.suboffsets[0] = -1;
+
+__pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_euclid(__pyx_t_18, __pyx_t_19, __pyx_v_n_dim);
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+          __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_19, 1);
+          __pyx_t_19.memview = NULL; __pyx_t_19.data = NULL;
+          __pyx_t_21 = __pyx_t_20.f0;
+          __pyx_t_22 = __pyx_t_20.f1;
+          __pyx_v_sim = __pyx_t_21;
+          __pyx_v_weight = __pyx_t_22;
+
+          /* "rsatoolbox/cengine/similarity.pyx":76
+ *                 sim, weight = correlation(data[i], data[i], n_dim)
+ *             elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                 if noise is None:             # <<<<<<<<<<<<<<
+ *                     sim, weight = euclid(data[i], data[i], n_dim)
+ *                 else:
+ */
+          goto __pyx_L16;
+        }
+
+        /* "rsatoolbox/cengine/similarity.pyx":79
+ *                     sim, weight = euclid(data[i], data[i], n_dim)
+ *                 else:
+ *                     sim = mahalanobis(data[i], data[i], n_dim, noise)             # <<<<<<<<<<<<<<
+ *                     weight = <double> n_dim
+ *             elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ */
+        /*else*/ {
+          __pyx_t_19.data = __pyx_v_data.data;
+          __pyx_t_19.memview = __pyx_v_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_19, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_19.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_19.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_19.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_19.suboffsets[0] = -1;
+
+__pyx_t_18.data = __pyx_v_data.data;
+          __pyx_t_18.memview = __pyx_v_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_18.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_18.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_18.suboffsets[0] = -1;
+
+__pyx_v_sim = __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__pyx_t_19, __pyx_t_18, __pyx_v_n_dim, __pyx_v_noise);
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_19, 1);
+          __pyx_t_19.memview = NULL; __pyx_t_19.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+          __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
+
+          /* "rsatoolbox/cengine/similarity.pyx":80
+ *                 else:
+ *                     sim = mahalanobis(data[i], data[i], n_dim, noise)
+ *                     weight = <double> n_dim             # <<<<<<<<<<<<<<
+ *             elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                 sim, weight = poisson_cv(data[i], data[i], log_data[i], log_data[i], n_dim)
+ */
+          __pyx_v_weight = ((double)__pyx_v_n_dim);
+        }
+        __pyx_L16:;
+
+        /* "rsatoolbox/cengine/similarity.pyx":75
+ *             elif method_idx == 2: # method == 'correlation':
+ *                 sim, weight = correlation(data[i], data[i], n_dim)
+ *             elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:             # <<<<<<<<<<<<<<
+ *                 if noise is None:
+ *                     sim, weight = euclid(data[i], data[i], n_dim)
+ */
+        break;
+        case 4:
+
+        /* "rsatoolbox/cengine/similarity.pyx":82
+ *                     weight = <double> n_dim
+ *             elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                 sim, weight = poisson_cv(data[i], data[i], log_data[i], log_data[i], n_dim)             # <<<<<<<<<<<<<<
+ *             idx = desc[i]
+ *             if weighting == 1: #'number':
+ */
+        __pyx_t_18.data = __pyx_v_data.data;
+        __pyx_t_18.memview = __pyx_v_data.memview;
+        __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
+        {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_18.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_18.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_18.suboffsets[0] = -1;
+
+__pyx_t_19.data = __pyx_v_data.data;
+        __pyx_t_19.memview = __pyx_v_data.memview;
+        __PYX_INC_MEMVIEW(&__pyx_t_19, 1);
+        {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_19.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_19.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_19.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_19.suboffsets[0] = -1;
+
+if (unlikely(!__pyx_v_log_data.memview)) { __Pyx_RaiseUnboundLocalError("log_data"); __PYX_ERR(0, 82, __pyx_L1_error) }
+        __pyx_t_23.data = __pyx_v_log_data.data;
+        __pyx_t_23.memview = __pyx_v_log_data.memview;
+        __PYX_INC_MEMVIEW(&__pyx_t_23, 1);
+        {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_log_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_log_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_23.shape[0] = __pyx_v_log_data.shape[1];
+__pyx_t_23.strides[0] = __pyx_v_log_data.strides[1];
+    __pyx_t_23.suboffsets[0] = -1;
+
+if (unlikely(!__pyx_v_log_data.memview)) { __Pyx_RaiseUnboundLocalError("log_data"); __PYX_ERR(0, 82, __pyx_L1_error) }
+        __pyx_t_24.data = __pyx_v_log_data.data;
+        __pyx_t_24.memview = __pyx_v_log_data.memview;
+        __PYX_INC_MEMVIEW(&__pyx_t_24, 1);
+        {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_log_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_log_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_24.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_24.shape[0] = __pyx_v_log_data.shape[1];
+__pyx_t_24.strides[0] = __pyx_v_log_data.strides[1];
+    __pyx_t_24.suboffsets[0] = -1;
+
+__pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_poisson_cv(__pyx_t_18, __pyx_t_19, __pyx_t_23, __pyx_t_24, __pyx_v_n_dim);
+        __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+        __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
+        __PYX_XCLEAR_MEMVIEW(&__pyx_t_19, 1);
+        __pyx_t_19.memview = NULL; __pyx_t_19.data = NULL;
+        __PYX_XCLEAR_MEMVIEW(&__pyx_t_23, 1);
+        __pyx_t_23.memview = NULL; __pyx_t_23.data = NULL;
+        __PYX_XCLEAR_MEMVIEW(&__pyx_t_24, 1);
+        __pyx_t_24.memview = NULL; __pyx_t_24.data = NULL;
+        __pyx_t_22 = __pyx_t_20.f0;
+        __pyx_t_21 = __pyx_t_20.f1;
+        __pyx_v_sim = __pyx_t_22;
+        __pyx_v_weight = __pyx_t_21;
+
+        /* "rsatoolbox/cengine/similarity.pyx":81
+ *                     sim = mahalanobis(data[i], data[i], n_dim, noise)
+ *                     weight = <double> n_dim
+ *             elif method_idx == 4: # method in ['poisson', 'poisson_cv']:             # <<<<<<<<<<<<<<
+ *                 sim, weight = poisson_cv(data[i], data[i], log_data[i], log_data[i], n_dim)
+ *             idx = desc[i]
+ */
+        break;
+        default: break;
+      }
+
+      /* "rsatoolbox/cengine/similarity.pyx":83
+ *             elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                 sim, weight = poisson_cv(data[i], data[i], log_data[i], log_data[i], n_dim)
+ *             idx = desc[i]             # <<<<<<<<<<<<<<
+ *             if weighting == 1: #'number':
+ *                 values[idx] += sim / 2
+ */
+      __pyx_t_11 = __pyx_v_i;
+      if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_desc.shape[0];
+      __pyx_v_idx = (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_11 * __pyx_v_desc.strides[0]) )));
+
+      /* "rsatoolbox/cengine/similarity.pyx":84
+ *                 sim, weight = poisson_cv(data[i], data[i], log_data[i], log_data[i], n_dim)
+ *             idx = desc[i]
+ *             if weighting == 1: #'number':             # <<<<<<<<<<<<<<
+ *                 values[idx] += sim / 2
+ *                 weights[idx] += weight / 2
+ */
+      switch (__pyx_v_weighting) {
+        case 1:
+
+        /* "rsatoolbox/cengine/similarity.pyx":85
+ *             idx = desc[i]
+ *             if weighting == 1: #'number':
+ *                 values[idx] += sim / 2             # <<<<<<<<<<<<<<
+ *                 weights[idx] += weight / 2
+ *             elif weighting == 0: #'equal':
+ */
+        __pyx_t_11 = __pyx_v_idx;
+        if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_values.shape[0];
+        *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_11 * __pyx_v_values.strides[0]) )) += (__pyx_v_sim / 2.0);
+
+        /* "rsatoolbox/cengine/similarity.pyx":86
+ *             if weighting == 1: #'number':
+ *                 values[idx] += sim / 2
+ *                 weights[idx] += weight / 2             # <<<<<<<<<<<<<<
+ *             elif weighting == 0: #'equal':
+ *                 values[idx] += sim / weight / 2
+ */
+        __pyx_t_11 = __pyx_v_idx;
+        if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_weights.shape[0];
+        *((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_11 * __pyx_v_weights.strides[0]) )) += (__pyx_v_weight / 2.0);
+
+        /* "rsatoolbox/cengine/similarity.pyx":84
+ *                 sim, weight = poisson_cv(data[i], data[i], log_data[i], log_data[i], n_dim)
+ *             idx = desc[i]
+ *             if weighting == 1: #'number':             # <<<<<<<<<<<<<<
+ *                 values[idx] += sim / 2
+ *                 weights[idx] += weight / 2
+ */
+        break;
+        case 0:
+
+        /* "rsatoolbox/cengine/similarity.pyx":88
+ *                 weights[idx] += weight / 2
+ *             elif weighting == 0: #'equal':
+ *                 values[idx] += sim / weight / 2             # <<<<<<<<<<<<<<
+ *                 weights[idx] += 1 / 2
+ *         for j in range(i + 1, data.shape[0]):
+ */
+        __pyx_t_11 = __pyx_v_idx;
+        if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_values.shape[0];
+        *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_11 * __pyx_v_values.strides[0]) )) += ((__pyx_v_sim / __pyx_v_weight) / 2.0);
+
+        /* "rsatoolbox/cengine/similarity.pyx":89
+ *             elif weighting == 0: #'equal':
+ *                 values[idx] += sim / weight / 2
+ *                 weights[idx] += 1 / 2             # <<<<<<<<<<<<<<
+ *         for j in range(i + 1, data.shape[0]):
+ *             if not crossval or not cv_desc[i] == cv_desc[j]:
+ */
+        __pyx_t_11 = __pyx_v_idx;
+        if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_weights.shape[0];
+        *((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_11 * __pyx_v_weights.strides[0]) )) += (1 / 2);
+
+        /* "rsatoolbox/cengine/similarity.pyx":87
+ *                 values[idx] += sim / 2
+ *                 weights[idx] += weight / 2
+ *             elif weighting == 0: #'equal':             # <<<<<<<<<<<<<<
+ *                 values[idx] += sim / weight / 2
+ *                 weights[idx] += 1 / 2
+ */
+        break;
+        default: break;
+      }
+
+      /* "rsatoolbox/cengine/similarity.pyx":70
+ *         values[idx] = 0
+ *     for i in range(data.shape[0]):
+ *         if not crossval:             # <<<<<<<<<<<<<<
+ *             if method_idx == 1: # method == 'euclidean':
+ *                 sim, weight = euclid(data[i], data[i], n_dim)
+ */
+    }
+
+    /* "rsatoolbox/cengine/similarity.pyx":90
+ *                 values[idx] += sim / weight / 2
+ *                 weights[idx] += 1 / 2
+ *         for j in range(i + 1, data.shape[0]):             # <<<<<<<<<<<<<<
+ *             if not crossval or not cv_desc[i] == cv_desc[j]:
+ *                 #vec_i = data[i]
+ */
+    __pyx_t_25 = (__pyx_v_data.shape[0]);
+    __pyx_t_26 = __pyx_t_25;
+    for (__pyx_t_8 = (__pyx_v_i + 1); __pyx_t_8 < __pyx_t_26; __pyx_t_8+=1) {
+      __pyx_v_j = __pyx_t_8;
+
+      /* "rsatoolbox/cengine/similarity.pyx":91
+ *                 weights[idx] += 1 / 2
+ *         for j in range(i + 1, data.shape[0]):
+ *             if not crossval or not cv_desc[i] == cv_desc[j]:             # <<<<<<<<<<<<<<
+ *                 #vec_i = data[i]
+ *                 #vec_j = data[j]
+ */
+      __pyx_t_2 = (!(__pyx_v_crossval != 0));
+      if (!__pyx_t_2) {
+      } else {
+        __pyx_t_1 = __pyx_t_2;
+        goto __pyx_L20_bool_binop_done;
+      }
+      __pyx_t_11 = __pyx_v_i;
+      if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_cv_desc.shape[0];
+      __pyx_t_12 = __pyx_v_j;
+      if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_cv_desc.shape[0];
+      __pyx_t_2 = (!((*((long *) ( /* dim=0 */ (__pyx_v_cv_desc.data + __pyx_t_11 * __pyx_v_cv_desc.strides[0]) ))) == (*((long *) ( /* dim=0 */ (__pyx_v_cv_desc.data + __pyx_t_12 * __pyx_v_cv_desc.strides[0]) )))));
+      __pyx_t_1 = __pyx_t_2;
+      __pyx_L20_bool_binop_done:;
+      if (__pyx_t_1) {
+
+        /* "rsatoolbox/cengine/similarity.pyx":94
+ *                 #vec_i = data[i]
+ *                 #vec_j = data[j]
+ *                 if method_idx == 1: # method == 'euclidean':             # <<<<<<<<<<<<<<
+ *                     sim, weight = euclid(data[i], data[j], n_dim)
+ *                 elif method_idx == 2: # method == 'correlation':
+ */
+        switch (__pyx_v_method_idx) {
+          case 1:
+
+          /* "rsatoolbox/cengine/similarity.pyx":95
+ *                 #vec_j = data[j]
+ *                 if method_idx == 1: # method == 'euclidean':
+ *                     sim, weight = euclid(data[i], data[j], n_dim)             # <<<<<<<<<<<<<<
+ *                 elif method_idx == 2: # method == 'correlation':
+ *                     sim, weight = correlation(data[i], data[j], n_dim)
+ */
+          __pyx_t_24.data = __pyx_v_data.data;
+          __pyx_t_24.memview = __pyx_v_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_24, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_24.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_24.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_24.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_24.suboffsets[0] = -1;
+
+__pyx_t_23.data = __pyx_v_data.data;
+          __pyx_t_23.memview = __pyx_v_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_23, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_23.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_23.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_23.suboffsets[0] = -1;
+
+__pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_euclid(__pyx_t_24, __pyx_t_23, __pyx_v_n_dim);
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_24, 1);
+          __pyx_t_24.memview = NULL; __pyx_t_24.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_23, 1);
+          __pyx_t_23.memview = NULL; __pyx_t_23.data = NULL;
+          __pyx_t_21 = __pyx_t_20.f0;
+          __pyx_t_22 = __pyx_t_20.f1;
+          __pyx_v_sim = __pyx_t_21;
+          __pyx_v_weight = __pyx_t_22;
+
+          /* "rsatoolbox/cengine/similarity.pyx":94
+ *                 #vec_i = data[i]
+ *                 #vec_j = data[j]
+ *                 if method_idx == 1: # method == 'euclidean':             # <<<<<<<<<<<<<<
+ *                     sim, weight = euclid(data[i], data[j], n_dim)
+ *                 elif method_idx == 2: # method == 'correlation':
+ */
+          break;
+          case 2:
+
+          /* "rsatoolbox/cengine/similarity.pyx":97
+ *                     sim, weight = euclid(data[i], data[j], n_dim)
+ *                 elif method_idx == 2: # method == 'correlation':
+ *                     sim, weight = correlation(data[i], data[j], n_dim)             # <<<<<<<<<<<<<<
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                     if noise is None:
+ */
+          __pyx_t_23.data = __pyx_v_data.data;
+          __pyx_t_23.memview = __pyx_v_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_23, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_23.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_23.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_23.suboffsets[0] = -1;
+
+__pyx_t_24.data = __pyx_v_data.data;
+          __pyx_t_24.memview = __pyx_v_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_24, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_24.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_24.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_24.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_24.suboffsets[0] = -1;
+
+__pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_correlation(__pyx_t_23, __pyx_t_24, __pyx_v_n_dim);
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_23, 1);
+          __pyx_t_23.memview = NULL; __pyx_t_23.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_24, 1);
+          __pyx_t_24.memview = NULL; __pyx_t_24.data = NULL;
+          __pyx_t_22 = __pyx_t_20.f0;
+          __pyx_t_21 = __pyx_t_20.f1;
+          __pyx_v_sim = __pyx_t_22;
+          __pyx_v_weight = __pyx_t_21;
+
+          /* "rsatoolbox/cengine/similarity.pyx":96
+ *                 if method_idx == 1: # method == 'euclidean':
+ *                     sim, weight = euclid(data[i], data[j], n_dim)
+ *                 elif method_idx == 2: # method == 'correlation':             # <<<<<<<<<<<<<<
+ *                     sim, weight = correlation(data[i], data[j], n_dim)
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ */
+          break;
+          case 3:
+
+          /* "rsatoolbox/cengine/similarity.pyx":99
+ *                     sim, weight = correlation(data[i], data[j], n_dim)
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                     if noise is None:             # <<<<<<<<<<<<<<
+ *                         sim, weight = euclid(data[i], data[i], n_dim)
+ *                     else:
+ */
+          __pyx_t_1 = (((PyObject *) __pyx_v_noise.memview) == Py_None);
+          if (__pyx_t_1) {
+
+            /* "rsatoolbox/cengine/similarity.pyx":100
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                     if noise is None:
+ *                         sim, weight = euclid(data[i], data[i], n_dim)             # <<<<<<<<<<<<<<
+ *                     else:
+ *                         sim = mahalanobis(data[i], data[j], n_dim, noise)
+ */
+            __pyx_t_24.data = __pyx_v_data.data;
+            __pyx_t_24.memview = __pyx_v_data.memview;
+            __PYX_INC_MEMVIEW(&__pyx_t_24, 1);
+            {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_24.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_24.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_24.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_24.suboffsets[0] = -1;
+
+__pyx_t_23.data = __pyx_v_data.data;
+            __pyx_t_23.memview = __pyx_v_data.memview;
+            __PYX_INC_MEMVIEW(&__pyx_t_23, 1);
+            {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_23.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_23.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_23.suboffsets[0] = -1;
+
+__pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_euclid(__pyx_t_24, __pyx_t_23, __pyx_v_n_dim);
+            __PYX_XCLEAR_MEMVIEW(&__pyx_t_24, 1);
+            __pyx_t_24.memview = NULL; __pyx_t_24.data = NULL;
+            __PYX_XCLEAR_MEMVIEW(&__pyx_t_23, 1);
+            __pyx_t_23.memview = NULL; __pyx_t_23.data = NULL;
+            __pyx_t_21 = __pyx_t_20.f0;
+            __pyx_t_22 = __pyx_t_20.f1;
+            __pyx_v_sim = __pyx_t_21;
+            __pyx_v_weight = __pyx_t_22;
+
+            /* "rsatoolbox/cengine/similarity.pyx":99
+ *                     sim, weight = correlation(data[i], data[j], n_dim)
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                     if noise is None:             # <<<<<<<<<<<<<<
+ *                         sim, weight = euclid(data[i], data[i], n_dim)
+ *                     else:
+ */
+            goto __pyx_L22;
+          }
+
+          /* "rsatoolbox/cengine/similarity.pyx":102
+ *                         sim, weight = euclid(data[i], data[i], n_dim)
+ *                     else:
+ *                         sim = mahalanobis(data[i], data[j], n_dim, noise)             # <<<<<<<<<<<<<<
+ *                         weight = <double> n_dim
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ */
+          /*else*/ {
+            __pyx_t_23.data = __pyx_v_data.data;
+            __pyx_t_23.memview = __pyx_v_data.memview;
+            __PYX_INC_MEMVIEW(&__pyx_t_23, 1);
+            {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_23.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_23.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_23.suboffsets[0] = -1;
+
+__pyx_t_24.data = __pyx_v_data.data;
+            __pyx_t_24.memview = __pyx_v_data.memview;
+            __PYX_INC_MEMVIEW(&__pyx_t_24, 1);
+            {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_24.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_24.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_24.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_24.suboffsets[0] = -1;
+
+__pyx_v_sim = __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__pyx_t_23, __pyx_t_24, __pyx_v_n_dim, __pyx_v_noise);
+            __PYX_XCLEAR_MEMVIEW(&__pyx_t_23, 1);
+            __pyx_t_23.memview = NULL; __pyx_t_23.data = NULL;
+            __PYX_XCLEAR_MEMVIEW(&__pyx_t_24, 1);
+            __pyx_t_24.memview = NULL; __pyx_t_24.data = NULL;
+
+            /* "rsatoolbox/cengine/similarity.pyx":103
+ *                     else:
+ *                         sim = mahalanobis(data[i], data[j], n_dim, noise)
+ *                         weight = <double> n_dim             # <<<<<<<<<<<<<<
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                     sim, weight = poisson_cv(data[i], data[j], log_data[i], log_data[j], n_dim)
+ */
+            __pyx_v_weight = ((double)__pyx_v_n_dim);
+          }
+          __pyx_L22:;
+
+          /* "rsatoolbox/cengine/similarity.pyx":98
+ *                 elif method_idx == 2: # method == 'correlation':
+ *                     sim, weight = correlation(data[i], data[j], n_dim)
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:             # <<<<<<<<<<<<<<
+ *                     if noise is None:
+ *                         sim, weight = euclid(data[i], data[i], n_dim)
+ */
+          break;
+          case 4:
+
+          /* "rsatoolbox/cengine/similarity.pyx":105
+ *                         weight = <double> n_dim
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                     sim, weight = poisson_cv(data[i], data[j], log_data[i], log_data[j], n_dim)             # <<<<<<<<<<<<<<
+ *                 if weight > 0:
+ *                     if desc[i] == desc[j]:
+ */
+          __pyx_t_24.data = __pyx_v_data.data;
+          __pyx_t_24.memview = __pyx_v_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_24, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_24.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_24.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_24.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_24.suboffsets[0] = -1;
+
+__pyx_t_23.data = __pyx_v_data.data;
+          __pyx_t_23.memview = __pyx_v_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_23, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_23.shape[0] = __pyx_v_data.shape[1];
+__pyx_t_23.strides[0] = __pyx_v_data.strides[1];
+    __pyx_t_23.suboffsets[0] = -1;
+
+if (unlikely(!__pyx_v_log_data.memview)) { __Pyx_RaiseUnboundLocalError("log_data"); __PYX_ERR(0, 105, __pyx_L1_error) }
+          __pyx_t_19.data = __pyx_v_log_data.data;
+          __pyx_t_19.memview = __pyx_v_log_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_19, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_log_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_log_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_19.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_19.shape[0] = __pyx_v_log_data.shape[1];
+__pyx_t_19.strides[0] = __pyx_v_log_data.strides[1];
+    __pyx_t_19.suboffsets[0] = -1;
+
+if (unlikely(!__pyx_v_log_data.memview)) { __Pyx_RaiseUnboundLocalError("log_data"); __PYX_ERR(0, 105, __pyx_L1_error) }
+          __pyx_t_18.data = __pyx_v_log_data.data;
+          __pyx_t_18.memview = __pyx_v_log_data.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_log_data.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_log_data.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_18.shape[0] = __pyx_v_log_data.shape[1];
+__pyx_t_18.strides[0] = __pyx_v_log_data.strides[1];
+    __pyx_t_18.suboffsets[0] = -1;
+
+__pyx_t_20 = __pyx_f_10rsatoolbox_7cengine_10similarity_poisson_cv(__pyx_t_24, __pyx_t_23, __pyx_t_19, __pyx_t_18, __pyx_v_n_dim);
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_24, 1);
+          __pyx_t_24.memview = NULL; __pyx_t_24.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_23, 1);
+          __pyx_t_23.memview = NULL; __pyx_t_23.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_19, 1);
+          __pyx_t_19.memview = NULL; __pyx_t_19.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+          __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
+          __pyx_t_22 = __pyx_t_20.f0;
+          __pyx_t_21 = __pyx_t_20.f1;
+          __pyx_v_sim = __pyx_t_22;
+          __pyx_v_weight = __pyx_t_21;
+
+          /* "rsatoolbox/cengine/similarity.pyx":104
+ *                         sim = mahalanobis(data[i], data[j], n_dim, noise)
+ *                         weight = <double> n_dim
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:             # <<<<<<<<<<<<<<
+ *                     sim, weight = poisson_cv(data[i], data[j], log_data[i], log_data[j], n_dim)
+ *                 if weight > 0:
+ */
+          break;
+          default: break;
+        }
+
+        /* "rsatoolbox/cengine/similarity.pyx":106
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                     sim, weight = poisson_cv(data[i], data[j], log_data[i], log_data[j], n_dim)
  *                 if weight > 0:             # <<<<<<<<<<<<<<
  *                     if desc[i] == desc[j]:
  *                         idx = desc[i]
@@ -4850,42 +5466,42 @@ __pyx_t_21.__pyx_n = 2;
         __pyx_t_1 = (__pyx_v_weight > 0.0);
         if (__pyx_t_1) {
 
-          /* "rsatoolbox/cengine/similarity.pyx":94
- *                     prior_weight=prior_weight)
+          /* "rsatoolbox/cengine/similarity.pyx":107
+ *                     sim, weight = poisson_cv(data[i], data[j], log_data[i], log_data[j], n_dim)
  *                 if weight > 0:
  *                     if desc[i] == desc[j]:             # <<<<<<<<<<<<<<
  *                         idx = desc[i]
  *                     else:
  */
-          __pyx_t_11 = __pyx_v_i;
-          if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_desc.shape[0];
-          __pyx_t_12 = __pyx_v_j;
+          __pyx_t_12 = __pyx_v_i;
           if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_desc.shape[0];
-          __pyx_t_1 = ((*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_11 * __pyx_v_desc.strides[0]) ))) == (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_12 * __pyx_v_desc.strides[0]) ))));
+          __pyx_t_11 = __pyx_v_j;
+          if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_desc.shape[0];
+          __pyx_t_1 = ((*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_12 * __pyx_v_desc.strides[0]) ))) == (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_11 * __pyx_v_desc.strides[0]) ))));
           if (__pyx_t_1) {
 
-            /* "rsatoolbox/cengine/similarity.pyx":95
+            /* "rsatoolbox/cengine/similarity.pyx":108
  *                 if weight > 0:
  *                     if desc[i] == desc[j]:
  *                         idx = desc[i]             # <<<<<<<<<<<<<<
  *                     else:
  *                         if desc[j] > desc[i]:
  */
-            __pyx_t_12 = __pyx_v_i;
-            if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_desc.shape[0];
-            __pyx_v_idx = (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_12 * __pyx_v_desc.strides[0]) )));
+            __pyx_t_11 = __pyx_v_i;
+            if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_desc.shape[0];
+            __pyx_v_idx = (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_11 * __pyx_v_desc.strides[0]) )));
 
-            /* "rsatoolbox/cengine/similarity.pyx":94
- *                     prior_weight=prior_weight)
+            /* "rsatoolbox/cengine/similarity.pyx":107
+ *                     sim, weight = poisson_cv(data[i], data[j], log_data[i], log_data[j], n_dim)
  *                 if weight > 0:
  *                     if desc[i] == desc[j]:             # <<<<<<<<<<<<<<
  *                         idx = desc[i]
  *                     else:
  */
-            goto __pyx_L22;
+            goto __pyx_L24;
           }
 
-          /* "rsatoolbox/cengine/similarity.pyx":97
+          /* "rsatoolbox/cengine/similarity.pyx":110
  *                         idx = desc[i]
  *                     else:
  *                         if desc[j] > desc[i]:             # <<<<<<<<<<<<<<
@@ -4893,41 +5509,41 @@ __pyx_t_21.__pyx_n = 2;
  *                         else:
  */
           /*else*/ {
-            __pyx_t_12 = __pyx_v_j;
-            if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_desc.shape[0];
-            __pyx_t_11 = __pyx_v_i;
+            __pyx_t_11 = __pyx_v_j;
             if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_desc.shape[0];
-            __pyx_t_1 = ((*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_12 * __pyx_v_desc.strides[0]) ))) > (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_11 * __pyx_v_desc.strides[0]) ))));
+            __pyx_t_12 = __pyx_v_i;
+            if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_desc.shape[0];
+            __pyx_t_1 = ((*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_11 * __pyx_v_desc.strides[0]) ))) > (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_12 * __pyx_v_desc.strides[0]) ))));
             if (__pyx_t_1) {
 
-              /* "rsatoolbox/cengine/similarity.pyx":98
+              /* "rsatoolbox/cengine/similarity.pyx":111
  *                     else:
  *                         if desc[j] > desc[i]:
  *                             idx = (n - 1) * desc[i] - (((desc[i] + 1) * desc[i]) / 2) + desc[j] - 1 + n             # <<<<<<<<<<<<<<
  *                         else:
  *                             idx = (n - 1) * desc[j] - (((desc[j] + 1) * desc[j]) / 2) + desc[i] - 1 + n
  */
-              __pyx_t_11 = __pyx_v_i;
-              if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_desc.shape[0];
               __pyx_t_12 = __pyx_v_i;
               if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_desc.shape[0];
-              __pyx_t_14 = __pyx_v_i;
-              if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_desc.shape[0];
-              __pyx_t_13 = __pyx_v_j;
+              __pyx_t_11 = __pyx_v_i;
+              if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_desc.shape[0];
+              __pyx_t_13 = __pyx_v_i;
               if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_desc.shape[0];
-              __pyx_v_idx = ((((((__pyx_v_n - 1) * (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_11 * __pyx_v_desc.strides[0]) )))) - ((((*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_12 * __pyx_v_desc.strides[0]) ))) + 1) * (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_14 * __pyx_v_desc.strides[0]) )))) / 2)) + (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_13 * __pyx_v_desc.strides[0]) )))) - 1) + __pyx_v_n);
+              __pyx_t_14 = __pyx_v_j;
+              if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_desc.shape[0];
+              __pyx_v_idx = ((((((__pyx_v_n - 1) * (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_12 * __pyx_v_desc.strides[0]) )))) - ((((*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_11 * __pyx_v_desc.strides[0]) ))) + 1) * (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_13 * __pyx_v_desc.strides[0]) )))) / 2)) + (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_14 * __pyx_v_desc.strides[0]) )))) - 1) + __pyx_v_n);
 
-              /* "rsatoolbox/cengine/similarity.pyx":97
+              /* "rsatoolbox/cengine/similarity.pyx":110
  *                         idx = desc[i]
  *                     else:
  *                         if desc[j] > desc[i]:             # <<<<<<<<<<<<<<
  *                             idx = (n - 1) * desc[i] - (((desc[i] + 1) * desc[i]) / 2) + desc[j] - 1 + n
  *                         else:
  */
-              goto __pyx_L23;
+              goto __pyx_L25;
             }
 
-            /* "rsatoolbox/cengine/similarity.pyx":100
+            /* "rsatoolbox/cengine/similarity.pyx":113
  *                             idx = (n - 1) * desc[i] - (((desc[i] + 1) * desc[i]) / 2) + desc[j] - 1 + n
  *                         else:
  *                             idx = (n - 1) * desc[j] - (((desc[j] + 1) * desc[j]) / 2) + desc[i] - 1 + n             # <<<<<<<<<<<<<<
@@ -4935,21 +5551,21 @@ __pyx_t_21.__pyx_n = 2;
  *                         values[idx] += sim
  */
             /*else*/ {
-              __pyx_t_13 = __pyx_v_j;
-              if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_desc.shape[0];
               __pyx_t_14 = __pyx_v_j;
               if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_desc.shape[0];
-              __pyx_t_12 = __pyx_v_j;
-              if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_desc.shape[0];
-              __pyx_t_11 = __pyx_v_i;
+              __pyx_t_13 = __pyx_v_j;
+              if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_desc.shape[0];
+              __pyx_t_11 = __pyx_v_j;
               if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_desc.shape[0];
-              __pyx_v_idx = ((((((__pyx_v_n - 1) * (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_13 * __pyx_v_desc.strides[0]) )))) - ((((*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_14 * __pyx_v_desc.strides[0]) ))) + 1) * (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_12 * __pyx_v_desc.strides[0]) )))) / 2)) + (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_11 * __pyx_v_desc.strides[0]) )))) - 1) + __pyx_v_n);
+              __pyx_t_12 = __pyx_v_i;
+              if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_desc.shape[0];
+              __pyx_v_idx = ((((((__pyx_v_n - 1) * (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_14 * __pyx_v_desc.strides[0]) )))) - ((((*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_13 * __pyx_v_desc.strides[0]) ))) + 1) * (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_11 * __pyx_v_desc.strides[0]) )))) / 2)) + (*((long *) ( /* dim=0 */ (__pyx_v_desc.data + __pyx_t_12 * __pyx_v_desc.strides[0]) )))) - 1) + __pyx_v_n);
             }
-            __pyx_L23:;
+            __pyx_L25:;
           }
-          __pyx_L22:;
+          __pyx_L24:;
 
-          /* "rsatoolbox/cengine/similarity.pyx":101
+          /* "rsatoolbox/cengine/similarity.pyx":114
  *                         else:
  *                             idx = (n - 1) * desc[j] - (((desc[j] + 1) * desc[j]) / 2) + desc[i] - 1 + n
  *                     if weighting == 1: #'number':             # <<<<<<<<<<<<<<
@@ -4959,29 +5575,29 @@ __pyx_t_21.__pyx_n = 2;
           switch (__pyx_v_weighting) {
             case 1:
 
-            /* "rsatoolbox/cengine/similarity.pyx":102
+            /* "rsatoolbox/cengine/similarity.pyx":115
  *                             idx = (n - 1) * desc[j] - (((desc[j] + 1) * desc[j]) / 2) + desc[i] - 1 + n
  *                     if weighting == 1: #'number':
  *                         values[idx] += sim             # <<<<<<<<<<<<<<
  *                         weights[idx] += weight
  *                     elif weighting == 0: #'equal':
  */
-            __pyx_t_11 = __pyx_v_idx;
-            if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_values.shape[0];
-            *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_11 * __pyx_v_values.strides[0]) )) += __pyx_v_sim;
+            __pyx_t_12 = __pyx_v_idx;
+            if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_values.shape[0];
+            *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_12 * __pyx_v_values.strides[0]) )) += __pyx_v_sim;
 
-            /* "rsatoolbox/cengine/similarity.pyx":103
+            /* "rsatoolbox/cengine/similarity.pyx":116
  *                     if weighting == 1: #'number':
  *                         values[idx] += sim
  *                         weights[idx] += weight             # <<<<<<<<<<<<<<
  *                     elif weighting == 0: #'equal':
  *                         values[idx] += sim / weight
  */
-            __pyx_t_11 = __pyx_v_idx;
-            if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_weights.shape[0];
-            *((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_11 * __pyx_v_weights.strides[0]) )) += __pyx_v_weight;
+            __pyx_t_12 = __pyx_v_idx;
+            if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_weights.shape[0];
+            *((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_12 * __pyx_v_weights.strides[0]) )) += __pyx_v_weight;
 
-            /* "rsatoolbox/cengine/similarity.pyx":101
+            /* "rsatoolbox/cengine/similarity.pyx":114
  *                         else:
  *                             idx = (n - 1) * desc[j] - (((desc[j] + 1) * desc[j]) / 2) + desc[i] - 1 + n
  *                     if weighting == 1: #'number':             # <<<<<<<<<<<<<<
@@ -4991,29 +5607,29 @@ __pyx_t_21.__pyx_n = 2;
             break;
             case 0:
 
-            /* "rsatoolbox/cengine/similarity.pyx":105
+            /* "rsatoolbox/cengine/similarity.pyx":118
  *                         weights[idx] += weight
  *                     elif weighting == 0: #'equal':
  *                         values[idx] += sim / weight             # <<<<<<<<<<<<<<
  *                         weights[idx] += 1
  *     for idx in range(n_rdm + n):
  */
-            __pyx_t_11 = __pyx_v_idx;
-            if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_values.shape[0];
-            *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_11 * __pyx_v_values.strides[0]) )) += (__pyx_v_sim / __pyx_v_weight);
+            __pyx_t_12 = __pyx_v_idx;
+            if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_values.shape[0];
+            *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_12 * __pyx_v_values.strides[0]) )) += (__pyx_v_sim / __pyx_v_weight);
 
-            /* "rsatoolbox/cengine/similarity.pyx":106
+            /* "rsatoolbox/cengine/similarity.pyx":119
  *                     elif weighting == 0: #'equal':
  *                         values[idx] += sim / weight
  *                         weights[idx] += 1             # <<<<<<<<<<<<<<
  *     for idx in range(n_rdm + n):
  *         if weights[idx] > 0:
  */
-            __pyx_t_11 = __pyx_v_idx;
-            if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_weights.shape[0];
-            *((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_11 * __pyx_v_weights.strides[0]) )) += 1.0;
+            __pyx_t_12 = __pyx_v_idx;
+            if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_weights.shape[0];
+            *((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_12 * __pyx_v_weights.strides[0]) )) += 1.0;
 
-            /* "rsatoolbox/cengine/similarity.pyx":104
+            /* "rsatoolbox/cengine/similarity.pyx":117
  *                         values[idx] += sim
  *                         weights[idx] += weight
  *                     elif weighting == 0: #'equal':             # <<<<<<<<<<<<<<
@@ -5024,17 +5640,17 @@ __pyx_t_21.__pyx_n = 2;
             default: break;
           }
 
-          /* "rsatoolbox/cengine/similarity.pyx":93
- *                     prior_lambda=prior_lambda,
- *                     prior_weight=prior_weight)
+          /* "rsatoolbox/cengine/similarity.pyx":106
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                     sim, weight = poisson_cv(data[i], data[j], log_data[i], log_data[j], n_dim)
  *                 if weight > 0:             # <<<<<<<<<<<<<<
  *                     if desc[i] == desc[j]:
  *                         idx = desc[i]
  */
         }
 
-        /* "rsatoolbox/cengine/similarity.pyx":83
- *                 weights[idx] += 1 / 2.0
+        /* "rsatoolbox/cengine/similarity.pyx":91
+ *                 weights[idx] += 1 / 2
  *         for j in range(i + 1, data.shape[0]):
  *             if not crossval or not cv_desc[i] == cv_desc[j]:             # <<<<<<<<<<<<<<
  *                 #vec_i = data[i]
@@ -5044,7 +5660,7 @@ __pyx_t_21.__pyx_n = 2;
     }
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":107
+  /* "rsatoolbox/cengine/similarity.pyx":120
  *                         values[idx] += sim / weight
  *                         weights[idx] += 1
  *     for idx in range(n_rdm + n):             # <<<<<<<<<<<<<<
@@ -5056,44 +5672,44 @@ __pyx_t_21.__pyx_n = 2;
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_idx = __pyx_t_9;
 
-    /* "rsatoolbox/cengine/similarity.pyx":108
+    /* "rsatoolbox/cengine/similarity.pyx":121
  *                         weights[idx] += 1
  *     for idx in range(n_rdm + n):
  *         if weights[idx] > 0:             # <<<<<<<<<<<<<<
  *             values[idx] = values[idx] / weights[idx]
  *         else:
  */
-    __pyx_t_11 = __pyx_v_idx;
-    if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_weights.shape[0];
-    __pyx_t_1 = ((*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_11 * __pyx_v_weights.strides[0]) ))) > 0.0);
+    __pyx_t_12 = __pyx_v_idx;
+    if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_weights.shape[0];
+    __pyx_t_1 = ((*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_12 * __pyx_v_weights.strides[0]) ))) > 0.0);
     if (__pyx_t_1) {
 
-      /* "rsatoolbox/cengine/similarity.pyx":109
+      /* "rsatoolbox/cengine/similarity.pyx":122
  *     for idx in range(n_rdm + n):
  *         if weights[idx] > 0:
  *             values[idx] = values[idx] / weights[idx]             # <<<<<<<<<<<<<<
  *         else:
  *             values[idx] = NAN
  */
-      __pyx_t_11 = __pyx_v_idx;
-      if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_values.shape[0];
       __pyx_t_12 = __pyx_v_idx;
-      if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_weights.shape[0];
-      __pyx_t_14 = __pyx_v_idx;
-      if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_values.shape[0];
-      *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_14 * __pyx_v_values.strides[0]) )) = ((*((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_11 * __pyx_v_values.strides[0]) ))) / (*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_12 * __pyx_v_weights.strides[0]) ))));
+      if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_values.shape[0];
+      __pyx_t_11 = __pyx_v_idx;
+      if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_weights.shape[0];
+      __pyx_t_13 = __pyx_v_idx;
+      if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_values.shape[0];
+      *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_13 * __pyx_v_values.strides[0]) )) = ((*((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_12 * __pyx_v_values.strides[0]) ))) / (*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_11 * __pyx_v_weights.strides[0]) ))));
 
-      /* "rsatoolbox/cengine/similarity.pyx":108
+      /* "rsatoolbox/cengine/similarity.pyx":121
  *                         weights[idx] += 1
  *     for idx in range(n_rdm + n):
  *         if weights[idx] > 0:             # <<<<<<<<<<<<<<
  *             values[idx] = values[idx] / weights[idx]
  *         else:
  */
-      goto __pyx_L26;
+      goto __pyx_L28;
     }
 
-    /* "rsatoolbox/cengine/similarity.pyx":111
+    /* "rsatoolbox/cengine/similarity.pyx":124
  *             values[idx] = values[idx] / weights[idx]
  *         else:
  *             values[idx] = NAN             # <<<<<<<<<<<<<<
@@ -5101,14 +5717,14 @@ __pyx_t_21.__pyx_n = 2;
  * 
  */
     /*else*/ {
-      __pyx_t_12 = __pyx_v_idx;
-      if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_values.shape[0];
-      *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_12 * __pyx_v_values.strides[0]) )) = NAN;
+      __pyx_t_11 = __pyx_v_idx;
+      if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_values.shape[0];
+      *((double *) ( /* dim=0 */ (__pyx_v_values.data + __pyx_t_11 * __pyx_v_values.strides[0]) )) = NAN;
     }
-    __pyx_L26:;
+    __pyx_L28:;
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":112
+  /* "rsatoolbox/cengine/similarity.pyx":125
  *         else:
  *             values[idx] = NAN
  *     return values             # <<<<<<<<<<<<<<
@@ -5135,6 +5751,8 @@ __pyx_t_21.__pyx_n = 2;
   __Pyx_XDECREF(__pyx_t_17);
   __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_t_19, 1);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_t_23, 1);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_t_24, 1);
   __pyx_r.data = NULL;
   __pyx_r.memview = NULL;
   __Pyx_AddTraceback("rsatoolbox.cengine.similarity.calc", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -5146,6 +5764,7 @@ __pyx_t_21.__pyx_n = 2;
   __pyx_L2:;
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_weights, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_values, 1);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_v_log_data, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_data, 1);
   __Pyx_TraceReturn(Py_None, 0);
   __Pyx_RefNannyFinishContext();
@@ -5417,7 +6036,7 @@ static PyObject *__pyx_pf_10rsatoolbox_7cengine_10similarity_calc(CYTHON_UNUSED 
   return __pyx_r;
 }
 
-/* "rsatoolbox/cengine/similarity.pyx":117
+/* "rsatoolbox/cengine/similarity.pyx":130
  * @cython.boundscheck(False)
  * @cython.cdivision(True)
  * cpdef (double, double) calc_one(             # <<<<<<<<<<<<<<
@@ -5437,8 +6056,6 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   double __pyx_v_prior_lambda = ((double)1.0);
   double __pyx_v_prior_weight = ((double)0.1);
   int __pyx_v_weighting = ((int)1);
-  __Pyx_memviewslice __pyx_v_vec_i = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_vec_j = { 0, 0, { 0 }, { 0 }, { 0 } };
   double __pyx_v_weight;
   double __pyx_v_sim;
   double __pyx_v_weight_sum;
@@ -5448,6 +6065,8 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   int __pyx_v_n_dim;
   double __pyx_v_prior_lambda_l;
   double __pyx_v_prior_weight_l;
+  __Pyx_memviewslice __pyx_v_log_data_i = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_log_data_j = { 0, 0, { 0 }, { 0 }, { 0 } };
   __pyx_ctuple_double__and_double __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -5468,16 +6087,18 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   int __pyx_t_15;
   int __pyx_t_16;
   __Pyx_memviewslice __pyx_t_17 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_ctuple_double__and_double __pyx_t_18;
-  struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_similarity __pyx_t_19;
+  __Pyx_memviewslice __pyx_t_18 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_ctuple_double__and_double __pyx_t_19;
   double __pyx_t_20;
   double __pyx_t_21;
+  __Pyx_memviewslice __pyx_t_22 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_t_23 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_TraceFrameInit(__pyx_codeobj__5)
   __Pyx_RefNannySetupContext("calc_one", 0);
-  __Pyx_TraceCall("calc_one", __pyx_f[0], 117, 0, __PYX_ERR(0, 117, __pyx_L1_error));
+  __Pyx_TraceCall("calc_one", __pyx_f[0], 130, 0, __PYX_ERR(0, 130, __pyx_L1_error));
   if (__pyx_optional_args) {
     if (__pyx_optional_args->__pyx_n > 0) {
       __pyx_v_noise = __pyx_optional_args->noise;
@@ -5495,7 +6116,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   __PYX_INC_MEMVIEW(&__pyx_v_data_i, 1);
   __PYX_INC_MEMVIEW(&__pyx_v_data_j, 1);
 
-  /* "rsatoolbox/cengine/similarity.pyx":131
+  /* "rsatoolbox/cengine/similarity.pyx":144
  *         double weight, sim, weight_sum, value
  *         int i, j
  *         int n_dim = data_i.shape[1]             # <<<<<<<<<<<<<<
@@ -5504,27 +6125,27 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_n_dim = (__pyx_v_data_i.shape[1]);
 
-  /* "rsatoolbox/cengine/similarity.pyx":132
+  /* "rsatoolbox/cengine/similarity.pyx":145
  *         int i, j
  *         int n_dim = data_i.shape[1]
  *         double prior_lambda_l = prior_lambda * prior_weight             # <<<<<<<<<<<<<<
  *         double prior_weight_l = 1 + prior_weight
- *     if (method_idx > 4) or (method_idx < 1):
+ *         double [:, :] log_data_i
  */
   __pyx_v_prior_lambda_l = (__pyx_v_prior_lambda * __pyx_v_prior_weight);
 
-  /* "rsatoolbox/cengine/similarity.pyx":133
+  /* "rsatoolbox/cengine/similarity.pyx":146
  *         int n_dim = data_i.shape[1]
  *         double prior_lambda_l = prior_lambda * prior_weight
  *         double prior_weight_l = 1 + prior_weight             # <<<<<<<<<<<<<<
- *     if (method_idx > 4) or (method_idx < 1):
- *         raise ValueError('dissimilarity method not recognized!')
+ *         double [:, :] log_data_i
+ *         double [:, :] log_data_j
  */
   __pyx_v_prior_weight_l = (1.0 + __pyx_v_prior_weight);
 
-  /* "rsatoolbox/cengine/similarity.pyx":134
- *         double prior_lambda_l = prior_lambda * prior_weight
- *         double prior_weight_l = 1 + prior_weight
+  /* "rsatoolbox/cengine/similarity.pyx":149
+ *         double [:, :] log_data_i
+ *         double [:, :] log_data_j
  *     if (method_idx > 4) or (method_idx < 1):             # <<<<<<<<<<<<<<
  *         raise ValueError('dissimilarity method not recognized!')
  *     # precompute stuff for poisson KL
@@ -5540,54 +6161,66 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   __pyx_L4_bool_binop_done:;
   if (unlikely(__pyx_t_1)) {
 
-    /* "rsatoolbox/cengine/similarity.pyx":135
- *         double prior_weight_l = 1 + prior_weight
+    /* "rsatoolbox/cengine/similarity.pyx":150
+ *         double [:, :] log_data_j
  *     if (method_idx > 4) or (method_idx < 1):
  *         raise ValueError('dissimilarity method not recognized!')             # <<<<<<<<<<<<<<
  *     # precompute stuff for poisson KL
  *     if method_idx == 4:
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 135, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 135, __pyx_L1_error)
+    __PYX_ERR(0, 150, __pyx_L1_error)
 
-    /* "rsatoolbox/cengine/similarity.pyx":134
- *         double prior_lambda_l = prior_lambda * prior_weight
- *         double prior_weight_l = 1 + prior_weight
+    /* "rsatoolbox/cengine/similarity.pyx":149
+ *         double [:, :] log_data_i
+ *         double [:, :] log_data_j
  *     if (method_idx > 4) or (method_idx < 1):             # <<<<<<<<<<<<<<
  *         raise ValueError('dissimilarity method not recognized!')
  *     # precompute stuff for poisson KL
  */
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":137
+  /* "rsatoolbox/cengine/similarity.pyx":152
  *         raise ValueError('dissimilarity method not recognized!')
  *     # precompute stuff for poisson KL
  *     if method_idx == 4:             # <<<<<<<<<<<<<<
  *         data_i = data_i.copy()
- *         for i in range(data_i.shape[0]):
+ *         log_data_i = data_i.copy()
  */
   __pyx_t_1 = (__pyx_v_method_idx == 4);
   if (__pyx_t_1) {
 
-    /* "rsatoolbox/cengine/similarity.pyx":138
+    /* "rsatoolbox/cengine/similarity.pyx":153
  *     # precompute stuff for poisson KL
  *     if method_idx == 4:
  *         data_i = data_i.copy()             # <<<<<<<<<<<<<<
+ *         log_data_i = data_i.copy()
  *         for i in range(data_i.shape[0]):
- *             for j in range(n_dim):
  */
-    __pyx_t_4 = __pyx_memoryview_copy_slice_d_dc_double_c(__pyx_v_data_i); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 138, __pyx_L1_error)
+    __pyx_t_4 = __pyx_memoryview_copy_slice_d_dc_double_c(__pyx_v_data_i); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 153, __pyx_L1_error)
     __PYX_XCLEAR_MEMVIEW(&__pyx_v_data_i, 1);
     __pyx_v_data_i = __pyx_t_4;
     __pyx_t_4.memview = NULL;
     __pyx_t_4.data = NULL;
 
-    /* "rsatoolbox/cengine/similarity.pyx":139
+    /* "rsatoolbox/cengine/similarity.pyx":154
  *     if method_idx == 4:
  *         data_i = data_i.copy()
+ *         log_data_i = data_i.copy()             # <<<<<<<<<<<<<<
+ *         for i in range(data_i.shape[0]):
+ *             for j in range(n_dim):
+ */
+    __pyx_t_4 = __pyx_memoryview_copy_slice_d_dc_double_c(__pyx_v_data_i); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 154, __pyx_L1_error)
+    __pyx_v_log_data_i = __pyx_t_4;
+    __pyx_t_4.memview = NULL;
+    __pyx_t_4.data = NULL;
+
+    /* "rsatoolbox/cengine/similarity.pyx":155
+ *         data_i = data_i.copy()
+ *         log_data_i = data_i.copy()
  *         for i in range(data_i.shape[0]):             # <<<<<<<<<<<<<<
  *             for j in range(n_dim):
  *                 data_i[i, j] = (data_i[i, j] + prior_lambda_l) / prior_weight_l
@@ -5597,24 +6230,24 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
       __pyx_v_i = __pyx_t_7;
 
-      /* "rsatoolbox/cengine/similarity.pyx":140
- *         data_i = data_i.copy()
+      /* "rsatoolbox/cengine/similarity.pyx":156
+ *         log_data_i = data_i.copy()
  *         for i in range(data_i.shape[0]):
  *             for j in range(n_dim):             # <<<<<<<<<<<<<<
  *                 data_i[i, j] = (data_i[i, j] + prior_lambda_l) / prior_weight_l
- *         data_j = data_j.copy()
+ *                 log_data_i[i, j] = log(data_i[i, j])
  */
       __pyx_t_8 = __pyx_v_n_dim;
       __pyx_t_9 = __pyx_t_8;
       for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
         __pyx_v_j = __pyx_t_10;
 
-        /* "rsatoolbox/cengine/similarity.pyx":141
+        /* "rsatoolbox/cengine/similarity.pyx":157
  *         for i in range(data_i.shape[0]):
  *             for j in range(n_dim):
  *                 data_i[i, j] = (data_i[i, j] + prior_lambda_l) / prior_weight_l             # <<<<<<<<<<<<<<
+ *                 log_data_i[i, j] = log(data_i[i, j])
  *         data_j = data_j.copy()
- *         for i in range(data_j.shape[0]):
  */
         __pyx_t_11 = __pyx_v_i;
         __pyx_t_12 = __pyx_v_j;
@@ -5625,25 +6258,54 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
         if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_data_i.shape[0];
         if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_data_i.shape[1];
         *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data_i.data + __pyx_t_13 * __pyx_v_data_i.strides[0]) ) + __pyx_t_14 * __pyx_v_data_i.strides[1]) )) = (((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data_i.data + __pyx_t_11 * __pyx_v_data_i.strides[0]) ) + __pyx_t_12 * __pyx_v_data_i.strides[1]) ))) + __pyx_v_prior_lambda_l) / __pyx_v_prior_weight_l);
+
+        /* "rsatoolbox/cengine/similarity.pyx":158
+ *             for j in range(n_dim):
+ *                 data_i[i, j] = (data_i[i, j] + prior_lambda_l) / prior_weight_l
+ *                 log_data_i[i, j] = log(data_i[i, j])             # <<<<<<<<<<<<<<
+ *         data_j = data_j.copy()
+ *         log_data_j = data_j.copy()
+ */
+        __pyx_t_12 = __pyx_v_i;
+        __pyx_t_11 = __pyx_v_j;
+        if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_data_i.shape[0];
+        if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_data_i.shape[1];
+        __pyx_t_14 = __pyx_v_i;
+        __pyx_t_13 = __pyx_v_j;
+        if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_log_data_i.shape[0];
+        if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_log_data_i.shape[1];
+        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_log_data_i.data + __pyx_t_14 * __pyx_v_log_data_i.strides[0]) ) + __pyx_t_13 * __pyx_v_log_data_i.strides[1]) )) = log((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data_i.data + __pyx_t_12 * __pyx_v_data_i.strides[0]) ) + __pyx_t_11 * __pyx_v_data_i.strides[1]) ))));
       }
     }
 
-    /* "rsatoolbox/cengine/similarity.pyx":142
- *             for j in range(n_dim):
+    /* "rsatoolbox/cengine/similarity.pyx":159
  *                 data_i[i, j] = (data_i[i, j] + prior_lambda_l) / prior_weight_l
+ *                 log_data_i[i, j] = log(data_i[i, j])
  *         data_j = data_j.copy()             # <<<<<<<<<<<<<<
+ *         log_data_j = data_j.copy()
  *         for i in range(data_j.shape[0]):
- *             for j in range(n_dim):
  */
-    __pyx_t_4 = __pyx_memoryview_copy_slice_d_dc_double_c(__pyx_v_data_j); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 142, __pyx_L1_error)
+    __pyx_t_4 = __pyx_memoryview_copy_slice_d_dc_double_c(__pyx_v_data_j); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 159, __pyx_L1_error)
     __PYX_XCLEAR_MEMVIEW(&__pyx_v_data_j, 1);
     __pyx_v_data_j = __pyx_t_4;
     __pyx_t_4.memview = NULL;
     __pyx_t_4.data = NULL;
 
-    /* "rsatoolbox/cengine/similarity.pyx":143
- *                 data_i[i, j] = (data_i[i, j] + prior_lambda_l) / prior_weight_l
+    /* "rsatoolbox/cengine/similarity.pyx":160
+ *                 log_data_i[i, j] = log(data_i[i, j])
  *         data_j = data_j.copy()
+ *         log_data_j = data_j.copy()             # <<<<<<<<<<<<<<
+ *         for i in range(data_j.shape[0]):
+ *             for j in range(n_dim):
+ */
+    __pyx_t_4 = __pyx_memoryview_copy_slice_d_dc_double_c(__pyx_v_data_j); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 160, __pyx_L1_error)
+    __pyx_v_log_data_j = __pyx_t_4;
+    __pyx_t_4.memview = NULL;
+    __pyx_t_4.data = NULL;
+
+    /* "rsatoolbox/cengine/similarity.pyx":161
+ *         data_j = data_j.copy()
+ *         log_data_j = data_j.copy()
  *         for i in range(data_j.shape[0]):             # <<<<<<<<<<<<<<
  *             for j in range(n_dim):
  *                 data_j[i, j] = (data_j[i, j] + prior_lambda_l) / prior_weight_l
@@ -5653,24 +6315,41 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
       __pyx_v_i = __pyx_t_7;
 
-      /* "rsatoolbox/cengine/similarity.pyx":144
- *         data_j = data_j.copy()
+      /* "rsatoolbox/cengine/similarity.pyx":162
+ *         log_data_j = data_j.copy()
  *         for i in range(data_j.shape[0]):
  *             for j in range(n_dim):             # <<<<<<<<<<<<<<
  *                 data_j[i, j] = (data_j[i, j] + prior_lambda_l) / prior_weight_l
- *     for i in range(n_i):
+ *                 log_data_j[i, j] = log(data_j[i, j])
  */
       __pyx_t_8 = __pyx_v_n_dim;
       __pyx_t_9 = __pyx_t_8;
       for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
         __pyx_v_j = __pyx_t_10;
 
-        /* "rsatoolbox/cengine/similarity.pyx":145
+        /* "rsatoolbox/cengine/similarity.pyx":163
  *         for i in range(data_j.shape[0]):
  *             for j in range(n_dim):
  *                 data_j[i, j] = (data_j[i, j] + prior_lambda_l) / prior_weight_l             # <<<<<<<<<<<<<<
+ *                 log_data_j[i, j] = log(data_j[i, j])
+ *     weight_sum = 0
+ */
+        __pyx_t_11 = __pyx_v_i;
+        __pyx_t_12 = __pyx_v_j;
+        if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_data_j.shape[0];
+        if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_data_j.shape[1];
+        __pyx_t_13 = __pyx_v_i;
+        __pyx_t_14 = __pyx_v_j;
+        if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_data_j.shape[0];
+        if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_data_j.shape[1];
+        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data_j.data + __pyx_t_13 * __pyx_v_data_j.strides[0]) ) + __pyx_t_14 * __pyx_v_data_j.strides[1]) )) = (((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data_j.data + __pyx_t_11 * __pyx_v_data_j.strides[0]) ) + __pyx_t_12 * __pyx_v_data_j.strides[1]) ))) + __pyx_v_prior_lambda_l) / __pyx_v_prior_weight_l);
+
+        /* "rsatoolbox/cengine/similarity.pyx":164
+ *             for j in range(n_dim):
+ *                 data_j[i, j] = (data_j[i, j] + prior_lambda_l) / prior_weight_l
+ *                 log_data_j[i, j] = log(data_j[i, j])             # <<<<<<<<<<<<<<
+ *     weight_sum = 0
  *     for i in range(n_i):
- *         for j in range(n_j):
  */
         __pyx_t_12 = __pyx_v_i;
         __pyx_t_11 = __pyx_v_j;
@@ -5678,24 +6357,33 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
         if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_data_j.shape[1];
         __pyx_t_14 = __pyx_v_i;
         __pyx_t_13 = __pyx_v_j;
-        if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_data_j.shape[0];
-        if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_data_j.shape[1];
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data_j.data + __pyx_t_14 * __pyx_v_data_j.strides[0]) ) + __pyx_t_13 * __pyx_v_data_j.strides[1]) )) = (((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data_j.data + __pyx_t_12 * __pyx_v_data_j.strides[0]) ) + __pyx_t_11 * __pyx_v_data_j.strides[1]) ))) + __pyx_v_prior_lambda_l) / __pyx_v_prior_weight_l);
+        if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_log_data_j.shape[0];
+        if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_log_data_j.shape[1];
+        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_log_data_j.data + __pyx_t_14 * __pyx_v_log_data_j.strides[0]) ) + __pyx_t_13 * __pyx_v_log_data_j.strides[1]) )) = log((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_data_j.data + __pyx_t_12 * __pyx_v_data_j.strides[0]) ) + __pyx_t_11 * __pyx_v_data_j.strides[1]) ))));
       }
     }
 
-    /* "rsatoolbox/cengine/similarity.pyx":137
+    /* "rsatoolbox/cengine/similarity.pyx":152
  *         raise ValueError('dissimilarity method not recognized!')
  *     # precompute stuff for poisson KL
  *     if method_idx == 4:             # <<<<<<<<<<<<<<
  *         data_i = data_i.copy()
- *         for i in range(data_i.shape[0]):
+ *         log_data_i = data_i.copy()
  */
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":146
- *             for j in range(n_dim):
+  /* "rsatoolbox/cengine/similarity.pyx":165
  *                 data_j[i, j] = (data_j[i, j] + prior_lambda_l) / prior_weight_l
+ *                 log_data_j[i, j] = log(data_j[i, j])
+ *     weight_sum = 0             # <<<<<<<<<<<<<<
+ *     for i in range(n_i):
+ *         for j in range(n_j):
+ */
+  __pyx_v_weight_sum = 0.0;
+
+  /* "rsatoolbox/cengine/similarity.pyx":166
+ *                 log_data_j[i, j] = log(data_j[i, j])
+ *     weight_sum = 0
  *     for i in range(n_i):             # <<<<<<<<<<<<<<
  *         for j in range(n_j):
  *             if not cv_desc_i[i] == cv_desc_j[j]:
@@ -5705,24 +6393,24 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_i = __pyx_t_9;
 
-    /* "rsatoolbox/cengine/similarity.pyx":147
- *                 data_j[i, j] = (data_j[i, j] + prior_lambda_l) / prior_weight_l
+    /* "rsatoolbox/cengine/similarity.pyx":167
+ *     weight_sum = 0
  *     for i in range(n_i):
  *         for j in range(n_j):             # <<<<<<<<<<<<<<
  *             if not cv_desc_i[i] == cv_desc_j[j]:
- *                 vec_i = data_i[i]
+ *                 if method_idx == 1: # method == 'euclidean':
  */
     __pyx_t_10 = __pyx_v_n_j;
     __pyx_t_15 = __pyx_t_10;
     for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
       __pyx_v_j = __pyx_t_16;
 
-      /* "rsatoolbox/cengine/similarity.pyx":148
+      /* "rsatoolbox/cengine/similarity.pyx":168
  *     for i in range(n_i):
  *         for j in range(n_j):
  *             if not cv_desc_i[i] == cv_desc_j[j]:             # <<<<<<<<<<<<<<
- *                 vec_i = data_i[i]
- *                 vec_j = data_j[j]
+ *                 if method_idx == 1: # method == 'euclidean':
+ *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
  */
       __pyx_t_11 = __pyx_v_i;
       if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_cv_desc_i.shape[0];
@@ -5731,17 +6419,27 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       __pyx_t_1 = (!((*((long *) ( /* dim=0 */ (__pyx_v_cv_desc_i.data + __pyx_t_11 * __pyx_v_cv_desc_i.strides[0]) ))) == (*((long *) ( /* dim=0 */ (__pyx_v_cv_desc_j.data + __pyx_t_12 * __pyx_v_cv_desc_j.strides[0]) )))));
       if (__pyx_t_1) {
 
-        /* "rsatoolbox/cengine/similarity.pyx":149
+        /* "rsatoolbox/cengine/similarity.pyx":169
  *         for j in range(n_j):
  *             if not cv_desc_i[i] == cv_desc_j[j]:
- *                 vec_i = data_i[i]             # <<<<<<<<<<<<<<
- *                 vec_j = data_j[j]
- *                 sim, weight = similarity(
+ *                 if method_idx == 1: # method == 'euclidean':             # <<<<<<<<<<<<<<
+ *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
+ *                 elif method_idx == 2: # method == 'correlation':
  */
-        __pyx_t_17.data = __pyx_v_data_i.data;
-        __pyx_t_17.memview = __pyx_v_data_i.memview;
-        __PYX_INC_MEMVIEW(&__pyx_t_17, 1);
-        {
+        switch (__pyx_v_method_idx) {
+          case 1:
+
+          /* "rsatoolbox/cengine/similarity.pyx":170
+ *             if not cv_desc_i[i] == cv_desc_j[j]:
+ *                 if method_idx == 1: # method == 'euclidean':
+ *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)             # <<<<<<<<<<<<<<
+ *                 elif method_idx == 2: # method == 'correlation':
+ *                     sim, weight = correlation(data_i[i], data_j[j], n_dim)
+ */
+          __pyx_t_17.data = __pyx_v_data_i.data;
+          __pyx_t_17.memview = __pyx_v_data_i.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_17, 1);
+          {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
         Py_ssize_t __pyx_tmp_shape = __pyx_v_data_i.shape[0];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_data_i.strides[0];
@@ -5754,22 +6452,69 @@ __pyx_t_17.shape[0] = __pyx_v_data_i.shape[1];
 __pyx_t_17.strides[0] = __pyx_v_data_i.strides[1];
     __pyx_t_17.suboffsets[0] = -1;
 
-__PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_i, 1);
-        __pyx_v_vec_i = __pyx_t_17;
-        __pyx_t_17.memview = NULL;
-        __pyx_t_17.data = NULL;
+__pyx_t_18.data = __pyx_v_data_j.data;
+          __pyx_t_18.memview = __pyx_v_data_j.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data_j.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data_j.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
 
-        /* "rsatoolbox/cengine/similarity.pyx":150
+__pyx_t_18.shape[0] = __pyx_v_data_j.shape[1];
+__pyx_t_18.strides[0] = __pyx_v_data_j.strides[1];
+    __pyx_t_18.suboffsets[0] = -1;
+
+__pyx_t_19 = __pyx_f_10rsatoolbox_7cengine_10similarity_euclid(__pyx_t_17, __pyx_t_18, __pyx_v_n_dim);
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_17, 1);
+          __pyx_t_17.memview = NULL; __pyx_t_17.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+          __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
+          __pyx_t_20 = __pyx_t_19.f0;
+          __pyx_t_21 = __pyx_t_19.f1;
+          __pyx_v_sim = __pyx_t_20;
+          __pyx_v_weight = __pyx_t_21;
+
+          /* "rsatoolbox/cengine/similarity.pyx":169
+ *         for j in range(n_j):
  *             if not cv_desc_i[i] == cv_desc_j[j]:
- *                 vec_i = data_i[i]
- *                 vec_j = data_j[j]             # <<<<<<<<<<<<<<
- *                 sim, weight = similarity(
- *                     vec_i, vec_j,
+ *                 if method_idx == 1: # method == 'euclidean':             # <<<<<<<<<<<<<<
+ *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
+ *                 elif method_idx == 2: # method == 'correlation':
  */
-        __pyx_t_17.data = __pyx_v_data_j.data;
-        __pyx_t_17.memview = __pyx_v_data_j.memview;
-        __PYX_INC_MEMVIEW(&__pyx_t_17, 1);
-        {
+          break;
+          case 2:
+
+          /* "rsatoolbox/cengine/similarity.pyx":172
+ *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
+ *                 elif method_idx == 2: # method == 'correlation':
+ *                     sim, weight = correlation(data_i[i], data_j[j], n_dim)             # <<<<<<<<<<<<<<
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                     if noise is None:
+ */
+          __pyx_t_18.data = __pyx_v_data_i.data;
+          __pyx_t_18.memview = __pyx_v_data_i.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data_i.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data_i.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_18.shape[0] = __pyx_v_data_i.shape[1];
+__pyx_t_18.strides[0] = __pyx_v_data_i.strides[1];
+    __pyx_t_18.suboffsets[0] = -1;
+
+__pyx_t_17.data = __pyx_v_data_j.data;
+          __pyx_t_17.memview = __pyx_v_data_j.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_17, 1);
+          {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
         Py_ssize_t __pyx_tmp_shape = __pyx_v_data_j.shape[0];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_data_j.strides[0];
@@ -5782,30 +6527,263 @@ __pyx_t_17.shape[0] = __pyx_v_data_j.shape[1];
 __pyx_t_17.strides[0] = __pyx_v_data_j.strides[1];
     __pyx_t_17.suboffsets[0] = -1;
 
-__PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
-        __pyx_v_vec_j = __pyx_t_17;
-        __pyx_t_17.memview = NULL;
-        __pyx_t_17.data = NULL;
+__pyx_t_19 = __pyx_f_10rsatoolbox_7cengine_10similarity_correlation(__pyx_t_18, __pyx_t_17, __pyx_v_n_dim);
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+          __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_17, 1);
+          __pyx_t_17.memview = NULL; __pyx_t_17.data = NULL;
+          __pyx_t_21 = __pyx_t_19.f0;
+          __pyx_t_20 = __pyx_t_19.f1;
+          __pyx_v_sim = __pyx_t_21;
+          __pyx_v_weight = __pyx_t_20;
 
-        /* "rsatoolbox/cengine/similarity.pyx":151
- *                 vec_i = data_i[i]
- *                 vec_j = data_j[j]
- *                 sim, weight = similarity(             # <<<<<<<<<<<<<<
- *                     vec_i, vec_j,
- *                     method_idx,
+          /* "rsatoolbox/cengine/similarity.pyx":171
+ *                 if method_idx == 1: # method == 'euclidean':
+ *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
+ *                 elif method_idx == 2: # method == 'correlation':             # <<<<<<<<<<<<<<
+ *                     sim, weight = correlation(data_i[i], data_j[j], n_dim)
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
  */
-        __pyx_t_19.__pyx_n = 2;
-        __pyx_t_19.prior_lambda = __pyx_v_prior_lambda;
-        __pyx_t_19.prior_weight = __pyx_v_prior_weight;
-        __pyx_t_18 = __pyx_f_10rsatoolbox_7cengine_10similarity_similarity(__pyx_v_vec_i, __pyx_v_vec_j, __pyx_v_method_idx, __pyx_v_n_dim, __pyx_v_noise, 0, &__pyx_t_19); 
-        __pyx_t_20 = __pyx_t_18.f0;
-        __pyx_t_21 = __pyx_t_18.f1;
-        __pyx_v_sim = __pyx_t_20;
-        __pyx_v_weight = __pyx_t_21;
+          break;
+          case 3:
 
-        /* "rsatoolbox/cengine/similarity.pyx":158
- *                     prior_lambda=prior_lambda,
- *                     prior_weight=prior_weight)
+          /* "rsatoolbox/cengine/similarity.pyx":174
+ *                     sim, weight = correlation(data_i[i], data_j[j], n_dim)
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                     if noise is None:             # <<<<<<<<<<<<<<
+ *                         sim, weight = euclid(data_i[i], data_j[j], n_dim)
+ *                     else:
+ */
+          __pyx_t_1 = (((PyObject *) __pyx_v_noise.memview) == Py_None);
+          if (__pyx_t_1) {
+
+            /* "rsatoolbox/cengine/similarity.pyx":175
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                     if noise is None:
+ *                         sim, weight = euclid(data_i[i], data_j[j], n_dim)             # <<<<<<<<<<<<<<
+ *                     else:
+ *                         sim = mahalanobis(data_i[i], data_j[j], n_dim, noise)
+ */
+            __pyx_t_17.data = __pyx_v_data_i.data;
+            __pyx_t_17.memview = __pyx_v_data_i.memview;
+            __PYX_INC_MEMVIEW(&__pyx_t_17, 1);
+            {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data_i.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data_i.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_17.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_17.shape[0] = __pyx_v_data_i.shape[1];
+__pyx_t_17.strides[0] = __pyx_v_data_i.strides[1];
+    __pyx_t_17.suboffsets[0] = -1;
+
+__pyx_t_18.data = __pyx_v_data_j.data;
+            __pyx_t_18.memview = __pyx_v_data_j.memview;
+            __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
+            {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data_j.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data_j.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_18.shape[0] = __pyx_v_data_j.shape[1];
+__pyx_t_18.strides[0] = __pyx_v_data_j.strides[1];
+    __pyx_t_18.suboffsets[0] = -1;
+
+__pyx_t_19 = __pyx_f_10rsatoolbox_7cengine_10similarity_euclid(__pyx_t_17, __pyx_t_18, __pyx_v_n_dim);
+            __PYX_XCLEAR_MEMVIEW(&__pyx_t_17, 1);
+            __pyx_t_17.memview = NULL; __pyx_t_17.data = NULL;
+            __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+            __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
+            __pyx_t_20 = __pyx_t_19.f0;
+            __pyx_t_21 = __pyx_t_19.f1;
+            __pyx_v_sim = __pyx_t_20;
+            __pyx_v_weight = __pyx_t_21;
+
+            /* "rsatoolbox/cengine/similarity.pyx":174
+ *                     sim, weight = correlation(data_i[i], data_j[j], n_dim)
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
+ *                     if noise is None:             # <<<<<<<<<<<<<<
+ *                         sim, weight = euclid(data_i[i], data_j[j], n_dim)
+ *                     else:
+ */
+            goto __pyx_L20;
+          }
+
+          /* "rsatoolbox/cengine/similarity.pyx":177
+ *                         sim, weight = euclid(data_i[i], data_j[j], n_dim)
+ *                     else:
+ *                         sim = mahalanobis(data_i[i], data_j[j], n_dim, noise)             # <<<<<<<<<<<<<<
+ *                         weight = <double> n_dim
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ */
+          /*else*/ {
+            __pyx_t_18.data = __pyx_v_data_i.data;
+            __pyx_t_18.memview = __pyx_v_data_i.memview;
+            __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
+            {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data_i.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data_i.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_18.shape[0] = __pyx_v_data_i.shape[1];
+__pyx_t_18.strides[0] = __pyx_v_data_i.strides[1];
+    __pyx_t_18.suboffsets[0] = -1;
+
+__pyx_t_17.data = __pyx_v_data_j.data;
+            __pyx_t_17.memview = __pyx_v_data_j.memview;
+            __PYX_INC_MEMVIEW(&__pyx_t_17, 1);
+            {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data_j.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data_j.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_17.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_17.shape[0] = __pyx_v_data_j.shape[1];
+__pyx_t_17.strides[0] = __pyx_v_data_j.strides[1];
+    __pyx_t_17.suboffsets[0] = -1;
+
+__pyx_v_sim = __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__pyx_t_18, __pyx_t_17, __pyx_v_n_dim, __pyx_v_noise);
+            __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+            __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
+            __PYX_XCLEAR_MEMVIEW(&__pyx_t_17, 1);
+            __pyx_t_17.memview = NULL; __pyx_t_17.data = NULL;
+
+            /* "rsatoolbox/cengine/similarity.pyx":178
+ *                     else:
+ *                         sim = mahalanobis(data_i[i], data_j[j], n_dim, noise)
+ *                         weight = <double> n_dim             # <<<<<<<<<<<<<<
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                     sim, weight = poisson_cv(data_i[i], data_j[j], log_data_i[i], log_data_j[j], n_dim)
+ */
+            __pyx_v_weight = ((double)__pyx_v_n_dim);
+          }
+          __pyx_L20:;
+
+          /* "rsatoolbox/cengine/similarity.pyx":173
+ *                 elif method_idx == 2: # method == 'correlation':
+ *                     sim, weight = correlation(data_i[i], data_j[j], n_dim)
+ *                 elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:             # <<<<<<<<<<<<<<
+ *                     if noise is None:
+ *                         sim, weight = euclid(data_i[i], data_j[j], n_dim)
+ */
+          break;
+          case 4:
+
+          /* "rsatoolbox/cengine/similarity.pyx":180
+ *                         weight = <double> n_dim
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                     sim, weight = poisson_cv(data_i[i], data_j[j], log_data_i[i], log_data_j[j], n_dim)             # <<<<<<<<<<<<<<
+ *                 if weight > 0:
+ *                     if weighting == 1: #'number':
+ */
+          __pyx_t_17.data = __pyx_v_data_i.data;
+          __pyx_t_17.memview = __pyx_v_data_i.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_17, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data_i.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data_i.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_17.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_17.shape[0] = __pyx_v_data_i.shape[1];
+__pyx_t_17.strides[0] = __pyx_v_data_i.strides[1];
+    __pyx_t_17.suboffsets[0] = -1;
+
+__pyx_t_18.data = __pyx_v_data_j.data;
+          __pyx_t_18.memview = __pyx_v_data_j.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_18, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_data_j.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_data_j.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_18.shape[0] = __pyx_v_data_j.shape[1];
+__pyx_t_18.strides[0] = __pyx_v_data_j.strides[1];
+    __pyx_t_18.suboffsets[0] = -1;
+
+if (unlikely(!__pyx_v_log_data_i.memview)) { __Pyx_RaiseUnboundLocalError("log_data_i"); __PYX_ERR(0, 180, __pyx_L1_error) }
+          __pyx_t_22.data = __pyx_v_log_data_i.data;
+          __pyx_t_22.memview = __pyx_v_log_data_i.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_22, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_log_data_i.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_log_data_i.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_22.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_22.shape[0] = __pyx_v_log_data_i.shape[1];
+__pyx_t_22.strides[0] = __pyx_v_log_data_i.strides[1];
+    __pyx_t_22.suboffsets[0] = -1;
+
+if (unlikely(!__pyx_v_log_data_j.memview)) { __Pyx_RaiseUnboundLocalError("log_data_j"); __PYX_ERR(0, 180, __pyx_L1_error) }
+          __pyx_t_23.data = __pyx_v_log_data_j.data;
+          __pyx_t_23.memview = __pyx_v_log_data_j.memview;
+          __PYX_INC_MEMVIEW(&__pyx_t_23, 1);
+          {
+    Py_ssize_t __pyx_tmp_idx = __pyx_v_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_log_data_j.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_log_data_j.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
+        __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__pyx_t_23.shape[0] = __pyx_v_log_data_j.shape[1];
+__pyx_t_23.strides[0] = __pyx_v_log_data_j.strides[1];
+    __pyx_t_23.suboffsets[0] = -1;
+
+__pyx_t_19 = __pyx_f_10rsatoolbox_7cengine_10similarity_poisson_cv(__pyx_t_17, __pyx_t_18, __pyx_t_22, __pyx_t_23, __pyx_v_n_dim);
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_17, 1);
+          __pyx_t_17.memview = NULL; __pyx_t_17.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+          __pyx_t_18.memview = NULL; __pyx_t_18.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_22, 1);
+          __pyx_t_22.memview = NULL; __pyx_t_22.data = NULL;
+          __PYX_XCLEAR_MEMVIEW(&__pyx_t_23, 1);
+          __pyx_t_23.memview = NULL; __pyx_t_23.data = NULL;
+          __pyx_t_21 = __pyx_t_19.f0;
+          __pyx_t_20 = __pyx_t_19.f1;
+          __pyx_v_sim = __pyx_t_21;
+          __pyx_v_weight = __pyx_t_20;
+
+          /* "rsatoolbox/cengine/similarity.pyx":179
+ *                         sim = mahalanobis(data_i[i], data_j[j], n_dim, noise)
+ *                         weight = <double> n_dim
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:             # <<<<<<<<<<<<<<
+ *                     sim, weight = poisson_cv(data_i[i], data_j[j], log_data_i[i], log_data_j[j], n_dim)
+ *                 if weight > 0:
+ */
+          break;
+          default: break;
+        }
+
+        /* "rsatoolbox/cengine/similarity.pyx":181
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                     sim, weight = poisson_cv(data_i[i], data_j[j], log_data_i[i], log_data_j[j], n_dim)
  *                 if weight > 0:             # <<<<<<<<<<<<<<
  *                     if weighting == 1: #'number':
  *                         value += sim
@@ -5813,8 +6791,8 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
         __pyx_t_1 = (__pyx_v_weight > 0.0);
         if (__pyx_t_1) {
 
-          /* "rsatoolbox/cengine/similarity.pyx":159
- *                     prior_weight=prior_weight)
+          /* "rsatoolbox/cengine/similarity.pyx":182
+ *                     sim, weight = poisson_cv(data_i[i], data_j[j], log_data_i[i], log_data_j[j], n_dim)
  *                 if weight > 0:
  *                     if weighting == 1: #'number':             # <<<<<<<<<<<<<<
  *                         value += sim
@@ -5823,7 +6801,7 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
           switch (__pyx_v_weighting) {
             case 1:
 
-            /* "rsatoolbox/cengine/similarity.pyx":160
+            /* "rsatoolbox/cengine/similarity.pyx":183
  *                 if weight > 0:
  *                     if weighting == 1: #'number':
  *                         value += sim             # <<<<<<<<<<<<<<
@@ -5832,7 +6810,7 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
  */
             __pyx_v_value = (__pyx_v_value + __pyx_v_sim);
 
-            /* "rsatoolbox/cengine/similarity.pyx":161
+            /* "rsatoolbox/cengine/similarity.pyx":184
  *                     if weighting == 1: #'number':
  *                         value += sim
  *                         weight_sum += weight             # <<<<<<<<<<<<<<
@@ -5841,8 +6819,8 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
  */
             __pyx_v_weight_sum = (__pyx_v_weight_sum + __pyx_v_weight);
 
-            /* "rsatoolbox/cengine/similarity.pyx":159
- *                     prior_weight=prior_weight)
+            /* "rsatoolbox/cengine/similarity.pyx":182
+ *                     sim, weight = poisson_cv(data_i[i], data_j[j], log_data_i[i], log_data_j[j], n_dim)
  *                 if weight > 0:
  *                     if weighting == 1: #'number':             # <<<<<<<<<<<<<<
  *                         value += sim
@@ -5851,7 +6829,7 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
             break;
             case 0:
 
-            /* "rsatoolbox/cengine/similarity.pyx":163
+            /* "rsatoolbox/cengine/similarity.pyx":186
  *                         weight_sum += weight
  *                     elif weighting == 0: #'equal':
  *                         value += sim / weight             # <<<<<<<<<<<<<<
@@ -5860,7 +6838,7 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
  */
             __pyx_v_value = (__pyx_v_value + (__pyx_v_sim / __pyx_v_weight));
 
-            /* "rsatoolbox/cengine/similarity.pyx":164
+            /* "rsatoolbox/cengine/similarity.pyx":187
  *                     elif weighting == 0: #'equal':
  *                         value += sim / weight
  *                         weight_sum += 1             # <<<<<<<<<<<<<<
@@ -5869,7 +6847,7 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
  */
             __pyx_v_weight_sum = (__pyx_v_weight_sum + 1.0);
 
-            /* "rsatoolbox/cengine/similarity.pyx":162
+            /* "rsatoolbox/cengine/similarity.pyx":185
  *                         value += sim
  *                         weight_sum += weight
  *                     elif weighting == 0: #'equal':             # <<<<<<<<<<<<<<
@@ -5880,27 +6858,27 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
             default: break;
           }
 
-          /* "rsatoolbox/cengine/similarity.pyx":158
- *                     prior_lambda=prior_lambda,
- *                     prior_weight=prior_weight)
+          /* "rsatoolbox/cengine/similarity.pyx":181
+ *                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *                     sim, weight = poisson_cv(data_i[i], data_j[j], log_data_i[i], log_data_j[j], n_dim)
  *                 if weight > 0:             # <<<<<<<<<<<<<<
  *                     if weighting == 1: #'number':
  *                         value += sim
  */
         }
 
-        /* "rsatoolbox/cengine/similarity.pyx":148
+        /* "rsatoolbox/cengine/similarity.pyx":168
  *     for i in range(n_i):
  *         for j in range(n_j):
  *             if not cv_desc_i[i] == cv_desc_j[j]:             # <<<<<<<<<<<<<<
- *                 vec_i = data_i[i]
- *                 vec_j = data_j[j]
+ *                 if method_idx == 1: # method == 'euclidean':
+ *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
  */
       }
     }
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":165
+  /* "rsatoolbox/cengine/similarity.pyx":188
  *                         value += sim / weight
  *                         weight_sum += 1
  *     if weight_sum > 0:             # <<<<<<<<<<<<<<
@@ -5910,7 +6888,7 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
   __pyx_t_1 = (__pyx_v_weight_sum > 0.0);
   if (__pyx_t_1) {
 
-    /* "rsatoolbox/cengine/similarity.pyx":166
+    /* "rsatoolbox/cengine/similarity.pyx":189
  *                         weight_sum += 1
  *     if weight_sum > 0:
  *         value = value / weight_sum             # <<<<<<<<<<<<<<
@@ -5919,17 +6897,17 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
  */
     __pyx_v_value = (__pyx_v_value / __pyx_v_weight_sum);
 
-    /* "rsatoolbox/cengine/similarity.pyx":165
+    /* "rsatoolbox/cengine/similarity.pyx":188
  *                         value += sim / weight
  *                         weight_sum += 1
  *     if weight_sum > 0:             # <<<<<<<<<<<<<<
  *         value = value / weight_sum
  *     else:
  */
-    goto __pyx_L21;
+    goto __pyx_L22;
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":168
+  /* "rsatoolbox/cengine/similarity.pyx":191
  *         value = value / weight_sum
  *     else:
  *         value = NAN             # <<<<<<<<<<<<<<
@@ -5939,21 +6917,21 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
   /*else*/ {
     __pyx_v_value = NAN;
   }
-  __pyx_L21:;
+  __pyx_L22:;
 
-  /* "rsatoolbox/cengine/similarity.pyx":169
+  /* "rsatoolbox/cengine/similarity.pyx":192
  *     else:
  *         value = NAN
  *     return value, weight_sum             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_18.f0 = __pyx_v_value;
-  __pyx_t_18.f1 = __pyx_v_weight_sum;
-  __pyx_r = __pyx_t_18;
+  __pyx_t_19.f0 = __pyx_v_value;
+  __pyx_t_19.f1 = __pyx_v_weight_sum;
+  __pyx_r = __pyx_t_19;
   goto __pyx_L0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":117
+  /* "rsatoolbox/cengine/similarity.pyx":130
  * @cython.boundscheck(False)
  * @cython.cdivision(True)
  * cpdef (double, double) calc_one(             # <<<<<<<<<<<<<<
@@ -5966,11 +6944,14 @@ __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
   __Pyx_XDECREF(__pyx_t_3);
   __PYX_XCLEAR_MEMVIEW(&__pyx_t_4, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_t_17, 1);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_t_18, 1);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_t_22, 1);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_t_23, 1);
   __Pyx_WriteUnraisable("rsatoolbox.cengine.similarity.calc_one", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
   __Pyx_pretend_to_initialize(&__pyx_r);
   __pyx_L0:;
-  __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_i, 1);
-  __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_v_log_data_i, 1);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_v_log_data_j, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_data_i, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_data_j, 1);
   __Pyx_TraceReturn(Py_None, 0);
@@ -6054,82 +7035,82 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
       switch (__pyx_nargs) {
         case  0:
         if (likely((values[0] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_data_i)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
         if (likely((values[1] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_data_j)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 1); __PYX_ERR(0, 117, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 1); __PYX_ERR(0, 130, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_cv_desc_i)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 2); __PYX_ERR(0, 117, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 2); __PYX_ERR(0, 130, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_cv_desc_j)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 3); __PYX_ERR(0, 117, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 3); __PYX_ERR(0, 130, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_n_i)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 4); __PYX_ERR(0, 117, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 4); __PYX_ERR(0, 130, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_n_j)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 5); __PYX_ERR(0, 117, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 5); __PYX_ERR(0, 130, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
         if (likely((values[6] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_method_idx)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 6); __PYX_ERR(0, 117, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, 6); __PYX_ERR(0, 130, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  7:
         if (kw_args > 0) {
           PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_noise);
           if (value) { values[7] = value; kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  8:
         if (kw_args > 0) {
           PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_prior_lambda);
           if (value) { values[8] = value; kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  9:
         if (kw_args > 0) {
           PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_prior_weight);
           if (value) { values[9] = value; kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 10:
         if (kw_args > 0) {
           PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_weighting);
           if (value) { values[10] = value; kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L3_error)
+          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "calc_one") < 0)) __PYX_ERR(0, 117, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "calc_one") < 0)) __PYX_ERR(0, 130, __pyx_L3_error)
       }
     } else {
       switch (__pyx_nargs) {
@@ -6152,38 +7133,38 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data_i = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data_i.memview)) __PYX_ERR(0, 118, __pyx_L3_error)
-    __pyx_v_data_j = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data_j.memview)) __PYX_ERR(0, 118, __pyx_L3_error)
-    __pyx_v_cv_desc_i = __Pyx_PyObject_to_MemoryviewSlice_ds_long(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cv_desc_i.memview)) __PYX_ERR(0, 119, __pyx_L3_error)
-    __pyx_v_cv_desc_j = __Pyx_PyObject_to_MemoryviewSlice_ds_long(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cv_desc_j.memview)) __PYX_ERR(0, 119, __pyx_L3_error)
-    __pyx_v_n_i = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_n_i == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 120, __pyx_L3_error)
-    __pyx_v_n_j = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_n_j == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 120, __pyx_L3_error)
-    __pyx_v_method_idx = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_method_idx == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 121, __pyx_L3_error)
+    __pyx_v_data_i = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data_i.memview)) __PYX_ERR(0, 131, __pyx_L3_error)
+    __pyx_v_data_j = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data_j.memview)) __PYX_ERR(0, 131, __pyx_L3_error)
+    __pyx_v_cv_desc_i = __Pyx_PyObject_to_MemoryviewSlice_ds_long(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cv_desc_i.memview)) __PYX_ERR(0, 132, __pyx_L3_error)
+    __pyx_v_cv_desc_j = __Pyx_PyObject_to_MemoryviewSlice_ds_long(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cv_desc_j.memview)) __PYX_ERR(0, 132, __pyx_L3_error)
+    __pyx_v_n_i = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_n_i == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 133, __pyx_L3_error)
+    __pyx_v_n_j = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_n_j == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 133, __pyx_L3_error)
+    __pyx_v_method_idx = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_method_idx == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 134, __pyx_L3_error)
     if (values[7]) {
-      __pyx_v_noise = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[7], PyBUF_WRITABLE); if (unlikely(!__pyx_v_noise.memview)) __PYX_ERR(0, 121, __pyx_L3_error)
+      __pyx_v_noise = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[7], PyBUF_WRITABLE); if (unlikely(!__pyx_v_noise.memview)) __PYX_ERR(0, 134, __pyx_L3_error)
     } else {
       __pyx_v_noise = __pyx_k__4;
       __PYX_INC_MEMVIEW(&__pyx_v_noise, 1);
     }
     if (values[8]) {
-      __pyx_v_prior_lambda = __pyx_PyFloat_AsDouble(values[8]); if (unlikely((__pyx_v_prior_lambda == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 122, __pyx_L3_error)
+      __pyx_v_prior_lambda = __pyx_PyFloat_AsDouble(values[8]); if (unlikely((__pyx_v_prior_lambda == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 135, __pyx_L3_error)
     } else {
       __pyx_v_prior_lambda = ((double)1.0);
     }
     if (values[9]) {
-      __pyx_v_prior_weight = __pyx_PyFloat_AsDouble(values[9]); if (unlikely((__pyx_v_prior_weight == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 122, __pyx_L3_error)
+      __pyx_v_prior_weight = __pyx_PyFloat_AsDouble(values[9]); if (unlikely((__pyx_v_prior_weight == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 135, __pyx_L3_error)
     } else {
       __pyx_v_prior_weight = ((double)0.1);
     }
     if (values[10]) {
-      __pyx_v_weighting = __Pyx_PyInt_As_int(values[10]); if (unlikely((__pyx_v_weighting == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 123, __pyx_L3_error)
+      __pyx_v_weighting = __Pyx_PyInt_As_int(values[10]); if (unlikely((__pyx_v_weighting == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 136, __pyx_L3_error)
     } else {
       __pyx_v_weighting = ((int)1);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, __pyx_nargs); __PYX_ERR(0, 117, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("calc_one", 0, 7, 11, __pyx_nargs); __PYX_ERR(0, 130, __pyx_L3_error)
   __pyx_L3_error:;
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_data_i, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_data_j, 1);
@@ -6218,20 +7199,20 @@ static PyObject *__pyx_pf_10rsatoolbox_7cengine_10similarity_2calc_one(CYTHON_UN
   int __pyx_clineno = 0;
   __Pyx_TraceFrameInit(__pyx_codeobj__5)
   __Pyx_RefNannySetupContext("calc_one", 0);
-  __Pyx_TraceCall("calc_one (wrapper)", __pyx_f[0], 117, 0, __PYX_ERR(0, 117, __pyx_L1_error));
+  __Pyx_TraceCall("calc_one (wrapper)", __pyx_f[0], 130, 0, __PYX_ERR(0, 130, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_data_i.memview)) { __Pyx_RaiseUnboundLocalError("data_i"); __PYX_ERR(0, 117, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_data_j.memview)) { __Pyx_RaiseUnboundLocalError("data_j"); __PYX_ERR(0, 117, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_cv_desc_i.memview)) { __Pyx_RaiseUnboundLocalError("cv_desc_i"); __PYX_ERR(0, 117, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_cv_desc_j.memview)) { __Pyx_RaiseUnboundLocalError("cv_desc_j"); __PYX_ERR(0, 117, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_noise.memview)) { __Pyx_RaiseUnboundLocalError("noise"); __PYX_ERR(0, 117, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_data_i.memview)) { __Pyx_RaiseUnboundLocalError("data_i"); __PYX_ERR(0, 130, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_data_j.memview)) { __Pyx_RaiseUnboundLocalError("data_j"); __PYX_ERR(0, 130, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_cv_desc_i.memview)) { __Pyx_RaiseUnboundLocalError("cv_desc_i"); __PYX_ERR(0, 130, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_cv_desc_j.memview)) { __Pyx_RaiseUnboundLocalError("cv_desc_j"); __PYX_ERR(0, 130, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_noise.memview)) { __Pyx_RaiseUnboundLocalError("noise"); __PYX_ERR(0, 130, __pyx_L1_error) }
   __pyx_t_2.__pyx_n = 4;
   __pyx_t_2.noise = __pyx_v_noise;
   __pyx_t_2.prior_lambda = __pyx_v_prior_lambda;
   __pyx_t_2.prior_weight = __pyx_v_prior_weight;
   __pyx_t_2.weighting = __pyx_v_weighting;
   __pyx_t_1 = __pyx_f_10rsatoolbox_7cengine_10similarity_calc_one(__pyx_v_data_i, __pyx_v_data_j, __pyx_v_cv_desc_i, __pyx_v_cv_desc_j, __pyx_v_n_i, __pyx_v_n_j, __pyx_v_method_idx, 0, &__pyx_t_2); 
-  __pyx_t_3 = __pyx_convert__to_py___pyx_ctuple_double__and_double(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_3 = __pyx_convert__to_py___pyx_ctuple_double__and_double(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -6249,12 +7230,12 @@ static PyObject *__pyx_pf_10rsatoolbox_7cengine_10similarity_2calc_one(CYTHON_UN
   return __pyx_r;
 }
 
-/* "rsatoolbox/cengine/similarity.pyx":173
+/* "rsatoolbox/cengine/similarity.pyx":196
  * 
  * @cython.boundscheck(False)
  * cpdef (double, double) similarity(double [:] vec_i, double [:] vec_j, int method_idx,             # <<<<<<<<<<<<<<
- *                        int n_dim, double [:, :] noise,
- *                        double prior_lambda=1, double prior_weight=0.1):
+ *                        int n_dim, double [:, :] noise):
+ *     """
  */
 
 static PyObject *__pyx_pw_10rsatoolbox_7cengine_10similarity_5similarity(PyObject *__pyx_self, 
@@ -6264,9 +7245,7 @@ PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_similarity(__Pyx_memviewslice __pyx_v_vec_i, __Pyx_memviewslice __pyx_v_vec_j, int __pyx_v_method_idx, int __pyx_v_n_dim, __Pyx_memviewslice __pyx_v_noise, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_similarity *__pyx_optional_args) {
-  double __pyx_v_prior_lambda = ((double)1.0);
-  double __pyx_v_prior_weight = ((double)0.1);
+static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_similarity(__Pyx_memviewslice __pyx_v_vec_i, __Pyx_memviewslice __pyx_v_vec_j, int __pyx_v_method_idx, int __pyx_v_n_dim, __Pyx_memviewslice __pyx_v_noise, CYTHON_UNUSED int __pyx_skip_dispatch) {
   double __pyx_v_sim;
   double __pyx_v_weight;
   __pyx_ctuple_double__and_double __pyx_r;
@@ -6281,17 +7260,9 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   int __pyx_clineno = 0;
   __Pyx_TraceFrameInit(__pyx_codeobj__6)
   __Pyx_RefNannySetupContext("similarity", 0);
-  __Pyx_TraceCall("similarity", __pyx_f[0], 173, 0, __PYX_ERR(0, 173, __pyx_L1_error));
-  if (__pyx_optional_args) {
-    if (__pyx_optional_args->__pyx_n > 0) {
-      __pyx_v_prior_lambda = __pyx_optional_args->prior_lambda;
-      if (__pyx_optional_args->__pyx_n > 1) {
-        __pyx_v_prior_weight = __pyx_optional_args->prior_weight;
-      }
-    }
-  }
+  __Pyx_TraceCall("similarity", __pyx_f[0], 196, 0, __PYX_ERR(0, 196, __pyx_L1_error));
 
-  /* "rsatoolbox/cengine/similarity.pyx":189
+  /* "rsatoolbox/cengine/similarity.pyx":210
  *     cdef double sim
  *     cdef double weight
  *     if method_idx == 1: # method == 'euclidean':             # <<<<<<<<<<<<<<
@@ -6301,7 +7272,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   switch (__pyx_v_method_idx) {
     case 1:
 
-    /* "rsatoolbox/cengine/similarity.pyx":190
+    /* "rsatoolbox/cengine/similarity.pyx":211
  *     cdef double weight
  *     if method_idx == 1: # method == 'euclidean':
  *         sim, weight = euclid(vec_i, vec_j, n_dim)             # <<<<<<<<<<<<<<
@@ -6314,7 +7285,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     __pyx_v_sim = __pyx_t_2;
     __pyx_v_weight = __pyx_t_3;
 
-    /* "rsatoolbox/cengine/similarity.pyx":189
+    /* "rsatoolbox/cengine/similarity.pyx":210
  *     cdef double sim
  *     cdef double weight
  *     if method_idx == 1: # method == 'euclidean':             # <<<<<<<<<<<<<<
@@ -6324,7 +7295,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     break;
     case 2:
 
-    /* "rsatoolbox/cengine/similarity.pyx":192
+    /* "rsatoolbox/cengine/similarity.pyx":213
  *         sim, weight = euclid(vec_i, vec_j, n_dim)
  *     elif method_idx == 2: # method == 'correlation':
  *         sim, weight = correlation(vec_i, vec_j, n_dim)             # <<<<<<<<<<<<<<
@@ -6337,7 +7308,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     __pyx_v_sim = __pyx_t_3;
     __pyx_v_weight = __pyx_t_2;
 
-    /* "rsatoolbox/cengine/similarity.pyx":191
+    /* "rsatoolbox/cengine/similarity.pyx":212
  *     if method_idx == 1: # method == 'euclidean':
  *         sim, weight = euclid(vec_i, vec_j, n_dim)
  *     elif method_idx == 2: # method == 'correlation':             # <<<<<<<<<<<<<<
@@ -6347,7 +7318,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     break;
     case 3:
 
-    /* "rsatoolbox/cengine/similarity.pyx":194
+    /* "rsatoolbox/cengine/similarity.pyx":215
  *         sim, weight = correlation(vec_i, vec_j, n_dim)
  *     elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
  *         if noise is None:             # <<<<<<<<<<<<<<
@@ -6357,7 +7328,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     __pyx_t_4 = (((PyObject *) __pyx_v_noise.memview) == Py_None);
     if (__pyx_t_4) {
 
-      /* "rsatoolbox/cengine/similarity.pyx":195
+      /* "rsatoolbox/cengine/similarity.pyx":216
  *     elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
  *         if noise is None:
  *             sim, weight = euclid(vec_i, vec_j, n_dim)             # <<<<<<<<<<<<<<
@@ -6370,7 +7341,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       __pyx_v_sim = __pyx_t_2;
       __pyx_v_weight = __pyx_t_3;
 
-      /* "rsatoolbox/cengine/similarity.pyx":194
+      /* "rsatoolbox/cengine/similarity.pyx":215
  *         sim, weight = correlation(vec_i, vec_j, n_dim)
  *     elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:
  *         if noise is None:             # <<<<<<<<<<<<<<
@@ -6380,28 +7351,28 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       goto __pyx_L3;
     }
 
-    /* "rsatoolbox/cengine/similarity.pyx":197
+    /* "rsatoolbox/cengine/similarity.pyx":218
  *             sim, weight = euclid(vec_i, vec_j, n_dim)
  *         else:
  *             sim = mahalanobis(vec_i, vec_j, n_dim, noise)             # <<<<<<<<<<<<<<
  *             weight = <double> n_dim
- *     elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+ *     return sim, weight
  */
     /*else*/ {
       __pyx_v_sim = __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__pyx_v_vec_i, __pyx_v_vec_j, __pyx_v_n_dim, __pyx_v_noise);
 
-      /* "rsatoolbox/cengine/similarity.pyx":198
+      /* "rsatoolbox/cengine/similarity.pyx":219
  *         else:
  *             sim = mahalanobis(vec_i, vec_j, n_dim, noise)
  *             weight = <double> n_dim             # <<<<<<<<<<<<<<
- *     elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
- *         sim, weight = poisson_cv(vec_i, vec_j, n_dim, prior_lambda, prior_weight)
+ *     return sim, weight
+ * 
  */
       __pyx_v_weight = ((double)__pyx_v_n_dim);
     }
     __pyx_L3:;
 
-    /* "rsatoolbox/cengine/similarity.pyx":193
+    /* "rsatoolbox/cengine/similarity.pyx":214
  *     elif method_idx == 2: # method == 'correlation':
  *         sim, weight = correlation(vec_i, vec_j, n_dim)
  *     elif method_idx == 3: # method in ['mahalanobis', 'crossnobis']:             # <<<<<<<<<<<<<<
@@ -6409,35 +7380,12 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  *             sim, weight = euclid(vec_i, vec_j, n_dim)
  */
     break;
-    case 4:
-
-    /* "rsatoolbox/cengine/similarity.pyx":200
- *             weight = <double> n_dim
- *     elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
- *         sim, weight = poisson_cv(vec_i, vec_j, n_dim, prior_lambda, prior_weight)             # <<<<<<<<<<<<<<
- *     return sim, weight
- * 
- */
-    __pyx_t_1 = __pyx_f_10rsatoolbox_7cengine_10similarity_poisson_cv(__pyx_v_vec_i, __pyx_v_vec_j, __pyx_v_n_dim, __pyx_v_prior_lambda, __pyx_v_prior_weight);
-    __pyx_t_3 = __pyx_t_1.f0;
-    __pyx_t_2 = __pyx_t_1.f1;
-    __pyx_v_sim = __pyx_t_3;
-    __pyx_v_weight = __pyx_t_2;
-
-    /* "rsatoolbox/cengine/similarity.pyx":199
- *             sim = mahalanobis(vec_i, vec_j, n_dim, noise)
- *             weight = <double> n_dim
- *     elif method_idx == 4: # method in ['poisson', 'poisson_cv']:             # <<<<<<<<<<<<<<
- *         sim, weight = poisson_cv(vec_i, vec_j, n_dim, prior_lambda, prior_weight)
- *     return sim, weight
- */
-    break;
     default: break;
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":201
- *     elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
- *         sim, weight = poisson_cv(vec_i, vec_j, n_dim, prior_lambda, prior_weight)
+  /* "rsatoolbox/cengine/similarity.pyx":220
+ *             sim = mahalanobis(vec_i, vec_j, n_dim, noise)
+ *             weight = <double> n_dim
  *     return sim, weight             # <<<<<<<<<<<<<<
  * 
  * 
@@ -6447,12 +7395,12 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   __pyx_r = __pyx_t_1;
   goto __pyx_L0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":173
+  /* "rsatoolbox/cengine/similarity.pyx":196
  * 
  * @cython.boundscheck(False)
  * cpdef (double, double) similarity(double [:] vec_i, double [:] vec_j, int method_idx,             # <<<<<<<<<<<<<<
- *                        int n_dim, double [:, :] noise,
- *                        double prior_lambda=1, double prior_weight=0.1):
+ *                        int n_dim, double [:, :] noise):
+ *     """
  */
 
   /* function exit code */
@@ -6473,7 +7421,7 @@ PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-PyDoc_STRVAR(__pyx_doc_10rsatoolbox_7cengine_10similarity_4similarity, "\n    double similarity(double [:] vec_i, double [:] vec_j, int method_idx,\n                      int n_dim, double [:, :] noise=None,\n                      double prior_lambda=1, double prior_weight=0.1)\n\n    This is a single similarity computation in cython.\n    remember to call everything with continuous numpy arrays.\n    In particular, noise must be such an array for Mahalanobis distances!\n\n    Mahalanobis distances require full measurement vectors at the moment!\n    ");
+PyDoc_STRVAR(__pyx_doc_10rsatoolbox_7cengine_10similarity_4similarity, "\n    double similarity(double [:] vec_i, double [:] vec_j, int method_idx,\n                      int n_dim, double [:, :] noise=None)\n\n    This is a single similarity computation in cython.\n    remember to call everything with continuous numpy arrays.\n    In particular, noise must be such an array for Mahalanobis distances!\n\n    Mahalanobis distances require full measurement vectors at the moment!\n    ");
 static PyMethodDef __pyx_mdef_10rsatoolbox_7cengine_10similarity_5similarity = {"similarity", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_10rsatoolbox_7cengine_10similarity_5similarity, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_10rsatoolbox_7cengine_10similarity_4similarity};
 static PyObject *__pyx_pw_10rsatoolbox_7cengine_10similarity_5similarity(PyObject *__pyx_self, 
 #if CYTHON_METH_FASTCALL
@@ -6487,8 +7435,6 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   int __pyx_v_method_idx;
   int __pyx_v_n_dim;
   __Pyx_memviewslice __pyx_v_noise = { 0, 0, { 0 }, { 0 }, { 0 } };
-  double __pyx_v_prior_lambda;
-  double __pyx_v_prior_weight;
   #if !CYTHON_METH_FASTCALL
   CYTHON_UNUSED const Py_ssize_t __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
   #endif
@@ -6501,18 +7447,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannySetupContext("similarity (wrapper)", 0);
   {
     #if CYTHON_USE_MODULE_STATE
-    PyObject **__pyx_pyargnames[] = {&__pyx_n_s_vec_i,&__pyx_n_s_vec_j,&__pyx_n_s_method_idx,&__pyx_n_s_n_dim,&__pyx_n_s_noise,&__pyx_n_s_prior_lambda,&__pyx_n_s_prior_weight,0};
+    PyObject **__pyx_pyargnames[] = {&__pyx_n_s_vec_i,&__pyx_n_s_vec_j,&__pyx_n_s_method_idx,&__pyx_n_s_n_dim,&__pyx_n_s_noise,0};
     #else
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_vec_i,&__pyx_n_s_vec_j,&__pyx_n_s_method_idx,&__pyx_n_s_n_dim,&__pyx_n_s_noise,&__pyx_n_s_prior_lambda,&__pyx_n_s_prior_weight,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_vec_i,&__pyx_n_s_vec_j,&__pyx_n_s_method_idx,&__pyx_n_s_n_dim,&__pyx_n_s_noise,0};
     #endif
-    PyObject* values[7] = {0,0,0,0,0,0,0};
+    PyObject* values[5] = {0,0,0,0,0};
     if (__pyx_kwds) {
       Py_ssize_t kw_args;
       switch (__pyx_nargs) {
-        case  7: values[6] = __Pyx_Arg_FASTCALL(__pyx_args, 6);
-        CYTHON_FALLTHROUGH;
-        case  6: values[5] = __Pyx_Arg_FASTCALL(__pyx_args, 5);
-        CYTHON_FALLTHROUGH;
         case  5: values[4] = __Pyx_Arg_FASTCALL(__pyx_args, 4);
         CYTHON_FALLTHROUGH;
         case  4: values[3] = __Pyx_Arg_FASTCALL(__pyx_args, 3);
@@ -6530,89 +7472,59 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
       switch (__pyx_nargs) {
         case  0:
         if (likely((values[0] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_vec_i)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 173, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 196, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
         if (likely((values[1] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_vec_j)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 173, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 196, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("similarity", 0, 5, 7, 1); __PYX_ERR(0, 173, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("similarity", 1, 5, 5, 1); __PYX_ERR(0, 196, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_method_idx)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 173, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 196, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("similarity", 0, 5, 7, 2); __PYX_ERR(0, 173, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("similarity", 1, 5, 5, 2); __PYX_ERR(0, 196, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_n_dim)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 173, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 196, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("similarity", 0, 5, 7, 3); __PYX_ERR(0, 173, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("similarity", 1, 5, 5, 3); __PYX_ERR(0, 196, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_noise)) != 0)) kw_args--;
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 173, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 196, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("similarity", 0, 5, 7, 4); __PYX_ERR(0, 173, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  5:
-        if (kw_args > 0) {
-          PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_prior_lambda);
-          if (value) { values[5] = value; kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 173, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  6:
-        if (kw_args > 0) {
-          PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_prior_weight);
-          if (value) { values[6] = value; kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 173, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("similarity", 1, 5, 5, 4); __PYX_ERR(0, 196, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "similarity") < 0)) __PYX_ERR(0, 173, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "similarity") < 0)) __PYX_ERR(0, 196, __pyx_L3_error)
       }
+    } else if (unlikely(__pyx_nargs != 5)) {
+      goto __pyx_L5_argtuple_error;
     } else {
-      switch (__pyx_nargs) {
-        case  7: values[6] = __Pyx_Arg_FASTCALL(__pyx_args, 6);
-        CYTHON_FALLTHROUGH;
-        case  6: values[5] = __Pyx_Arg_FASTCALL(__pyx_args, 5);
-        CYTHON_FALLTHROUGH;
-        case  5: values[4] = __Pyx_Arg_FASTCALL(__pyx_args, 4);
-        values[3] = __Pyx_Arg_FASTCALL(__pyx_args, 3);
-        values[2] = __Pyx_Arg_FASTCALL(__pyx_args, 2);
-        values[1] = __Pyx_Arg_FASTCALL(__pyx_args, 1);
-        values[0] = __Pyx_Arg_FASTCALL(__pyx_args, 0);
-        break;
-        default: goto __pyx_L5_argtuple_error;
-      }
+      values[0] = __Pyx_Arg_FASTCALL(__pyx_args, 0);
+      values[1] = __Pyx_Arg_FASTCALL(__pyx_args, 1);
+      values[2] = __Pyx_Arg_FASTCALL(__pyx_args, 2);
+      values[3] = __Pyx_Arg_FASTCALL(__pyx_args, 3);
+      values[4] = __Pyx_Arg_FASTCALL(__pyx_args, 4);
     }
-    __pyx_v_vec_i = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_vec_i.memview)) __PYX_ERR(0, 173, __pyx_L3_error)
-    __pyx_v_vec_j = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_vec_j.memview)) __PYX_ERR(0, 173, __pyx_L3_error)
-    __pyx_v_method_idx = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_method_idx == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 173, __pyx_L3_error)
-    __pyx_v_n_dim = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_n_dim == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 174, __pyx_L3_error)
-    __pyx_v_noise = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_noise.memview)) __PYX_ERR(0, 174, __pyx_L3_error)
-    if (values[5]) {
-      __pyx_v_prior_lambda = __pyx_PyFloat_AsDouble(values[5]); if (unlikely((__pyx_v_prior_lambda == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 175, __pyx_L3_error)
-    } else {
-      __pyx_v_prior_lambda = ((double)1.0);
-    }
-    if (values[6]) {
-      __pyx_v_prior_weight = __pyx_PyFloat_AsDouble(values[6]); if (unlikely((__pyx_v_prior_weight == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 175, __pyx_L3_error)
-    } else {
-      __pyx_v_prior_weight = ((double)0.1);
-    }
+    __pyx_v_vec_i = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_vec_i.memview)) __PYX_ERR(0, 196, __pyx_L3_error)
+    __pyx_v_vec_j = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_vec_j.memview)) __PYX_ERR(0, 196, __pyx_L3_error)
+    __pyx_v_method_idx = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_method_idx == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 196, __pyx_L3_error)
+    __pyx_v_n_dim = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_n_dim == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 197, __pyx_L3_error)
+    __pyx_v_noise = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_noise.memview)) __PYX_ERR(0, 197, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("similarity", 0, 5, 7, __pyx_nargs); __PYX_ERR(0, 173, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("similarity", 1, 5, 5, __pyx_nargs); __PYX_ERR(0, 196, __pyx_L3_error)
   __pyx_L3_error:;
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_i, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_j, 1);
@@ -6621,7 +7533,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_10rsatoolbox_7cengine_10similarity_4similarity(__pyx_self, __pyx_v_vec_i, __pyx_v_vec_j, __pyx_v_method_idx, __pyx_v_n_dim, __pyx_v_noise, __pyx_v_prior_lambda, __pyx_v_prior_weight);
+  __pyx_r = __pyx_pf_10rsatoolbox_7cengine_10similarity_4similarity(__pyx_self, __pyx_v_vec_i, __pyx_v_vec_j, __pyx_v_method_idx, __pyx_v_n_dim, __pyx_v_noise);
 
   /* function exit code */
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_vec_i, 1);
@@ -6631,36 +7543,30 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10rsatoolbox_7cengine_10similarity_4similarity(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_vec_i, __Pyx_memviewslice __pyx_v_vec_j, int __pyx_v_method_idx, int __pyx_v_n_dim, __Pyx_memviewslice __pyx_v_noise, double __pyx_v_prior_lambda, double __pyx_v_prior_weight) {
+static PyObject *__pyx_pf_10rsatoolbox_7cengine_10similarity_4similarity(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_vec_i, __Pyx_memviewslice __pyx_v_vec_j, int __pyx_v_method_idx, int __pyx_v_n_dim, __Pyx_memviewslice __pyx_v_noise) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
-  __pyx_ctuple_double__and_double __pyx_t_1;
-  struct __pyx_opt_args_10rsatoolbox_7cengine_10similarity_similarity __pyx_t_2;
-  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_1 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_TraceFrameInit(__pyx_codeobj__6)
   __Pyx_RefNannySetupContext("similarity", 0);
-  __Pyx_TraceCall("similarity (wrapper)", __pyx_f[0], 173, 0, __PYX_ERR(0, 173, __pyx_L1_error));
+  __Pyx_TraceCall("similarity (wrapper)", __pyx_f[0], 196, 0, __PYX_ERR(0, 196, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_vec_i.memview)) { __Pyx_RaiseUnboundLocalError("vec_i"); __PYX_ERR(0, 173, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_vec_j.memview)) { __Pyx_RaiseUnboundLocalError("vec_j"); __PYX_ERR(0, 173, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_noise.memview)) { __Pyx_RaiseUnboundLocalError("noise"); __PYX_ERR(0, 173, __pyx_L1_error) }
-  __pyx_t_2.__pyx_n = 2;
-  __pyx_t_2.prior_lambda = __pyx_v_prior_lambda;
-  __pyx_t_2.prior_weight = __pyx_v_prior_weight;
-  __pyx_t_1 = __pyx_f_10rsatoolbox_7cengine_10similarity_similarity(__pyx_v_vec_i, __pyx_v_vec_j, __pyx_v_method_idx, __pyx_v_n_dim, __pyx_v_noise, 0, &__pyx_t_2); 
-  __pyx_t_3 = __pyx_convert__to_py___pyx_ctuple_double__and_double(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 173, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_r = __pyx_t_3;
-  __pyx_t_3 = 0;
+  if (unlikely(!__pyx_v_vec_i.memview)) { __Pyx_RaiseUnboundLocalError("vec_i"); __PYX_ERR(0, 196, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_vec_j.memview)) { __Pyx_RaiseUnboundLocalError("vec_j"); __PYX_ERR(0, 196, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_noise.memview)) { __Pyx_RaiseUnboundLocalError("noise"); __PYX_ERR(0, 196, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_convert__to_py___pyx_ctuple_double__and_double(__pyx_f_10rsatoolbox_7cengine_10similarity_similarity(__pyx_v_vec_i, __pyx_v_vec_j, __pyx_v_method_idx, __pyx_v_n_dim, __pyx_v_noise, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 196, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
   goto __pyx_L0;
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_1);
   __Pyx_AddTraceback("rsatoolbox.cengine.similarity.similarity", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -6670,7 +7576,7 @@ static PyObject *__pyx_pf_10rsatoolbox_7cengine_10similarity_4similarity(CYTHON_
   return __pyx_r;
 }
 
-/* "rsatoolbox/cengine/similarity.pyx":205
+/* "rsatoolbox/cengine/similarity.pyx":224
  * 
  * @cython.boundscheck(False)
  * cdef (double, double) euclid(double [:] vec_i, double [:] vec_j, int n_dim):             # <<<<<<<<<<<<<<
@@ -6697,9 +7603,9 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("euclid", 0);
-  __Pyx_TraceCall("euclid", __pyx_f[0], 205, 0, __PYX_ERR(0, 205, __pyx_L1_error));
+  __Pyx_TraceCall("euclid", __pyx_f[0], 224, 0, __PYX_ERR(0, 224, __pyx_L1_error));
 
-  /* "rsatoolbox/cengine/similarity.pyx":207
+  /* "rsatoolbox/cengine/similarity.pyx":226
  * cdef (double, double) euclid(double [:] vec_i, double [:] vec_j, int n_dim):
  *     cdef:
  *         double sim = 0             # <<<<<<<<<<<<<<
@@ -6708,7 +7614,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_sim = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":208
+  /* "rsatoolbox/cengine/similarity.pyx":227
  *     cdef:
  *         double sim = 0
  *         double weight = 0             # <<<<<<<<<<<<<<
@@ -6717,7 +7623,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_weight = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":210
+  /* "rsatoolbox/cengine/similarity.pyx":229
  *         double weight = 0
  *         int i
  *     for i in range(n_dim):             # <<<<<<<<<<<<<<
@@ -6729,7 +7635,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "rsatoolbox/cengine/similarity.pyx":211
+    /* "rsatoolbox/cengine/similarity.pyx":230
  *         int i
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):             # <<<<<<<<<<<<<<
@@ -6751,7 +7657,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     __pyx_L6_bool_binop_done:;
     if (__pyx_t_4) {
 
-      /* "rsatoolbox/cengine/similarity.pyx":212
+      /* "rsatoolbox/cengine/similarity.pyx":231
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
  *             sim += vec_i[i] * vec_j[i]             # <<<<<<<<<<<<<<
@@ -6764,7 +7670,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       if (__pyx_t_7 < 0) __pyx_t_7 += __pyx_v_vec_j.shape[0];
       __pyx_v_sim = (__pyx_v_sim + ((*((double *) ( /* dim=0 */ (__pyx_v_vec_i.data + __pyx_t_5 * __pyx_v_vec_i.strides[0]) ))) * (*((double *) ( /* dim=0 */ (__pyx_v_vec_j.data + __pyx_t_7 * __pyx_v_vec_j.strides[0]) )))));
 
-      /* "rsatoolbox/cengine/similarity.pyx":213
+      /* "rsatoolbox/cengine/similarity.pyx":232
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
  *             sim += vec_i[i] * vec_j[i]
  *             weight += 1             # <<<<<<<<<<<<<<
@@ -6773,7 +7679,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
       __pyx_v_weight = (__pyx_v_weight + 1.0);
 
-      /* "rsatoolbox/cengine/similarity.pyx":211
+      /* "rsatoolbox/cengine/similarity.pyx":230
  *         int i
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):             # <<<<<<<<<<<<<<
@@ -6783,7 +7689,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     }
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":214
+  /* "rsatoolbox/cengine/similarity.pyx":233
  *             sim += vec_i[i] * vec_j[i]
  *             weight += 1
  *     return sim, weight             # <<<<<<<<<<<<<<
@@ -6795,7 +7701,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   __pyx_r = __pyx_t_8;
   goto __pyx_L0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":205
+  /* "rsatoolbox/cengine/similarity.pyx":224
  * 
  * @cython.boundscheck(False)
  * cdef (double, double) euclid(double [:] vec_i, double [:] vec_j, int n_dim):             # <<<<<<<<<<<<<<
@@ -6813,15 +7719,15 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   return __pyx_r;
 }
 
-/* "rsatoolbox/cengine/similarity.pyx":220
+/* "rsatoolbox/cengine/similarity.pyx":238
  * @cython.boundscheck(False)
  * @cython.cdivision(True)
- * cdef (double, double) poisson_cv(double [:] vec_i, double [:] vec_j, int n_dim,             # <<<<<<<<<<<<<<
- *                        double prior_lambda, double prior_weight):
- *     cdef:
+ * cdef (double, double) poisson_cv(double [:] vec_i, double [:] vec_j,             # <<<<<<<<<<<<<<
+ *                                  double [:] log_vec_i, double [:] log_vec_j,
+ *                                  int n_dim):
  */
 
-static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_poisson_cv(__Pyx_memviewslice __pyx_v_vec_i, __Pyx_memviewslice __pyx_v_vec_j, int __pyx_v_n_dim, CYTHON_UNUSED double __pyx_v_prior_lambda, CYTHON_UNUSED double __pyx_v_prior_weight) {
+static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarity_poisson_cv(__Pyx_memviewslice __pyx_v_vec_i, __Pyx_memviewslice __pyx_v_vec_j, __Pyx_memviewslice __pyx_v_log_vec_i, __Pyx_memviewslice __pyx_v_log_vec_j, int __pyx_v_n_dim) {
   double __pyx_v_sim;
   double __pyx_v_weight;
   int __pyx_v_i;
@@ -6842,10 +7748,10 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("poisson_cv", 0);
-  __Pyx_TraceCall("poisson_cv", __pyx_f[0], 220, 0, __PYX_ERR(0, 220, __pyx_L1_error));
+  __Pyx_TraceCall("poisson_cv", __pyx_f[0], 238, 0, __PYX_ERR(0, 238, __pyx_L1_error));
 
-  /* "rsatoolbox/cengine/similarity.pyx":223
- *                        double prior_lambda, double prior_weight):
+  /* "rsatoolbox/cengine/similarity.pyx":242
+ *                                  int n_dim):
  *     cdef:
  *         double sim = 0             # <<<<<<<<<<<<<<
  *         double weight = 0
@@ -6853,7 +7759,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_sim = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":224
+  /* "rsatoolbox/cengine/similarity.pyx":243
  *     cdef:
  *         double sim = 0
  *         double weight = 0             # <<<<<<<<<<<<<<
@@ -6862,23 +7768,23 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_weight = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":226
+  /* "rsatoolbox/cengine/similarity.pyx":245
  *         double weight = 0
  *         int i
  *     for i in range(n_dim):             # <<<<<<<<<<<<<<
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
- *             sim += (vec_j[i] - vec_i[i]) * (log(vec_i[i]) - log(vec_j[i]))
+ *             sim += (vec_j[i] - vec_i[i]) * (log_vec_i[i] - log_vec_j[i])
  */
   __pyx_t_1 = __pyx_v_n_dim;
   __pyx_t_2 = __pyx_t_1;
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "rsatoolbox/cengine/similarity.pyx":227
+    /* "rsatoolbox/cengine/similarity.pyx":246
  *         int i
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):             # <<<<<<<<<<<<<<
- *             sim += (vec_j[i] - vec_i[i]) * (log(vec_i[i]) - log(vec_j[i]))
+ *             sim += (vec_j[i] - vec_i[i]) * (log_vec_i[i] - log_vec_j[i])
  *             weight += 1
  */
     __pyx_t_5 = __pyx_v_i;
@@ -6896,10 +7802,10 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     __pyx_L6_bool_binop_done:;
     if (__pyx_t_4) {
 
-      /* "rsatoolbox/cengine/similarity.pyx":228
+      /* "rsatoolbox/cengine/similarity.pyx":247
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
- *             sim += (vec_j[i] - vec_i[i]) * (log(vec_i[i]) - log(vec_j[i]))             # <<<<<<<<<<<<<<
+ *             sim += (vec_j[i] - vec_i[i]) * (log_vec_i[i] - log_vec_j[i])             # <<<<<<<<<<<<<<
  *             weight += 1
  *     sim = sim / 2.0
  */
@@ -6908,32 +7814,32 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       __pyx_t_7 = __pyx_v_i;
       if (__pyx_t_7 < 0) __pyx_t_7 += __pyx_v_vec_i.shape[0];
       __pyx_t_8 = __pyx_v_i;
-      if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_vec_i.shape[0];
+      if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_log_vec_i.shape[0];
       __pyx_t_9 = __pyx_v_i;
-      if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_vec_j.shape[0];
-      __pyx_v_sim = (__pyx_v_sim + (((*((double *) ( /* dim=0 */ (__pyx_v_vec_j.data + __pyx_t_5 * __pyx_v_vec_j.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_vec_i.data + __pyx_t_7 * __pyx_v_vec_i.strides[0]) )))) * (log((*((double *) ( /* dim=0 */ (__pyx_v_vec_i.data + __pyx_t_8 * __pyx_v_vec_i.strides[0]) )))) - log((*((double *) ( /* dim=0 */ (__pyx_v_vec_j.data + __pyx_t_9 * __pyx_v_vec_j.strides[0]) )))))));
+      if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_log_vec_j.shape[0];
+      __pyx_v_sim = (__pyx_v_sim + (((*((double *) ( /* dim=0 */ (__pyx_v_vec_j.data + __pyx_t_5 * __pyx_v_vec_j.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_vec_i.data + __pyx_t_7 * __pyx_v_vec_i.strides[0]) )))) * ((*((double *) ( /* dim=0 */ (__pyx_v_log_vec_i.data + __pyx_t_8 * __pyx_v_log_vec_i.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_log_vec_j.data + __pyx_t_9 * __pyx_v_log_vec_j.strides[0]) ))))));
 
-      /* "rsatoolbox/cengine/similarity.pyx":229
+      /* "rsatoolbox/cengine/similarity.pyx":248
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
- *             sim += (vec_j[i] - vec_i[i]) * (log(vec_i[i]) - log(vec_j[i]))
+ *             sim += (vec_j[i] - vec_i[i]) * (log_vec_i[i] - log_vec_j[i])
  *             weight += 1             # <<<<<<<<<<<<<<
  *     sim = sim / 2.0
  *     return (sim, weight)
  */
       __pyx_v_weight = (__pyx_v_weight + 1.0);
 
-      /* "rsatoolbox/cengine/similarity.pyx":227
+      /* "rsatoolbox/cengine/similarity.pyx":246
  *         int i
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):             # <<<<<<<<<<<<<<
- *             sim += (vec_j[i] - vec_i[i]) * (log(vec_i[i]) - log(vec_j[i]))
+ *             sim += (vec_j[i] - vec_i[i]) * (log_vec_i[i] - log_vec_j[i])
  *             weight += 1
  */
     }
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":230
- *             sim += (vec_j[i] - vec_i[i]) * (log(vec_i[i]) - log(vec_j[i]))
+  /* "rsatoolbox/cengine/similarity.pyx":249
+ *             sim += (vec_j[i] - vec_i[i]) * (log_vec_i[i] - log_vec_j[i])
  *             weight += 1
  *     sim = sim / 2.0             # <<<<<<<<<<<<<<
  *     return (sim, weight)
@@ -6941,7 +7847,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_sim = (__pyx_v_sim / 2.0);
 
-  /* "rsatoolbox/cengine/similarity.pyx":231
+  /* "rsatoolbox/cengine/similarity.pyx":250
  *             weight += 1
  *     sim = sim / 2.0
  *     return (sim, weight)             # <<<<<<<<<<<<<<
@@ -6953,12 +7859,12 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   __pyx_r = __pyx_t_10;
   goto __pyx_L0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":220
+  /* "rsatoolbox/cengine/similarity.pyx":238
  * @cython.boundscheck(False)
  * @cython.cdivision(True)
- * cdef (double, double) poisson_cv(double [:] vec_i, double [:] vec_j, int n_dim,             # <<<<<<<<<<<<<<
- *                        double prior_lambda, double prior_weight):
- *     cdef:
+ * cdef (double, double) poisson_cv(double [:] vec_i, double [:] vec_j,             # <<<<<<<<<<<<<<
+ *                                  double [:] log_vec_i, double [:] log_vec_j,
+ *                                  int n_dim):
  */
 
   /* function exit code */
@@ -6971,7 +7877,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   return __pyx_r;
 }
 
-/* "rsatoolbox/cengine/similarity.pyx":235
+/* "rsatoolbox/cengine/similarity.pyx":254
  * 
  * @cython.boundscheck(False)
  * cdef double mahalanobis(double [:] vec_i, double [:] vec_j, int n_dim,             # <<<<<<<<<<<<<<
@@ -7020,9 +7926,9 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("mahalanobis", 0);
-  __Pyx_TraceCall("mahalanobis", __pyx_f[0], 235, 0, __PYX_ERR(0, 235, __pyx_L1_error));
+  __Pyx_TraceCall("mahalanobis", __pyx_f[0], 254, 0, __PYX_ERR(0, 254, __pyx_L1_error));
 
-  /* "rsatoolbox/cengine/similarity.pyx":241
+  /* "rsatoolbox/cengine/similarity.pyx":260
  *         double *vec2
  *         int *finite
  *         int zero = 0             # <<<<<<<<<<<<<<
@@ -7031,7 +7937,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_zero = 0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":242
+  /* "rsatoolbox/cengine/similarity.pyx":261
  *         int *finite
  *         int zero = 0
  *         int one = 1             # <<<<<<<<<<<<<<
@@ -7040,7 +7946,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_one = 1;
 
-  /* "rsatoolbox/cengine/similarity.pyx":243
+  /* "rsatoolbox/cengine/similarity.pyx":262
  *         int zero = 0
  *         int one = 1
  *         double onef = 1.0             # <<<<<<<<<<<<<<
@@ -7049,7 +7955,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_onef = 1.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":244
+  /* "rsatoolbox/cengine/similarity.pyx":263
  *         int one = 1
  *         double onef = 1.0
  *         double zerof = 0.0             # <<<<<<<<<<<<<<
@@ -7058,7 +7964,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_zerof = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":245
+  /* "rsatoolbox/cengine/similarity.pyx":264
  *         double onef = 1.0
  *         double zerof = 0.0
  *         char trans = b'n'             # <<<<<<<<<<<<<<
@@ -7067,7 +7973,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_trans = 'n';
 
-  /* "rsatoolbox/cengine/similarity.pyx":246
+  /* "rsatoolbox/cengine/similarity.pyx":265
  *         double zerof = 0.0
  *         char trans = b'n'
  *         double sim = 0.0             # <<<<<<<<<<<<<<
@@ -7076,7 +7982,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_sim = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":249
+  /* "rsatoolbox/cengine/similarity.pyx":268
  *         int i, j, k, l, n_finite
  *         double [:, :] noise_small
  *     finite = <int*> PyMem_Malloc(n_dim * sizeof(int))             # <<<<<<<<<<<<<<
@@ -7085,7 +7991,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_finite = ((int *)PyMem_Malloc((__pyx_v_n_dim * (sizeof(int)))));
 
-  /* "rsatoolbox/cengine/similarity.pyx":251
+  /* "rsatoolbox/cengine/similarity.pyx":270
  *     finite = <int*> PyMem_Malloc(n_dim * sizeof(int))
  *     # use finite as a bool to choose the non-nan values
  *     n_finite = 0             # <<<<<<<<<<<<<<
@@ -7094,7 +8000,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_n_finite = 0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":252
+  /* "rsatoolbox/cengine/similarity.pyx":271
  *     # use finite as a bool to choose the non-nan values
  *     n_finite = 0
  *     for i in range(n_dim):             # <<<<<<<<<<<<<<
@@ -7106,7 +8012,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "rsatoolbox/cengine/similarity.pyx":253
+    /* "rsatoolbox/cengine/similarity.pyx":272
  *     n_finite = 0
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):             # <<<<<<<<<<<<<<
@@ -7128,7 +8034,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
     __pyx_L6_bool_binop_done:;
     if (__pyx_t_4) {
 
-      /* "rsatoolbox/cengine/similarity.pyx":254
+      /* "rsatoolbox/cengine/similarity.pyx":273
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
  *             finite[i] = 1             # <<<<<<<<<<<<<<
@@ -7137,7 +8043,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
       (__pyx_v_finite[__pyx_v_i]) = 1;
 
-      /* "rsatoolbox/cengine/similarity.pyx":255
+      /* "rsatoolbox/cengine/similarity.pyx":274
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
  *             finite[i] = 1
  *             n_finite += 1             # <<<<<<<<<<<<<<
@@ -7146,7 +8052,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
       __pyx_v_n_finite = (__pyx_v_n_finite + 1);
 
-      /* "rsatoolbox/cengine/similarity.pyx":253
+      /* "rsatoolbox/cengine/similarity.pyx":272
  *     n_finite = 0
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):             # <<<<<<<<<<<<<<
@@ -7156,7 +8062,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
       goto __pyx_L5;
     }
 
-    /* "rsatoolbox/cengine/similarity.pyx":257
+    /* "rsatoolbox/cengine/similarity.pyx":276
  *             n_finite += 1
  *         else:
  *             finite[i] = 0             # <<<<<<<<<<<<<<
@@ -7169,7 +8075,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
     __pyx_L5:;
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":258
+  /* "rsatoolbox/cengine/similarity.pyx":277
  *         else:
  *             finite[i] = 0
  *     vec1 = <double*> PyMem_Malloc(n_finite * sizeof(double))             # <<<<<<<<<<<<<<
@@ -7178,7 +8084,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_vec1 = ((double *)PyMem_Malloc((__pyx_v_n_finite * (sizeof(double)))));
 
-  /* "rsatoolbox/cengine/similarity.pyx":259
+  /* "rsatoolbox/cengine/similarity.pyx":278
  *             finite[i] = 0
  *     vec1 = <double*> PyMem_Malloc(n_finite * sizeof(double))
  *     vec2 = <double*> PyMem_Malloc(n_finite * sizeof(double))             # <<<<<<<<<<<<<<
@@ -7187,7 +8093,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_vec2 = ((double *)PyMem_Malloc((__pyx_v_n_finite * (sizeof(double)))));
 
-  /* "rsatoolbox/cengine/similarity.pyx":260
+  /* "rsatoolbox/cengine/similarity.pyx":279
  *     vec1 = <double*> PyMem_Malloc(n_finite * sizeof(double))
  *     vec2 = <double*> PyMem_Malloc(n_finite * sizeof(double))
  *     vec3 = <double*> PyMem_Malloc(n_finite * sizeof(double))             # <<<<<<<<<<<<<<
@@ -7196,20 +8102,20 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_vec3 = ((double *)PyMem_Malloc((__pyx_v_n_finite * (sizeof(double)))));
 
-  /* "rsatoolbox/cengine/similarity.pyx":262
+  /* "rsatoolbox/cengine/similarity.pyx":281
  *     vec3 = <double*> PyMem_Malloc(n_finite * sizeof(double))
  *     #noise_small = <double [:n_finite, :n_finite]> PyMem_Malloc(n_finite * n_finite * sizeof(double))
  *     noise_small = cvarray(shape=(n_finite, n_finite), itemsize=sizeof(double), format="d")             # <<<<<<<<<<<<<<
  *     k = 0
  *     for i in range(n_dim):
  */
-  __pyx_t_7 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 262, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 281, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_n_finite); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 262, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_n_finite); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 281, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_n_finite); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 262, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_n_finite); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 281, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 262, __pyx_L1_error)
+  __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 281, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_GIVEREF(__pyx_t_8);
   PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_8);
@@ -7217,23 +8123,23 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
   PyTuple_SET_ITEM(__pyx_t_10, 1, __pyx_t_9);
   __pyx_t_8 = 0;
   __pyx_t_9 = 0;
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_shape, __pyx_t_10) < 0) __PYX_ERR(0, 262, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_shape, __pyx_t_10) < 0) __PYX_ERR(0, 281, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __pyx_t_10 = __Pyx_PyInt_FromSize_t((sizeof(double))); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 262, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyInt_FromSize_t((sizeof(double))); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 281, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_itemsize, __pyx_t_10) < 0) __PYX_ERR(0, 262, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_itemsize, __pyx_t_10) < 0) __PYX_ERR(0, 281, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_format, __pyx_n_s_d) < 0) __PYX_ERR(0, 262, __pyx_L1_error)
-  __pyx_t_10 = __Pyx_PyObject_Call(((PyObject *)__pyx_array_type), __pyx_empty_tuple, __pyx_t_7); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 262, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_format, __pyx_n_s_d) < 0) __PYX_ERR(0, 281, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_Call(((PyObject *)__pyx_array_type), __pyx_empty_tuple, __pyx_t_7); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 281, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_10, PyBUF_WRITABLE); if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 262, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_10, PyBUF_WRITABLE); if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 281, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   __pyx_v_noise_small = __pyx_t_11;
   __pyx_t_11.memview = NULL;
   __pyx_t_11.data = NULL;
 
-  /* "rsatoolbox/cengine/similarity.pyx":263
+  /* "rsatoolbox/cengine/similarity.pyx":282
  *     #noise_small = <double [:n_finite, :n_finite]> PyMem_Malloc(n_finite * n_finite * sizeof(double))
  *     noise_small = cvarray(shape=(n_finite, n_finite), itemsize=sizeof(double), format="d")
  *     k = 0             # <<<<<<<<<<<<<<
@@ -7242,7 +8148,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   __pyx_v_k = 0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":264
+  /* "rsatoolbox/cengine/similarity.pyx":283
  *     noise_small = cvarray(shape=(n_finite, n_finite), itemsize=sizeof(double), format="d")
  *     k = 0
  *     for i in range(n_dim):             # <<<<<<<<<<<<<<
@@ -7254,7 +8160,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "rsatoolbox/cengine/similarity.pyx":265
+    /* "rsatoolbox/cengine/similarity.pyx":284
  *     k = 0
  *     for i in range(n_dim):
  *         if finite[i]:             # <<<<<<<<<<<<<<
@@ -7264,7 +8170,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
     __pyx_t_4 = ((__pyx_v_finite[__pyx_v_i]) != 0);
     if (__pyx_t_4) {
 
-      /* "rsatoolbox/cengine/similarity.pyx":266
+      /* "rsatoolbox/cengine/similarity.pyx":285
  *     for i in range(n_dim):
  *         if finite[i]:
  *             vec1[k] = vec_i[i]             # <<<<<<<<<<<<<<
@@ -7275,7 +8181,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
       if (__pyx_t_5 < 0) __pyx_t_5 += __pyx_v_vec_i.shape[0];
       (__pyx_v_vec1[__pyx_v_k]) = (*((double *) ( /* dim=0 */ (__pyx_v_vec_i.data + __pyx_t_5 * __pyx_v_vec_i.strides[0]) )));
 
-      /* "rsatoolbox/cengine/similarity.pyx":267
+      /* "rsatoolbox/cengine/similarity.pyx":286
  *         if finite[i]:
  *             vec1[k] = vec_i[i]
  *             vec2[k] = vec_j[i]             # <<<<<<<<<<<<<<
@@ -7286,7 +8192,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
       if (__pyx_t_5 < 0) __pyx_t_5 += __pyx_v_vec_j.shape[0];
       (__pyx_v_vec2[__pyx_v_k]) = (*((double *) ( /* dim=0 */ (__pyx_v_vec_j.data + __pyx_t_5 * __pyx_v_vec_j.strides[0]) )));
 
-      /* "rsatoolbox/cengine/similarity.pyx":268
+      /* "rsatoolbox/cengine/similarity.pyx":287
  *             vec1[k] = vec_i[i]
  *             vec2[k] = vec_j[i]
  *             l = 0             # <<<<<<<<<<<<<<
@@ -7295,7 +8201,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
       __pyx_v_l = 0;
 
-      /* "rsatoolbox/cengine/similarity.pyx":269
+      /* "rsatoolbox/cengine/similarity.pyx":288
  *             vec2[k] = vec_j[i]
  *             l = 0
  *             for j in range(n_dim):             # <<<<<<<<<<<<<<
@@ -7307,7 +8213,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
       for (__pyx_t_14 = 0; __pyx_t_14 < __pyx_t_13; __pyx_t_14+=1) {
         __pyx_v_j = __pyx_t_14;
 
-        /* "rsatoolbox/cengine/similarity.pyx":270
+        /* "rsatoolbox/cengine/similarity.pyx":289
  *             l = 0
  *             for j in range(n_dim):
  *                 if finite[j]:             # <<<<<<<<<<<<<<
@@ -7317,7 +8223,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
         __pyx_t_4 = ((__pyx_v_finite[__pyx_v_j]) != 0);
         if (__pyx_t_4) {
 
-          /* "rsatoolbox/cengine/similarity.pyx":271
+          /* "rsatoolbox/cengine/similarity.pyx":290
  *             for j in range(n_dim):
  *                 if finite[j]:
  *                     noise_small[k, l] = noise[i, j]             # <<<<<<<<<<<<<<
@@ -7334,7 +8240,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
           if (__pyx_t_17 < 0) __pyx_t_17 += __pyx_v_noise_small.shape[1];
           *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_noise_small.data + __pyx_t_16 * __pyx_v_noise_small.strides[0]) ) + __pyx_t_17 * __pyx_v_noise_small.strides[1]) )) = (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_noise.data + __pyx_t_5 * __pyx_v_noise.strides[0]) ) + __pyx_t_15 * __pyx_v_noise.strides[1]) )));
 
-          /* "rsatoolbox/cengine/similarity.pyx":272
+          /* "rsatoolbox/cengine/similarity.pyx":291
  *                 if finite[j]:
  *                     noise_small[k, l] = noise[i, j]
  *                     l += 1             # <<<<<<<<<<<<<<
@@ -7343,7 +8249,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
           __pyx_v_l = (__pyx_v_l + 1);
 
-          /* "rsatoolbox/cengine/similarity.pyx":270
+          /* "rsatoolbox/cengine/similarity.pyx":289
  *             l = 0
  *             for j in range(n_dim):
  *                 if finite[j]:             # <<<<<<<<<<<<<<
@@ -7353,7 +8259,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
         }
       }
 
-      /* "rsatoolbox/cengine/similarity.pyx":273
+      /* "rsatoolbox/cengine/similarity.pyx":292
  *                     noise_small[k, l] = noise[i, j]
  *                     l += 1
  *             k += 1             # <<<<<<<<<<<<<<
@@ -7362,7 +8268,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
       __pyx_v_k = (__pyx_v_k + 1);
 
-      /* "rsatoolbox/cengine/similarity.pyx":265
+      /* "rsatoolbox/cengine/similarity.pyx":284
  *     k = 0
  *     for i in range(n_dim):
  *         if finite[i]:             # <<<<<<<<<<<<<<
@@ -7372,7 +8278,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
     }
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":274
+  /* "rsatoolbox/cengine/similarity.pyx":293
  *                     l += 1
  *             k += 1
  *     blas.dgemv(&trans, &n_finite, &n_finite, &onef, &noise_small[0, 0], &n_finite, vec2, &one, &zerof, vec3, &one)             # <<<<<<<<<<<<<<
@@ -7385,7 +8291,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
   if (__pyx_t_5 < 0) __pyx_t_5 += __pyx_v_noise_small.shape[1];
   __pyx_f_5scipy_6linalg_11cython_blas_dgemv((&__pyx_v_trans), (&__pyx_v_n_finite), (&__pyx_v_n_finite), (&__pyx_v_onef), (&(*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_noise_small.data + __pyx_t_15 * __pyx_v_noise_small.strides[0]) ) + __pyx_t_5 * __pyx_v_noise_small.strides[1]) )))), (&__pyx_v_n_finite), __pyx_v_vec2, (&__pyx_v_one), (&__pyx_v_zerof), __pyx_v_vec3, (&__pyx_v_one));
 
-  /* "rsatoolbox/cengine/similarity.pyx":275
+  /* "rsatoolbox/cengine/similarity.pyx":294
  *             k += 1
  *     blas.dgemv(&trans, &n_finite, &n_finite, &onef, &noise_small[0, 0], &n_finite, vec2, &one, &zerof, vec3, &one)
  *     for i in range(n_dim):             # <<<<<<<<<<<<<<
@@ -7397,7 +8303,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "rsatoolbox/cengine/similarity.pyx":276
+    /* "rsatoolbox/cengine/similarity.pyx":295
  *     blas.dgemv(&trans, &n_finite, &n_finite, &onef, &noise_small[0, 0], &n_finite, vec2, &one, &zerof, vec3, &one)
  *     for i in range(n_dim):
  *         sim += vec1[i] * vec3[i]             # <<<<<<<<<<<<<<
@@ -7407,7 +8313,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
     __pyx_v_sim = (__pyx_v_sim + ((__pyx_v_vec1[__pyx_v_i]) * (__pyx_v_vec3[__pyx_v_i])));
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":277
+  /* "rsatoolbox/cengine/similarity.pyx":296
  *     for i in range(n_dim):
  *         sim += vec1[i] * vec3[i]
  *     PyMem_Free(vec1)             # <<<<<<<<<<<<<<
@@ -7416,7 +8322,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   PyMem_Free(__pyx_v_vec1);
 
-  /* "rsatoolbox/cengine/similarity.pyx":278
+  /* "rsatoolbox/cengine/similarity.pyx":297
  *         sim += vec1[i] * vec3[i]
  *     PyMem_Free(vec1)
  *     PyMem_Free(vec2)             # <<<<<<<<<<<<<<
@@ -7425,7 +8331,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   PyMem_Free(__pyx_v_vec2);
 
-  /* "rsatoolbox/cengine/similarity.pyx":279
+  /* "rsatoolbox/cengine/similarity.pyx":298
  *     PyMem_Free(vec1)
  *     PyMem_Free(vec2)
  *     PyMem_Free(vec3)             # <<<<<<<<<<<<<<
@@ -7434,7 +8340,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   PyMem_Free(__pyx_v_vec3);
 
-  /* "rsatoolbox/cengine/similarity.pyx":280
+  /* "rsatoolbox/cengine/similarity.pyx":299
  *     PyMem_Free(vec2)
  *     PyMem_Free(vec3)
  *     PyMem_Free(finite)             # <<<<<<<<<<<<<<
@@ -7443,7 +8349,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
  */
   PyMem_Free(__pyx_v_finite);
 
-  /* "rsatoolbox/cengine/similarity.pyx":281
+  /* "rsatoolbox/cengine/similarity.pyx":300
  *     PyMem_Free(vec3)
  *     PyMem_Free(finite)
  *     return sim             # <<<<<<<<<<<<<<
@@ -7453,7 +8359,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
   __pyx_r = __pyx_v_sim;
   goto __pyx_L0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":235
+  /* "rsatoolbox/cengine/similarity.pyx":254
  * 
  * @cython.boundscheck(False)
  * cdef double mahalanobis(double [:] vec_i, double [:] vec_j, int n_dim,             # <<<<<<<<<<<<<<
@@ -7477,7 +8383,7 @@ static double __pyx_f_10rsatoolbox_7cengine_10similarity_mahalanobis(__Pyx_memvi
   return __pyx_r;
 }
 
-/* "rsatoolbox/cengine/similarity.pyx":286
+/* "rsatoolbox/cengine/similarity.pyx":305
  * @cython.boundscheck(False)
  * @cython.cdivision(True)
  * cdef (double, double) correlation(double [:] vec_i, double [:] vec_j, int n_dim):             # <<<<<<<<<<<<<<
@@ -7509,9 +8415,9 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("correlation", 0);
-  __Pyx_TraceCall("correlation", __pyx_f[0], 286, 0, __PYX_ERR(0, 286, __pyx_L1_error));
+  __Pyx_TraceCall("correlation", __pyx_f[0], 305, 0, __PYX_ERR(0, 305, __pyx_L1_error));
 
-  /* "rsatoolbox/cengine/similarity.pyx":288
+  /* "rsatoolbox/cengine/similarity.pyx":307
  * cdef (double, double) correlation(double [:] vec_i, double [:] vec_j, int n_dim):
  *     cdef:
  *         double si = 0.0             # <<<<<<<<<<<<<<
@@ -7520,7 +8426,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_si = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":289
+  /* "rsatoolbox/cengine/similarity.pyx":308
  *     cdef:
  *         double si = 0.0
  *         double sj = 0.0             # <<<<<<<<<<<<<<
@@ -7529,7 +8435,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_sj = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":290
+  /* "rsatoolbox/cengine/similarity.pyx":309
  *         double si = 0.0
  *         double sj = 0.0
  *         double si2 = 0.0             # <<<<<<<<<<<<<<
@@ -7538,7 +8444,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_si2 = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":291
+  /* "rsatoolbox/cengine/similarity.pyx":310
  *         double sj = 0.0
  *         double si2 = 0.0
  *         double sj2 = 0.0             # <<<<<<<<<<<<<<
@@ -7547,7 +8453,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_sj2 = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":292
+  /* "rsatoolbox/cengine/similarity.pyx":311
  *         double si2 = 0.0
  *         double sj2 = 0.0
  *         double sij = 0.0             # <<<<<<<<<<<<<<
@@ -7556,7 +8462,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_sij = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":294
+  /* "rsatoolbox/cengine/similarity.pyx":313
  *         double sij = 0.0
  *         double sim
  *         double weight = 0             # <<<<<<<<<<<<<<
@@ -7565,7 +8471,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_weight = 0.0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":296
+  /* "rsatoolbox/cengine/similarity.pyx":315
  *         double weight = 0
  *         int i
  *     for i in range(n_dim):             # <<<<<<<<<<<<<<
@@ -7577,7 +8483,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "rsatoolbox/cengine/similarity.pyx":297
+    /* "rsatoolbox/cengine/similarity.pyx":316
  *         int i
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):             # <<<<<<<<<<<<<<
@@ -7599,7 +8505,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     __pyx_L6_bool_binop_done:;
     if (__pyx_t_4) {
 
-      /* "rsatoolbox/cengine/similarity.pyx":298
+      /* "rsatoolbox/cengine/similarity.pyx":317
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
  *             si += vec_i[i]             # <<<<<<<<<<<<<<
@@ -7610,7 +8516,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       if (__pyx_t_5 < 0) __pyx_t_5 += __pyx_v_vec_i.shape[0];
       __pyx_v_si = (__pyx_v_si + (*((double *) ( /* dim=0 */ (__pyx_v_vec_i.data + __pyx_t_5 * __pyx_v_vec_i.strides[0]) ))));
 
-      /* "rsatoolbox/cengine/similarity.pyx":299
+      /* "rsatoolbox/cengine/similarity.pyx":318
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
  *             si += vec_i[i]
  *             sj += vec_j[i]             # <<<<<<<<<<<<<<
@@ -7621,7 +8527,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       if (__pyx_t_5 < 0) __pyx_t_5 += __pyx_v_vec_j.shape[0];
       __pyx_v_sj = (__pyx_v_sj + (*((double *) ( /* dim=0 */ (__pyx_v_vec_j.data + __pyx_t_5 * __pyx_v_vec_j.strides[0]) ))));
 
-      /* "rsatoolbox/cengine/similarity.pyx":300
+      /* "rsatoolbox/cengine/similarity.pyx":319
  *             si += vec_i[i]
  *             sj += vec_j[i]
  *             si2 += vec_i[i] * vec_i[i]             # <<<<<<<<<<<<<<
@@ -7634,7 +8540,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       if (__pyx_t_7 < 0) __pyx_t_7 += __pyx_v_vec_i.shape[0];
       __pyx_v_si2 = (__pyx_v_si2 + ((*((double *) ( /* dim=0 */ (__pyx_v_vec_i.data + __pyx_t_5 * __pyx_v_vec_i.strides[0]) ))) * (*((double *) ( /* dim=0 */ (__pyx_v_vec_i.data + __pyx_t_7 * __pyx_v_vec_i.strides[0]) )))));
 
-      /* "rsatoolbox/cengine/similarity.pyx":301
+      /* "rsatoolbox/cengine/similarity.pyx":320
  *             sj += vec_j[i]
  *             si2 += vec_i[i] * vec_i[i]
  *             sj2 += vec_j[i] * vec_j[i]             # <<<<<<<<<<<<<<
@@ -7647,7 +8553,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       if (__pyx_t_5 < 0) __pyx_t_5 += __pyx_v_vec_j.shape[0];
       __pyx_v_sj2 = (__pyx_v_sj2 + ((*((double *) ( /* dim=0 */ (__pyx_v_vec_j.data + __pyx_t_7 * __pyx_v_vec_j.strides[0]) ))) * (*((double *) ( /* dim=0 */ (__pyx_v_vec_j.data + __pyx_t_5 * __pyx_v_vec_j.strides[0]) )))));
 
-      /* "rsatoolbox/cengine/similarity.pyx":302
+      /* "rsatoolbox/cengine/similarity.pyx":321
  *             si2 += vec_i[i] * vec_i[i]
  *             sj2 += vec_j[i] * vec_j[i]
  *             sij += vec_i[i] * vec_j[i]             # <<<<<<<<<<<<<<
@@ -7660,7 +8566,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       if (__pyx_t_7 < 0) __pyx_t_7 += __pyx_v_vec_j.shape[0];
       __pyx_v_sij = (__pyx_v_sij + ((*((double *) ( /* dim=0 */ (__pyx_v_vec_i.data + __pyx_t_5 * __pyx_v_vec_i.strides[0]) ))) * (*((double *) ( /* dim=0 */ (__pyx_v_vec_j.data + __pyx_t_7 * __pyx_v_vec_j.strides[0]) )))));
 
-      /* "rsatoolbox/cengine/similarity.pyx":303
+      /* "rsatoolbox/cengine/similarity.pyx":322
  *             sj2 += vec_j[i] * vec_j[i]
  *             sij += vec_i[i] * vec_j[i]
  *             weight += 1             # <<<<<<<<<<<<<<
@@ -7669,7 +8575,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
       __pyx_v_weight = (__pyx_v_weight + 1.0);
 
-      /* "rsatoolbox/cengine/similarity.pyx":297
+      /* "rsatoolbox/cengine/similarity.pyx":316
  *         int i
  *     for i in range(n_dim):
  *         if not isnan(vec_i[i]) and not isnan(vec_j[i]):             # <<<<<<<<<<<<<<
@@ -7679,7 +8585,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     }
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":304
+  /* "rsatoolbox/cengine/similarity.pyx":323
  *             sij += vec_i[i] * vec_j[i]
  *             weight += 1
  *     if si2 > 0 and sj2 > 0:             # <<<<<<<<<<<<<<
@@ -7697,7 +8603,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   __pyx_L9_bool_binop_done:;
   if (__pyx_t_4) {
 
-    /* "rsatoolbox/cengine/similarity.pyx":306
+    /* "rsatoolbox/cengine/similarity.pyx":325
  *     if si2 > 0 and sj2 > 0:
  *         # sim = (np.sum(vec_i * vec_j) / np.sqrt(norm_i) / np.sqrt(norm_j))
  *         sim = sij - (si * sj / n_dim)             # <<<<<<<<<<<<<<
@@ -7706,7 +8612,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
     __pyx_v_sim = (__pyx_v_sij - ((__pyx_v_si * __pyx_v_sj) / ((double)__pyx_v_n_dim)));
 
-    /* "rsatoolbox/cengine/similarity.pyx":307
+    /* "rsatoolbox/cengine/similarity.pyx":326
  *         # sim = (np.sum(vec_i * vec_j) / np.sqrt(norm_i) / np.sqrt(norm_j))
  *         sim = sij - (si * sj / n_dim)
  *         sim /= sqrt(si2 - (si * si / n_dim))             # <<<<<<<<<<<<<<
@@ -7715,7 +8621,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
     __pyx_v_sim = (__pyx_v_sim / sqrt((__pyx_v_si2 - ((__pyx_v_si * __pyx_v_si) / ((double)__pyx_v_n_dim)))));
 
-    /* "rsatoolbox/cengine/similarity.pyx":308
+    /* "rsatoolbox/cengine/similarity.pyx":327
  *         sim = sij - (si * sj / n_dim)
  *         sim /= sqrt(si2 - (si * si / n_dim))
  *         sim /= sqrt(sj2 - (sj * sj / n_dim))             # <<<<<<<<<<<<<<
@@ -7724,7 +8630,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
     __pyx_v_sim = (__pyx_v_sim / sqrt((__pyx_v_sj2 - ((__pyx_v_sj * __pyx_v_sj) / ((double)__pyx_v_n_dim)))));
 
-    /* "rsatoolbox/cengine/similarity.pyx":304
+    /* "rsatoolbox/cengine/similarity.pyx":323
  *             sij += vec_i[i] * vec_j[i]
  *             weight += 1
  *     if si2 > 0 and sj2 > 0:             # <<<<<<<<<<<<<<
@@ -7734,7 +8640,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
     goto __pyx_L8;
   }
 
-  /* "rsatoolbox/cengine/similarity.pyx":310
+  /* "rsatoolbox/cengine/similarity.pyx":329
  *         sim /= sqrt(sj2 - (sj * sj / n_dim))
  *     else:
  *         sim = 1             # <<<<<<<<<<<<<<
@@ -7746,7 +8652,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   }
   __pyx_L8:;
 
-  /* "rsatoolbox/cengine/similarity.pyx":311
+  /* "rsatoolbox/cengine/similarity.pyx":330
  *     else:
  *         sim = 1
  *     sim = sim * n_dim / 2             # <<<<<<<<<<<<<<
@@ -7754,7 +8660,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  */
   __pyx_v_sim = ((__pyx_v_sim * __pyx_v_n_dim) / 2.0);
 
-  /* "rsatoolbox/cengine/similarity.pyx":312
+  /* "rsatoolbox/cengine/similarity.pyx":331
  *         sim = 1
  *     sim = sim * n_dim / 2
  *     return sim, weight             # <<<<<<<<<<<<<<
@@ -7764,7 +8670,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
   __pyx_r = __pyx_t_8;
   goto __pyx_L0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":286
+  /* "rsatoolbox/cengine/similarity.pyx":305
  * @cython.boundscheck(False)
  * @cython.cdivision(True)
  * cdef (double, double) correlation(double [:] vec_i, double [:] vec_j, int n_dim):             # <<<<<<<<<<<<<<
@@ -22516,7 +23422,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, __pyx_k__18, sizeof(__pyx_k__18), 0, 0, 0, 0},
   {0, __pyx_k__19, sizeof(__pyx_k__19), 0, 1, 0, 0},
   {0, __pyx_k__20, sizeof(__pyx_k__20), 0, 1, 0, 0},
-  {0, __pyx_k__36, sizeof(__pyx_k__36), 0, 0, 1, 1},
+  {0, __pyx_k__35, sizeof(__pyx_k__35), 0, 0, 1, 1},
   {0, __pyx_k__7, sizeof(__pyx_k__7), 0, 1, 0, 0},
   {0, __pyx_k__8, sizeof(__pyx_k__8), 0, 1, 0, 0},
   {0, __pyx_k__9, sizeof(__pyx_k__9), 0, 0, 1, 1},
@@ -22668,7 +23574,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_b__18, __pyx_k__18, sizeof(__pyx_k__18), 0, 0, 0, 0},
   {&__pyx_kp_u__19, __pyx_k__19, sizeof(__pyx_k__19), 0, 1, 0, 0},
   {&__pyx_kp_u__20, __pyx_k__20, sizeof(__pyx_k__20), 0, 1, 0, 0},
-  {&__pyx_n_s__36, __pyx_k__36, sizeof(__pyx_k__36), 0, 0, 1, 1},
+  {&__pyx_n_s__35, __pyx_k__35, sizeof(__pyx_k__35), 0, 0, 1, 1},
   {&__pyx_kp_u__7, __pyx_k__7, sizeof(__pyx_k__7), 0, 1, 0, 0},
   {&__pyx_kp_u__8, __pyx_k__8, sizeof(__pyx_k__8), 0, 1, 0, 0},
   {&__pyx_n_s__9, __pyx_k__9, sizeof(__pyx_k__9), 0, 0, 1, 1},
@@ -22785,8 +23691,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 /* #### Code section: cached_builtins ### */
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 54, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 60, __pyx_L1_error)
   __pyx_builtin___import__ = __Pyx_GetBuiltinName(__pyx_n_s_import); if (!__pyx_builtin___import__) __PYX_ERR(1, 100, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 155, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 158, __pyx_L1_error)
@@ -22805,14 +23711,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "rsatoolbox/cengine/similarity.pyx":54
- *         double prior_weight_l = 1 + prior_weight
+  /* "rsatoolbox/cengine/similarity.pyx":55
+ *         double [:, :] log_data
  *     if (method_idx > 4) or (method_idx < 1):
  *         raise ValueError('dissimilarity method not recognized!')             # <<<<<<<<<<<<<<
  *     # precompute stuff for poisson KL
  *     if method_idx == 4:
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_dissimilarity_method_not_recogni); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_dissimilarity_method_not_recogni); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
@@ -22864,32 +23770,29 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__21);
   __pyx_codeobj__2 = (PyObject*)__Pyx_PyCode_New(10, 0, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_rsatoolbox_cengine_similarit, __pyx_n_s_calc, 16, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__2)) __PYX_ERR(0, 16, __pyx_L1_error)
 
-  /* "rsatoolbox/cengine/similarity.pyx":117
+  /* "rsatoolbox/cengine/similarity.pyx":130
  * @cython.boundscheck(False)
  * @cython.cdivision(True)
  * cpdef (double, double) calc_one(             # <<<<<<<<<<<<<<
  *     double [:, :] data_i, double [:, :] data_j,
  *     long [:] cv_desc_i, long [:] cv_desc_j,
  */
-  __pyx_tuple__22 = PyTuple_Pack(11, __pyx_n_s_data_i, __pyx_n_s_data_j, __pyx_n_s_cv_desc_i, __pyx_n_s_cv_desc_j, __pyx_n_s_n_i, __pyx_n_s_n_j, __pyx_n_s_method_idx, __pyx_n_s_noise, __pyx_n_s_prior_lambda, __pyx_n_s_prior_weight, __pyx_n_s_weighting); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_tuple__22 = PyTuple_Pack(11, __pyx_n_s_data_i, __pyx_n_s_data_j, __pyx_n_s_cv_desc_i, __pyx_n_s_cv_desc_j, __pyx_n_s_n_i, __pyx_n_s_n_j, __pyx_n_s_method_idx, __pyx_n_s_noise, __pyx_n_s_prior_lambda, __pyx_n_s_prior_weight, __pyx_n_s_weighting); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
-  __pyx_codeobj__5 = (PyObject*)__Pyx_PyCode_New(11, 0, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_rsatoolbox_cengine_similarit, __pyx_n_s_calc_one, 117, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__5)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_codeobj__5 = (PyObject*)__Pyx_PyCode_New(11, 0, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_rsatoolbox_cengine_similarit, __pyx_n_s_calc_one, 130, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__5)) __PYX_ERR(0, 130, __pyx_L1_error)
 
-  /* "rsatoolbox/cengine/similarity.pyx":173
+  /* "rsatoolbox/cengine/similarity.pyx":196
  * 
  * @cython.boundscheck(False)
  * cpdef (double, double) similarity(double [:] vec_i, double [:] vec_j, int method_idx,             # <<<<<<<<<<<<<<
- *                        int n_dim, double [:, :] noise,
- *                        double prior_lambda=1, double prior_weight=0.1):
+ *                        int n_dim, double [:, :] noise):
+ *     """
  */
-  __pyx_tuple__23 = PyTuple_Pack(7, __pyx_n_s_vec_i, __pyx_n_s_vec_j, __pyx_n_s_method_idx, __pyx_n_s_n_dim, __pyx_n_s_noise, __pyx_n_s_prior_lambda, __pyx_n_s_prior_weight); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 173, __pyx_L1_error)
+  __pyx_tuple__23 = PyTuple_Pack(5, __pyx_n_s_vec_i, __pyx_n_s_vec_j, __pyx_n_s_method_idx, __pyx_n_s_n_dim, __pyx_n_s_noise); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 196, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
-  __pyx_codeobj__6 = (PyObject*)__Pyx_PyCode_New(7, 0, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_rsatoolbox_cengine_similarit, __pyx_n_s_similarity, 173, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__6)) __PYX_ERR(0, 173, __pyx_L1_error)
-  __pyx_tuple__24 = PyTuple_Pack(2, __pyx_float_1_0, __pyx_float_0_1); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 173, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__24);
-  __Pyx_GIVEREF(__pyx_tuple__24);
+  __pyx_codeobj__6 = (PyObject*)__Pyx_PyCode_New(5, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_rsatoolbox_cengine_similarit, __pyx_n_s_similarity, 196, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__6)) __PYX_ERR(0, 196, __pyx_L1_error)
 
   /* "View.MemoryView":100
  * cdef object __pyx_collections_abc_Sequence "__pyx_collections_abc_Sequence"
@@ -22898,12 +23801,12 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *         __pyx_collections_abc_Sequence = __import__("collections.abc").abc.Sequence
  *     else:
  */
-  __pyx_tuple__25 = PyTuple_Pack(1, __pyx_n_s_sys); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(1, 100, __pyx_L1_error)
+  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_n_s_sys); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(1, 100, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__24);
+  __Pyx_GIVEREF(__pyx_tuple__24);
+  __pyx_tuple__25 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_3); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(1, 100, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__25);
   __Pyx_GIVEREF(__pyx_tuple__25);
-  __pyx_tuple__26 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_3); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(1, 100, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__26);
-  __Pyx_GIVEREF(__pyx_tuple__26);
 
   /* "View.MemoryView":101
  * try:
@@ -22912,9 +23815,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     else:
  *         __pyx_collections_abc_Sequence = __import__("collections").Sequence
  */
-  __pyx_tuple__27 = PyTuple_Pack(1, __pyx_kp_s_collections_abc); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(1, 101, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__27);
-  __Pyx_GIVEREF(__pyx_tuple__27);
+  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_kp_s_collections_abc); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(1, 101, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__26);
+  __Pyx_GIVEREF(__pyx_tuple__26);
 
   /* "View.MemoryView":103
  *         __pyx_collections_abc_Sequence = __import__("collections.abc").abc.Sequence
@@ -22923,9 +23826,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * except:
  * 
  */
-  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_n_s_collections); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(1, 103, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__28);
-  __Pyx_GIVEREF(__pyx_tuple__28);
+  __pyx_tuple__27 = PyTuple_Pack(1, __pyx_n_s_collections); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(1, 103, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__27);
+  __Pyx_GIVEREF(__pyx_tuple__27);
 
   /* "View.MemoryView":308
  *         return self.name
@@ -22934,9 +23837,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_tuple__29 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(1, 308, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__29);
-  __Pyx_GIVEREF(__pyx_tuple__29);
+  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(1, 308, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__28);
+  __Pyx_GIVEREF(__pyx_tuple__28);
 
   /* "View.MemoryView":309
  * 
@@ -22945,9 +23848,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(1, 309, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__30);
-  __Pyx_GIVEREF(__pyx_tuple__30);
+  __pyx_tuple__29 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(1, 309, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__29);
+  __Pyx_GIVEREF(__pyx_tuple__29);
 
   /* "View.MemoryView":310
  * cdef generic = Enum("<strided and direct or indirect>")
@@ -22956,9 +23859,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__31 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(1, 310, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__31);
-  __Pyx_GIVEREF(__pyx_tuple__31);
+  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(1, 310, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__30);
+  __Pyx_GIVEREF(__pyx_tuple__30);
 
   /* "View.MemoryView":313
  * 
@@ -22967,9 +23870,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_tuple__32 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(1, 313, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__32);
-  __Pyx_GIVEREF(__pyx_tuple__32);
+  __pyx_tuple__31 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(1, 313, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__31);
+  __Pyx_GIVEREF(__pyx_tuple__31);
 
   /* "View.MemoryView":314
  * 
@@ -22978,19 +23881,19 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(1, 314, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__33);
-  __Pyx_GIVEREF(__pyx_tuple__33);
+  __pyx_tuple__32 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(1, 314, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__32);
+  __Pyx_GIVEREF(__pyx_tuple__32);
 
   /* "(tree fragment)":1
  * def __pyx_unpickle_Enum(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
  */
-  __pyx_tuple__34 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__34);
-  __Pyx_GIVEREF(__pyx_tuple__34);
-  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Enum, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__33 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__33);
+  __Pyx_GIVEREF(__pyx_tuple__33);
+  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Enum, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -23040,7 +23943,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitConstants(void) {
   if (__Pyx_InitString(__pyx_string_tab[36], &__pyx_kp_b__18) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   if (__Pyx_InitString(__pyx_string_tab[37], &__pyx_kp_u__19) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   if (__Pyx_InitString(__pyx_string_tab[38], &__pyx_kp_u__20) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
-  if (__Pyx_InitString(__pyx_string_tab[39], &__pyx_n_s__36) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
+  if (__Pyx_InitString(__pyx_string_tab[39], &__pyx_n_s__35) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   if (__Pyx_InitString(__pyx_string_tab[40], &__pyx_kp_u__7) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   if (__Pyx_InitString(__pyx_string_tab[41], &__pyx_kp_u__8) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   if (__Pyx_InitString(__pyx_string_tab[42], &__pyx_n_s__9) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
@@ -23751,47 +24654,47 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_calc, __pyx_t_3) < 0) __PYX_ERR(0, 16, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":121
+  /* "rsatoolbox/cengine/similarity.pyx":134
  *     long [:] cv_desc_i, long [:] cv_desc_j,
  *     int n_i, int n_j,
  *     int method_idx, double [:, :] noise=None,             # <<<<<<<<<<<<<<
  *     double prior_lambda=1, double prior_weight=0.1,
  *     int weighting=1):
  */
-  __pyx_t_2 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(Py_None, PyBUF_WRITABLE); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(Py_None, PyBUF_WRITABLE); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 134, __pyx_L1_error)
   __pyx_k__4 = __pyx_t_2;
   __pyx_t_2.memview = NULL;
   __pyx_t_2.data = NULL;
 
-  /* "rsatoolbox/cengine/similarity.pyx":117
+  /* "rsatoolbox/cengine/similarity.pyx":130
  * @cython.boundscheck(False)
  * @cython.cdivision(True)
  * cpdef (double, double) calc_one(             # <<<<<<<<<<<<<<
  *     double [:, :] data_i, double [:, :] data_j,
  *     long [:] cv_desc_i, long [:] cv_desc_j,
  */
-  __pyx_t_2 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(Py_None, PyBUF_WRITABLE); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(Py_None, PyBUF_WRITABLE); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 134, __pyx_L1_error)
 
-  /* "rsatoolbox/cengine/similarity.pyx":121
+  /* "rsatoolbox/cengine/similarity.pyx":134
  *     long [:] cv_desc_i, long [:] cv_desc_j,
  *     int n_i, int n_j,
  *     int method_idx, double [:, :] noise=None,             # <<<<<<<<<<<<<<
  *     double prior_lambda=1, double prior_weight=0.1,
  *     int weighting=1):
  */
-  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_t_2, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_t_2, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __PYX_XCLEAR_MEMVIEW(&__pyx_t_2, 1);
   __pyx_t_2.memview = NULL; __pyx_t_2.data = NULL;
 
-  /* "rsatoolbox/cengine/similarity.pyx":117
+  /* "rsatoolbox/cengine/similarity.pyx":130
  * @cython.boundscheck(False)
  * @cython.cdivision(True)
  * cpdef (double, double) calc_one(             # <<<<<<<<<<<<<<
  *     double [:, :] data_i, double [:, :] data_j,
  *     long [:] cv_desc_i, long [:] cv_desc_j,
  */
-  __pyx_t_4 = PyTuple_New(4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
@@ -23805,24 +24708,23 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_int_1);
   PyTuple_SET_ITEM(__pyx_t_4, 3, __pyx_int_1);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_10rsatoolbox_7cengine_10similarity_3calc_one, 0, __pyx_n_s_calc_one, NULL, __pyx_n_s_rsatoolbox_cengine_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__5)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_10rsatoolbox_7cengine_10similarity_3calc_one, 0, __pyx_n_s_calc_one, NULL, __pyx_n_s_rsatoolbox_cengine_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__5)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_calc_one, __pyx_t_3) < 0) __PYX_ERR(0, 117, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_calc_one, __pyx_t_3) < 0) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "rsatoolbox/cengine/similarity.pyx":173
+  /* "rsatoolbox/cengine/similarity.pyx":196
  * 
  * @cython.boundscheck(False)
  * cpdef (double, double) similarity(double [:] vec_i, double [:] vec_j, int method_idx,             # <<<<<<<<<<<<<<
- *                        int n_dim, double [:, :] noise,
- *                        double prior_lambda=1, double prior_weight=0.1):
+ *                        int n_dim, double [:, :] noise):
+ *     """
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_10rsatoolbox_7cengine_10similarity_5similarity, 0, __pyx_n_s_similarity, NULL, __pyx_n_s_rsatoolbox_cengine_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__6)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 173, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_10rsatoolbox_7cengine_10similarity_5similarity, 0, __pyx_n_s_similarity, NULL, __pyx_n_s_rsatoolbox_cengine_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__6)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 196, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_tuple__24);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_similarity, __pyx_t_3) < 0) __PYX_ERR(0, 173, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_similarity, __pyx_t_3) < 0) __PYX_ERR(0, 196, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "rsatoolbox/cengine/similarity.pyx":1
@@ -23858,12 +24760,12 @@ if (!__Pyx_RefNanny) {
  *         __pyx_collections_abc_Sequence = __import__("collections.abc").abc.Sequence
  *     else:
  */
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__25, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 100, __pyx_L2_error)
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__24, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 100, __pyx_L2_error)
       __Pyx_GOTREF(__pyx_t_3);
       __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_version_info); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 100, __pyx_L2_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_3 = PyObject_RichCompare(__pyx_t_4, __pyx_tuple__26, Py_GE); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 100, __pyx_L2_error)
+      __pyx_t_3 = PyObject_RichCompare(__pyx_t_4, __pyx_tuple__25, Py_GE); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 100, __pyx_L2_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_7 < 0))) __PYX_ERR(1, 100, __pyx_L2_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -23876,7 +24778,7 @@ if (!__Pyx_RefNanny) {
  *     else:
  *         __pyx_collections_abc_Sequence = __import__("collections").Sequence
  */
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__27, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 101, __pyx_L2_error)
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__26, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 101, __pyx_L2_error)
         __Pyx_GOTREF(__pyx_t_3);
         __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_abc); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 101, __pyx_L2_error)
         __Pyx_GOTREF(__pyx_t_4);
@@ -23907,7 +24809,7 @@ if (!__Pyx_RefNanny) {
  * 
  */
       /*else*/ {
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 103, __pyx_L2_error)
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__27, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 103, __pyx_L2_error)
         __Pyx_GOTREF(__pyx_t_3);
         __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_Sequence); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 103, __pyx_L2_error)
         __Pyx_GOTREF(__pyx_t_4);
@@ -24076,7 +24978,7 @@ if (!__Pyx_RefNanny) {
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__29, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 308, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 308, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_XGOTREF(generic);
   __Pyx_DECREF_SET(generic, __pyx_t_8);
@@ -24090,7 +24992,7 @@ if (!__Pyx_RefNanny) {
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__30, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 309, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__29, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 309, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_XGOTREF(strided);
   __Pyx_DECREF_SET(strided, __pyx_t_8);
@@ -24104,7 +25006,7 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  */
-  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__31, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 310, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__30, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 310, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_XGOTREF(indirect);
   __Pyx_DECREF_SET(indirect, __pyx_t_8);
@@ -24118,7 +25020,7 @@ if (!__Pyx_RefNanny) {
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__32, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 313, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__31, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 313, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_XGOTREF(contiguous);
   __Pyx_DECREF_SET(contiguous, __pyx_t_8);
@@ -24132,7 +25034,7 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  */
-  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__33, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 314, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__32, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 314, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_XGOTREF(indirect_contiguous);
   __Pyx_DECREF_SET(indirect_contiguous, __pyx_t_8);
@@ -24796,6 +25698,11 @@ bad:
 }
 #endif
 
+/* RaiseUnboundLocalError */
+static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname) {
+    PyErr_Format(PyExc_UnboundLocalError, "local variable '%s' referenced before assignment", varname);
+}
+
 /* TupleAndListFromArray */
 #if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE void __Pyx_copy_object_array(PyObject *const *CYTHON_RESTRICT src, PyObject** CYTHON_RESTRICT dest, Py_ssize_t length) {
@@ -25157,11 +26064,6 @@ invalid_keyword:
     #endif
 bad:
     return -1;
-}
-
-/* RaiseUnboundLocalError */
-static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname) {
-    PyErr_Format(PyExc_UnboundLocalError, "local variable '%s' referenced before assignment", varname);
 }
 
 /* WriteUnraisableException */
@@ -30897,7 +31799,7 @@ __Pyx_PyType_GetName(PyTypeObject* tp)
                                                __pyx_n_s_name_2);
     if (unlikely(name == NULL) || unlikely(!PyUnicode_Check(name))) {
         PyErr_Clear();
-        Py_XSETREF(name, __Pyx_NewRef(__pyx_n_s__36));
+        Py_XSETREF(name, __Pyx_NewRef(__pyx_n_s__35));
     }
     return name;
 }
