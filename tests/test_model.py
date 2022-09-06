@@ -224,15 +224,12 @@ class TestConsistency(unittest.TestCase):
             model_rdms)
         for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
             theta_m_i = model_interpolate.fit(self.rdms, method=i_method)
-            theta_m_w = model_weighted.fit(self.rdms, method=i_method)
             theta_m_w_pos = fit_optimize_positive(
                 model_weighted, self.rdms, method=i_method)
             theta_m_w_linear = fit_regress_nn(
                 model_weighted, self.rdms, method=i_method)
             eval_m_i = np.mean(compare(model_weighted.predict_rdm(
                 theta_m_i), self.rdms, method=i_method))
-            eval_m_w = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_w), self.rdms, method=i_method))
             eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
                 theta_m_w_pos), self.rdms, method=i_method))
             eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
@@ -242,7 +239,7 @@ class TestConsistency(unittest.TestCase):
                 places=4, msg='weighted fit differs from interpolation fit!'
                 + '\nfor %s' % i_method)
             self.assertAlmostEqual(
-                eval_m_w, eval_m_w_linear,
+                eval_m_w_pos, eval_m_w_linear,
                 places=4, msg='regression fit differs from optimization fit!'
                 + '\nfor %s' % i_method)
 
