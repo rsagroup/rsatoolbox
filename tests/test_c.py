@@ -7,10 +7,11 @@ import unittest
 from unittest.mock import patch
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
-import rsatoolbox as rsa
+import rsatoolbox
 from rsatoolbox.cengine.similarity import similarity as similarity_c
+from rsatoolbox.cengine.similarity import calc
 from rsatoolbox.rdm.calc_unbalanced import calc_one_similarity as calc_one_similarity_c
-
+from rsatoolbox.util.matrix import row_col_indicator_rdm
 
 class TestSimilarity(unittest.TestCase):
 
@@ -48,7 +49,7 @@ class TestCalcOne(unittest.TestCase):
         self.dat_i = np.random.rand(2, 21)
         self.dat_j = np.random.rand(3, 21)
         self.dat = np.concatenate((self.dat_i, self.dat_j), 0)
-        self.data = rsa.data.Dataset(self.dat, obs_descriptors={'idx':[1,1,2,2,2]})
+        self.data = rsatoolbox.data.Dataset(self.dat, obs_descriptors={'idx':[1,1,2,2,2]})
 
     def test_calc_one_similarity(self):
         d1 = self.data.subset_obs('idx', 1)
@@ -56,9 +57,45 @@ class TestCalcOne(unittest.TestCase):
         for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis', 'poisson']):
             sim, w = calc_one_similarity(self.data, method=method,
                                       descriptor='idx', i_des=1, j_des=2)
-            sim_c, w_c = calc_one_similarity_c(d1,d2, np.array([0,1,2]), np.array([3,4]), method=method)
+            sim_c, w_c = calc_one_similarity_c(d1, d2, np.array([0,1,2]), np.array([3,4]), method=method)
             self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
             self.assertAlmostEqual(w, w_c, None, 'C unequal to python for %s weight' % method)
+
+
+class TestCalc(unittest.TestCase):
+
+    def setUp(self):
+        self.dat = np.random.randn(300, 100)
+        self.data = rsatoolbox.data.Dataset(
+            self.dat,
+            obs_descriptors={'obs': np.repeat(np.arange(50), 6),
+                             'rep': np.repeat(np.arange(6), 50).reshape(
+                             6, 50).transpose().flatten()})
+
+    def test_basic(self):
+        for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis', 'poisson']):
+            # directly call c version
+            a = calc(
+                self.dat,
+                self.data.obs_descriptors['obs'].astype(int),
+                self.data.obs_descriptors['rep'].astype(int),
+                50, i + 1)
+            self_sim = a[:50]
+            rdm = a[50:]
+            row_idx, col_idx = row_col_indicator_rdm(50)
+            rdm = np.array(rdm)
+            self_sim = np.array(self_sim)
+            rdm = row_idx @ self_sim + col_idx @ self_sim - 2 * rdm
+            # calc_unbalanced call
+            b = rsatoolbox.rdm.calc_rdm_unbalanced(
+                self.data, descriptor='obs', method=method)
+            # calc balanced call
+            c = rsatoolbox.rdm.calc_rdm(
+                self.data, descriptor='obs', method=method)
+            np.testing.assert_allclose(np.expand_dims(rdm, 0), b.dissimilarities,
+                err_msg='C unequal to python for %s' % method)
+            np.testing.assert_allclose(np.expand_dims(rdm, 0), c.dissimilarities,
+                err_msg='unbalanced unequal to balanced for %s' % method)
 
 
 ## Original Python version used as reference implementation:
