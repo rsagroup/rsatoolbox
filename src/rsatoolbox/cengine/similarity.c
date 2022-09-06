@@ -6395,7 +6395,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  *     value = 0
  *     for i in range(n_i):             # <<<<<<<<<<<<<<
  *         for j in range(n_j):
- *             if not cv_desc_i[i] == cv_desc_j[j]:
+ *             if not (cv_desc_i[i] == cv_desc_j[j]):
  */
   __pyx_t_7 = __pyx_v_n_i;
   __pyx_t_8 = __pyx_t_7;
@@ -6406,7 +6406,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
  *     value = 0
  *     for i in range(n_i):
  *         for j in range(n_j):             # <<<<<<<<<<<<<<
- *             if not cv_desc_i[i] == cv_desc_j[j]:
+ *             if not (cv_desc_i[i] == cv_desc_j[j]):
  *                 if method_idx == 1: # method == 'euclidean':
  */
     __pyx_t_10 = __pyx_v_n_j;
@@ -6417,7 +6417,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
       /* "rsatoolbox/cengine/similarity.pyx":169
  *     for i in range(n_i):
  *         for j in range(n_j):
- *             if not cv_desc_i[i] == cv_desc_j[j]:             # <<<<<<<<<<<<<<
+ *             if not (cv_desc_i[i] == cv_desc_j[j]):             # <<<<<<<<<<<<<<
  *                 if method_idx == 1: # method == 'euclidean':
  *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
  */
@@ -6430,7 +6430,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
 
         /* "rsatoolbox/cengine/similarity.pyx":170
  *         for j in range(n_j):
- *             if not cv_desc_i[i] == cv_desc_j[j]:
+ *             if not (cv_desc_i[i] == cv_desc_j[j]):
  *                 if method_idx == 1: # method == 'euclidean':             # <<<<<<<<<<<<<<
  *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
  *                 elif method_idx == 2: # method == 'correlation':
@@ -6439,7 +6439,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10rsatoolbox_7cengine_10similarit
           case 1:
 
           /* "rsatoolbox/cengine/similarity.pyx":171
- *             if not cv_desc_i[i] == cv_desc_j[j]:
+ *             if not (cv_desc_i[i] == cv_desc_j[j]):
  *                 if method_idx == 1: # method == 'euclidean':
  *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)             # <<<<<<<<<<<<<<
  *                 elif method_idx == 2: # method == 'correlation':
@@ -6489,7 +6489,7 @@ __pyx_t_19 = __pyx_f_10rsatoolbox_7cengine_10similarity_euclid(__pyx_t_17, __pyx
 
           /* "rsatoolbox/cengine/similarity.pyx":170
  *         for j in range(n_j):
- *             if not cv_desc_i[i] == cv_desc_j[j]:
+ *             if not (cv_desc_i[i] == cv_desc_j[j]):
  *                 if method_idx == 1: # method == 'euclidean':             # <<<<<<<<<<<<<<
  *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
  *                 elif method_idx == 2: # method == 'correlation':
@@ -6879,7 +6879,7 @@ __pyx_t_19 = __pyx_f_10rsatoolbox_7cengine_10similarity_poisson_cv(__pyx_t_17, _
         /* "rsatoolbox/cengine/similarity.pyx":169
  *     for i in range(n_i):
  *         for j in range(n_j):
- *             if not cv_desc_i[i] == cv_desc_j[j]:             # <<<<<<<<<<<<<<
+ *             if not (cv_desc_i[i] == cv_desc_j[j]):             # <<<<<<<<<<<<<<
  *                 if method_idx == 1: # method == 'euclidean':
  *                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
  */

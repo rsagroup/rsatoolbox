@@ -55,8 +55,9 @@ class TestCalcOne(unittest.TestCase):
         d1 = self.data.subset_obs('idx', 1)
         d2 = self.data.subset_obs('idx', 2)
         for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis', 'poisson']):
-            sim, w = calc_one_similarity(self.data, method=method,
-                                      descriptor='idx', i_des=1, j_des=2)
+            sim, w = calc_one_similarity(
+                self.data, method=method,
+                descriptor='idx', i_des=1, j_des=2)
             sim_c, w_c = calc_one_similarity_c(d1, d2, np.array([0,1,2]), np.array([3,4]), method=method)
             self.assertAlmostEqual(w, w_c, None, 'C unequal to python for %s weight' % method)
             self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)

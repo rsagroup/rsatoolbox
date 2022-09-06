@@ -163,14 +163,16 @@ def calc_one_similarity(data_i, data_j,
     finds all pairs of vectors to be compared and calculates one distance
 
     Args:
-        dataset (rsatoolbox.data.DatasetBase):
-            dataset to extract from
-        descriptor (String):
-            key for the descriptor defining the conditions
-        i_des : descriptor value
-            the value of the first condition
-        j_des : descriptor value
-            the value of the second condition
+        data_i (rsatoolbox.data.DatasetBase):
+            dataset for condition i
+        data_j (rsatoolbox.data.DatasetBase):
+            dataset for condition j
+        cv_desc_i(numpy.ndarray):
+            crossvalidation descriptor for condition i
+        cv_desc_j(numpy.ndarray):
+            crossvalidation descriptor for condition j
+        method (string):
+            which dissimilarity to compute
         noise : numpy.ndarray (n_channels x n_channels), optional
             the covariance or precision matrix over channels
             necessary for calculation of mahalanobis distances

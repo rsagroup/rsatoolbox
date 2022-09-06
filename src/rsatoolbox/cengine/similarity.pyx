@@ -166,7 +166,7 @@ cpdef (double, double) calc_one(
     value = 0
     for i in range(n_i):
         for j in range(n_j):
-            if not cv_desc_i[i] == cv_desc_j[j]:
+            if not (cv_desc_i[i] == cv_desc_j[j]):
                 if method_idx == 1: # method == 'euclidean':
                     sim, weight = euclid(data_i[i], data_j[j], n_dim)
                 elif method_idx == 2: # method == 'correlation':
