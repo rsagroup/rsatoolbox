@@ -3,8 +3,8 @@ debug*.py
 *.Result
 
 # c files resulting from cython
-rsatoolbox/cengine/*.c
-rsatoolbox/cengine/*.html
+src/rsatoolbox/cengine/*.c
+src/rsatoolbox/cengine/*.html
 
 # data files from tutorials & demos
 cadena_ploscb_data.pkl
