@@ -10,6 +10,9 @@ setup(
     test_suite='tests',
     url = "https://github.com/rsagroup/rsatoolbox",
     zip_safe = False,
-    ext_modules = [Extension("rsatoolbox.cengine.similarity", ["src/rsatoolbox/cengine/similarity.pyx"])],
+    ext_modules = [
+        Extension(
+            "rsatoolbox.cengine.similarity",
+            ["src/rsatoolbox/cengine/similarity.pyx"])],
     cmdclass={'build_ext': build_ext}
 )

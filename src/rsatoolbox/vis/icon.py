@@ -4,6 +4,7 @@
 icon object which can be plotted into an axis
 """
 
+import os
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox, DrawingArea
@@ -12,7 +13,6 @@ import PIL
 import PIL.ImageOps
 import PIL.ImageFilter
 from PIL import UnidentifiedImageError
-import os
 from rsatoolbox.rdm import RDMs
 from rsatoolbox.util.pooling import pool_rdm
 
@@ -231,7 +231,7 @@ class Icon:
             self._circ_cut = 1
         elif circ_cut == "cosine":
             self._circ_cut = 0
-        elif circ_cut <= 1 and circ_cut >= 0:
+        elif 0 <= circ_cut <= 1:
             self._circ_cut = circ_cut
         else:
             raise ValueError("circ_cut must be in [0,1]")

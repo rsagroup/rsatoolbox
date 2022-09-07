@@ -235,7 +235,7 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
-        sample, rdm_idx, pattern_idx = \
+        sample, _, pattern_idx = \
             bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
                              pattern_descriptor=pattern_descriptor)
         if len(np.unique(pattern_idx)) >= 3:
@@ -352,7 +352,7 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
-        sample, rdm_idx = bootstrap_sample_rdm(data, rdm_descriptor)
+        sample, _ = bootstrap_sample_rdm(data, rdm_descriptor)
         for j, mod in enumerate(models):
             rdm_pred = mod.predict_rdm(theta=theta[j])
             evaluations[i, j] = np.mean(compare(rdm_pred, sample,
@@ -407,8 +407,7 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
         models = [models]
     evaluations = []
     noise_ceil = []
-    for i in range(len(train_set)):
-        train = train_set[i]
+    for i, train in enumerate(train_set):
         test = test_set[i]
         if (train[0].n_rdm == 0 or test[0].n_rdm == 0 or
                 train[0].n_cond <= 2 or test[0].n_cond <= 2):
@@ -448,7 +447,7 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
 def bootstrap_crossval(models, data, method='cosine', fitter=None,
                        k_pattern=None, k_rdm=None, N=1000, n_cv=2,
                        pattern_descriptor='index', rdm_descriptor='index',
-                       random=True, boot_type='both', use_correction=True):
+                       boot_type='both', use_correction=True):
     """evaluates a set of models by k-fold crossvalidation within a bootstrap
 
     Crossvalidation creates variance in the results for a single bootstrap
@@ -500,7 +499,6 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         n_cv(int) : number of crossvalidation runs per sample (default: 1)
         pattern_descriptor(string): descriptor to group patterns
         rdm_descriptor(string): descriptor to group rdms
-        random(bool): randomize group assignments (default: True)
         boot_type(String): which dimension to bootstrap over (default: 'both')
             alternatives: 'rdm', 'pattern'
         use_correction(bool): switch for the correction for the
@@ -598,7 +596,7 @@ def eval_dual_bootstrap_random(
     models, data, method='cosine', fitter=None,
     n_pattern=None, n_rdm=None, N=1000, n_cv=2,
     pattern_descriptor='index', rdm_descriptor='index',
-    random=True, boot_type='both', use_correction=True):
+    boot_type='both', use_correction=True):
     """evaluates a set of models by a evaluating a few random crossvalidation
     folds per bootstrap.
 
@@ -625,7 +623,6 @@ def eval_dual_bootstrap_random(
         n_cv(int) : number of crossvalidation runs per sample (default: 1)
         pattern_descriptor(string): descriptor to group patterns
         rdm_descriptor(string): descriptor to group rdms
-        random(bool): randomize group assignments (default: True)
         boot_type(String): which dimension to bootstrap over (default: 'both')
             alternatives: 'rdm', 'pattern'
         use_correction(bool): switch for the correction for the
@@ -686,11 +683,10 @@ def eval_dual_bootstrap_random(
                     method=method,
                     rdm_descriptor=rdm_descriptor)
             noise_ceil[:, i_sample] = nc
-            for idx in range(len(test_set)):
-                test_set[idx][1] = _concat_sampling(pattern_idx,
-                                                    test_set[idx][1])
-                train_set[idx][1] = _concat_sampling(pattern_idx,
-                                                     train_set[idx][1])
+            for test_s in test_set:
+                test_s[1] = _concat_sampling(pattern_idx, test_s[1])
+            for train_s in train_set:
+                train_s[1] = _concat_sampling(pattern_idx, train_s[1])
             cv_result = crossval(
                 models, sample,
                 train_set, test_set,
