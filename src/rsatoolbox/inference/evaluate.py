@@ -766,11 +766,10 @@ def _internal_cv(models, sample,
             sample,
             method=method,
             rdm_descriptor=rdm_descriptor)
-    for idx in range(len(test_set)):
-        test_set[idx][1] = _concat_sampling(pattern_idx,
-                                            test_set[idx][1])
-        train_set[idx][1] = _concat_sampling(pattern_idx,
-                                             train_set[idx][1])
+    for test_s in test_set:
+        test_s[1] = _concat_sampling(pattern_idx, test_s[1])
+    for train_s in train_set:
+        train_s[1] = _concat_sampling(pattern_idx, train_s[1])
     cv_result = crossval(
         models, sample,
         train_set, test_set,

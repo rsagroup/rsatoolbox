@@ -43,23 +43,23 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
     """
     if isinstance(dataset, Iterable):
         rdms = []
-        for i_dat in range(len(dataset)):
+        for i_dat, ds_i in enumerate(dataset):
             if noise is None:
                 rdms.append(calc_rdm(
-                    dataset[i_dat], method=method,
+                    ds_i, method=method,
                     descriptor=descriptor,
                     cv_descriptor=cv_descriptor,
                     prior_lambda=prior_lambda, prior_weight=prior_weight))
             elif isinstance(noise, np.ndarray) and noise.ndim == 2:
                 rdms.append(calc_rdm(
-                    dataset[i_dat], method=method,
+                    ds_i, method=method,
                     descriptor=descriptor,
                     noise=noise,
                     cv_descriptor=cv_descriptor,
                     prior_lambda=prior_lambda, prior_weight=prior_weight))
             elif isinstance(noise, Iterable):
                 rdms.append(calc_rdm(
-                    dataset[i_dat], method=method,
+                    ds_i, method=method,
                     descriptor=descriptor,
                     noise=noise[i_dat],
                     cv_descriptor=cv_descriptor,
@@ -88,7 +88,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
                                       prior_lambda=prior_lambda,
                                       prior_weight=prior_weight)
         else:
-            raise(NotImplementedError)
+            raise NotImplementedError
         if descriptor is not None:
             rdm.sort_by(**{descriptor: 'alpha'})
     return rdm
@@ -124,19 +124,19 @@ def calc_rdm_movie(
 
     if isinstance(dataset, Iterable):
         rdms = []
-        for i_dat, _ in enumerate(dataset):
+        for i_dat, ds_i in enumerate(dataset):
             if noise is None:
                 rdms.append(calc_rdm_movie(
-                    dataset[i_dat], method=method,
+                    ds_i, method=method,
                     descriptor=descriptor))
             elif isinstance(noise, np.ndarray) and noise.ndim == 2:
                 rdms.append(calc_rdm_movie(
-                    dataset[i_dat], method=method,
+                    ds_i, method=method,
                     descriptor=descriptor,
                     noise=noise))
             elif isinstance(noise, Iterable):
                 rdms.append(calc_rdm_movie(
-                    dataset[i_dat], method=method,
+                    ds_i, method=method,
                     descriptor=descriptor,
                     noise=noise[i_dat]))
         rdm = concat(rdms)
@@ -322,10 +322,10 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     else:  # a list of noises was provided
         measurements = []
         variances = []
-        for i_fold in range(len(cv_folds)):
-            data = dataset.subset_obs(cv_descriptor, cv_folds[i_fold])
+        for i, i_fold in enumerate(cv_folds):
+            data = dataset.subset_obs(cv_descriptor, i_fold)
             measurements.append(average_dataset_by(data, descriptor)[0])
-            variances.append(np.linalg.inv(noise[i_fold]))
+            variances.append(np.linalg.inv(noise[i]))
         for i_fold in range(len(cv_folds)):
             for j_fold in range(i_fold + 1, len(cv_folds)):
                 if i_fold != j_fold:
@@ -499,8 +499,8 @@ def _check_noise(noise, n_channel):
     elif isinstance(noise, np.ndarray) and noise.ndim == 2:
         assert np.all(noise.shape == (n_channel, n_channel))
     elif isinstance(noise, Iterable):
-        for i in range(len(noise)):
-            noise[i] = _check_noise(noise[i], n_channel)
+        for idx, noise_i in enumerate(noise):
+            noise[idx] = _check_noise(noise_i, n_channel)
     elif isinstance(noise, dict):
         for key in noise.keys():
             noise[key] = _check_noise(noise[key], n_channel)

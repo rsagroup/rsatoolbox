@@ -62,7 +62,7 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
         sim = compare_spearman(rdm1, rdm2)
     elif method == 'corr':
         sim = compare_correlation(rdm1, rdm2)
-    elif method == 'kendall' or method == 'tau-b':
+    elif method in ('kendall', 'tau-b'):
         sim = compare_kendall_tau(rdm1, rdm2)
     elif method == 'tau-a':
         sim = compare_kendall_tau_a(rdm1, rdm2)
@@ -534,8 +534,8 @@ def _tau_a(vector1, vector2):
                       (vector2[1:] != vector2[:-1]), True]
     cnt = np.diff(np.nonzero(obs)[0]).astype('int64', copy=False)
     ntie = (cnt * (cnt - 1) // 2).sum()  # joint ties
-    xtie, x0, x1 = _count_rank_tie(vector1)     # ties in x, stats
-    ytie, y0, y1 = _count_rank_tie(vector2)     # ties in y, stats
+    xtie, _, _ = _count_rank_tie(vector1)     # ties in x, stats
+    ytie, _, _ = _count_rank_tie(vector2)     # ties in y, stats
     tot = (size * (size - 1)) // 2
     # Note that tot = con + dis + (xtie - ntie) + (ytie - ntie) + ntie
     #               = con + dis + xtie + ytie - ntie
