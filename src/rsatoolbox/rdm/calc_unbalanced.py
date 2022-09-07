@@ -21,8 +21,7 @@ from rsatoolbox.cengine.similarity import calc_one, calc
 def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
                         noise=None, cv_descriptor=None,
                         prior_lambda=1, prior_weight=0.1,
-                        weighting='number', enforce_same=False,
-                        more_to_c=True):
+                        weighting='number', enforce_same=False):
     """
     calculate a RDM from an input dataset for unbalanced datasets.
 
@@ -74,9 +73,6 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
             dataset = deepcopy(dataset)
             dataset.obs_descriptors['index'] = np.arange(dataset.n_obs)
             descriptor = 'index'
-        rdm = []
-        weights = []
-        self_sim = []
         if method == 'crossnobis' or method == 'poisson_cv':
             if cv_descriptor is None:
                 if 'index' not in dataset.obs_descriptors.keys():
@@ -85,8 +81,9 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
                 warnings.warn('cv_descriptor not set, using index for now.'
                               + 'This will only remove self-similarities.'
                               + 'Effectively this assumes independent trials')
-        unique_cond, cond_indices = get_unique_inverse(dataset.obs_descriptors[descriptor])
-        #unique_cond = set(dataset.obs_descriptors[descriptor])
+        unique_cond, cond_indices = get_unique_inverse(
+            dataset.obs_descriptors[descriptor])
+        # unique_cond = set(dataset.obs_descriptors[descriptor])
         if cv_descriptor is None:
             cv_desc_int = np.arange(dataset.n_obs, dtype=int)
             crossval = 0
@@ -306,8 +303,8 @@ def similarity(vec_i, vec_j, method, noise=None,
         norm_i = np.sum(vec_i ** 2)
         norm_j = np.sum(vec_j ** 2)
         if (norm_i) > 0 and (norm_j > 0):
-            sim = (np.sum(vec_i * vec_j)
-                   / np.sqrt(norm_i) / np.sqrt(norm_j))
+            sim = np.sum(vec_i * vec_j) \
+                / np.sqrt(norm_i) / np.sqrt(norm_j)
         else:
             sim = 1
         sim = sim * len(vec_i) / 2

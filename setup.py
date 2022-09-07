@@ -1,6 +1,5 @@
-from setuptools import setup, find_packages, Extension
+from setuptools import setup, Extension
 from Cython.Build import build_ext
-import numpy
 
 test_requires = []
 with open('tests/requirements.txt') as reqfile:

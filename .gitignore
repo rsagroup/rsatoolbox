@@ -1,5 +1,25 @@
+# Debug and profile files
+debug*.py
+*.Result
+
 # c files resulting from cython
-rsatoolbox/cutil/*.c
+rsatoolbox/cengine/*.c
+rsatoolbox/cengine/*.html
+
+# data files from tutorials & demos
+cadena_ploscb_data.pkl
+fmri_data
+demos/allendata
+
+# stats files
+stats/**/*.npz
+stats/**/*.hdf5
+stats/**/*.npy
+stats/**/*.txt
+stats/**/*.csv
+stats/boc
+stats/illustrations
+stats/figures
 
 # IDEs
 .vscode/

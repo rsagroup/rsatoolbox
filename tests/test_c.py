@@ -4,14 +4,14 @@
 """
 
 import unittest
-from unittest.mock import patch
 import numpy as np
-from scipy.spatial.distance import pdist, squareform
 import rsatoolbox
 from rsatoolbox.cengine.similarity import similarity as similarity_c
 from rsatoolbox.cengine.similarity import calc
-from rsatoolbox.rdm.calc_unbalanced import calc_one_similarity as calc_one_similarity_c
+from rsatoolbox.rdm.calc_unbalanced import \
+    calc_one_similarity as calc_one_similarity_c
 from rsatoolbox.util.matrix import row_col_indicator_rdm
+
 
 class TestSimilarity(unittest.TestCase):
 
@@ -22,14 +22,23 @@ class TestSimilarity(unittest.TestCase):
         self.vec_j = np.array([0.13, 0.14, 0.21, 0.29, 0.28])
 
     def test_basic(self):
-        for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis']):
+        for i, method in enumerate(
+                ['euclidean', 'correlation', 'mahalanobis']):
             sim = similarity(self.vec_i, self.vec_j, method=method)
-            sim_c, w = similarity_c(self.vec_i, self.vec_j, i + 1, self.vec_i.shape[0], noise=None)
-            self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
-        for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis']):
+            sim_c, w = similarity_c(
+                self.vec_i, self.vec_j,
+                i + 1, self.vec_i.shape[0], noise=None)
+            self.assertAlmostEqual(sim, sim_c, None,
+                'C unequal to python for %s' % method)
+        for i, method in enumerate(
+                ['euclidean', 'correlation', 'mahalanobis']):
             sim = similarity(self.v_i, self.v_j, method=method)
-            sim_c, w = similarity_c(self.v_i, self.v_j, i + 1, self.v_i.shape[0], noise=None)
-            self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
+            sim_c, w = similarity_c(
+                self.v_i, self.v_j,
+                i + 1, self.v_i.shape[0], noise=None)
+            self.assertAlmostEqual(
+                sim, sim_c, None,
+                'C unequal to python for %s' % method)
 
     def test_noise(self):
         i = 2
@@ -39,8 +48,12 @@ class TestSimilarity(unittest.TestCase):
         noise[0, 1] = 0.2
         noise[1, 0] = 0.2
         sim = similarity(self.vec_i, self.vec_j, method=method, noise=noise)
-        sim_c, w = similarity_c(self.vec_i, self.vec_j, i + 1, self.vec_i.shape[0], noise=noise)
-        self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
+        sim_c, _ = similarity_c(
+            self.vec_i, self.vec_j,
+            i + 1, self.vec_i.shape[0], noise=noise)
+        self.assertAlmostEqual(
+            sim, sim_c, None,
+            'C unequal to python for %s' % method)
 
 
 class TestCalcOne(unittest.TestCase):
@@ -49,18 +62,27 @@ class TestCalcOne(unittest.TestCase):
         self.dat_i = np.random.rand(2, 21)
         self.dat_j = np.random.rand(3, 21)
         self.dat = np.concatenate((self.dat_i, self.dat_j), 0)
-        self.data = rsatoolbox.data.Dataset(self.dat, obs_descriptors={'idx':[1,1,2,2,2]})
+        self.data = rsatoolbox.data.Dataset(
+            self.dat, obs_descriptors={'idx':[1,1,2,2,2]})
 
     def test_calc_one_similarity(self):
         d1 = self.data.subset_obs('idx', 1)
         d2 = self.data.subset_obs('idx', 2)
-        for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis', 'poisson']):
+        for i, method in enumerate(
+                ['euclidean', 'correlation', 'mahalanobis', 'poisson']):
             sim, w = calc_one_similarity(
                 self.data, method=method,
                 descriptor='idx', i_des=1, j_des=2)
-            sim_c, w_c = calc_one_similarity_c(d1, d2, np.array([0,1,2]), np.array([3,4]), method=method)
-            self.assertAlmostEqual(w, w_c, None, 'C unequal to python for %s weight' % method)
-            self.assertAlmostEqual(sim, sim_c, None, 'C unequal to python for %s' % method)
+            sim_c, w_c = calc_one_similarity_c(
+                d1, d2,
+                np.array([0,1,2]), np.array([3,4]),
+                method=method)
+            self.assertAlmostEqual(
+                w, w_c, None,
+                'C unequal to python for %s weight' % method)
+            self.assertAlmostEqual(
+                sim, sim_c, None,
+                'C unequal to python for %s' % method)
 
 
 class TestCalc(unittest.TestCase):
@@ -74,7 +96,8 @@ class TestCalc(unittest.TestCase):
                              6, 50).transpose().flatten()})
 
     def test_basic(self):
-        for i, method in enumerate(['euclidean', 'correlation', 'mahalanobis', 'poisson']):
+        for i, method in enumerate(
+                ['euclidean', 'correlation', 'mahalanobis', 'poisson']):
             # directly call c version
             a = calc(
                 self.dat,
@@ -90,13 +113,15 @@ class TestCalc(unittest.TestCase):
             # calc_unbalanced call
             b = rsatoolbox.rdm.calc_rdm_unbalanced(
                 self.data, descriptor='obs', method=method)
-            np.testing.assert_allclose(np.expand_dims(rdm, 0), b.dissimilarities,
+            np.testing.assert_allclose(
+                np.expand_dims(rdm, 0), b.dissimilarities,
                 err_msg='C unequal to python for %s' % method)
             if method == 'euclidean':
                 # calc balanced call
                 c = rsatoolbox.rdm.calc_rdm(
                     self.data, descriptor='obs', method=method)
-                np.testing.assert_allclose(np.expand_dims(rdm, 0), c.dissimilarities,
+                np.testing.assert_allclose(
+                    np.expand_dims(rdm, 0), c.dissimilarities,
                     err_msg='unbalanced unequal to balanced for %s' % method)
 
 
@@ -111,8 +136,8 @@ def similarity(vec_i, vec_j, method, noise=None,
         norm_i = np.sum(vec_i ** 2)
         norm_j = np.sum(vec_j ** 2)
         if (norm_i) > 0 and (norm_j > 0):
-            sim = (np.sum(vec_i * vec_j)
-                   / np.sqrt(norm_i) / np.sqrt(norm_j))
+            sim = (np.sum(vec_i * vec_j) /
+                   np.sqrt(norm_i) / np.sqrt(norm_j))
         else:
             sim = 1
         sim = sim * len(vec_i) / 2
@@ -131,7 +156,6 @@ def similarity(vec_i, vec_j, method, noise=None,
     else:
         raise ValueError('dissimilarity method not recognized!')
     return sim
-
 
 
 def calc_one_similarity(dataset, descriptor, i_des, j_des,
@@ -170,8 +194,8 @@ def calc_one_similarity(dataset, descriptor, i_des, j_des,
             if cv_descriptor is None:
                 accepted = True
             else:
-                if (data_i.obs_descriptors[cv_descriptor][i]
-                        == data_j.obs_descriptors[cv_descriptor][j]):
+                if (data_i.obs_descriptors[cv_descriptor][i] ==
+                        data_j.obs_descriptors[cv_descriptor][j]):
                     accepted = False
                 else:
                     accepted = True
