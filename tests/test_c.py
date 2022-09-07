@@ -64,7 +64,7 @@ class TestCalcOne(unittest.TestCase):
         self.dat_j = np.random.rand(3, 21)
         self.dat = np.concatenate((self.dat_i, self.dat_j), 0)
         self.data = rsatoolbox.data.Dataset(
-            self.dat, obs_descriptors={'idx':[1, 1, 2, 2, 2]})
+            self.dat, obs_descriptors={'idx': [1, 1, 2, 2, 2]})
 
     def test_calc_one_similarity(self):
         d1 = self.data.subset_obs('idx', 1)
