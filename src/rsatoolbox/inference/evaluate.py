@@ -593,10 +593,10 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
 
 
 def eval_dual_bootstrap_random(
-    models, data, method='cosine', fitter=None,
-    n_pattern=None, n_rdm=None, N=1000, n_cv=2,
-    pattern_descriptor='index', rdm_descriptor='index',
-    boot_type='both', use_correction=True):
+        models, data, method='cosine', fitter=None,
+        n_pattern=None, n_rdm=None, N=1000, n_cv=2,
+        pattern_descriptor='index', rdm_descriptor='index',
+        boot_type='both', use_correction=True):
     """evaluates a set of models by a evaluating a few random crossvalidation
     folds per bootstrap.
 

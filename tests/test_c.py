@@ -28,7 +28,8 @@ class TestSimilarity(unittest.TestCase):
             sim_c, _ = similarity_c(
                 self.vec_i, self.vec_j,
                 i + 1, self.vec_i.shape[0], noise=None)
-            self.assertAlmostEqual(sim, sim_c, None,
+            self.assertAlmostEqual(
+                sim, sim_c, None,
                 'C unequal to python for %s' % method)
         for i, method in enumerate(
                 ['euclidean', 'correlation', 'mahalanobis']):
@@ -63,7 +64,7 @@ class TestCalcOne(unittest.TestCase):
         self.dat_j = np.random.rand(3, 21)
         self.dat = np.concatenate((self.dat_i, self.dat_j), 0)
         self.data = rsatoolbox.data.Dataset(
-            self.dat, obs_descriptors={'idx':[1,1,2,2,2]})
+            self.dat, obs_descriptors={'idx':[1, 1, 2, 2, 2]})
 
     def test_calc_one_similarity(self):
         d1 = self.data.subset_obs('idx', 1)
@@ -75,7 +76,7 @@ class TestCalcOne(unittest.TestCase):
                 descriptor='idx', i_des=1, j_des=2)
             sim_c, w_c = calc_one_similarity_c(
                 d1, d2,
-                np.array([0,1,2]), np.array([3,4]),
+                np.array([0, 1, 2]), np.array([3, 4]),
                 method=method)
             self.assertAlmostEqual(
                 w, w_c, None,
@@ -125,7 +126,7 @@ class TestCalc(unittest.TestCase):
                     err_msg='unbalanced unequal to balanced for %s' % method)
 
 
-## Original Python version used as reference implementation:
+# Original Python version used as reference implementation:
 def similarity(vec_i, vec_j, method, noise=None,
                prior_lambda=1, prior_weight=0.1):
     if method == 'euclidean':
