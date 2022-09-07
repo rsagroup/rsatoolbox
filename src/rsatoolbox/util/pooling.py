@@ -73,11 +73,7 @@ def pool_rdm(rdms, method='cosine', sigma_k=None):
     elif method == 'rho-a':
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
-    elif method in ('kendall', 'tau-b'):
-        Warning('Noise ceiling for tau based on averaged ranks!')
-        rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
-        rdm_vec = _nan_mean(rdm_vec)
-    elif method == 'tau-a':
+    elif method in ('kendall', 'tau-b', 'tau-a'):
         Warning('Noise ceiling for tau based on averaged ranks!')
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)

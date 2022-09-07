@@ -25,7 +25,7 @@ class TestSimilarity(unittest.TestCase):
         for i, method in enumerate(
                 ['euclidean', 'correlation', 'mahalanobis']):
             sim = similarity(self.vec_i, self.vec_j, method=method)
-            sim_c, w = similarity_c(
+            sim_c, _ = similarity_c(
                 self.vec_i, self.vec_j,
                 i + 1, self.vec_i.shape[0], noise=None)
             self.assertAlmostEqual(sim, sim_c, None,
@@ -33,7 +33,7 @@ class TestSimilarity(unittest.TestCase):
         for i, method in enumerate(
                 ['euclidean', 'correlation', 'mahalanobis']):
             sim = similarity(self.v_i, self.v_j, method=method)
-            sim_c, w = similarity_c(
+            sim_c, _ = similarity_c(
                 self.v_i, self.v_j,
                 i + 1, self.v_i.shape[0], noise=None)
             self.assertAlmostEqual(
@@ -68,8 +68,8 @@ class TestCalcOne(unittest.TestCase):
     def test_calc_one_similarity(self):
         d1 = self.data.subset_obs('idx', 1)
         d2 = self.data.subset_obs('idx', 2)
-        for i, method in enumerate(
-                ['euclidean', 'correlation', 'mahalanobis', 'poisson']):
+        for method in \
+                ['euclidean', 'correlation', 'mahalanobis', 'poisson']:
             sim, w = calc_one_similarity(
                 self.data, method=method,
                 descriptor='idx', i_des=1, j_des=2)

@@ -20,10 +20,10 @@ from .noise_ceiling import cv_noise_ceiling
 
 
 def eval_dual_bootstrap(
-    models, data, method='cosine', fitter=None,
-    k_pattern=1, k_rdm=1, N=1000, n_cv=2,
-    pattern_descriptor='index', rdm_descriptor='index',
-    use_correction=True):
+        models, data, method='cosine', fitter=None,
+        k_pattern=1, k_rdm=1, N=1000, n_cv=2,
+        pattern_descriptor='index', rdm_descriptor='index',
+        use_correction=True):
     """dual bootstrap evaluation of models
     i.e. models are evaluated in a bootstrap over rdms, one over patterns
     and a bootstrap over both using the same bootstrap samples for each.
