@@ -22,16 +22,16 @@ class PairSelectionTests(TestCase):
                 [4, 5, 9, 0, 9],
                 [3, 4, 9, 9, 0],
             ])),
-            pattern_descriptors=dict(cond=['a', 'b', 'c', 'd', 'e'])
+            pattern_descriptors=dict(cond=array(['a', 'b', 'c', 'd', 'e']))
         )
         ## 25% lowest dissimilarities
-        out = pairs_by_percentile(rdms, max=25, with_pattern=dict(cond='a'))
+        out = pairs_by_percentile(rdms, max=25, cond='a')
         assert_frame_equal(out, DataFrame([
-            dict(cond='e', dissim=3),
+            dict(cond='e', dissim=3.0),
         ]))
         ## 40% - 80% mid range dissimilarities
-        out = pairs_by_percentile(rdms, min=40, max=70, with_pattern=dict(cond='b'))
+        out = pairs_by_percentile(rdms, min=40, max=80, cond='b')
         assert_frame_equal(out, DataFrame([
-            dict(cond='c', dissim=6),
-            dict(cond='d', dissim=5),
+            dict(cond='c', dissim=6.0),
+            dict(cond='d', dissim=5.0),
         ]))
