@@ -1,7 +1,8 @@
 """Functions to select pairs
 """
+# pylint: disable=redefined-builtin
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, Optional, Any
+from typing import TYPE_CHECKING
 from pandas import DataFrame
 import numpy
 from scipy.stats import rankdata
@@ -9,7 +10,7 @@ if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
 
 
-def pairs_by_percentile(rdms: RDMs, min: float=0, max: float=100, 
+def pairs_by_percentile(rdms: RDMs, min: float=0, max: float=100,
     **kwargs) -> DataFrame:
     """Select pairs within a percentile range.
 
