@@ -10,8 +10,8 @@ if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
 
 
-def pairs_by_percentile(rdms: RDMs, min: float=0, max: float=100,
-    **kwargs) -> DataFrame:
+def pairs_by_percentile(rdms: RDMs, min: float = 0, max: float = 100,
+        **kwargs) -> DataFrame:
     """Select pairs within a percentile range.
 
     Filter pairs first by providing the `with_pattern` argument.
@@ -31,7 +31,7 @@ def pairs_by_percentile(rdms: RDMs, min: float=0, max: float=100,
     row = mats[0, row_mask, :].squeeze()
     pair_dissims = row[~row_mask]
     percs = rankdata(pair_dissims, 'average') / pair_dissims.size * 100
-    matches = numpy.logical_and(percs>=min, percs<=max)
+    matches = numpy.logical_and(percs >= min, percs <= max)
     matches_mask = numpy.full_like(row, False, dtype=bool)
     matches_mask[~row_mask] = matches
     columns = dict()
