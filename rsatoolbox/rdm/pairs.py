@@ -30,7 +30,6 @@ def pairs_by_percentile(rdms: RDMs, min: float=0, max: float=100,
     row = mats[0, row_mask, :].squeeze()
     pair_dissims = row[~row_mask]
     percs = rankdata(pair_dissims, 'average') / pair_dissims.size * 100
-    print(percs)
     matches = numpy.logical_and(percs>=min, percs<=max)
     matches_mask = numpy.full_like(row, False, dtype=bool)
     matches_mask[~row_mask] = matches
