@@ -198,7 +198,9 @@ def plot_model_comparison(result, sort=False, colors=None,
                 performs wilcoxon signed rank sum tests
 
     Returns:
-        ---
+        (matplotlib.pyplot.Figure, matplotlib.pyplot.Axis, matplotlib.pyplot.Axis):
+            the figure and axes the plots were made into. This allows further modification
+            saving and printing of the figure. 
 
     """
 
@@ -523,6 +525,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     if models is not None:
         ax.set_xticklabels([m.name for m in models], fontsize=fs2,
                            rotation=45)
+    return fig, ax, axbar
 
 
 def plot_nili_bars(axbar, significant, version=1):
