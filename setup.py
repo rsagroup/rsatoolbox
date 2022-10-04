@@ -1,5 +1,5 @@
 from setuptools import setup, Extension
-from Cython.Build import build_ext
+from Cython.Build import build_ext ## missing dev time req
 
 test_requires = []
 with open('tests/requirements.txt') as reqfile:
