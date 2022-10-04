@@ -297,6 +297,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                           h * h_pair_tests * 0.7))
     else:
         ax = plt.axes((l, b, w, h))
+        axbar = None
 
     # Define the model colors
     if colors is None:  # no color passed...
