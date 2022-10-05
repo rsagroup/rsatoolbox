@@ -13,6 +13,9 @@ from nilearn import surface
 import rsatoolbox.data as rsd
 import rsatoolbox.rdm as rsr
 
+from scipy.spatial.distance import cdist
+from itertools import compress
+
 
 class GroupIterator():
     """Group iterator. cf. nilearn.
@@ -109,6 +112,85 @@ def prepare_surf_indices(fspath, targetspace, radius):
     return sl_indices
 
 
+def _get_searchlight_neighbors(mask, centers, radius=3):
+    """Return indices for searchlight where distance
+        between a voxel and their center < radius (in voxels)
+    Args:
+        center (index):  point around which to make searchlight sphere
+    Returns:
+        list: the list of volume indices that respect the
+                searchlight radius for the input center.
+    """
+    all_indices = []
+    for center in centers:
+        mask_shape = mask.shape
+        cx, cy, cz = center
+        x = np.arange(mask_shape[0])
+        y = np.arange(mask_shape[1])
+        z = np.arange(mask_shape[2])
+
+        # First mask the obvious points
+        # - may actually slow down your calculation depending.
+        x = x[abs(x - cx) < radius]
+        y = y[abs(y - cy) < radius]
+        z = z[abs(z - cz) < radius]
+
+        # Generate grid of points
+        X, Y, Z = np.meshgrid(x, y, z)
+        data = np.vstack((X.ravel(), Y.ravel(), Z.ravel())).T
+        distance = cdist(data, center.reshape(1, -1), 'euclidean').ravel()
+
+        indices = data[distance < radius, :]
+
+        all_indices.append(indices)
+
+    return all_indices
+
+
+def prepare_vol_indices(mask, radius, threshold, n_jobs=-1, verbose=0):
+
+    # find the mask centers
+    centers = np.asarray(list(zip(*np.nonzero(mask))))
+
+    group_iter = GroupIterator(len(centers), n_jobs)
+
+    # get the list of spherical neighbor volume indices
+    with warnings.catch_warnings():  # might not converge
+        warnings.simplefilter('ignore', ConvergenceWarning)
+        neighbors = Parallel(n_jobs=n_jobs, verbose=verbose)(
+            delayed(_get_searchlight_neighbors)(
+                mask,
+                centers[list_i, :],
+                radius)
+            for list_i in group_iter)
+    # unpack
+    neighbors_list = [item for sublist in neighbors for item in sublist]
+
+    # janitor
+    neighbors = neighbors_list
+    
+    # turn the 3-dim coordinates to array coordinates
+    centers = np.ravel_multi_index(centers.T, mask.shape)
+    neighbors = [np.ravel_multi_index(n.T, mask.shape) for n in neighbors]
+
+    mask = mask.flatten()
+
+    # now we only keep those spheres that have at least threshold% brain.
+    good = [mask[n].mean() >=threshold for n in neighbors]
+
+    good_centers = list(compress(centers, good))
+
+    good_centers = np.array(good_centers)
+
+    good_neighbors = list(compress(neighbors, good))
+
+    assert good_centers.shape[0] == len(good_neighbors),\
+        "number of centers and sets of neighbors do not match"
+    print(f'Found {len(good_neighbors)} searchlights')
+
+    return good_centers, good_neighbors
+
+
 def compute_searchlight_rdms(
     indices,
     betas,
@@ -144,8 +226,8 @@ def compute_searchlight_rdms(
     """
     # first deal with making datasets for the searchlights
     data = []
-    for ind in indices.rows:
-        chan_des = {'verts': np.array(['vert_' + str(x) for x in ind])}
+    for ind in indices:
+        chan_des = {'chans': np.array(['chan_' + str(x) for x in ind])}
 
         data.append(
             rsd.Dataset(
