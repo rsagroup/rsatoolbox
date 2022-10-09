@@ -184,8 +184,9 @@ def plot_model_comparison(result, sort=False, colors=None,
             experimental conditions.
 
             'dots':
-                Draws dots for each data-point, i.e. first dimension of the evaluation tensor.
-                This is primarily sensible for fixed evaluation where this dimension
+                Draws dots for each data-point, i.e. first dimension of
+                the evaluation tensor. This is primarily sensible for 
+                fixed evaluation where this dimension
                 corresponds to the subjects in the experiment.
 
         test_type (string):
@@ -203,9 +204,10 @@ def plot_model_comparison(result, sort=False, colors=None,
                 performs wilcoxon signed rank sum tests
 
     Returns:
-        (matplotlib.pyplot.Figure, matplotlib.pyplot.Axis, matplotlib.pyplot.Axis):
-            the figure and axes the plots were made into. This allows further modification
-            saving and printing of the figure. 
+        (matplotlib.pyplot.Figure, matplotlib.pyplot.Axis,
+            matplotlib.pyplot.Axis):
+            the figure and axes the plots were made into.
+            This allows further modification, saving and printing.
 
     """
 
@@ -341,7 +343,8 @@ def plot_model_comparison(result, sort=False, colors=None,
             errorbar_low = np.sqrt(np.maximum(model_var, 0))
             errorbar_high = np.sqrt(np.maximum(model_var, 0))
             ax.errorbar(np.arange(evaluations.shape[1]), perf,
-                        yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
+                        yerr=[errorbar_low, errorbar_high],
+                        fmt='none', ecolor='k',
                         capsize=0, linewidth=3)
         elif error_bars[0:2].lower() == 'ci':
             if len(error_bars) == 2:
@@ -379,7 +382,8 @@ def plot_model_comparison(result, sort=False, colors=None,
             for i in range(evaluations.shape[1]):
                 ax.plot(i - 0.2 + 0.4 * np.random.rand(evaluations.shape[2]),
                         np.mean(evaluations[:, i], 0), '.', markersize=10,
-                        markerfacecolor=(0, 0, 0, 0.4), markeredgecolor=(0, 0, 0, 0))
+                        markerfacecolor=(0, 0, 0, 0.4),
+                        markeredgecolor=(0, 0, 0, 0))
         else:
             raise Exception('plot_model_comparison: Argument ' +
                             'error_bars is incorrectly defined as '
@@ -977,8 +981,9 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
         model_comp_descr = (model_comp_descr + ' ' +
                             str(CI_percent) + '% confidence interval.')
     elif error_bars.lower() == 'sem':
-        model_comp_descr = (model_comp_descr +
-                            'Error bars indicate the standard error of the mean.')
+        model_comp_descr = (
+            model_comp_descr +
+            'Error bars indicate the standard error of the mean.')
     elif error_bars.lower() == 'sem':
         model_comp_descr = (model_comp_descr +
                             'Dots represent the individual model evaluations.')
