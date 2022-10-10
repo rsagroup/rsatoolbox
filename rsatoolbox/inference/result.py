@@ -91,29 +91,39 @@ class Result:
                 What kind of tests to run.
                 See rsatoolbox.util.inference_util.all_tests for options
         """
-        summary = f'Results for running {self.method} on {self.n_model} models:\n\n'
+        summary = f'Results for running {self.cv_method} evaluation for {self.method} '
+        summary += f'on {self.n_model} models:\n\n'
         name_length = max([max([len(m.name) for m in self.models]) + 1, 6])
         means = self.get_means()
         sems = self.get_sem()
-        p_zero = self.test_zero()
-        p_noise = self.test_noise()
+        p_zero = self.test_zero(test_type='t-test')
+        p_noise = self.test_noise(test_type='t-test')
         # header of the results table
-        summary += 'Model' + (' ' * (name_length - 4))
-        summary += '|  Eval \u00B1 SEM  |'
-        summary += 'p (against 0) |'
-        summary += 'p (against NC) |\n'
+        summary += 'Model' + (' ' * (name_length - 5))
+        summary += '|  Eval \u00B1 SEM   |'
+        summary += ' p (against 0) |'
+        summary += ' p (against NC) |\n'
+        summary += '-' * (name_length + 50)
+        summary += '\n'
         for i, m in enumerate(self.models):
             summary += m.name + (' ' * (name_length - len(m.name)))
-            summary += f'| {means[i]:5.3f}\u00B1{sems[i]:4.3f} |'
+            summary += f'| {means[i]:5.3f} \u00B1 {sems[i]:4.3f} |'
             if p_zero[i] < 0.001:
-                summary += '      < 0.001 |'
+                summary += '      < 0.001  |'
             else:
-                summary += f'{p_zero[i]:>13.3f} |'
+                summary += f'{p_zero[i]:>13.3f}  |'
             if p_noise[i] < 0.001:
-                summary += '       < 0.001 |'
+                summary += '       < 0.001  |'
             else:
-                summary += f'{p_noise[i]:>14.3f} |'
+                summary += f'{p_noise[i]:>14.3f}  |'
             summary += '\n'
+        summary += '\n'
+        if test_type == 't-test':
+            summary += 'p-values are based on uncorrected t-tests'
+        elif test_type == 'bootstrap':
+            summary += 'p-values are based on percentiles of the bootstrap samples'
+        elif test_type == 'ranksum':
+            summary += 'p-values are based on ranksum tests'
         return summary
 
     def save(self, filename, file_type='hdf5', overwrite=False):
@@ -157,7 +167,7 @@ class Result:
             result_dict['models'][key] = self.models[i_model].to_dict()
         return result_dict
 
-    def test_all(self, test_type):
+    def test_all(self, test_type='t-test'):
         """ returns all p-values: p_pairwise, p_zero & p_noise
 
         Args:
@@ -171,14 +181,15 @@ class Result:
             noise_ceil_var=self.noise_ceil_var, dof=self.dof)
         return p_pairwise, p_zero, p_noise
 
-    def test_pairwise(self, test_type):
+    def test_pairwise(self, test_type='t-test'):
         return pair_tests(self.evaluations, test_type, self.diff_var, self.dof)
 
-    def test_zero(self, test_type):
+    def test_zero(self, test_type='t-test'):
         return zero_tests(self.evaluations, test_type, self.model_var, self.dof)
 
-    def test_noise(self, test_type):
-        return nc_tests(self.evaluations, test_type, self.noise_ceil_var, self.dof)
+    def test_noise(self, test_type='t-test'):
+        return nc_tests(self.evaluations, self.noise_ceiling,
+                        test_type, self.noise_ceil_var, self.dof)
 
     def get_means(self):
         """ returns the mean evaluations per model """

@@ -276,9 +276,7 @@ def zero_tests(evaluations, test_type='t-test',
 
 def nc_tests(evaluations, noise_ceil, test_type='t-test',
              noise_ceil_var=None, dof=1):
-    """wrapper running all tests necessary for the model plot
-    -> pairwise tests, tests against 0 and against noise ceiling
-
+    """wrapper running tests against noise ceiling
 
     Args:
         evaluations (numpy.ndarray):
