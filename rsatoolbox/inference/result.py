@@ -12,6 +12,7 @@ from rsatoolbox.util.file_io import read_dict_hdf5
 from rsatoolbox.util.file_io import read_dict_pkl
 from rsatoolbox.util.file_io import remove_file
 from rsatoolbox.util.inference_util import extract_variances
+from rsatoolbox.util.inference_util import all_tests, pair_tests, nc_tests, zero_tests
 
 
 class Result:
@@ -53,6 +54,7 @@ class Result:
         self.noise_ceiling = np.array(noise_ceiling)
         self.variances = variances
         self.dof = dof
+        self.n_bootstraps = evaluations.shape[0]
         if variances is not None:
             # if the variances only refer to the models this should have the
             # same number of entries as the models list.
@@ -66,6 +68,53 @@ class Result:
             self.model_var = None
             self.diff_var = None
             self.noise_ceil_var = None
+
+    def __repr__(self):
+        """ defines string which is printed for the object
+        """
+        return (f'rsatoolbox.inference.Result\n'
+                f'containing evaluations for {self.n_model} models\n'
+                f'evaluated using {self.cv_method} of {self.method}'
+                )
+
+    def __str__(self):
+        """ defines the output of print
+        """
+        return self.summary()
+
+    def summary(self, test_type='t-test'):
+        """
+        Human readable summary of the results
+
+        Args:
+            test_type(String):
+                What kind of tests to run.
+                See rsatoolbox.util.inference_util.all_tests for options
+        """
+        summary = f'Results for running {self.method} on {self.n_model} models:\n\n'
+        name_length = max([max([len(m.name) for m in self.models]) + 1, 6])
+        means = self.get_means()
+        sems = self.get_sem()
+        p_zero = self.test_zero()
+        p_noise = self.test_noise()
+        # header of the results table
+        summary += 'Model' + (' ' * (name_length - 4))
+        summary += '|  Eval \u00B1 SEM  |'
+        summary += 'p (against 0) |'
+        summary += 'p (against NC) |\n'
+        for i, m in enumerate(self.models):
+            summary += m.name + (' ' * (name_length - len(m.name)))
+            summary += f'| {means[i]:5.3f}\u00B1{sems[i]:4.3f} |'
+            if p_zero[i] < 0.001:
+                summary += '      < 0.001 |'
+            else:
+                summary += f'{p_zero[i]:>13.3f} |'
+            if p_noise[i] < 0.001:
+                summary += '       < 0.001 |'
+            else:
+                summary += f'{p_noise[i]:>14.3f} |'
+            summary += '\n'
+        return summary
 
     def save(self, filename, file_type='hdf5', overwrite=False):
         """ saves the results into a file.
@@ -107,6 +156,59 @@ class Result:
             key = 'model_%d' % i_model
             result_dict['models'][key] = self.models[i_model].to_dict()
         return result_dict
+
+    def test_all(self, test_type):
+        """ returns all p-values: p_pairwise, p_zero & p_noise
+
+        Args:
+            test_type(String):
+                What kind of tests to run.
+                See rsatoolbox.util.inference_util.all_tests for options
+        """
+        p_pairwise, p_zero, p_noise = all_tests(
+            self.evaluations, self.noise_ceiling, test_type,
+            model_var=self.model_var, diff_var=self.diff_var,
+            noise_ceil_var=self.noise_ceil_var, dof=self.dof)
+        return p_pairwise, p_zero, p_noise
+
+    def test_pairwise(self, test_type):
+        return pair_tests(self.evaluations, test_type, self.diff_var, self.dof)
+
+    def test_zero(self, test_type):
+        return zero_tests(self.evaluations, test_type, self.model_var, self.dof)
+
+    def test_noise(self, test_type):
+        return nc_tests(self.evaluations, test_type, self.noise_ceil_var, self.dof)
+
+    def get_means(self):
+        """ returns the mean evaluations per model """
+        if self.cv_method == 'fixed':
+            perf = np.mean(self.evaluations, axis=0)
+            perf = np.nanmean(perf, axis=-1)
+        elif self.cv_method == 'crossvalidation':
+            perf = np.mean(self.evaluations, axis=0)
+            perf = np.nanmean(perf, axis=-1)
+        else:
+            perf = self.evaluations
+            while len(perf.shape) > 2:
+                perf = np.nanmean(perf, axis=-1)
+            perf = perf[~np.isnan(perf[:, 0])]
+            perf = np.mean(perf, axis=0)
+        return perf
+
+    def get_sem(self):
+        """ returns the SEM of the evaluation per model """
+        if self.model_var is None:
+            return None
+        else:
+            return np.sqrt(self.model_var)
+
+    def get_model_var(self):
+        """ returns the variance of the evaluation per model """
+        return self.model_var
+
+    def get_noise_ceil(self):
+        return self.noise_ceiling
 
 
 def load_results(filename, file_type=None):

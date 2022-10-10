@@ -188,7 +188,7 @@ class TestEvaluationLists(unittest.TestCase):
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
         m2 = ModelFixed('test2', rdms.get_vectors()[1])
-        value = eval_bootstrap_pattern([m, m2], rdms, N=10)
+        _ = eval_bootstrap_pattern([m, m2], rdms, N=10)
 
     def test_eval_bootstrap_rdm(self):
         from rsatoolbox.inference import eval_bootstrap_rdm
@@ -197,7 +197,7 @@ class TestEvaluationLists(unittest.TestCase):
         rdms = RDMs(np.random.rand(11, 10))  # 11 5x5 rdms
         m = ModelFixed('test', rdms.get_vectors()[0])
         m2 = ModelFixed('test2', rdms.get_vectors()[1])
-        value = eval_bootstrap_rdm([m, m2], rdms, N=10)
+        _ = eval_bootstrap_rdm([m, m2], rdms, N=10)
 
     def test_bootstrap_testset(self):
         from rsatoolbox.inference import bootstrap_testset
@@ -324,8 +324,8 @@ class TestsPairTests(unittest.TestCase):
         self.evaluations = np.random.rand(100, 5, 10)
 
     def test_pair_tests(self):
-        from rsatoolbox.util.inference_util import pair_tests
-        ps = pair_tests(self.evaluations)
+        from rsatoolbox.util.inference_util import bootstrap_pair_tests
+        ps = bootstrap_pair_tests(self.evaluations)
         assert np.all(ps <= 1)
         assert np.all(ps >= 0)
 

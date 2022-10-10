@@ -182,6 +182,10 @@ def all_tests(evaluations, noise_ceil, test_type='t-test',
             't-test' : t-test bases tests using variances
             'bootstrap' : Direct bootstrap sample based tests
             'ranksum' : Wilcoxon signed rank-sum tests
+        model_var, diff_var, noise_ceil_var:
+            variance estimates from the results object.
+            These correspond to the variances of the individual model evals,
+            pairs of model evals and differences from the noise ceiling.
 
     Returns:
         numpy.ndarrays: p_pairwise, p_zero, p_noise
@@ -198,7 +202,7 @@ def all_tests(evaluations, noise_ceil, test_type='t-test',
             noise_lower_bs.shape = (noise_ceil.shape[0], 1)
         else:
             noise_lower_bs = noise_ceil[0].reshape(1, 1)
-        p_pairwise = pair_tests(evaluations)
+        p_pairwise = bootstrap_pair_tests(evaluations)
         p_zero = ((evaluations <= 0).sum(axis=0) + 1) / evaluations.shape[0]
         diffs = noise_lower_bs - evaluations
         p_noise = ((diffs <= 0).sum(axis=0) + 1) / evaluations.shape[0]
@@ -211,6 +215,108 @@ def all_tests(evaluations, noise_ceil, test_type='t-test',
         raise ValueError('test_type not recognized.\n'
                          + 'Options are: t-test, bootstrap, ranksum')
     return p_pairwise, p_zero, p_noise
+
+
+def pair_tests(evaluations, test_type='t-test', diff_var=None, dof=1):
+    """wrapper running pair tests
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be compared
+            (should be 3D: bootstrap x models x subjects or repeats)
+        test_type(Strinng):
+            't-test' : t-test bases tests using variances
+            'bootstrap' : Direct bootstrap sample based tests
+            'ranksum' : Wilcoxon signed rank-sum tests
+
+    Returns:
+        numpy.ndarray: p_pairwise
+
+    """
+    if test_type == 't-test':
+        p_pairwise = t_tests(evaluations, diff_var, dof=dof)
+    elif test_type == 'bootstrap':
+        p_pairwise = bootstrap_pair_tests(evaluations)
+    elif test_type == 'ranksum':
+        p_pairwise = ranksum_pair_test(evaluations)
+    else:
+        raise ValueError('test_type not recognized.\n'
+                         + 'Options are: t-test, bootstrap, ranksum')
+    return p_pairwise
+
+
+def zero_tests(evaluations, test_type='t-test',
+               model_var=None, dof=1):
+    """wrapper running tests against 0
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be compared
+            (should be 3D: bootstrap x models x subjects or repeats)
+        test_type(Strinng):
+            't-test' : t-test bases tests using variances
+            'bootstrap' : Direct bootstrap sample based tests
+            'ranksum' : Wilcoxon signed rank-sum tests
+
+    Returns:
+        numpy.ndarray: p_zero
+
+    """
+    if test_type == 't-test':
+        p_zero = t_test_0(evaluations, model_var, dof=dof)
+    elif test_type == 'bootstrap':
+        p_zero = ((evaluations <= 0).sum(axis=0) + 1) / evaluations.shape[0]
+    elif test_type == 'ranksum':
+        p_zero = ranksum_value_test(evaluations, 0)
+    else:
+        raise ValueError('test_type not recognized.\n'
+                         + 'Options are: t-test, bootstrap, ranksum')
+    return p_zero
+
+
+def nc_tests(evaluations, noise_ceil, test_type='t-test',
+             noise_ceil_var=None, dof=1):
+    """wrapper running all tests necessary for the model plot
+    -> pairwise tests, tests against 0 and against noise ceiling
+
+
+    Args:
+        evaluations (numpy.ndarray):
+            model evaluations to be compared
+            (should be 3D: bootstrap x models x subjects or repeats)
+        noise_ceil (numpy.ndarray):
+            noise_ceiling estimate(s) to compare against
+        test_type(Strinng):
+            't-test' : t-test bases tests using variances
+            'bootstrap' : Direct bootstrap sample based tests
+            'ranksum' : Wilcoxon signed rank-sum tests
+        noise_ceil_var:
+            variance estimate from the results object.
+            These correspond to the variances of the
+            differences from the noise ceiling.
+
+    Returns:
+        numpy.ndarrays: p_noise
+
+    """
+    if test_type == 't-test':
+        p_noise = t_test_nc(evaluations, noise_ceil_var[:, 0],
+                            np.mean(noise_ceil[0]), dof)
+    elif test_type == 'bootstrap':
+        if len(noise_ceil.shape) > 1:
+            noise_lower_bs = noise_ceil[0]
+            noise_lower_bs.shape = (noise_ceil.shape[0], 1)
+        else:
+            noise_lower_bs = noise_ceil[0].reshape(1, 1)
+        diffs = noise_lower_bs - evaluations
+        p_noise = ((diffs <= 0).sum(axis=0) + 1) / evaluations.shape[0]
+    elif test_type == 'ranksum':
+        noise_c = np.mean(noise_ceil[0])
+        p_noise = ranksum_value_test(evaluations, noise_c)
+    else:
+        raise ValueError('test_type not recognized.\n'
+                         + 'Options are: t-test, bootstrap, ranksum')
+    return p_noise
 
 
 def ranksum_pair_test(evaluations):
@@ -271,7 +377,7 @@ def ranksum_value_test(evaluations, comp_value=0):
     return pvalues
 
 
-def pair_tests(evaluations):
+def bootstrap_pair_tests(evaluations):
     """pairwise bootstrapping significance tests for a difference in model
     performance.
     Tests add 1/len(evaluations) to each p-value and are computed as
