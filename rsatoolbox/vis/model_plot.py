@@ -185,7 +185,7 @@ def plot_model_comparison(result, sort=False, colors=None,
 
             'dots':
                 Draws dots for each data-point, i.e. first dimension of
-                the evaluation tensor. This is primarily sensible for 
+                the evaluation tensor. This is primarily sensible for
                 fixed evaluation where this dimension
                 corresponds to the subjects in the experiment.
 
@@ -373,11 +373,11 @@ def plot_model_comparison(result, sort=False, colors=None,
             limits = np.concatenate((errorbar_low, errorbar_high))
             if np.isnan(limits).any() or (abs(limits) == np.inf).any():
                 raise Exception(
-                    'plot_model_comparison: Too few bootstrap samples for the ' +
-                    'requested confidence interval: ' + error_bars + '.')
+                    'plot_model_comparison: Too few bootstrap samples for ' +
+                    'the requested confidence interval: ' + error_bars + '.')
             ax.errorbar(np.arange(evaluations.shape[1]), perf,
-                        yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
-                        capsize=0, linewidth=3)
+                        yerr=[errorbar_low, errorbar_high], fmt='none',
+                        ecolor='k', capsize=0, linewidth=3)
         elif error_bars.lower() == 'dots':
             for i in range(evaluations.shape[1]):
                 ax.plot(i - 0.2 + 0.4 * np.random.rand(evaluations.shape[2]),
