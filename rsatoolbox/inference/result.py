@@ -5,6 +5,7 @@ Result object definition
 """
 
 import numpy as np
+import scipy.stats
 import rsatoolbox.model
 from rsatoolbox.util.file_io import write_dict_hdf5
 from rsatoolbox.util.file_io import write_dict_pkl
@@ -212,13 +213,57 @@ class Result:
         if self.model_var is None:
             return None
         else:
-            return np.sqrt(self.model_var)
+            return np.sqrt(np.maximum(self.model_var, 0))
+
+    def get_ci(self, CI_percent, test_type='t-test'):
+        """ returns confidence intervals for the evaluations"""
+        prop_cut = (1 - CI_percent) / 2
+        if test_type == 'bootstrap':
+            perf = self.evaluations
+            while len(perf.shape) > 2:
+                perf = np.nanmean(perf, axis=-1)
+            framed_evals = np.concatenate(
+                (np.tile(np.array(([-np.inf], [np.inf])),
+                         (1, self.n_model)),
+                 perf),
+                axis=0)
+            ci = [np.quantile(framed_evals, prop_cut, axis=0),
+                  np.quantile(framed_evals, 1 - prop_cut, axis=0)]
+        else:
+            tdist = scipy.stats.t
+            std_eval = self.get_sem()
+            means = self.get_means()
+            ci = [means + std_eval * tdist.ppf(prop_cut, self.dof),
+                  means - std_eval * tdist.ppf(prop_cut, self.dof)]
+        return ci
+
+    def get_errorbars(self, eb_type='sem', test_type='t-test'):
+        """ returns errorbars for the model evaluations"""
+        if eb_type.lower() == 'sem':
+            errorbar_low = self.get_sem()
+            errorbar_high = errorbar_low
+        elif eb_type[0:2].lower() == 'ci':
+            if len(eb_type) == 2:
+                CI_percent = 0.95
+            else:
+                CI_percent = float(eb_type[2:]) / 100
+            ci = self.get_ci(CI_percent, test_type)
+            means = self.get_means()
+            errorbar_low = -(ci[0] - means)
+            errorbar_high = (ci[1] - means)
+            limits = np.concatenate((errorbar_low, errorbar_high))
+            if np.isnan(limits).any() or (abs(limits) == np.inf).any():
+                raise Exception(
+                    'plot_model_comparison: Too few bootstrap samples for ' +
+                    'the requested confidence interval: ' + eb_type + '.')
+        return (errorbar_low, errorbar_high)
 
     def get_model_var(self):
         """ returns the variance of the evaluation per model """
         return self.model_var
 
     def get_noise_ceil(self):
+        """ returns the noise ceiling for the model evaluations """
         return self.noise_ceiling
 
 
