@@ -94,7 +94,7 @@ class Result:
         """
         summary = f'Results for running {self.cv_method} evaluation for {self.method} '
         summary += f'on {self.n_model} models:\n\n'
-        name_length = max([max([len(m.name) for m in self.models]) + 1, 6])
+        name_length = max([max(len(m.name) for m in self.models) + 1, 6])
         means = self.get_means()
         sems = self.get_sem()
         p_zero = self.test_zero(test_type=test_type)
@@ -183,12 +183,15 @@ class Result:
         return p_pairwise, p_zero, p_noise
 
     def test_pairwise(self, test_type='t-test'):
+        """returns the pairwise test p-values """
         return pair_tests(self.evaluations, test_type, self.diff_var, self.dof)
 
     def test_zero(self, test_type='t-test'):
+        """returns the p-values for the tests against 0 """
         return zero_tests(self.evaluations, test_type, self.model_var, self.dof)
 
     def test_noise(self, test_type='t-test'):
+        """returns the p-values for the tests against the noise ceiling"""
         return nc_tests(self.evaluations, self.noise_ceiling,
                         test_type, self.noise_ceil_var, self.dof)
 
@@ -212,12 +215,11 @@ class Result:
         """ returns the SEM of the evaluation per model """
         if self.model_var is None:
             return None
-        else:
-            return np.sqrt(np.maximum(self.model_var, 0))
+        return np.sqrt(np.maximum(self.model_var, 0))
 
-    def get_ci(self, CI_percent, test_type='t-test'):
+    def get_ci(self, ci_percent, test_type='t-test'):
         """ returns confidence intervals for the evaluations"""
-        prop_cut = (1 - CI_percent) / 2
+        prop_cut = (1 - ci_percent) / 2
         if test_type == 'bootstrap':
             perf = self.evaluations
             while len(perf.shape) > 2:
@@ -244,10 +246,10 @@ class Result:
             errorbar_high = errorbar_low
         elif eb_type[0:2].lower() == 'ci':
             if len(eb_type) == 2:
-                CI_percent = 0.95
+                ci_percent = 0.95
             else:
-                CI_percent = float(eb_type[2:]) / 100
-            ci = self.get_ci(CI_percent, test_type)
+                ci_percent = float(eb_type[2:]) / 100
+            ci = self.get_ci(ci_percent, test_type)
             means = self.get_means()
             errorbar_low = -(ci[0] - means)
             errorbar_high = (ci[1] - means)
