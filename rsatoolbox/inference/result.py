@@ -97,8 +97,8 @@ class Result:
         name_length = max([max([len(m.name) for m in self.models]) + 1, 6])
         means = self.get_means()
         sems = self.get_sem()
-        p_zero = self.test_zero(test_type='t-test')
-        p_noise = self.test_noise(test_type='t-test')
+        p_zero = self.test_zero(test_type=test_type)
+        p_noise = self.test_noise(test_type=test_type)
         # header of the results table
         summary += 'Model' + (' ' * (name_length - 5))
         summary += '|  Eval \u00B1 SEM   |'
