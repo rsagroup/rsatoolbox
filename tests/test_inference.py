@@ -273,6 +273,22 @@ class TestSaveLoad(unittest.TestCase):
         model_loaded = model_from_dict(model_dict)
         assert m.name == model_loaded.name
 
+
+class TestResult(unittest.TestCase):
+    def setUp(self):
+        from rsatoolbox.inference import Result
+        from rsatoolbox.model import ModelFixed
+        m1 = ModelFixed('t1', np.arange(10))
+        m2 = ModelFixed('t2', np.arange(2, 12))
+        models = [m1, m2]
+        method = 'corr'
+        evaluations = np.array([[[0.9, 0.85, 0.87], [0.12, 0.11, 0.13]]])
+        cv_method = 'fixed'
+        noise_ceiling = [0.99, 0.99, 0.98]
+        variances = np.diag([0.01, 0.02, 0.01, 0.01])
+        self.res = Result(models, evaluations, method, cv_method,
+                          noise_ceiling, variances, dof=2)
+
     def test_result_dict(self):
         from rsatoolbox.inference import Result
         from rsatoolbox.inference import result_from_dict
@@ -316,6 +332,17 @@ class TestSaveLoad(unittest.TestCase):
         assert res_loaded.method == method
         assert res_loaded.cv_method == cv_method
         assert np.all(res_loaded.evaluations == evaluations)
+
+    def test_result_print(self):
+        string = self.res.summary()
+        self.assertEqual(
+            string,
+            'Results for running fixed evaluation for corr on 2 models:\n\n'
+            + 'Model |  Eval ± SEM   | p (against 0) | p (against NC) |\n'
+            + '--------------------------------------------------------\n'
+            + 't1    | 0.873 ± 0.100 |        0.006  |         0.496  |\n'
+            + 't2    | 0.120 ± 0.141 |        0.243  |         0.037  |\n\n'
+            + 'p-values are based on uncorrected t-tests')
 
 
 class TestsPairTests(unittest.TestCase):
