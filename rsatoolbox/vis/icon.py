@@ -264,7 +264,9 @@ class Icon:
             im = im.resize((new_size, new_size), PIL.Image.Resampling.NEAREST)
         if self.resolution is not None:
             if self.resolution.size == 1:
-                im = im.resize((self.resolution, self.resolution), PIL.Image.Resampling.NEAREST)
+                im = im.resize(
+                    (self.resolution, self.resolution),
+                    PIL.Image.Resampling.NEAREST)
             else:
                 im = im.resize(self.resolution, PIL.Image.Resampling.NEAREST)
         if self.circ_cut is not None:

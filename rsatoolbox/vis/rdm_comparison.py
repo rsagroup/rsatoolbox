@@ -104,10 +104,10 @@ def rdm_comparison_scatterplot(rdms,
 
     if show_legend:
         legend_height = _legend_linespacing * (
-                # Within-category lines
-                len(highlight_selector) +
-                # Between-category lines
-                comb(len(highlight_selector), 2)
+            # Within-category lines
+            len(highlight_selector) +
+            # Between-category lines
+            comb(len(highlight_selector), 2)
         )
     else:
         legend_height = None
@@ -205,7 +205,6 @@ def _handle_args_highlight_categories(highlight_category_selector,
 
 
 def _handle_args_legend(show_legend, highlight_categories) -> bool:
-    # _msg_arg_legend = "Cannot show legend when `highlight_categories` is None."
     if show_legend:
         if highlight_categories is None:
             # Can't show the legend without highlighted categories
