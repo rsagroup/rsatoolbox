@@ -91,7 +91,7 @@ def show_rdm(
 
     """
 
-    if show_colorbar and not show_colorbar in ("panel", "figure"):
+    if show_colorbar and show_colorbar not in ("panel", "figure"):
         raise ValueError(
             f"show_colorbar can be None, panel or figure, got: {show_colorbar}"
         )

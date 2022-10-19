@@ -392,7 +392,7 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
     assert A.shape[0] == y.shape[0]
     assert y.ndim == 1
     x = np.zeros(A.shape[1])
-    p = np.zeros(A.shape[1], np.bool)
+    p = np.zeros(A.shape[1], bool)
     if V is None:
         w = A.T @ y
         ATA = A.T @ A + ridge_weight * np.eye(A.shape[1])
@@ -403,7 +403,7 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
         y_V_A = V_A @ y
         w = A.T @ V @ y
         ATA = A.T @ V_A.T + ridge_weight * np.eye(A.shape[1])
-    while np.max(w) > 100 * np.finfo(np.float).eps:
+    while np.max(w) > 100 * np.finfo(float).eps:
         p[np.argmax(w)] = True
         if V is None:
             s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ y)
