@@ -267,7 +267,7 @@ class Dataset(DatasetBase):
             by(String): the descriptor by which the splitting is made
 
         Returns:
-            list of Datasets, splitted by the selected obs_descriptor
+            list of Datasets, split by the selected obs_descriptor
         """
         unique_values, inverse = get_unique_inverse(self.obs_descriptors[by])
         dataset_list = []
