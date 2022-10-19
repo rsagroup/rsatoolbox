@@ -110,7 +110,7 @@ def _dummy_rdm():
     icons = defaultdict(list)
     for this_marker, this_image, this_name in zip(markers, images, names):
         icons["image"].append(rsv.Icon(image=this_image))
-        icons["marker"].append(rsv.Icon(marker=this_marker, color=[0,0,0]))
+        icons["marker"].append(rsv.Icon(marker=this_marker, color=[0, 0, 0]))
         icons["string"].append(rsv.Icon(string=this_name))
         icons["text"].append(this_name)
     ROIs = ["X", "Y", "Z"]
