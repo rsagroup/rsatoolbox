@@ -36,8 +36,8 @@ def bootstrap_testset(models, data, method='cosine', fitter=None, N=1000,
 
     """
     models, evaluations, _, fitter = input_check_model(models, None, fitter, N)
-    n_rdm = np.zeros(N, dtype=np.int)
-    n_pattern = np.zeros(N, dtype=np.int)
+    n_rdm = np.zeros(N, dtype=int)
+    n_pattern = np.zeros(N, dtype=int)
     if pattern_descriptor is None:
         data.pattern_descriptors['index'] = np.arange(data.n_cond)
         pattern_descriptor = 'index'
@@ -90,7 +90,7 @@ def bootstrap_testset_pattern(models, data, method='cosine', fitter=None,
 
     """
     models, evaluations, _, fitter = input_check_model(models, None, fitter, N)
-    n_pattern = np.zeros(N, dtype=np.int)
+    n_pattern = np.zeros(N, dtype=int)
     if pattern_descriptor is None:
         data.pattern_descriptors['index'] = np.arange(data.n_cond)
         pattern_descriptor = 'index'
@@ -134,7 +134,7 @@ def bootstrap_testset_rdm(models, data, method='cosine', fitter=None, N=1000,
 
     """
     models, evaluations, _, fitter = input_check_model(models, None, fitter, N)
-    n_rdm = np.zeros(N, dtype=np.int)
+    n_rdm = np.zeros(N, dtype=int)
     if rdm_descriptor is None:
         data.rdm_descriptors['index'] = np.arange(data.n_rdm)
         rdm_descriptor = 'index'

@@ -18,11 +18,12 @@ Documentation
    distances.rst
    operations.rst
    comparing.rst
-   model.rst
+   model_specification.rst
+   model_fitting.rst
    inference.rst
    visualization.rst
    literature_cited.rst
-   demos
+   demos.rst
    rsatoolbox.rst
 
 Indices and tables

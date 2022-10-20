@@ -49,5 +49,44 @@ The dataset objects can also be saved to hdf5 files using their method ``save`` 
     data_loaded = rsatoolbox.data.load_dataset('test.hdf5')
 
 
+.. _TemporalDatasets:
+
+Temporal data sets
+--------------------
+
+Datasets with a temporal dimension are represented by the class ``rsatoolbox.data.TemporalDataset``. This class is a subclass of the
+``rsatoolbox.data.Dataset`` class. The main difference is that the TemporalDataset expects ``measurements`` of shape 
+``(n_observations, n_channels, n_timepoints)`` and has descriptors for the temporal dimension (``time_descriptor``).
+
+As an example, we assume to have measured data from 10 trials, each with six EEG channels and a timecourse of 2s 
+(from -.5 to 1.5 seconds, stimulus onset at 0 seconds).
+
+
+.. code-block:: python
+
+    import numpy, rsatoolbox
+
+    channel_names = ['Oz', 'O1', 'O2', 'PO3', 'PO4', 'POz']  # channel names
+    stimulus = [0, 1, 2, 3, 4, 0, 1, 2, 3, 4] # stimulus idx, each stimulus was presented twice
+
+    sampling_rate = 30 # in Hz
+    t = numpy.arange(-.5, 1.5, 1/sampling_rate) # time vector
+
+    n_observations = len(stimulus)
+    n_channels = len(channel_names)
+    n_timepoints = len(t)
+
+    measurements = numpy.random.randn(n_observations, n_channels, n_timepoints)  # random data
+
+    data = rsatoolbox.data.TemporalDataset(
+        measurements,
+        channel_descriptors={'names': channel_names},
+        obs_descriptors={'stimulus': stimulus},
+        time_descriptors={'time': t}
+        )
+
+Beyond the functions to manipulate the data provided by ``rsatoolbox.data.Dataset``, the ``rsatoolbox.data.TemporalDataset`` class provides the following functions:
+``split_time``, ``subset_time``, ``bin_time``, ``convert_to_dataset``.
+
 
 TODO: TIPS TO IMPORT FMRI / EEG ETC DATA

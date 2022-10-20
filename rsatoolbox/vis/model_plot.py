@@ -6,7 +6,6 @@ Barplot for model comparison based on a results file
 
 import warnings
 import numpy as np
-import scipy.stats
 import matplotlib.pyplot as plt
 from matplotlib import patches
 from matplotlib.path import Path
@@ -15,7 +14,7 @@ from matplotlib import cm
 import networkx as nx
 from networkx.algorithms.clique import find_cliques as maximal_cliques
 from scipy.spatial.distance import squareform
-from rsatoolbox.util.inference_util import all_tests
+from rsatoolbox.util.inference_util import all_tests, get_errorbars
 from rsatoolbox.util.rdm_utils import batch_to_vectors
 
 
@@ -183,6 +182,12 @@ def plot_model_comparison(result, sort=False, colors=None,
             reflecting variability of the estimate across subjects and/or
             experimental conditions.
 
+            'dots':
+                Draws dots for each data-point, i.e. first dimension of
+                the evaluation tensor. This is primarily sensible for
+                fixed evaluation where this dimension
+                corresponds to the subjects in the experiment.
+
         test_type (string):
             which tests to perform:
 
@@ -198,7 +203,10 @@ def plot_model_comparison(result, sort=False, colors=None,
                 performs wilcoxon signed rank sum tests
 
     Returns:
-        ---
+        (matplotlib.pyplot.Figure, matplotlib.pyplot.Axis,
+            matplotlib.pyplot.Axis):
+            the figure and axes the plots were made into.
+            This allows further modification, saving and printing.
 
     """
 
@@ -226,7 +234,7 @@ def plot_model_comparison(result, sort=False, colors=None,
             test_pair_comparisons = False
             test_above_0 = False
             test_below_noise_ceil = False
-        if error_bars:
+        if error_bars and error_bars.lower() != 'dots':
             warnings.warn('errorbars deactivated as crossvalidation does not'
                           + 'provide uncertainty estimate')
             error_bars = False
@@ -290,6 +298,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                           h * h_pair_tests * 0.7))
     else:
         ax = plt.axes((l, b, w, h))
+        axbar = None
 
     # Define the model colors
     if colors is None:  # no color passed...
@@ -326,47 +335,10 @@ def plot_model_comparison(result, sort=False, colors=None,
                color=colors, bottom=np.min(perf))
     else:
         ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
-    if error_bars is True:
-        error_bars = 'sem'
     if error_bars:
-        if error_bars.lower() == 'sem':
-            errorbar_low = np.sqrt(np.maximum(model_var, 0))
-            errorbar_high = np.sqrt(np.maximum(model_var, 0))
-        elif error_bars[0:2].lower() == 'ci':
-            if len(error_bars) == 2:
-                CI_percent = 95.0
-            else:
-                CI_percent = float(error_bars[2:])
-            prop_cut = (1 - CI_percent / 100) / 2
-            if test_type == 'bootstrap':
-                framed_evals = np.concatenate(
-                    (np.tile(np.array((-np.inf, np.inf)).reshape(2, 1),
-                             (1, n_models)),
-                     evaluations),
-                    axis=0)
-                errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
-                                 - perf)
-                errorbar_high = (np.quantile(framed_evals, 1 - prop_cut,
-                                             axis=0)
-                                 - perf)
-            else:
-                tdist = scipy.stats.t
-                std_eval = np.sqrt(np.maximum(model_var, 0))
-                errorbar_low = std_eval \
-                    * tdist.ppf(prop_cut, dof)
-                errorbar_high = std_eval \
-                    * tdist.ppf(prop_cut, dof)
-        else:
-            raise Exception('plot_model_comparison: Argument ' +
-                            'error_bars is incorrectly defined as '
-                            + str(error_bars) + '.')
-        limits = np.concatenate((errorbar_low, errorbar_high))
-        if np.isnan(limits).any() or (abs(limits) == np.inf).any():
-            raise Exception(
-                'plot_model_comparison: Too few bootstrap samples for the ' +
-                'requested confidence interval: ' + error_bars + '.')
+        limits = get_errorbars(model_var, evaluations, dof, error_bars, test_type)
         ax.errorbar(np.arange(evaluations.shape[1]), perf,
-                    yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
+                    yerr=limits, fmt='none', ecolor='k',
                     capsize=0, linewidth=3)
 
     # Test whether model performance exceeds 0 (one sided)
@@ -523,6 +495,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     if models is not None:
         ax.set_xticklabels([m.name for m in models], fontsize=fs2,
                            rotation=45)
+    return fig, ax, axbar
 
 
 def plot_nili_bars(axbar, significant, version=1):
@@ -951,8 +924,8 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
     elif cv_method in ['bootstrap', 'bootstrap_crossval']:
         model_comp_descr = model_comp_descr + \
             'subjects and experimental conditions. '
-    model_comp_descr = model_comp_descr + 'Error bars indicate the'
     if error_bars[0:2].lower() == 'ci':
+        model_comp_descr = model_comp_descr + 'Error bars indicate the'
         if len(error_bars) == 2:
             CI_percent = 95.0
         else:
@@ -960,8 +933,12 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
         model_comp_descr = (model_comp_descr + ' ' +
                             str(CI_percent) + '% confidence interval.')
     elif error_bars.lower() == 'sem':
+        model_comp_descr = (
+            model_comp_descr +
+            'Error bars indicate the standard error of the mean.')
+    elif error_bars.lower() == 'sem':
         model_comp_descr = (model_comp_descr +
-                            ' standard error of the mean.')
+                            'Dots represent the individual model evaluations.')
     if test_above_0 or test_below_noise_ceil:
         model_comp_descr = (
             model_comp_descr +

@@ -19,65 +19,11 @@ from .noise_ceiling import boot_noise_ceiling
 from .noise_ceiling import cv_noise_ceiling
 
 
-def eval_fancy(models, data, method='cosine', fitter=None, n_cv=1,
-               k_pattern=None, k_rdm=None, N=1000, boot_noise_ceil=False,
-               pattern_descriptor='index', rdm_descriptor='index'):
-    """evaluates a model by k-fold crossvalidation within a bootstrap
-    Then uses the correction formula to get an estimate of the variance
-    of the mean.
-
-    If a k is set to 1 no crossvalidation is performed over the
-    corresponding dimension.
-
-    Args:
-        models(rsatoolbox.model.Model or list): Models to be evaluated
-        data(rsatoolbox.rdm.RDMs): RDM data to use
-        method(string): comparison method to use
-        fitter(function): fitting method for models
-        n_cv(int): number of crossvalidation runs per sample
-        k_pattern(int): #folds over patterns
-        k_rdm(int): #folds over rdms
-        N(int): number of bootstrap samples (default: 1000)
-        pattern_descriptor(string): descriptor to group patterns
-        rdm_descriptor(string): descriptor to group rdms
-        random(bool): randomize group assignments (default: True)
-
-    Returns:
-        numpy.ndarray: matrix of evaluations (N x k)
-
-    """
-    result_full = bootstrap_crossval(
-        models, data, method=method, fitter=fitter,
-        k_pattern=k_pattern, k_rdm=k_rdm, N=N,
-        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
-    result_rdm = bootstrap_crossval(
-        models, data, method=method, fitter=fitter,
-        k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='rdm',
-        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
-    result_pattern = bootstrap_crossval(
-        models, data, method=method, fitter=fitter,
-        k_pattern=k_pattern, k_rdm=k_rdm, N=N, boot_type='pattern',
-        pattern_descriptor=pattern_descriptor, rdm_descriptor=rdm_descriptor)
-    evaluations = np.concatenate((
-        result_full.evaluations,
-        result_rdm.evaluations,
-        result_pattern.evaluations),
-        axis=-1)
-    variances = np.array([result_full.variances,
-                          result_rdm.variances,
-                          result_pattern.variances])
-    result = Result(models, evaluations, method=method,
-                    cv_method='fancy',
-                    noise_ceiling=result_full.noise_ceiling,
-                    variances=variances,
-                    dof=result_full.dof)
-    return result
-
-
-def dual_bootstrap(models, data, method='cosine', fitter=None,
-                   k_pattern=1, k_rdm=1, N=1000, n_cv=2,
-                   pattern_descriptor='index', rdm_descriptor='index',
-                   random=False, use_correction=True):
+def eval_dual_bootstrap(
+    models, data, method='cosine', fitter=None,
+    k_pattern=1, k_rdm=1, N=1000, n_cv=2,
+    pattern_descriptor='index', rdm_descriptor='index',
+    use_correction=True):
     """dual bootstrap evaluation of models
     i.e. models are evaluated in a bootstrap over rdms, one over patterns
     and a bootstrap over both using the same bootstrap samples for each.
@@ -252,9 +198,13 @@ def eval_fixed(models, data, theta=None, method='cosine'):
     evaluations = evaluations.reshape((1, len(models), data.n_rdm))
     noise_ceil = boot_noise_ceiling(
         data, method=method, rdm_descriptor='index')
-    variances = np.cov(evaluations[0], ddof=1) \
-        / evaluations.shape[-1]
-    dof = evaluations.shape[-1] - 1
+    if data.n_rdm > 1:
+        variances = np.cov(evaluations[0], ddof=1) \
+            / evaluations.shape[-1]
+        dof = evaluations.shape[-1] - 1
+    else:
+        variances = None
+        dof = 0
     result = Result(models, evaluations, method=method,
                     cv_method='fixed', noise_ceiling=noise_ceil,
                     variances=variances, dof=dof)
@@ -644,10 +594,11 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
     return result
 
 
-def bootstrap_cv_random(models, data, method='cosine', fitter=None,
-                        n_pattern=None, n_rdm=None, N=1000, n_cv=2,
-                        pattern_descriptor='index', rdm_descriptor='index',
-                        random=True, boot_type='both', use_correction=True):
+def eval_dual_bootstrap_random(
+    models, data, method='cosine', fitter=None,
+    n_pattern=None, n_rdm=None, N=1000, n_cv=2,
+    pattern_descriptor='index', rdm_descriptor='index',
+    random=True, boot_type='both', use_correction=True):
     """evaluates a set of models by a evaluating a few random crossvalidation
     folds per bootstrap.
 

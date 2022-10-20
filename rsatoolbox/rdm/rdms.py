@@ -590,6 +590,6 @@ def get_categorical_rdm(category_vector, category_name='category'):
             else:
                 rdm_list.append(
                     category_vector[i_cat] != category_vector[j_cat])
-    rdm = RDMs(np.array(rdm_list, dtype=np.float),
+    rdm = RDMs(np.array(rdm_list, dtype=float),
                pattern_descriptors={category_name: np.array(category_vector)})
     return rdm
