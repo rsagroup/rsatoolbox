@@ -6,7 +6,6 @@ Barplot for model comparison based on a results file
 
 import warnings
 import numpy as np
-import scipy.stats
 import matplotlib.pyplot as plt
 from matplotlib import patches
 from matplotlib.path import Path
@@ -15,7 +14,7 @@ from matplotlib import cm
 import networkx as nx
 from networkx.algorithms.clique import find_cliques as maximal_cliques
 from scipy.spatial.distance import squareform
-from rsatoolbox.util.inference_util import all_tests
+from rsatoolbox.util.inference_util import all_tests, get_errorbars
 from rsatoolbox.util.rdm_utils import batch_to_vectors
 
 
@@ -336,58 +335,11 @@ def plot_model_comparison(result, sort=False, colors=None,
                color=colors, bottom=np.min(perf))
     else:
         ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
-    if error_bars is True:
-        error_bars = 'sem'
     if error_bars:
-        if error_bars.lower() == 'sem':
-            errorbar_low = np.sqrt(np.maximum(model_var, 0))
-            errorbar_high = np.sqrt(np.maximum(model_var, 0))
-            ax.errorbar(np.arange(evaluations.shape[1]), perf,
-                        yerr=[errorbar_low, errorbar_high],
-                        fmt='none', ecolor='k',
-                        capsize=0, linewidth=3)
-        elif error_bars[0:2].lower() == 'ci':
-            if len(error_bars) == 2:
-                CI_percent = 95.0
-            else:
-                CI_percent = float(error_bars[2:])
-            prop_cut = (1 - CI_percent / 100) / 2
-            if test_type == 'bootstrap':
-                framed_evals = np.concatenate(
-                    (np.tile(np.array((-np.inf, np.inf)).reshape(2, 1),
-                             (1, n_models)),
-                     evaluations),
-                    axis=0)
-                errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
-                                 - perf)
-                errorbar_high = (np.quantile(framed_evals, 1 - prop_cut,
-                                             axis=0)
-                                 - perf)
-            else:
-                tdist = scipy.stats.t
-                std_eval = np.sqrt(np.maximum(model_var, 0))
-                errorbar_low = std_eval \
-                    * tdist.ppf(prop_cut, dof)
-                errorbar_high = std_eval \
-                    * tdist.ppf(prop_cut, dof)
-            limits = np.concatenate((errorbar_low, errorbar_high))
-            if np.isnan(limits).any() or (abs(limits) == np.inf).any():
-                raise Exception(
-                    'plot_model_comparison: Too few bootstrap samples for ' +
-                    'the requested confidence interval: ' + error_bars + '.')
-            ax.errorbar(np.arange(evaluations.shape[1]), perf,
-                        yerr=[errorbar_low, errorbar_high], fmt='none',
-                        ecolor='k', capsize=0, linewidth=3)
-        elif error_bars.lower() == 'dots':
-            for i in range(evaluations.shape[1]):
-                ax.plot(i - 0.2 + 0.4 * np.random.rand(evaluations.shape[2]),
-                        np.mean(evaluations[:, i], 0), '.', markersize=10,
-                        markerfacecolor=(0, 0, 0, 0.4),
-                        markeredgecolor=(0, 0, 0, 0))
-        else:
-            raise Exception('plot_model_comparison: Argument ' +
-                            'error_bars is incorrectly defined as '
-                            + str(error_bars) + '.')
+        limits = get_errorbars(model_var, evaluations, dof, error_bars, test_type)
+        ax.errorbar(np.arange(evaluations.shape[1]), perf,
+                    yerr=limits, fmt='none', ecolor='k',
+                    capsize=0, linewidth=3)
 
     # Test whether model performance exceeds 0 (one sided)
     if test_above_0 is True:

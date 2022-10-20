@@ -159,6 +159,7 @@ class ModelSelect(Model):
         if isinstance(rdm, RDMs):
             self.rdm_obj = rdm
             self.rdm = rdm.get_vectors()
+            self.n_cond = rdm.n_cond
         elif rdm.ndim == 2:  # User supplied vectors
             self.rdm_obj = RDMs(rdm)
             self.n_cond = (1 + np.sqrt(1 + 8 * rdm.shape[1])) / 2
@@ -168,7 +169,7 @@ class ModelSelect(Model):
             self.rdm = rdm
         else:  # User passed matrixes
             self.rdm_obj = RDMs(rdm)
-            self.rdm, _, _ = batch_to_vectors(rdm)
+            self.rdm, _, self.n_cond = batch_to_vectors(rdm)
         self.n_param = 1
         self.n_rdm = self.rdm_obj.n_rdm
         self.default_fitter = fit_select
@@ -214,6 +215,7 @@ class ModelWeighted(Model):
         if isinstance(rdm, RDMs):
             self.rdm_obj = rdm
             self.rdm = rdm.get_vectors()
+            self.n_cond = rdm.n_cond
         elif rdm.ndim == 2:  # User supplied vectors
             self.rdm_obj = RDMs(rdm)
             self.n_cond = (1 + np.sqrt(1 + 8 * rdm.shape[1])) / 2
@@ -223,7 +225,7 @@ class ModelWeighted(Model):
             self.rdm = rdm
         else:  # User passed matrixes
             self.rdm_obj = RDMs(rdm)
-            self.rdm, _, _ = batch_to_vectors(rdm)
+            self.rdm, _, self.n_cond = batch_to_vectors(rdm)
         self.n_param = self.rdm_obj.n_rdm
         self.n_rdm = self.rdm_obj.n_rdm
         self.default_fitter = fit_optimize
@@ -281,6 +283,7 @@ class ModelInterpolate(Model):
         if isinstance(rdm, RDMs):
             self.rdm_obj = rdm
             self.rdm = rdm.get_vectors()
+            self.n_cond = rdm.n_cond
         elif rdm.ndim == 2:  # User supplied vectors
             self.rdm_obj = RDMs(rdm)
             self.n_cond = (1 + np.sqrt(1 + 8 * rdm.shape[1])) / 2
@@ -290,7 +293,7 @@ class ModelInterpolate(Model):
             self.rdm = rdm
         else:  # User passed matrixes
             self.rdm_obj = RDMs(rdm)
-            self.rdm, _, _ = batch_to_vectors(rdm)
+            self.rdm, _, self.n_cond = batch_to_vectors(rdm)
         self.n_param = self.rdm_obj.n_rdm
         self.n_rdm = self.rdm_obj.n_rdm
         self.default_fitter = fit_interpolate

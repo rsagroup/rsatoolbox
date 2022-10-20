@@ -42,7 +42,7 @@ class Result:
     """
 
     def __init__(self, models, evaluations, method, cv_method, noise_ceiling,
-                 variances=None, dof=1):
+                 variances=None, dof=1, fitter=None):
         if isinstance(models, rsatoolbox.model.Model):
             models = [models]
         assert len(models) == evaluations.shape[1], 'evaluations shape does' \
@@ -55,6 +55,7 @@ class Result:
         self.noise_ceiling = np.array(noise_ceiling)
         self.variances = variances
         self.dof = dof
+        self.fitter = fitter
         self.n_bootstraps = evaluations.shape[0]
         if variances is not None:
             # if the variances only refer to the models this should have the
