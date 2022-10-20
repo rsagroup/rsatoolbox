@@ -5,72 +5,55 @@ test_data
 Test for visualization class
 @author: baihan
 """
-import unittest
+from unittest import TestCase
+from unittest.mock import patch
 import numpy as np
-import rsatoolbox.vis as rsv
 import rsatoolbox.rdm as rsr
+import rsatoolbox.vis as rsv
 from scipy.spatial.distance import pdist
 
 
-class TestVIS(unittest.TestCase):
-    def test_vis_mds_output_shape_corresponds_to_inputs(self):
+class TestMDS(TestCase):
+
+    @patch('rsatoolbox.vis.scatter_plot.show_scatter')
+    def test_vis_mds_output_shape_corresponds_to_inputs(self, show_scatter):
+        from rsatoolbox.vis.scatter_plot import show_MDS
         dis = np.random.rand(8, 10)
         mes = "Euclidean"
         des = {"session": 0, "subj": 0}
         rdms = rsr.RDMs(dissimilarities=dis, dissimilarity_measure=mes, descriptors=des)
-        mds_emb = rsv.mds(rdms)
-        self.assertEqual(mds_emb.shape, (8, 5, 2))
+        show_MDS(rdms)
+        coords = show_scatter.call_args[0][1]
+        self.assertEqual(coords.shape, (8, 5, 2))
 
-    def test_vis_3d_mds_output_shape_corresponds_to_inputs(self):
-        dis = np.random.rand(8, 10)
-        mes = "Euclidean"
-        des = {"session": 0, "subj": 0}
-        rdms = rsr.RDMs(dissimilarities=dis, dissimilarity_measure=mes, descriptors=des)
-        mds_emb = rsv.mds(rdms, dim=3)
-        self.assertEqual(mds_emb.shape, (8, 5, 3))
-
-    def test_vis_weighted_mds_output_shape_corresponds_to_inputs(self):
+    @patch('rsatoolbox.vis.scatter_plot.show_scatter')
+    def test_vis_weighted_mds_output_shape_corresponds_to_inputs(self, show_scatter):
+        from rsatoolbox.vis.scatter_plot import show_MDS
         dis = np.random.rand(8, 10)
         wes = np.random.random((8, 10))
         mes = "Euclidean"
         des = {"session": 0, "subj": 0}
         rdms = rsr.RDMs(dissimilarities=dis, dissimilarity_measure=mes, descriptors=des)
-        mds_emb = rsv.mds(rdms, weight=wes)
-        self.assertEqual(mds_emb.shape, (8, 5, 2))
+        show_MDS(rdms, weights=wes)
+        coords = show_scatter.call_args[0][1]
+        self.assertEqual(coords.shape, (8, 5, 2))
 
-    def test_vis_3d_weighted_mds_output_shape_corresponds_to_inputs(self):
-        dis = np.random.rand(8, 10)
-        wes = np.random.random((8, 10))
-        mes = "Euclidean"
-        des = {"session": 0, "subj": 0}
-        rdms = rsr.RDMs(dissimilarities=dis, dissimilarity_measure=mes, descriptors=des)
-        mds_emb = rsv.mds(rdms, dim=3, weight=wes)
-        self.assertEqual(mds_emb.shape[0], 8)
-        self.assertEqual(mds_emb.shape[1], 5)
-        self.assertEqual(mds_emb.shape[2], 3)
-
-    def test_vis_weighted_mds_output_behaves_like_mds(self):
+    @patch('rsatoolbox.vis.scatter_plot.show_scatter')
+    def test_vis_weighted_mds_output_behaves_like_mds(self, show_scatter):
+        from rsatoolbox.vis.scatter_plot import show_MDS
         dis = np.random.rand(8, 10)
         wes = np.ones((8, 10))
         mes = "Euclidean"
         des = {"session": 0, "subj": 0}
         rdms = rsr.RDMs(dissimilarities=dis, dissimilarity_measure=mes, descriptors=des)
-        mds_emb = rsv.mds(rdms)
-        wmds_emb = rsv.mds(rdms, weight=wes)
-        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]), atol=3e-1)
-
-    def test_vis_3d_weighted_mds_output_behaves_like_mds(self):
-        dis = np.random.rand(8, 10)
-        wes = np.ones((8, 10))
-        mes = "Euclidean"
-        des = {"session": 0, "subj": 0}
-        rdms = rsr.RDMs(dissimilarities=dis, dissimilarity_measure=mes, descriptors=des)
-        mds_emb = rsv.mds(rdms, dim=3)
-        wmds_emb = rsv.mds(rdms, dim=3, weight=wes)
-        np.testing.assert_allclose(pdist(mds_emb[0]), pdist(wmds_emb[0]), atol=3e-1)
+        show_MDS(rdms)
+        mds_coords = show_scatter.call_args[0][1]
+        show_MDS(rdms, weights=wes)
+        wmds_coords = show_scatter.call_args[0][1]
+        np.testing.assert_allclose(pdist(mds_coords[0]), pdist(wmds_coords[0]), atol=3e-1)
 
 
-class Test_Icon(unittest.TestCase):
+class Test_Icon(TestCase):
     def test_Icon_no_error(self):
         import PIL
         from rsatoolbox.vis import Icon
@@ -127,7 +110,7 @@ def _dummy_rdm():
     icons = defaultdict(list)
     for this_marker, this_image, this_name in zip(markers, images, names):
         icons["image"].append(rsv.Icon(image=this_image))
-        icons["marker"].append(rsv.Icon(marker=this_marker, color=[0,0,0]))
+        icons["marker"].append(rsv.Icon(marker=this_marker, color=[0, 0, 0]))
         icons["string"].append(rsv.Icon(string=this_name))
         icons["text"].append(this_name)
     ROIs = ["X", "Y", "Z"]
@@ -144,7 +127,7 @@ def _dummy_rdm():
     )
 
 
-class Test_rdm_plot(unittest.TestCase):
+class Test_rdm_plot(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.rdm = _dummy_rdm()
@@ -171,7 +154,7 @@ class Test_rdm_plot(unittest.TestCase):
         rsv.show_rdm(self.rdm[0], pattern_descriptor="string")
 
 
-class Test_model_plot(unittest.TestCase):
+class Test_model_plot(TestCase):
     def test_y_label(self):
         from rsatoolbox.vis.model_plot import _get_y_label
 
@@ -193,7 +176,3 @@ class Test_model_plot(unittest.TestCase):
             "icicles",
         )
         self.assertIsInstance(descr, str)
-
-
-if __name__ == "__main__":
-    unittest.main()

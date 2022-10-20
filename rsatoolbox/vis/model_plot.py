@@ -6,7 +6,6 @@ Barplot for model comparison based on a results file
 
 import warnings
 import numpy as np
-import scipy.stats
 import matplotlib.pyplot as plt
 from matplotlib import patches
 from matplotlib.path import Path
@@ -15,7 +14,7 @@ from matplotlib import cm
 import networkx as nx
 from networkx.algorithms.clique import find_cliques as maximal_cliques
 from scipy.spatial.distance import squareform
-from rsatoolbox.util.inference_util import all_tests
+from rsatoolbox.util.inference_util import all_tests, get_errorbars
 from rsatoolbox.util.rdm_utils import batch_to_vectors
 
 
@@ -183,6 +182,12 @@ def plot_model_comparison(result, sort=False, colors=None,
             reflecting variability of the estimate across subjects and/or
             experimental conditions.
 
+            'dots':
+                Draws dots for each data-point, i.e. first dimension of
+                the evaluation tensor. This is primarily sensible for
+                fixed evaluation where this dimension
+                corresponds to the subjects in the experiment.
+
         test_type (string):
             which tests to perform:
 
@@ -198,7 +203,10 @@ def plot_model_comparison(result, sort=False, colors=None,
                 performs wilcoxon signed rank sum tests
 
     Returns:
-        ---
+        (matplotlib.pyplot.Figure, matplotlib.pyplot.Axis,
+            matplotlib.pyplot.Axis):
+            the figure and axes the plots were made into.
+            This allows further modification, saving and printing.
 
     """
 
@@ -226,7 +234,7 @@ def plot_model_comparison(result, sort=False, colors=None,
             test_pair_comparisons = False
             test_above_0 = False
             test_below_noise_ceil = False
-        if error_bars:
+        if error_bars and error_bars.lower() != 'dots':
             warnings.warn('errorbars deactivated as crossvalidation does not'
                           + 'provide uncertainty estimate')
             error_bars = False
@@ -290,6 +298,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                           h * h_pair_tests * 0.7))
     else:
         ax = plt.axes((l, b, w, h))
+        axbar = None
 
     # Define the model colors
     if colors is None:  # no color passed...
@@ -321,48 +330,15 @@ def plot_model_comparison(result, sort=False, colors=None,
                                 axis=1)
 
     # Plot bars and error bars
-    ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
-    if error_bars is True:
-        error_bars = 'sem'
+    if method == 'neg_riem_dist':
+        ax.bar(np.arange(evaluations.shape[1]), perf-np.min(perf),
+               color=colors, bottom=np.min(perf))
+    else:
+        ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
     if error_bars:
-        if error_bars.lower() == 'sem':
-            errorbar_low = np.sqrt(np.maximum(model_var, 0))
-            errorbar_high = np.sqrt(np.maximum(model_var, 0))
-        elif error_bars[0:2].lower() == 'ci':
-            if len(error_bars) == 2:
-                CI_percent = 95.0
-            else:
-                CI_percent = float(error_bars[2:])
-            prop_cut = (1 - CI_percent / 100) / 2
-            if test_type == 'bootstrap':
-                framed_evals = np.concatenate(
-                    (np.tile(np.array((-np.inf, np.inf)).reshape(2, 1),
-                             (1, n_models)),
-                     evaluations),
-                    axis=0)
-                errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
-                                 - perf)
-                errorbar_high = (np.quantile(framed_evals, 1 - prop_cut,
-                                             axis=0)
-                                 - perf)
-            else:
-                tdist = scipy.stats.t
-                std_eval = np.sqrt(np.maximum(model_var, 0))
-                errorbar_low = std_eval \
-                    * tdist.ppf(prop_cut, dof)
-                errorbar_high = std_eval \
-                    * tdist.ppf(prop_cut, dof)
-        else:
-            raise Exception('plot_model_comparison: Argument ' +
-                            'error_bars is incorrectly defined as '
-                            + str(error_bars) + '.')
-        limits = np.concatenate((errorbar_low, errorbar_high))
-        if np.isnan(limits).any() or (abs(limits) == np.inf).any():
-            raise Exception(
-                'plot_model_comparison: Too few bootstrap samples for the ' +
-                'requested confidence interval: ' + error_bars + '.')
+        limits = get_errorbars(model_var, evaluations, dof, error_bars, test_type)
         ax.errorbar(np.arange(evaluations.shape[1]), perf,
-                    yerr=[errorbar_low, errorbar_high], fmt='none', ecolor='k',
+                    yerr=limits, fmt='none', ecolor='k',
                     capsize=0, linewidth=3)
 
     # Test whether model performance exceeds 0 (one sided)
@@ -485,12 +461,17 @@ def plot_model_comparison(result, sort=False, colors=None,
             plot_cliques(axbar, significant)
 
     # Floating axes
-    ytoptick = np.floor(min(1, noise_upper) * 10) / 10
-    ax.set_yticks(np.arange(0, ytoptick + 1e-6, step=0.1))
+    if method == 'neg_riem_dist':
+        ytoptick = noise_upper + 0.1
+        ymin = np.min(perf)
+    else:
+        ytoptick = np.floor(min(1, noise_upper) * 10) / 10
+        ymin = 0
+    ax.set_yticks(np.arange(ymin, ytoptick + 1e-6, step=0.1))
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.set_xticks(np.arange(n_models))
-    ax.spines['left'].set_bounds(0, ytoptick)
+    ax.spines['left'].set_bounds(ymin, ytoptick)
     ax.spines['bottom'].set_bounds(0, n_models - 1)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
@@ -501,18 +482,20 @@ def plot_model_comparison(result, sort=False, colors=None,
     ylabel_fig_x, ysublabel_fig_x = 0.07, 0.095
     trans = transforms.blended_transform_factory(fig.transFigure,
                                                  ax.get_yaxis_transform())
-    ax.text(ylabel_fig_x, ytoptick/2, 'RDM prediction accuracy',
+    ax.text(ylabel_fig_x, (ymin + ytoptick) / 2, 'RDM prediction accuracy',
             horizontalalignment='center', verticalalignment='center',
             rotation='vertical', fontsize=fs, fontweight='bold',
             transform=trans)
-    ax.text(ysublabel_fig_x, ytoptick/2,
+    ax.text(ysublabel_fig_x, (ymin+ytoptick)/2,
             y_label_string,
             horizontalalignment='center', verticalalignment='center',
             rotation='vertical', fontsize=fs2, fontweight='normal',
             transform=trans)
+
     if models is not None:
         ax.set_xticklabels([m.name for m in models], fontsize=fs2,
                            rotation=45)
+    return fig, ax, axbar
 
 
 def plot_nili_bars(axbar, significant, version=1):
@@ -686,7 +669,7 @@ def plot_arrows(axbar, significant):
     ah_L = Path(verts_L, codes)
 
     # Capture as many comparisons as possible with double arrows
-    double_arrows = list()
+    double_arrows = []
     for ambiguity_span in range(0, n-1):
         # consider short double arrows first (these cover many comparisons)
         for i in range(n-1, ambiguity_span, -1):
@@ -697,7 +680,7 @@ def plot_arrows(axbar, significant):
                 remaining[i:n, 0:i-ambiguity_span] = 0
 
     # Capture as many of the remaining comparisons as possible with arrows
-    arrows = list()
+    arrows = []
     for dist2diag in range(1, n):
         for i in range(n-1, dist2diag-1, -1):
             if significant[i, 0:i-dist2diag+1].all() and \
@@ -710,7 +693,7 @@ def plot_arrows(axbar, significant):
                 remaining[i:n, i-dist2diag] = 0
 
     # Capture the remaining comparisons with lines
-    lines = list()
+    lines = []
     for i in range(1, n):
         for j in range(0, i-1):
             if remaining[i, j]:
@@ -941,8 +924,8 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
     elif cv_method in ['bootstrap', 'bootstrap_crossval']:
         model_comp_descr = model_comp_descr + \
             'subjects and experimental conditions. '
-    model_comp_descr = model_comp_descr + 'Error bars indicate the'
     if error_bars[0:2].lower() == 'ci':
+        model_comp_descr = model_comp_descr + 'Error bars indicate the'
         if len(error_bars) == 2:
             CI_percent = 95.0
         else:
@@ -950,8 +933,12 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
         model_comp_descr = (model_comp_descr + ' ' +
                             str(CI_percent) + '% confidence interval.')
     elif error_bars.lower() == 'sem':
+        model_comp_descr = (
+            model_comp_descr +
+            'Error bars indicate the standard error of the mean.')
+    elif error_bars.lower() == 'sem':
         model_comp_descr = (model_comp_descr +
-                            ' standard error of the mean.')
+                            'Dots represent the individual model evaluations.')
     if test_above_0 or test_below_noise_ceil:
         model_comp_descr = (
             model_comp_descr +
@@ -997,4 +984,7 @@ def _get_y_label(method):
     elif method.lower() == 'tau-a':
         y_label = '[across-subject mean of ' \
             + 'Kendall tau-a rank correlation]'
+    elif method.lower() == 'neg_riem_dist':
+        y_label = '[across-subject mean of ' \
+            + 'negative riemannian distance]'
     return y_label

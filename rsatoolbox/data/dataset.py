@@ -6,9 +6,12 @@ Definition of RSA Dataset class and subclasses
 @author: baihan, jdiedrichsen, bpeters, adkipnis
 """
 
-
+from __future__ import annotations
+from typing import List, Optional
 import numpy as np
+from pandas import DataFrame
 from rsatoolbox.util.data_utils import get_unique_unsorted
+from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.descriptor_utils import check_descriptor_length_error
 from rsatoolbox.util.descriptor_utils import subset_descriptor
 from rsatoolbox.util.descriptor_utils import num_index
@@ -42,20 +45,22 @@ class DatasetBase:
     """
 
     def __init__(self, measurements, descriptors=None,
-                 obs_descriptors=None, channel_descriptors=None):
+                 obs_descriptors=None, channel_descriptors=None,
+                 check_dims=True):
         if measurements.ndim != 2:
             raise AttributeError(
                 "measurements must be in dimension n_obs x n_channel")
         self.measurements = measurements
         self.n_obs, self.n_channel = self.measurements.shape
-        check_descriptor_length_error(obs_descriptors,
-                                      "obs_descriptors",
-                                      self.n_obs
-                                      )
-        check_descriptor_length_error(channel_descriptors,
-                                      "channel_descriptors",
-                                      self.n_channel
-                                      )
+        if check_dims:
+            check_descriptor_length_error(obs_descriptors,
+                                          "obs_descriptors",
+                                          self.n_obs
+                                          )
+            check_descriptor_length_error(channel_descriptors,
+                                          "channel_descriptors",
+                                          self.n_channel
+                                          )
         self.descriptors = parse_input_descriptor(descriptors)
         self.obs_descriptors = parse_input_descriptor(obs_descriptors)
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
@@ -183,6 +188,71 @@ class DatasetBase:
         data_dict['type'] = type(self).__name__
         return data_dict
 
+    @staticmethod
+    def from_df(df: DataFrame,
+                channels: Optional[List] = None,
+                channel_descriptor: Optional[str] = None) -> Dataset:
+        """Create a Dataset from a Pandas DataFrame
+
+        Float columns are interpreted as channels, and their names stored as a
+        channel descriptor "name".
+        Columns of any other datatype will be interpreted as observation
+        descriptors, unless they have the same value throughout,
+        in which case they will be interpreted as Dataset descriptor.
+
+        Args:
+            df (DataFrame): a long-format DataFrame
+            channels (list): list of column names to interpret as channels.
+                By default all float columns are considered channels.
+            channel_descriptor (str): Name of the channel descriptor to create
+                on the Dataset which contains the column names.
+                Default is "name".
+
+        Returns:
+            Dataset: RSAtoolbox Dataset representing the data from the DataFrame
+        """
+        if channels is None:
+            channels = [c for (c, t) in df.dtypes.items() if 'float' in str(t)]
+        if channel_descriptor is None:
+            channel_descriptor = 'name'
+        descriptors = set(df.columns).difference(channels)
+        ds_descriptors, obs_descriptors = dict(), dict()
+        for desc in descriptors:
+            if df[desc].unique().size == 1:
+                ds_descriptors[desc] = df[desc][0]
+            else:
+                obs_descriptors[desc] = list(df[desc])
+        return Dataset(
+            measurements=df[channels].values,
+            descriptors=ds_descriptors,
+            obs_descriptors=obs_descriptors,
+            channel_descriptors={channel_descriptor: channels}
+        )
+
+    def to_df(self, channel_descriptor: Optional[str] = None) -> DataFrame:
+        """returns a Pandas DataFrame representing this Dataset
+
+        Channels, observation descriptors and Dataset descriptors make up the
+        columns. Rows represent observations.
+
+        Note that channel descriptors beyond the one used for the column names
+        will not be represented.
+
+        Args:
+            channel_descriptor: Which channel descriptor to use to
+                label the data columns in the Dataframe. Defaults to the
+                first channel descriptor.
+
+        Returns:
+            DataFrame: A pandas DataFrame representing the Dataset
+        """
+        desc = channel_descriptor or list(self.channel_descriptors.keys())[0]
+        ch_names = self.channel_descriptors[desc]
+        df = DataFrame(self.measurements, columns=ch_names)
+        for dname, dval in {**self.obs_descriptors, **self.descriptors}.items():
+            df[dname] = dval
+        return df
+
 
 class Dataset(DatasetBase):
     """
@@ -197,22 +267,22 @@ class Dataset(DatasetBase):
             by(String): the descriptor by which the splitting is made
 
         Returns:
-            list of Datasets, splitted by the selected obs_descriptor
+            list of Datasets, split by the selected obs_descriptor
         """
-        unique_values = get_unique_unsorted(self.obs_descriptors[by])
+        unique_values, inverse = get_unique_inverse(self.obs_descriptors[by])
         dataset_list = []
-        for v in unique_values:
-            selection = [idx for idx, des in enumerate(self.obs_descriptors[by])
-                         if des == v]
+        for i_v, _ in enumerate(unique_values):
+            selection = np.where(inverse == i_v)[0]
             measurements = self.measurements[selection, :]
-            descriptors = self.descriptors
+            descriptors = self.descriptors.copy()
             obs_descriptors = subset_descriptor(
                 self.obs_descriptors, selection)
             channel_descriptors = self.channel_descriptors
             dataset = Dataset(measurements=measurements,
                               descriptors=descriptors,
                               obs_descriptors=obs_descriptors,
-                              channel_descriptors=channel_descriptors)
+                              channel_descriptors=channel_descriptors,
+                              check_dims=False)
             dataset_list.append(dataset)
         return dataset_list
 
@@ -225,21 +295,20 @@ class Dataset(DatasetBase):
         Returns:
             list of Datasets,  splitted by the selected channel_descriptor
         """
-        unique_values = get_unique_unsorted(self.channel_descriptors[by])
+        unique_values, inverse = get_unique_inverse(self.channel_descriptors[by])
         dataset_list = []
-        for v in unique_values:
-            selection = [i for i, val in enumerate(self.channel_descriptors[by])
-                         if val == v]
+        for i_v, _ in enumerate(unique_values):
+            selection = np.where(inverse == i_v)[0]
             measurements = self.measurements[:, selection]
             descriptors = self.descriptors.copy()
-            descriptors[by] = v
             obs_descriptors = self.obs_descriptors
             channel_descriptors = subset_descriptor(
                 self.channel_descriptors, selection)
             dataset = Dataset(measurements=measurements,
                               descriptors=descriptors,
                               obs_descriptors=obs_descriptors,
-                              channel_descriptors=channel_descriptors)
+                              channel_descriptors=channel_descriptors,
+                              check_dims=False)
             dataset_list.append(dataset)
         return dataset_list
 
@@ -435,7 +504,7 @@ class TemporalDataset(Dataset):
 
     def __init__(self, measurements, descriptors=None,
                  obs_descriptors=None, channel_descriptors=None,
-                 time_descriptors=None):
+                 time_descriptors=None, check_dims=True):
 
         if measurements.ndim != 3:
             raise AttributeError(
@@ -452,18 +521,19 @@ class TemporalDataset(Dataset):
                 "there was no 'time' provided in dictionary time_descriptors"
                 "\n'time' will be set to (0, 1, ..., n_time-1)")
 
-        check_descriptor_length_error(obs_descriptors,
-                                      "obs_descriptors",
-                                      self.n_obs
-                                      )
-        check_descriptor_length_error(channel_descriptors,
-                                      "channel_descriptors",
-                                      self.n_channel
-                                      )
-        check_descriptor_length_error(time_descriptors,
-                                      "time_descriptors",
-                                      self.n_time
-                                      )
+        if check_dims:
+            check_descriptor_length_error(obs_descriptors,
+                                          "obs_descriptors",
+                                          self.n_obs
+                                          )
+            check_descriptor_length_error(channel_descriptors,
+                                          "channel_descriptors",
+                                          self.n_channel
+                                          )
+            check_descriptor_length_error(time_descriptors,
+                                          "time_descriptors",
+                                          self.n_time
+                                          )
         self.descriptors = parse_input_descriptor(descriptors)
         self.obs_descriptors = parse_input_descriptor(obs_descriptors)
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
@@ -498,10 +568,10 @@ class TemporalDataset(Dataset):
         Returns:
             list of TemporalDataset, splitted by the selected obs_descriptor
         """
-        unique_values = get_unique_unsorted(self.obs_descriptors[by])
+        unique_values, inverse = get_unique_inverse(self.obs_descriptors[by])
         dataset_list = []
-        for v in unique_values:
-            selection = np.where(self.obs_descriptors[by] == v)[0]
+        for i_v, _ in enumerate(unique_values):
+            selection = np.where(inverse == i_v)[0]
             measurements = self.measurements[selection, :, :]
             descriptors = self.descriptors
             obs_descriptors = subset_descriptor(
@@ -513,7 +583,8 @@ class TemporalDataset(Dataset):
                 descriptors=descriptors,
                 obs_descriptors=obs_descriptors,
                 channel_descriptors=channel_descriptors,
-                time_descriptors=time_descriptors)
+                time_descriptors=time_descriptors,
+                check_dims=False)
             dataset_list.append(dataset)
         return dataset_list
 
@@ -527,10 +598,10 @@ class TemporalDataset(Dataset):
             list of TemporalDataset,
                 split by the selected channel_descriptor
         """
-        unique_values = get_unique_unsorted(self.channel_descriptors[by])
+        unique_values, inverse = get_unique_inverse(self.channel_descriptors[by])
         dataset_list = []
-        for v in unique_values:
-            selection = np.where(self.channel_descriptors[by] == v)[0]
+        for i_v, v in enumerate(unique_values):
+            selection = np.where(inverse == i_v)[0]
             measurements = self.measurements[:, selection, :]
             descriptors = self.descriptors.copy()
             descriptors[by] = v
@@ -543,7 +614,8 @@ class TemporalDataset(Dataset):
                 descriptors=descriptors,
                 obs_descriptors=obs_descriptors,
                 channel_descriptors=channel_descriptors,
-                time_descriptors=time_descriptors)
+                time_descriptors=time_descriptors,
+                check_dims=False)
             dataset_list.append(dataset)
         return dataset_list
 
@@ -573,7 +645,8 @@ class TemporalDataset(Dataset):
                 descriptors=descriptors,
                 obs_descriptors=obs_descriptors,
                 channel_descriptors=channel_descriptors,
-                time_descriptors=time_descriptors)
+                time_descriptors=time_descriptors,
+                check_dims=False)
             dataset_list.append(dataset)
         return dataset_list
 
@@ -697,7 +770,7 @@ class TemporalDataset(Dataset):
         """
 
         time = get_unique_unsorted(self.time_descriptors[by])
-        sel_time = [t for t in time if t <= t_to and t >= t_from]
+        sel_time = [t for t in time if t_from <= t <= t_to]
 
         selection = num_index(self.time_descriptors[by], sel_time)
         measurements = self.measurements[:, :, selection]

@@ -1,7 +1,6 @@
 """Functions operating on a set of related RDMs objects
 """
 from __future__ import annotations
-from collections import Counter
 from copy import deepcopy
 from typing import TYPE_CHECKING, List, Optional, Tuple
 import numpy as np
@@ -13,9 +12,9 @@ if TYPE_CHECKING:
 
 
 def from_partials(
-    list_of_rdms: List[RDMs],
-    all_patterns: Optional[List[str]]=None,
-    descriptor: str='conds') -> RDMs:
+        list_of_rdms: List[RDMs],
+        all_patterns: Optional[List[str]] = None,
+        descriptor: str = 'conds') -> RDMs:
     """Make larger RDMs with missing values where needed
 
     Any object-level descriptors will be turned into rdm_descriptors
@@ -97,7 +96,7 @@ def from_partials(
     )
 
 
-def rescale(rdms, method: str='evidence'):
+def rescale(rdms, method: str = 'evidence'):
     """Bring RDMs closer together
 
     Iteratively scales RDMs based on pairs in-common.
@@ -123,7 +122,7 @@ def rescale(rdms, method: str='evidence'):
     )
 
 
-def _mean(vectors:ndarray, weights:ndarray=None) -> ndarray:
+def _mean(vectors: ndarray, weights: ndarray = None) -> ndarray:
     """Weighted mean of RDM vectors, ignores nans
 
     See :meth:`rsatoolbox.rdm.rdms.RDMs.mean`
@@ -142,7 +141,7 @@ def _mean(vectors:ndarray, weights:ndarray=None) -> ndarray:
     return weighted_sum / np.nansum(weights, axis=0)
 
 
-def _ss(vectors:ndarray) -> ndarray:
+def _ss(vectors: ndarray) -> ndarray:
     """Sum of squares on the last dimension
 
     Args:
@@ -155,7 +154,7 @@ def _ss(vectors:ndarray) -> ndarray:
     return np.expand_dims(summed_squares, axis=vectors.ndim-1)
 
 
-def _scale(vectors:ndarray) -> ndarray:
+def _scale(vectors: ndarray) -> ndarray:
     """Divide by the root sum of squares
 
     Args:
@@ -167,7 +166,7 @@ def _scale(vectors:ndarray) -> ndarray:
     return vectors / sqrt(_ss(vectors))
 
 
-def _rescale(dissim:ndarray, method:str) -> Tuple[ndarray, ndarray]:
+def _rescale(dissim: ndarray, method: str) -> Tuple[ndarray, ndarray]:
     """Rescale RDM vectors
 
     See :meth:`rsatoolbox.rdm.combine.rescale`
@@ -191,7 +190,7 @@ def _rescale(dissim:ndarray, method:str) -> Tuple[ndarray, ndarray]:
     weights[np.isnan(dissim)] = np.nan
 
     current_estimate = _scale(_mean(dissim))
-    prev_estimate = np.full([n_conds,], -inf)
+    prev_estimate = np.full([n_conds, ], -inf)
     while _ss(current_estimate - prev_estimate) > 1e-8:
         prev_estimate = current_estimate.copy()
         tiled_estimate = np.tile(current_estimate, [n_rdms, 1])

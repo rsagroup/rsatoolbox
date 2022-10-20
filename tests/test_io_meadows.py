@@ -17,9 +17,9 @@ class MeadowsIOTests(TestCase):
         fname = 'Meadows_myExp_v_v1_cuddly-bunny_3_1D.mat'
         fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
         rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=False)
-        self.assertEqual(rdms.descriptors.get('participant'), 'cuddly-bunny')
-        self.assertEqual(rdms.descriptors.get('task_index'), 3)
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
+        self.assertEqual(rdms.rdm_descriptors.get('task_index'), [3])
+        self.assertEqual(rdms.rdm_descriptors.get('participant'), ['cuddly-bunny'])
         self.assertEqual(rdms.dissimilarity_measure, 'euclidean')
         conds = rdms.pattern_descriptors.get('conds')
         assert_array_equal(conds[:2], ['stim118', 'stim117'])
@@ -53,10 +53,13 @@ class MeadowsIOTests(TestCase):
         fname = 'Meadows_myExp_v_v1_arrangement_1D.mat'
         fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
         rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=False)
-        self.assertEqual(rdms.descriptors.get('task_name'), 'arrangement')
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
         self.assertEqual(
-            rdms.rdm_descriptors.get('participants'),
+            rdms.rdm_descriptors.get('task'),
+            ['arrangement', 'arrangement', 'arrangement']
+        )
+        self.assertEqual(
+            rdms.rdm_descriptors.get('participant'),
             ['able-fly', 'clean-koi', 'cuddly-bunny']
         )
         self.assertEqual(rdms.dissimilarity_measure, 'euclidean')
@@ -69,6 +72,36 @@ class MeadowsIOTests(TestCase):
         assert_array_almost_equal(
             rdms.dissimilarities[1, :2],  # 'clean-koy'
             [0.00773234353884765, 0.00589909056106329]
+        )
+
+    def test_load_rdms_from_json_file_1p_2t(self):
+        """Acceptance test for loading data from a Meadows
+        .json file download containing data for a multiple tasks,
+        one participant. Should have descriptors and dissimilarities
+        as found in file. All tasks in this file use the same stimuli.
+        """
+        import rsatoolbox.io.meadows
+        fname = 'Meadows_twoMaTasks_v_v1_informed-mole_tree.json'
+        fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
+        rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=False)
+        self.assertEqual(rdms.descriptors.get('experiment_name'), 'twoMaTasks')
+        self.assertEqual(
+            rdms.rdm_descriptors.get('task'),
+            ['ma1', 'ma2']
+        )
+        self.assertEqual(
+            rdms.rdm_descriptors.get('participant'),
+            ['informed-mole', 'informed-mole']
+        )
+        self.assertEqual(rdms.dissimilarity_measure, 'euclidean')
+        self.assertEqual(
+            rdms.pattern_descriptors.get('conds'),
+            ['beach', 'fireplace', 'river']
+        )
+        assert_array_almost_equal(
+            rdms.dissimilarities,
+            [[0.686, 0.218, 0.695], [0.686, 0.694, 0.220]],
+            decimal=3
         )
 
     def test_extract_filename_segments_1p_1t(self):
@@ -108,3 +141,22 @@ class MeadowsIOTests(TestCase):
         self.assertEqual(info.get('filetype'), 'mat')
         self.assertIsNone(info.get('participant'))
         self.assertIsNone(info.get('task_index'))
+
+    def test_extract_filename_segments_1p_mt(self):
+        """Test interpretation of the filename of a Meadows results download
+
+        This case covers a filename for a single participant, multiple tasks,
+        downloaded in 2021.
+        """
+        from rsatoolbox.io.meadows import extract_filename_segments
+        fname = 'Meadows_myExp_v_v1_cuddly-bunny_tree.json'
+        info = extract_filename_segments(fname)
+        self.assertEqual(info.get('participant_scope'), 'single')
+        self.assertEqual(info.get('task_scope'), 'multiple')
+        self.assertEqual(info.get('participant'), 'cuddly-bunny')
+        self.assertIsNone(info.get('task_index'))
+        self.assertEqual(info.get('version'), '1')
+        self.assertEqual(info.get('experiment_name'), 'myExp')
+        self.assertEqual(info.get('structure'), 'tree')
+        self.assertEqual(info.get('filetype'), 'json')
+        self.assertIsNone(info.get('task_name'))
