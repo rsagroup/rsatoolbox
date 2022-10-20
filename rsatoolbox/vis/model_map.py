@@ -367,14 +367,19 @@ def plot_model_map(locs2d, significant, model_significant, model_below_lower_bou
                        (angle_diff <= 0 and abs(angle_diff) > np.pi):
                         # clockwise from i to j is shorter
                         angles = np.linspace(
-                            angle_i, angle_i + min(abs(angle_diff),
-                            2 * np.pi - abs(angle_diff)), 360)
+                            angle_i,
+                            angle_i + min(
+                                abs(angle_diff),
+                                2 * np.pi - abs(angle_diff)),
+                            360)
                         radii = np.linspace(rad_i, rad_j, 360)
                     else:
                         # clockwise from j to i is shorter
                         angles = np.linspace(
-                            angle_j, angle_j + min(abs(angle_diff),
-                            2 * np.pi - abs(angle_diff)), 360)
+                            angle_j, angle_j + min(
+                                abs(angle_diff),
+                                2 * np.pi - abs(angle_diff)),
+                            360)
                         radii = np.linspace(rad_j, rad_i, 360)
                     xx, yy = np.sin(angles) * radii, np.cos(angles) * radii
                     plt.plot(xx, yy, color=ns_col, linewidth=ns_lw)
@@ -450,7 +455,6 @@ def plot_model_map(locs2d, significant, model_significant, model_below_lower_bou
     plt.axis('off')
 
 
-
 def _parse_colors(colors, n_models):
     """ parses a color argument into an array of RGB values
     """
@@ -519,7 +523,7 @@ def _get_description(test_pair_comparisons, multiple_pair_testing, error_bars,
         inference_descr = inference_descr + 'experimental conditions. '
     elif cv_method in ['bootstrap', 'bootstrap_crossval']:
         inference_descr = inference_descr + \
-        'subjects and experimental conditions. '
+            'subjects and experimental conditions. '
 
     # %% Print description of inferential methods
     inference_descr += '\nError bars indicate the'
@@ -757,6 +761,7 @@ def plot_model_map_elastic(locs2d, rdm_dists, names, colors=None):
               '(thin & blue: stretched, thick & red: squeezed)', fontsize=fs_large)
     plt.axis('equal')
     plt.axis('off')
+
 
 def show_Shepard_plot(locs2d, rdm_dists, colors=None):
     """ Show shepard plot """

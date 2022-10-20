@@ -111,7 +111,8 @@ class ModelFixed(Model):
             self.rdm = rdm
         else:  # User passed a matrix
             self.rdm_obj = RDMs(np.array([rdm]))
-            self.rdm, _, self.n_cond = batch_to_vectors(np.array([rdm]))[0]
+            self.rdm, _, self.n_cond = batch_to_vectors(np.array([rdm]))
+            self.rdm = self.rdm[0]
         self.n_param = 0
         self.default_fitter = fit_mock
         self.rdm_obj.pattern_descriptors['index'] = np.arange(self.n_cond)

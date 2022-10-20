@@ -368,7 +368,7 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
             vector1, vector2, sigma_k=sigma_k, nan_idx=nan_idx)
     else:
         if nan_idx is None:
-            nan_idx = np.ones(vector1[0].shape, np.bool)
+            nan_idx = np.ones(vector1[0].shape, bool)
         # Compute the extended version of RDM vectors in whitened space
         vector1_m = _cov_weighting(vector1, nan_idx, sigma_k)
         vector2_m = _cov_weighting(vector2, nan_idx, sigma_k)
@@ -428,7 +428,7 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
                 Gs = np.einsum('ij,mjk,lk->mil', l_sigma_k, Gs, l_sigma_k)
                 vector_w = np.einsum('ij,mjk,ik->mi', rowI, Gs, colI)
     else:
-        nan_idx_ext = np.concatenate((nan_idx, np.ones(n_cond, np.bool)))
+        nan_idx_ext = np.concatenate((nan_idx, np.ones(n_cond, bool)))
         sumI = sumI[nan_idx_ext]
         # get matrix for double centering with missing values:
         sumI[n_dist:, :] /= 2

@@ -182,6 +182,12 @@ def plot_model_comparison(result, sort=False, colors=None,
             reflecting variability of the estimate across subjects and/or
             experimental conditions.
 
+            'dots':
+                Draws dots for each data-point, i.e. first dimension of
+                the evaluation tensor. This is primarily sensible for
+                fixed evaluation where this dimension
+                corresponds to the subjects in the experiment.
+
         test_type (string):
             which tests to perform:
 
@@ -197,7 +203,10 @@ def plot_model_comparison(result, sort=False, colors=None,
                 performs wilcoxon signed rank sum tests
 
     Returns:
-        ---
+        (matplotlib.pyplot.Figure, matplotlib.pyplot.Axis,
+            matplotlib.pyplot.Axis):
+            the figure and axes the plots were made into.
+            This allows further modification, saving and printing.
 
     """
 
@@ -225,7 +234,7 @@ def plot_model_comparison(result, sort=False, colors=None,
             test_pair_comparisons = False
             test_above_0 = False
             test_below_noise_ceil = False
-        if error_bars:
+        if error_bars and error_bars.lower() != 'dots':
             warnings.warn('errorbars deactivated as crossvalidation does not'
                           + 'provide uncertainty estimate')
             error_bars = False
@@ -289,6 +298,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                           h * h_pair_tests * 0.7))
     else:
         ax = plt.axes((l, b, w, h))
+        axbar = None
 
     # Define the model colors
     if colors is None:  # no color passed...
@@ -485,6 +495,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     if models is not None:
         ax.set_xticklabels([m.name for m in models], fontsize=fs2,
                            rotation=45)
+    return fig, ax, axbar
 
 
 def plot_nili_bars(axbar, significant, version=1):
@@ -913,8 +924,8 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
     elif cv_method in ['bootstrap', 'bootstrap_crossval']:
         model_comp_descr = model_comp_descr + \
             'subjects and experimental conditions. '
-    model_comp_descr = model_comp_descr + 'Error bars indicate the'
     if error_bars[0:2].lower() == 'ci':
+        model_comp_descr = model_comp_descr + 'Error bars indicate the'
         if len(error_bars) == 2:
             CI_percent = 95.0
         else:
@@ -922,8 +933,12 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
         model_comp_descr = (model_comp_descr + ' ' +
                             str(CI_percent) + '% confidence interval.')
     elif error_bars.lower() == 'sem':
+        model_comp_descr = (
+            model_comp_descr +
+            'Error bars indicate the standard error of the mean.')
+    elif error_bars.lower() == 'sem':
         model_comp_descr = (model_comp_descr +
-                            ' standard error of the mean.')
+                            'Dots represent the individual model evaluations.')
     if test_above_0 or test_below_noise_ceil:
         model_comp_descr = (
             model_comp_descr +

@@ -94,11 +94,11 @@ class Icon:
     """
 
     def __init__(
-        self, image=None, string=None, color=None, marker=None,
-        cmap=None, border_type=None, border_width=2, make_square=False,
-        circ_cut=None, resolution=None, marker_front=True,
-        markeredgewidth=2, font_size=None, font_name=None,
-        font_color=None):
+            self, image=None, string=None, color=None, marker=None,
+            cmap=None, border_type=None, border_width=2, make_square=False,
+            circ_cut=None, resolution=None, marker_front=True,
+            markeredgewidth=2, font_size=None, font_name=None,
+            font_color=None):
         self.final_image = None
         self.font_size = font_size
         self.font_name = font_name
@@ -250,18 +250,18 @@ class Icon:
         im = im.convert("RGBA")
         if self.make_square:
             new_size = max(im.width, im.height)
-            if  int(PIL.__version__[0]) >= 9:
+            if int(PIL.__version__[0]) >= 9:
                 im = im.resize((new_size, new_size), PIL.Image.Resampling.NEAREST)
             else:
                 im = im.resize((new_size, new_size), PIL.Image.NEAREST)
         if self.resolution is not None:
             if self.resolution.size == 1:
-                if  int(PIL.__version__[0]) >= 9:
+                if int(PIL.__version__[0]) >= 9:
                     im = im.resize((self.resolution, self.resolution), PIL.Image.Resampling.NEAREST)
                 else:
                     im = im.resize((self.resolution, self.resolution), PIL.Image.NEAREST)
             else:
-                if  int(PIL.__version__[0]) >= 9:
+                if int(PIL.__version__[0]) >= 9:
                     im = im.resize(self.resolution, PIL.Image.Resampling.NEAREST)
                 else:
                     im = im.resize(self.resolution, PIL.Image.NEAREST)
