@@ -133,7 +133,11 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
                      sigma_k=sigma_k, ridge_weight=ridge_weight)
     theta0 = np.random.rand(model.n_param)
     theta = opt.minimize(_loss_opt, theta0)
-    return theta.x / np.sqrt(np.sum(theta.x ** 2))
+    theta = theta.x
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
+    return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
 def fit_optimize_positive(
@@ -169,7 +173,11 @@ def fit_optimize_positive(
         options={
             'xatol': 0.000001,
             'fatol': 0.000001})
-    return theta.x ** 2 / np.sqrt(np.sum(theta.x ** 4))
+    theta = theta.x ** 2
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
+    return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
 def fit_interpolate(model, data, method='cosine', pattern_idx=None,
@@ -281,6 +289,9 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
         y = v_inv_x @ y.T
         X = vectors @ v_inv_x.T + ridge_weight * np.eye(vectors.shape[0])
     theta = np.linalg.solve(X, y)
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
     return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
@@ -340,6 +351,9 @@ def fit_regress_nn(model, data, method='cosine', pattern_idx=None,
     else:
         raise ValueError('method argument invalid')
     theta, _ = _nn_least_squares(vectors.T, y[0], ridge_weight=ridge_weight, V=v)
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
     return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
