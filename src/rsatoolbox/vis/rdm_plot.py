@@ -54,7 +54,7 @@ def show_rdm(
             str for direct labeling.
         n_column (int): Number of columns in subplot arrangement.
         n_row (int): Number of rows in subplot arrangement.
-        show_colorbar (str): Set to 'panel' or 'colorbar' to display a colorbar. If
+        show_colorbar (str): Set to 'panel' or 'figure' to display a colorbar. If
             'panel' a colorbar is added next to each RDM. If 'figure' a shared colorbar
             (and scale) is used across panels.
         gridlines (npt.ArrayLike): Set to add gridlines at these positions. If
@@ -91,7 +91,7 @@ def show_rdm(
 
     """
 
-    if show_colorbar and not show_colorbar in ("panel", "figure"):
+    if show_colorbar and show_colorbar not in ("panel", "figure"):
         raise ValueError(
             f"show_colorbar can be None, panel or figure, got: {show_colorbar}"
         )

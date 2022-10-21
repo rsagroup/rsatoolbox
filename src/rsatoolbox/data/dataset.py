@@ -189,10 +189,9 @@ class DatasetBase:
         return data_dict
 
     @staticmethod
-    def from_df(
-        df: DataFrame,
-        channels: Optional[List]=None,
-        channel_descriptor: Optional[str]=None) -> Dataset:
+    def from_df(df: DataFrame,
+                channels: Optional[List] = None,
+                channel_descriptor: Optional[str] = None) -> Dataset:
         """Create a Dataset from a Pandas DataFrame
 
         Float columns are interpreted as channels, and their names stored as a
@@ -230,7 +229,7 @@ class DatasetBase:
             channel_descriptors={channel_descriptor: channels}
         )
 
-    def to_df(self, channel_descriptor: Optional[str]=None) -> DataFrame:
+    def to_df(self, channel_descriptor: Optional[str] = None) -> DataFrame:
         """returns a Pandas DataFrame representing this Dataset
 
         Channels, observation descriptors and Dataset descriptors make up the
@@ -268,7 +267,7 @@ class Dataset(DatasetBase):
             by(String): the descriptor by which the splitting is made
 
         Returns:
-            list of Datasets, splitted by the selected obs_descriptor
+            list of Datasets, split by the selected obs_descriptor
         """
         unique_values, inverse = get_unique_inverse(self.obs_descriptors[by])
         dataset_list = []

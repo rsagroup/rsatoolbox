@@ -255,10 +255,10 @@ def calc_one_dissimilarity_cv(dataset, descriptor, i_des, j_des,
                             accepted = True
                         if enforce_same:
                             if (data_i.obs_descriptors[cv_descriptor][i]
-                                != data_j.obs_descriptors[cv_descriptor][j]):
+                                    != data_j.obs_descriptors[cv_descriptor][j]):
                                 accepted = False
                             if (data_i.obs_descriptors[cv_descriptor][k]
-                                != data_j.obs_descriptors[cv_descriptor][l]):
+                                    != data_j.obs_descriptors[cv_descriptor][l]):
                                 accepted = False
                     if accepted:
                         vec_i = data_i.measurements[i]
@@ -269,7 +269,7 @@ def calc_one_dissimilarity_cv(dataset, descriptor, i_des, j_des,
                             & np.isfinite(vec_k) & np.isfinite(vec_l)
                         if np.any(finite):
                             if weighting == 'number':
-                                weight = np.sum(finite)
+                                weight = np.add.reduce(finite)
                             elif weighting == 'equal':
                                 weight = 1
                             dissim = dissimilarity_cv(
@@ -279,14 +279,14 @@ def calc_one_dissimilarity_cv(dataset, descriptor, i_des, j_des,
                                 noise=noise,
                                 prior_lambda=prior_lambda,
                                 prior_weight=prior_weight) \
-                                / np.sum(finite)
+                                / np.add.reduce(finite)
                             values.append(dissim)
                             weights.append(weight)
     weights = np.array(weights)
     values = np.array(values)
-    if np.sum(weights) > 0:
-        weight = np.sum(weights)
-        value = np.sum(weights * values) / weight
+    if np.add.reduce(weights) > 0:
+        weight = np.add.reduce(weights)
+        value = np.add.reduce(weights * values) / weight
     else:
         value = np.nan
         weight = 0
@@ -328,14 +328,14 @@ def similarity(vec_i, vec_j, method, noise=None,
 def dissimilarity(vec_i, vec_j, method, noise=None,
                   prior_lambda=1, prior_weight=0.1):
     if method == 'euclidean':
-        dissim = np.sum((vec_i - vec_j) ** 2)
+        dissim = np.add.reduce((vec_i - vec_j) ** 2)
     elif method == 'correlation':
         vec_i = vec_i - np.mean(vec_i)
         vec_j = vec_j - np.mean(vec_j)
-        norm_i = np.sum(vec_i ** 2)
-        norm_j = np.sum(vec_j ** 2)
+        norm_i = np.add.reduce(vec_i ** 2)
+        norm_j = np.add.reduce(vec_j ** 2)
         if (norm_i) > 0 and (norm_j > 0):
-            dissim = 1 - (np.sum(vec_i * vec_j)
+            dissim = 1 - (np.add.reduce(vec_i * vec_j)
                           / np.sqrt(norm_i) / np.sqrt(norm_j))
         else:
             dissim = 1
@@ -346,7 +346,7 @@ def dissimilarity(vec_i, vec_j, method, noise=None,
         else:
             diff = vec_i - vec_j
             diff2 = (noise @ diff.T).T
-            dissim = np.sum(diff * diff2)
+            dissim = np.add.reduce(diff * diff2)
     elif method == 'poisson':
         vec_i = (vec_i + prior_lambda * prior_weight) \
             / (1 + prior_weight)
@@ -354,10 +354,11 @@ def dissimilarity(vec_i, vec_j, method, noise=None,
             / (1 + prior_weight)
         diff = vec_i - vec_j
         diff_log = np.log(vec_i) - np.log(vec_j)
-        dissim = np.sum(diff * diff_log)
+        dissim = np.add.reduce(diff * diff_log)
     else:
         raise ValueError('dissimilarity method not recognized!')
     return dissim
+
 
 def dissimilarity_cv(vec_i, vec_j, vec_k, vec_l, method, noise=None,
                      prior_lambda=1, prior_weight=0.1):
@@ -366,11 +367,11 @@ def dissimilarity_cv(vec_i, vec_j, vec_k, vec_l, method, noise=None,
         if noise is None:
             diff = vec_i - vec_j
             diff2 = vec_k - vec_l
-            dissim = np.sum(diff * diff2)
+            dissim = np.add.reduce(diff * diff2)
         else:
             diff = vec_i - vec_j
             diff2 = (noise @ (vec_k - vec_l).T).T
-            dissim = np.sum(diff * diff2)
+            dissim = np.add.reduce(diff * diff2)
     elif method == 'poisson_cv':
         vec_i = (vec_i + prior_lambda * prior_weight) \
             / (1 + prior_weight)
@@ -384,7 +385,7 @@ def dissimilarity_cv(vec_i, vec_j, vec_k, vec_l, method, noise=None,
         diff2 = vec_k - vec_l
         diff_log = np.log(vec_i) - np.log(vec_j)
         diff_log2 = np.log(vec_k) - np.log(vec_l)
-        dissim = np.sum(diff * diff_log2) + np.sum(diff2 * diff_log)
+        dissim = np.add.reduce(diff * diff_log2) + np.add.reduce(diff2 * diff_log)
     else:
         raise ValueError('dissimilarity method not recognized!')
     return dissim

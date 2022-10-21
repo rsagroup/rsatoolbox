@@ -190,7 +190,7 @@ def _covariance_diag(matrix, dof, mem_threshold=(10**9)/8):
     s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / (matrix.shape[0] - 1)
     var_hat = matrix.shape[0] / dof ** 2 \
         * (s2_mean - s_mean ** 2)
-    mask = ~np.eye(s.shape[0], dtype=np.bool)
+    mask = ~np.eye(s.shape[0], dtype=bool)
     lamb = np.sum(var_hat[mask]) / np.sum(s_mean[mask] ** 2)
     lamb = max(min(lamb, 1), 0)
     scaling = np.eye(s.shape[0]) + (1-lamb) * mask
