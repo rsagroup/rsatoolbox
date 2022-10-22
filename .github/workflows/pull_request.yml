@@ -11,6 +11,7 @@ jobs:
       matrix:
         python-version: ['3.7', '3.8', '3.9', '3.10']
         os: [ubuntu-latest, macos-latest, windows-latest]
+        format: [sdist, wheel]
 
     steps:
     - uses: actions/checkout@v3
@@ -25,11 +26,11 @@ jobs:
     - name: Install Build
       run: pip install build
     - name: Build packages
-      run: python -m build --sdist
-    - name: Install rsatoolbox
-      run: pip install -f dist/ rsatoolbox
+      run: python -m build --${{ matrix.format }}
     - name: Install dependencies
       run: pip install -r requirements.txt
+    - name: Install rsatoolbox
+      run: pip install -f dist/ rsatoolbox
     - name: Install test dependencies
       run: pip install -r tests/requirements.txt
     - name: Unit tests
