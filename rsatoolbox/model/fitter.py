@@ -133,7 +133,11 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
                      sigma_k=sigma_k, ridge_weight=ridge_weight)
     theta0 = np.random.rand(model.n_param)
     theta = opt.minimize(_loss_opt, theta0)
-    return theta.x / np.sqrt(np.sum(theta.x ** 2))
+    theta = theta.x
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
+    return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
 def fit_optimize_positive(
@@ -165,11 +169,17 @@ def fit_optimize_positive(
                      pattern_descriptor=pattern_descriptor,
                      sigma_k=sigma_k, ridge_weight=ridge_weight)
     theta0 = np.random.rand(model.n_param)
-    theta = opt.minimize(_loss_opt, theta0,
+    theta = opt.minimize(
+        _loss_opt,
+        theta0,
         options={
             'xatol': 0.000001,
             'fatol': 0.000001})
-    return theta.x ** 2 / np.sqrt(np.sum(theta.x ** 4))
+    theta = theta.x ** 2
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
+    return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
 def fit_interpolate(model, data, method='cosine', pattern_idx=None,
@@ -281,6 +291,9 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
         y = v_inv_x @ y.T
         X = vectors @ v_inv_x.T + ridge_weight * np.eye(vectors.shape[0])
     theta = np.linalg.solve(X, y)
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
     return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
@@ -340,6 +353,9 @@ def fit_regress_nn(model, data, method='cosine', pattern_idx=None,
     else:
         raise ValueError('method argument invalid')
     theta, _ = _nn_least_squares(vectors.T, y[0], ridge_weight=ridge_weight, V=v)
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
     return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
@@ -395,7 +411,7 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
     assert A.shape[0] == y.shape[0]
     assert y.ndim == 1
     x = np.zeros(A.shape[1])
-    p = np.zeros(A.shape[1], np.bool)
+    p = np.zeros(A.shape[1], bool)
     if V is None:
         w = A.T @ y
         ATA = A.T @ A + ridge_weight * np.eye(A.shape[1])
@@ -406,7 +422,7 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
         y_V_A = V_A @ y
         w = A.T @ V @ y
         ATA = A.T @ V_A.T + ridge_weight * np.eye(A.shape[1])
-    while np.max(w) > 100 * np.finfo(np.float).eps:
+    while np.max(w) > 100 * np.finfo(float).eps:
         p[np.argmax(w)] = True
         if V is None:
             s_p = np.linalg.solve(ATA[p][:, p], A[:, p].T @ y)

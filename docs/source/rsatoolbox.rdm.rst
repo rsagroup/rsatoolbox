@@ -13,6 +13,7 @@ Submodules
    rsatoolbox.rdm.compare
    rsatoolbox.rdm.rdms
    rsatoolbox.rdm.transform
+   rsatoolbox.rdm.pairs
 
 Module contents
 ---------------

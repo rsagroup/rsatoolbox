@@ -119,7 +119,7 @@ class TestModelWeighted(unittest.TestCase):
                        rdm_descriptors=rdm_descriptors)
         m = model.ModelWeighted('Test Model', rdm_obj)
         train = rdm_obj.subset('ind', 2)
-        theta = m.fit(train)
+        _ = m.fit(train)
 
 
 class TestModelInterpolate(unittest.TestCase):
