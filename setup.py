@@ -1,9 +1,11 @@
 from setuptools import setup, Extension
 from Cython.Build import build_ext ## missing dev time req
+from os.path import isfile
 
 test_requires = []
-with open('tests/requirements.txt') as reqfile:
-    test_requires = reqfile.read().splitlines()
+if isfile('tests/requirements.txt'):
+    with open('tests/requirements.txt') as reqfile:
+        test_requires = reqfile.read().splitlines()
 
 setup(
     tests_require=test_requires,
