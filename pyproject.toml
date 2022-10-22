@@ -39,3 +39,10 @@ package-dir = {"" = "src"}
 [tool.setuptools.dynamic]
 readme = {file = "README.md"}
 dependencies = {file = "requirements.txt"}
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests"
+]
+python_files = "*.py"
+
