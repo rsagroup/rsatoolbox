@@ -30,7 +30,7 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
     - name: Install rsatoolbox
-      run: pip install -f dist/ rsatoolbox
+      run: pip install --no-cache-dir --no-index -f dist/ rsatoolbox
     - name: Install test dependencies
       run: pip install -r tests/requirements.txt
     - name: Unit tests
