@@ -39,9 +39,19 @@ jobs:
       run: pip install -r tests/requirements.txt
     - name: Unit tests
       run: pytest
-    - name: Store artifact
+    - name: Store source artifact
       uses: actions/upload-artifact@v3
+      if: matrix.format == 'sdist'
       with:
-        name: rsatoolbox-sdist
-        path: dist/rsatoolbox-*.tar.gz
+        name: sdist
+        path: dist/*
+        if-no-files-found: error
+        retention-days: 1
+    - name: Store binary artifact
+      uses: actions/upload-artifact@v3
+      if: matrix.format != 'sdist'
+      with:
+        name: wheel-${{ matrix.os }}-${{ matrix.python-version }}
+        path: dist/*
+        if-no-files-found: error
         retention-days: 1
