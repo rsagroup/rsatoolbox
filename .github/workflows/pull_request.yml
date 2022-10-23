@@ -1,4 +1,4 @@
-name: pull_request_tests
+name: pull_request_builds
 
 on:
   pull_request:
@@ -26,7 +26,7 @@ jobs:
     - name: Install Build
       run: pip install build
     - name: Build package
-      run: python -m build --${{ matrix.format }}
+      run: python -m build --sdist
     - name: Install rsatoolbox (Linux, Mac)
       run: pip install dist/*
       if: matrix.os != 'windows-latest'
