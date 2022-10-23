@@ -119,11 +119,12 @@ class TestDemos(unittest.TestCase):
                            channel_descriptors=chn_des)
         # calculate an RDM
         RDM_euc = rsr.calc_rdm(data)
-        RDM_corr = rsr.calc_rdm(data,
-                                method='correlation', descriptor='conds')
+        _ = rsr.calc_rdm(
+            data,
+            method='correlation', descriptor='conds')
         # create an RDM object
         rdm_des = {'RDM': np.array(['RDM_1'])}
-        RDM_euc2 = rsr.RDMs(
+        _ = rsr.RDMs(
             RDM_euc.dissimilarities,
             dissimilarity_measure=RDM_euc.dissimilarity_measure,
             descriptors=RDM_euc.descriptors,
@@ -150,8 +151,8 @@ class TestDemos(unittest.TestCase):
         model_rdms = rsatoolbox.rdm.RDMs(
             rdms_array,
             rdm_descriptors={
-                'brain_computational_model':model_names,
-                'measurement_model':measurement_model},
+                'brain_computational_model': model_names,
+                'measurement_model': measurement_model},
             dissimilarity_measure='Euclidean'
             )
         model_names = [matlab_data[0][i][0][0] for i in range(n_models)]
@@ -160,14 +161,18 @@ class TestDemos(unittest.TestCase):
                          'rdms_inferring', 'noisyModelRDMs_A2020.mat'))
         rdms_matlab = matlab_data['noisyModelRDMs']
         rdms_matrix = rdms_matlab.squeeze().astype('float')
-        i_rep = 2  # np.random.randint(len(repr_names)) 
+        i_rep = 2  # np.random.randint(len(repr_names))
         i_noise = 1  # np.random.randint(len(noise_std))
         i_fwhm = 0  # np.random.randint(len(fwhms))
         rdms_data = rsatoolbox.rdm.RDMs(rdms_matrix[:, i_rep, i_fwhm, i_noise, :].transpose())
         models_flex = []
         for i_model in np.unique(model_names):
-            models_flex.append(rsatoolbox.model.ModelSelect(i_model,
-                model_rdms.subset('brain_computational_model', i_model)))
+            models_flex.append(
+                rsatoolbox.model.ModelSelect(
+                    i_model,
+                    model_rdms.subset('brain_computational_model', i_model)
+                    )
+                )
         results_3_full = rsatoolbox.inference.eval_dual_bootstrap(
             models_flex, rdms_data, k_pattern=4, k_rdm=2, method='corr', N=5)
         print(results_3_full)
@@ -197,8 +202,9 @@ class TestDemos(unittest.TestCase):
 
         conv1_rdms = model_rdms.subset('brain_computational_model', 'conv1')
         plt.figure(figsize=(10, 10))
-        rsatoolbox.vis.show_rdm(conv1_rdms,
-                           rdm_descriptor='measurement_model')
+        rsatoolbox.vis.show_rdm(
+            conv1_rdms,
+            rdm_descriptor='measurement_model')
 
         conv1_rdms = model_rdms.subset('brain_computational_model', 'conv1')
         print(conv1_rdms)
@@ -265,8 +271,10 @@ class TestDemos(unittest.TestCase):
 
         models_flex = []
         for i_model in np.unique(model_names):
-            models_flex.append(rsatoolbox.model.ModelSelect(i_model,
-                model_rdms.subset('brain_computational_model', i_model)))
+            models_flex.append(
+                rsatoolbox.model.ModelSelect(
+                    i_model,
+                    model_rdms.subset('brain_computational_model', i_model)))
 
         print('created the following models:')
         for i in range(len(models_flex)):
@@ -368,9 +376,10 @@ class TestDemos(unittest.TestCase):
             '%0.0f ms' % (np.round(x * 1000, 2))
             for x in rdms_data_binned.rdm_descriptors['time']]
 
-        rsatoolbox.vis.show_rdm(rdms_data_binned,
-                           pattern_descriptor='conds',
-                           rdm_descriptor='time_formatted')
+        rsatoolbox.vis.show_rdm(
+            rdms_data_binned,
+            pattern_descriptor='conds',
+            rdm_descriptor='time_formatted')
         from rsatoolbox.rdm import get_categorical_rdm
         rdms_model_in = get_categorical_rdm(['%d' % x for x in range(4)])
         rdms_model_lr = get_categorical_rdm(['l', 'r', 'l', 'r'])
@@ -383,8 +392,10 @@ class TestDemos(unittest.TestCase):
         model_rdms.rdm_descriptors['model_names'] = model_names
         model_rdms.pattern_descriptors['cond_names'] = cond_names
         plt.figure(figsize=(10, 10))
-        rsatoolbox.vis.show_rdm(model_rdms, rdm_descriptor='model_names',
-                           pattern_descriptor='cond_names')
+        rsatoolbox.vis.show_rdm(
+            model_rdms,
+            rdm_descriptor='model_names',
+            pattern_descriptor='cond_names')
         from rsatoolbox.rdm import compare
         r = []
         for mod in model_rdms:
@@ -411,16 +422,18 @@ class TestDemos(unittest.TestCase):
         matlab_data = loadmat(
             os.path.join(path, '..', 'demos', '92imageData/92_brainRDMs.mat'))['RDMs']
         n_rdms = len(matlab_data[0])
-        rdms_ = RDMs(np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
-                  pattern_descriptors=condition_descriptors,
-                  rdm_descriptors={'name': np.array([f"RDM{i}"
-                                                     for i in range(4)])}
-                  )
+        rdms_ = RDMs(
+            np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
+            pattern_descriptors=condition_descriptors,
+            rdm_descriptors={
+                'name': np.array([f"RDM{i}" for i in range(4)])}
+            )
 
         rdms_a = concat([rdms_[0], rdms_[1]])
         rdms_b = concat([rdms_[2], rdms_[3]])
 
-        rdm_comparison_scatterplot((rdms_a, rdms_b),
+        rdm_comparison_scatterplot(
+            (rdms_a, rdms_b),
             show_marginal_distributions=True,
             show_identity_line=True,
             show_legend=False,
@@ -432,6 +445,7 @@ class TestDemos(unittest.TestCase):
                 "C": (0, 0, 1),
             }
             )
+
 
 if __name__ == '__main__':
     unittest.main()
