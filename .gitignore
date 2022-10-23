@@ -41,6 +41,7 @@ __pycache__/
 src/rsatoolbox/*.html
 
 # Distribution / packaging
+wheelhouse/
 .Python
 build/
 develop-eggs/
