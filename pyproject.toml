@@ -46,3 +46,8 @@ testpaths = [
 ]
 python_files = "*.py"
 
+[tool.cibuildwheel]
+test-requires = "pytest"
+test-command = "pytest"
+before-test = "pip install tests/requirements.txt"
+
