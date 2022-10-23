@@ -296,7 +296,9 @@ def show_rdm_panel(
     rdmat = rdm.get_matrices()[0, :, :]
     if np.any(nanmask):
         rdmat[nanmask] = np.nan
-    image = ax.imshow(rdmat, cmap=cmap, vmin=vmin, vmax=vmax)
+    image = ax.imshow(
+        rdmat, cmap=cmap, vmin=vmin, vmax=vmax,
+        interpolation='none')
     ax.set_xlim(-0.5, rdm.n_cond - 0.5)
     ax.set_ylim(rdm.n_cond - 0.5, -0.5)
     ax.xaxis.set_ticks(gridlines)

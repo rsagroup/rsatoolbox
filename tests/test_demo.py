@@ -12,7 +12,6 @@ class TestDemos(unittest.TestCase):
     def test_example_dataset(self):
         import numpy as np
         import matplotlib.pyplot as plt
-        import rsatoolbox
         import rsatoolbox.data as rsd  # abbreviation to deal with dataset
 
         # import the measurements for the dataset
@@ -101,8 +100,6 @@ class TestDemos(unittest.TestCase):
     def test_example_dissimilarities(self):
         # relevant imports
         import numpy as np
-        from scipy import io
-        import rsatoolbox
         import rsatoolbox.data as rsd  # abbreviation to deal with dataset
         import rsatoolbox.rdm as rsr
         # create a dataset object
@@ -135,6 +132,45 @@ class TestDemos(unittest.TestCase):
         print(RDM_euc.dissimilarities)  # here a vector
         dist_matrix = RDM_euc.get_matrices()
         print(dist_matrix)
+
+    def test_dual_boot(self):
+        import numpy as np
+        from scipy import io
+        import rsatoolbox
+        import os
+        path = os.path.dirname(os.path.abspath(__file__))
+        matlab_data = io.matlab.loadmat(
+            os.path.join(path, '..', 'demos',
+                         'rdms_inferring', 'modelRDMs_A2020.mat'))
+        matlab_data = matlab_data['modelRDMs']
+        n_models = len(matlab_data[0])
+        model_names = [matlab_data[0][i][0][0] for i in range(n_models)]
+        measurement_model = [matlab_data[0][i][1][0] for i in range(n_models)]
+        rdms_array = np.array([matlab_data[0][i][3][0] for i in range(n_models)])
+        model_rdms = rsatoolbox.rdm.RDMs(
+            rdms_array,
+            rdm_descriptors={
+                'brain_computational_model':model_names,
+                'measurement_model':measurement_model},
+            dissimilarity_measure='Euclidean'
+            )
+        model_names = [matlab_data[0][i][0][0] for i in range(n_models)]
+        matlab_data = io.matlab.loadmat(
+            os.path.join(path, '..', 'demos',
+                         'rdms_inferring', 'noisyModelRDMs_A2020.mat'))
+        rdms_matlab = matlab_data['noisyModelRDMs']
+        rdms_matrix = rdms_matlab.squeeze().astype('float')
+        i_rep = 2  # np.random.randint(len(repr_names)) 
+        i_noise = 1  # np.random.randint(len(noise_std))
+        i_fwhm = 0  # np.random.randint(len(fwhms))
+        rdms_data = rsatoolbox.rdm.RDMs(rdms_matrix[:, i_rep, i_fwhm, i_noise, :].transpose())
+        models_flex = []
+        for i_model in np.unique(model_names):
+            models_flex.append(rsatoolbox.model.ModelSelect(i_model,
+                model_rdms.subset('brain_computational_model', i_model)))
+        results_3_full = rsatoolbox.inference.eval_dual_bootstrap(
+            models_flex, rdms_data, k_pattern=4, k_rdm=2, method='corr', N=5)
+        print(results_3_full)
 
     def test_exercise_all(self):
         import numpy as np
