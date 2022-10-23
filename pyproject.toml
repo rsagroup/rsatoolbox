@@ -48,6 +48,6 @@ python_files = "*.py"
 
 [tool.cibuildwheel]
 test-requires = "pytest"
-test-command = "pytest"
+test-command = "pytest {project}/tests"
 before-test = "pip install -r tests/requirements.txt"
 
