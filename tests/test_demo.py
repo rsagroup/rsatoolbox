@@ -154,7 +154,7 @@ class TestDemos(unittest.TestCase):
                 'brain_computational_model': model_names,
                 'measurement_model': measurement_model},
             dissimilarity_measure='Euclidean'
-            )
+        )
         model_names = [matlab_data[0][i][0][0] for i in range(n_models)]
         matlab_data = io.matlab.loadmat(
             os.path.join(path, '..', 'demos',
