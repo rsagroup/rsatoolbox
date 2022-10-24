@@ -102,14 +102,14 @@ class Result:
         p_noise = self.test_noise(test_type=test_type)
         # header of the results table
         summary += 'Model' + (' ' * (name_length - 5))
-        summary += '|  Eval \u00B1 SEM   |'
+        summary += '|   Eval \u00B1 SEM   |'
         summary += ' p (against 0) |'
         summary += ' p (against NC) |\n'
-        summary += '-' * (name_length + 50)
+        summary += '-' * (name_length + 51)
         summary += '\n'
         for i, m in enumerate(self.models):
             summary += m.name + (' ' * (name_length - len(m.name)))
-            summary += f'| {means[i]:5.3f} \u00B1 {sems[i]:4.3f} |'
+            summary += f'| {means[i]: 5.3f} \u00B1 {sems[i]:4.3f} |'
             if p_zero[i] < 0.001:
                 summary += '      < 0.001  |'
             else:

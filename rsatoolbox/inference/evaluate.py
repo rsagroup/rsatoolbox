@@ -144,17 +144,19 @@ def eval_dual_bootstrap(
     if use_correction and n_cv > 1:
         # we essentially project from the two points for 1 repetition and
         # for n_cv repetitions to infinitely many cv repetitions
-        evals_mean = np.mean(np.mean(evaluations[eval_ok], -1), -1)
-        evals_1 = np.mean(evaluations[eval_ok], -2)
-        noise_ceil_mean = np.mean(noise_ceil[:, eval_ok], -1)
-        noise_ceil_1 = noise_ceil[:, eval_ok]
-        var_mean = np.cov(
-            np.concatenate([evals_mean.T, noise_ceil_mean]))
-        var_1 = []
-        for i in range(n_cv):
-            var_1.append(np.cov(np.concatenate([
-                evals_1[:, :, i].T, noise_ceil_1[:, :, i]])))
-        var_1 = np.mean(np.array(var_1), axis=0)
+        evals_nonan = np.mean(np.mean(evaluations[eval_ok], -2), -2)
+        evals_1 = np.mean(evaluations[eval_ok], -3)
+        noise_ceil_nonan = np.mean(
+            noise_ceil[:, eval_ok], -2).transpose([1, 0, 2])
+        noise_ceil_1 = noise_ceil[:, eval_ok].transpose([1, 0, 2, 3])
+        matrix = np.concatenate([evals_nonan, noise_ceil_nonan], 1)
+        matrix -= np.mean(matrix, 0, keepdims=True)
+        var_mean = np.einsum('ijk,ilk->kjl', matrix, matrix) \
+            / (matrix.shape[0] - 1)
+        matrix_1 = np.concatenate([evals_1, noise_ceil_1], 1)
+        matrix_1 -= np.mean(matrix_1, 0, keepdims=True)
+        var_1 = np.einsum('ijmk,ilmk->kjl', matrix_1, matrix_1) \
+            / (matrix_1.shape[0] - 1) / matrix_1.shape[2]
         # this is the main formula for the correction:
         variances = (n_cv * var_mean - var_1) / (n_cv - 1)
     else:
