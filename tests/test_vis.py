@@ -42,7 +42,6 @@ class TestMDS(TestCase):
     def test_vis_weighted_mds_output_behaves_like_mds(self, show_scatter):
         """
         Fails stochastically as MDS solution not deterministic
-        Should fail once every >500 runs with current tolerance
         """
         from rsatoolbox.vis.scatter_plot import show_MDS
         dis = np.random.rand(8, 10)
@@ -54,7 +53,8 @@ class TestMDS(TestCase):
         mds_coords = show_scatter.call_args[0][1]
         show_MDS(rdms, weights=wes)
         wmds_coords = show_scatter.call_args[0][1]
-        np.testing.assert_allclose(pdist(mds_coords[0]), pdist(wmds_coords[0]), rtol=0.3)
+        diff = pdist(mds_coords[0]) - pdist(wmds_coords[0])
+        self.assertLess(abs(diff.mean()), 0.001)
 
 
 class Test_Icon(TestCase):
