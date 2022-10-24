@@ -54,7 +54,7 @@ class TestMDS(TestCase):
         show_MDS(rdms, weights=wes)
         wmds_coords = show_scatter.call_args[0][1]
         diff = pdist(mds_coords[0]) - pdist(wmds_coords[0])
-        self.assertLess(abs(diff.mean()), 0.001)
+        self.assertLess(abs(diff.mean()), 0.01)
 
 
 class Test_Icon(TestCase):
