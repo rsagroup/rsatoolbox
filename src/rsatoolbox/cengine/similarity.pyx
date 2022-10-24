@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# cython: profile=True
 
 import cython
 from cython.view cimport array as cvarray
 from libc.math cimport log, sqrt, isnan, NAN
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 cimport scipy.linalg.cython_blas as blas
-# import numpy as np
 
-# np.import_array()
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
