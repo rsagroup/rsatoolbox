@@ -270,14 +270,11 @@ class TestConsistency(unittest.TestCase):
                 theta_m_w_pos), rdms, method=i_method))
             eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
                 theta_m_w_linear), rdms, method=i_method))
-            self.assertAlmostEqual(
-                eval_m_i, eval_m_w_pos,
-                places=4, msg='weighted fit differs from interpolation fit!'
-                + '\nfor %s' % i_method)
-            self.assertAlmostEqual(
-                eval_m_w, eval_m_w_linear,
-                places=4, msg='regression fit differs from optimization fit!'
-                + '\nfor %s' % i_method)
+            msg_tem = '{} fit differs from {} fit for {}'
+            self.assertAlmostEqual(eval_m_i, eval_m_w_pos, delta=0.001,
+                msg=msg_tem.format('weighted', 'interpolation', i_method))
+            self.assertAlmostEqual(eval_m_w, eval_m_w_linear, delta=0.001,
+                msg=msg_tem.format('regression', 'optimization', i_method))
 
 
 class TestNNLS(unittest.TestCase):
