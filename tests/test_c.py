@@ -63,6 +63,7 @@ class TestCalcOne(unittest.TestCase):
         self.dat_i = np.random.rand(2, 21)
         self.dat_j = np.random.rand(3, 21)
         self.dat = np.concatenate((self.dat_i, self.dat_j), 0)
+        print(self.dat)
         self.data = rsatoolbox.data.Dataset(
             self.dat, obs_descriptors={'idx': [1, 1, 2, 2, 2]})
 
@@ -76,7 +77,7 @@ class TestCalcOne(unittest.TestCase):
                 descriptor='idx', i_des=1, j_des=2)
             sim_c, w_c = calc_one_similarity_c(
                 d1, d2,
-                np.array([0, 1, 2]), np.array([3, 4]),
+                np.array([0, 1]), np.array([2, 3, 4]),
                 method=method)
             self.assertAlmostEqual(
                 w, w_c, None,
