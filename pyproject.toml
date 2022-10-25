@@ -51,4 +51,4 @@ python_files = "*.py"
 test-requires = "pytest"
 test-command = "pytest {project}/tests"
 before-test = "pip install -r tests/requirements.txt"
-skip = ["*-win32", "*-manylinux_i686"]
+skip = ["*-win32", "*-manylinux_i686", "pp*"]
