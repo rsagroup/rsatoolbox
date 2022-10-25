@@ -166,6 +166,9 @@ class TestConsistency(unittest.TestCase):
     """
 
     def setUp(self):
+        self.sample_data()
+
+    def sample_data(self):
         from rsatoolbox.data import Dataset
         from rsatoolbox.rdm import calc_rdm
         from rsatoolbox.rdm import concat
@@ -247,34 +250,41 @@ class TestConsistency(unittest.TestCase):
         from rsatoolbox.model import ModelInterpolate, ModelWeighted
         from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive
         from rsatoolbox.rdm import concat, compare
-        rdms = self.rdms.subsample_pattern('index', [0, 1, 1, 3, 4, 5])
-        model_rdms = concat([rdms[0], rdms[1]])
-        model_weighted = ModelWeighted(
-            'm_weighted',
-            model_rdms)
-        model_interpolate = ModelInterpolate(
-            'm_interpolate',
-            model_rdms)
         for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
-            theta_m_i = model_interpolate.fit(rdms, method=i_method)
-            theta_m_w = model_weighted.fit(rdms, method=i_method)
-            theta_m_w_pos = fit_optimize_positive(
-                model_weighted, rdms, method=i_method)
-            theta_m_w_linear = fit_regress(
-                model_weighted, rdms, method=i_method)
-            eval_m_i = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_i), rdms, method=i_method))
-            eval_m_w = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_w), rdms, method=i_method))
-            eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_w_pos), rdms, method=i_method))
-            eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_w_linear), rdms, method=i_method))
+            rdiff_wei_int = []
+            rdiff_reg_opt = []
+            for i in range(100):
+                self.sample_data()
+                rdms = self.rdms.subsample_pattern('index', [0, 1, 1, 3, 4, 5])
+                model_rdms = concat([rdms[0], rdms[1]])
+                model_weighted = ModelWeighted(
+                    'm_weighted',
+                    model_rdms)
+                model_interpolate = ModelInterpolate(
+                    'm_interpolate',
+                    model_rdms)
+                theta_m_i = model_interpolate.fit(rdms, method=i_method)
+                theta_m_w = model_weighted.fit(rdms, method=i_method)
+                theta_m_w_pos = fit_optimize_positive(
+                    model_weighted, rdms, method=i_method)
+                theta_m_w_linear = fit_regress(
+                    model_weighted, rdms, method=i_method)
+                eval_m_i = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_i), rdms, method=i_method))
+                eval_m_w = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_w), rdms, method=i_method))
+                eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_w_pos), rdms, method=i_method))
+                eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_w_linear), rdms, method=i_method))
+                rdiff_wei_int.append((eval_m_i - eval_m_w_pos) / eval_m_w_pos)
+                rdiff_reg_opt.append((eval_m_w - eval_m_w_linear) / eval_m_w_linear)
             msg_tem = '{} fit differs from {} fit for {}'
-            self.assertAlmostEqual(eval_m_i, eval_m_w_pos, delta=0.001,
-                msg=msg_tem.format('weighted', 'interpolation', i_method))
-            self.assertAlmostEqual(eval_m_w, eval_m_w_linear, delta=0.001,
-                msg=msg_tem.format('regression', 'optimization', i_method))
+            ## across 100 samples, the outcomes differ on average less than 2%
+            self.assertLess(np.abs(rdiff_wei_int).mean(), 0.02,
+                msg_tem.format('weighted', 'interpolation', i_method))
+            self.assertLess(np.abs(rdiff_reg_opt).mean(), 0.02,
+                msg_tem.format('regression', 'optimization', i_method))
 
 
 class TestNNLS(unittest.TestCase):
