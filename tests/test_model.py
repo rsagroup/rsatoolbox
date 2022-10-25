@@ -183,68 +183,76 @@ class TestConsistency(unittest.TestCase):
         from rsatoolbox.model import ModelInterpolate, ModelWeighted
         from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive
         from rsatoolbox.rdm import concat, compare
-        model_rdms = concat([self.rdms[0], self.rdms[1]])
-        model_weighted = ModelWeighted(
-            'm_weighted',
-            model_rdms)
-        model_interpolate = ModelInterpolate(
-            'm_interpolate',
-            model_rdms)
         for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
-            theta_m_i = model_interpolate.fit(self.rdms, method=i_method)
-            theta_m_w = model_weighted.fit(self.rdms, method=i_method)
-            theta_m_w_pos = fit_optimize_positive(
-                model_weighted, self.rdms, method=i_method)
-            theta_m_w_linear = fit_regress(
-                model_weighted, self.rdms, method=i_method)
-            eval_m_i = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_i), self.rdms, method=i_method))
-            eval_m_w = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_w), self.rdms, method=i_method))
-            eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_w_pos), self.rdms, method=i_method))
-            eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_w_linear), self.rdms, method=i_method))
-            self.assertAlmostEqual(
-                eval_m_i, eval_m_w_pos,
-                places=4, msg='weighted fit differs from interpolation fit!'
-                + '\nfor %s' % i_method)
-            self.assertAlmostEqual(
-                eval_m_w, eval_m_w_linear,
-                places=4, msg='regression fit differs from optimization fit!'
-                + '\nfor %s' % i_method)
+            rdiff_wei_int = []
+            rdiff_reg_opt = []
+            for _ in range(100):
+                self.sample_data()
+                model_rdms = concat([self.rdms[0], self.rdms[1]])
+                model_weighted = ModelWeighted(
+                    'm_weighted',
+                    model_rdms)
+                model_interpolate = ModelInterpolate(
+                    'm_interpolate',
+                    model_rdms)
+                theta_m_i = model_interpolate.fit(self.rdms, method=i_method)
+                theta_m_w = model_weighted.fit(self.rdms, method=i_method)
+                theta_m_w_pos = fit_optimize_positive(
+                    model_weighted, self.rdms, method=i_method)
+                theta_m_w_linear = fit_regress(
+                    model_weighted, self.rdms, method=i_method)
+                eval_m_i = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_i), self.rdms, method=i_method))
+                eval_m_w = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_w), self.rdms, method=i_method))
+                eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_w_pos), self.rdms, method=i_method))
+                eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_w_linear), self.rdms, method=i_method))
+                rdiff_wei_int.append((eval_m_i - eval_m_w_pos) / eval_m_w_pos)
+                rdiff_reg_opt.append((eval_m_w - eval_m_w_linear) / eval_m_w_linear)
+            msg_tem = '{} fit differs from {} fit for {}'
+            ## across 100 samples, the outcomes differ on average less than 2%
+            self.assertLess(np.abs(rdiff_wei_int).mean(), 0.02,
+                msg_tem.format('weighted', 'interpolation', i_method))
+            self.assertLess(np.abs(rdiff_reg_opt).mean(), 0.02,
+                msg_tem.format('regression', 'optimization', i_method))
 
     def test_two_rdms_nn(self):
         from rsatoolbox.model import ModelInterpolate, ModelWeighted
         from rsatoolbox.model.fitter import fit_regress_nn, fit_optimize_positive
         from rsatoolbox.rdm import concat, compare
-        model_rdms = concat([self.rdms[0], self.rdms[1]])
-        model_weighted = ModelWeighted(
-            'm_weighted',
-            model_rdms)
-        model_interpolate = ModelInterpolate(
-            'm_interpolate',
-            model_rdms)
         for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
-            theta_m_i = model_interpolate.fit(self.rdms, method=i_method)
-            theta_m_w_pos = fit_optimize_positive(
-                model_weighted, self.rdms, method=i_method)
-            theta_m_w_linear = fit_regress_nn(
-                model_weighted, self.rdms, method=i_method)
-            eval_m_i = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_i), self.rdms, method=i_method))
-            eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_w_pos), self.rdms, method=i_method))
-            eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
-                theta_m_w_linear), self.rdms, method=i_method))
-            self.assertAlmostEqual(
-                eval_m_i, eval_m_w_pos,
-                places=4, msg='weighted fit differs from interpolation fit!'
-                + '\nfor %s' % i_method)
-            self.assertAlmostEqual(
-                eval_m_w_pos, eval_m_w_linear,
-                places=4, msg='regression fit differs from optimization fit!'
-                + '\nfor %s' % i_method)
+            rdiff_wei_int = []
+            rdiff_reg_opt = []
+            for _ in range(100):
+                self.sample_data()
+                model_rdms = concat([self.rdms[0], self.rdms[1]])
+                model_weighted = ModelWeighted(
+                    'm_weighted',
+                    model_rdms)
+                model_interpolate = ModelInterpolate(
+                    'm_interpolate',
+                    model_rdms)
+                theta_m_i = model_interpolate.fit(self.rdms, method=i_method)
+                theta_m_w_pos = fit_optimize_positive(
+                    model_weighted, self.rdms, method=i_method)
+                theta_m_w_linear = fit_regress_nn(
+                    model_weighted, self.rdms, method=i_method)
+                eval_m_i = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_i), self.rdms, method=i_method))
+                eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_w_pos), self.rdms, method=i_method))
+                eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
+                    theta_m_w_linear), self.rdms, method=i_method))
+                rdiff_wei_int.append((eval_m_i - eval_m_w_pos) / eval_m_w_pos)
+                rdiff_reg_opt.append((eval_m_w_pos - eval_m_w_linear) / eval_m_w_linear)
+            msg_tem = '{} fit differs from {} fit for {}'
+            ## across 100 samples, the outcomes differ on average less than 2%
+            self.assertLess(np.abs(rdiff_wei_int).mean(), 0.02,
+                msg_tem.format('weighted', 'interpolation', i_method))
+            self.assertLess(np.abs(rdiff_reg_opt).mean(), 0.02,
+                msg_tem.format('regression', 'optimization', i_method))
 
     def test_two_rdms_nan(self):
         from rsatoolbox.model import ModelInterpolate, ModelWeighted
@@ -253,7 +261,7 @@ class TestConsistency(unittest.TestCase):
         for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
             rdiff_wei_int = []
             rdiff_reg_opt = []
-            for i in range(100):
+            for _ in range(100):
                 self.sample_data()
                 rdms = self.rdms.subsample_pattern('index', [0, 1, 1, 3, 4, 5])
                 model_rdms = concat([rdms[0], rdms[1]])
