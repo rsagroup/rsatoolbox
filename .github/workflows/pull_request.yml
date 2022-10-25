@@ -61,7 +61,7 @@ jobs:
     - name: Store artifact
       uses: actions/upload-artifact@v3
       with:
-        name: sdist
+        name: source
         path: dist/*
         if-no-files-found: error
         retention-days: 1
@@ -90,7 +90,7 @@ jobs:
     - name: Store artifact
       uses: actions/upload-artifact@v3
       with:
-        name: wheel-${{ matrix.os }}-${{ matrix.python-version }}
+        name: wheels-${{ matrix.os }}
         path: dist/*.whl
         if-no-files-found: error
         retention-days: 1
