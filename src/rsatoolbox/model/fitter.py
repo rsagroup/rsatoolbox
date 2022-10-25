@@ -170,11 +170,11 @@ def fit_optimize_positive(
                      sigma_k=sigma_k, ridge_weight=ridge_weight)
     theta0 = np.random.rand(model.n_param)
     theta = opt.minimize(
-        _loss_opt,
-        theta0,
-        options={
-            'xatol': 0.000001,
-            'fatol': 0.000001})
+        fun=_loss_opt,
+        x0=theta0,
+        method='BFGS',
+        tol=0.000001
+    )
     theta = theta.x ** 2
     norm = np.sum(theta ** 2)
     if norm == 0:
