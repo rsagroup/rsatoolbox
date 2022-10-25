@@ -86,7 +86,6 @@ class Test_Icon(TestCase):
     def test_Icon_from_rdm(self):
         from rsatoolbox.vis import Icon
         from rsatoolbox.rdm import RDMs
-
         rdm = RDMs(np.random.rand(1, 190))
         ic = Icon(rdm)
         self.assertEqual(ic.final_image.size[0], 100)
@@ -132,9 +131,14 @@ def _dummy_rdm():
 
 
 class Test_rdm_plot(TestCase):
+ 
     @classmethod
     def setUpClass(cls):
         cls.rdm = _dummy_rdm()
+
+    def setUp(self) -> None:
+        import matplotlib.pyplot
+        matplotlib.pyplot.close('all')
 
     def test_show_rdm_no_arg_no_error(self):
         """regression test for crashes when gridlines is None (and needs to be set to []
@@ -167,7 +171,6 @@ class Test_model_plot(TestCase):
 
     def test_descr(self):
         from rsatoolbox.vis.model_plot import _get_model_comp_descr
-
         descr = _get_model_comp_descr(
             "t-test",
             5,
