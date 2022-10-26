@@ -132,7 +132,12 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
                      pattern_descriptor=pattern_descriptor,
                      sigma_k=sigma_k, ridge_weight=ridge_weight)
     theta0 = np.random.rand(model.n_param)
-    theta = opt.minimize(_loss_opt, theta0)
+    theta = opt.minimize(
+        _loss_opt,
+        theta0,
+        method='BFGS',
+        tol=0.000001
+    )
     theta = theta.x
     norm = np.sum(theta ** 2)
     if norm == 0:
