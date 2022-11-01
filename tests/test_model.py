@@ -249,17 +249,19 @@ class TestConsistency(unittest.TestCase):
                     theta_m_w_pos), self.rdms, method=i_method))
                 eval_m_w_linear = np.mean(compare(model_weighted.predict_rdm(
                     theta_m_w_linear), self.rdms, method=i_method))
-                rdiff_wei_int.append((eval_m_i - eval_m_w_pos) / eval_m_w_pos)
-                rdiff_reg_opt.append((eval_m_w_pos - eval_m_w_linear) / eval_m_w_linear)
+                rdiff_wei_int.append(2 * (eval_m_i - eval_m_w_pos) / (eval_m_w_pos + eval_m_i))
+                rdiff_reg_opt.append(
+                    2 * (eval_m_w_pos - eval_m_w_linear) 
+                    / (eval_m_w_linear + eval_m_w_pos))
                 print(eval_m_i, eval_m_w_pos)
                 print(eval_m_w_pos, eval_m_w_linear)
             msg_tem = '{} fit differs from {} fit for {}'
             ## across 100 samples, the outcomes differ on average less than 2%
             self.assertLess(np.isnan(rdiff_wei_int).sum(), 5)
-            self.assertLess(np.nanmean(np.abs(rdiff_wei_int)), 0.05,
+            self.assertLess(np.nanmean(np.abs(rdiff_wei_int)), 0.001,
                 msg_tem.format('weighted', 'interpolation', i_method))
             self.assertLess(np.isnan(rdiff_reg_opt).sum(), 5)
-            self.assertLess(np.nanmean(np.abs(rdiff_reg_opt)), 0.05,
+            self.assertLess(np.nanmean(np.abs(rdiff_reg_opt)), 0.001,
                 msg_tem.format('regression', 'optimization', i_method))
 
     def test_two_rdms_nan(self):
