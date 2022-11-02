@@ -173,6 +173,9 @@ def fit_optimize_positive(
                      pattern_idx=pattern_idx,
                      pattern_descriptor=pattern_descriptor,
                      sigma_k=sigma_k, ridge_weight=ridge_weight)
+    theta0 = np.zeros(model.n_param)
+    thetas = [theta0]
+    losses = [_loss_opt(theta0)]
     theta0 = np.random.rand(model.n_param)
     theta = opt.minimize(
         fun=_loss_opt,
@@ -180,7 +183,21 @@ def fit_optimize_positive(
         method='BFGS',
         tol=0.000001
     )
-    theta = theta.x ** 2
+    thetas.append(theta.x)
+    losses.append(theta.fun)
+    for i in range(model.n_param):
+        theta0 = np.ones(model.n_param) * 0.001
+        theta0[i] = 1
+        theta = opt.minimize(
+            fun=_loss_opt,
+            x0=theta0,
+            method='BFGS',
+            tol=0.000001
+        )
+        thetas.append(theta.x)
+        losses.append(theta.fun)
+    id = np.argmin(losses)
+    theta = thetas[id] ** 2
     norm = np.sum(theta ** 2)
     if norm == 0:
         return theta.flatten()
