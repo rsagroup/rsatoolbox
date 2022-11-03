@@ -442,7 +442,7 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
                                                atol=10 ** -9)[0]
                         for i in range(A.shape[1])])
         y_V_A = V_A @ y
-        w = A.T @ V @ y
+        w = y_V_A
         ATA = A.T @ V_A.T + ridge_weight * np.eye(A.shape[1])
     while np.max(w) > 100 * np.finfo(float).eps:
         p[np.argmax(w)] = True
