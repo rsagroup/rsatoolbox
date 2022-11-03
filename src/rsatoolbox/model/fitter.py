@@ -131,18 +131,24 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
                      pattern_idx=pattern_idx,
                      pattern_descriptor=pattern_descriptor,
                      sigma_k=sigma_k, ridge_weight=ridge_weight)
-    theta0 = np.random.rand(model.n_param)
-    theta = opt.minimize(
-        _loss_opt,
-        theta0,
-        method='BFGS',
-        tol=0.000001
-    )
-    theta = theta.x
+    thetas = []
+    losses = []
+    for _ in range(2 * model.n_param):
+        theta0 = np.random.rand(model.n_param)
+        theta = opt.minimize(
+            _loss_opt,
+            theta0,
+            method='BFGS',
+            tol=0.000001
+        )
+        thetas.append(theta.x)
+        losses.append(theta.fun)
+    id = np.argmin(losses)
+    theta = thetas[id]
     norm = np.sum(theta ** 2)
     if norm == 0:
         return theta.flatten()
-    return theta.flatten() / np.sqrt(np.sum(theta ** 2))
+    return theta.flatten() / np.sqrt(norm)
 
 
 def fit_optimize_positive(
@@ -201,7 +207,7 @@ def fit_optimize_positive(
     norm = np.sum(theta ** 2)
     if norm == 0:
         return theta.flatten()
-    return theta.flatten() / np.sqrt(np.sum(theta ** 2))
+    return theta.flatten() / np.sqrt(norm)
 
 
 def fit_interpolate(model, data, method='cosine', pattern_idx=None,
