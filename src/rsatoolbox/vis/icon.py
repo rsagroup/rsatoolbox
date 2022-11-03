@@ -4,6 +4,7 @@
 icon object which can be plotted into an axis
 """
 
+import os
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox, DrawingArea
@@ -12,7 +13,6 @@ import PIL
 import PIL.ImageOps
 import PIL.ImageFilter
 from PIL import UnidentifiedImageError
-import os
 from rsatoolbox.rdm import RDMs
 from rsatoolbox.util.pooling import pool_rdm
 

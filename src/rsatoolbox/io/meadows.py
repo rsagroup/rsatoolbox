@@ -11,7 +11,7 @@ from os.path import basename
 from typing import TYPE_CHECKING, Dict, Union, Tuple, List
 import json
 import warnings
-import petname
+from rsatoolbox.io.petnames import PETNAMES
 import numpy
 from scipy.io import loadmat
 from rsatoolbox.rdm.rdms import RDMs
@@ -216,6 +216,6 @@ def is_petname(segment: str) -> bool:
     if '-' in segment:
         parts = segment.split('-')
         if len(parts) == 2:
-            if parts[1] in petname.names:
+            if parts[1] in PETNAMES:
                 return True
     return False
