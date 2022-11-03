@@ -291,6 +291,8 @@ class TestConsistency(unittest.TestCase):
                     model_weighted, rdms, method=i_method)
                 eval_m_i = np.mean(compare(model_interpolate.predict_rdm(
                     theta_m_i), rdms, method=i_method))
+                # catch cases where a 0 rdm is the best fit
+                eval_m_i = max(eval_m_i, 0)
                 eval_m_w = np.mean(compare(model_weighted.predict_rdm(
                     theta_m_w), rdms, method=i_method))
                 eval_m_w_pos = np.mean(compare(model_weighted.predict_rdm(
