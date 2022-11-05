@@ -1,0 +1,57 @@
+name: Create Artifacts
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+
+  group1:
+    needs: tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Create Files
+      run: |
+        mkdir dist
+        touch dist/test1.txt
+        touch dist/test2.txt
+    - name: Store artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: group1
+        path: dist/*
+        if-no-files-found: error
+        retention-days: 1
+
+  group2:
+    needs: tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Create Files
+      run: |
+        mkdir dist
+        touch dist/test3.txt
+        touch dist/test4.txt
+    - name: Store artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: group2
+        path: dist/*
+        if-no-files-found: error
+        retention-days: 1

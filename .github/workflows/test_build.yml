@@ -1,8 +1,12 @@
-name: pull_request_builds
+name: Test and Build
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
 
