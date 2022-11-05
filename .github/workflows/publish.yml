@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   call-test-build:
-    uses: ./.github/workflows/testbuild.yml
+    uses: ./.github/workflows/create_artifacts.yml # testbuild.yml
 
   check-artifacts:
     needs: call-test-build
