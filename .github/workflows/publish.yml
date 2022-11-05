@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   call-test-build:
-    uses: ./.github/workflows/test_build.yml
+    uses: ./.github/workflows/testbuild.yml
 
   check-artifacts:
     needs: call-test-build
@@ -27,9 +27,6 @@ jobs:
       - name: List files
         run: ls -R
 
-  # deploy:
-
-  #   runs-on: ubuntu-latest
 
   #   steps:
   #   - uses: actions/checkout@v3
