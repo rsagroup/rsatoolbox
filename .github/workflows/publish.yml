@@ -3,17 +3,18 @@
 name: Publish
 
 on:
-  pull_request:
+  pull_request: ## temporary for testing, tb removed
     types: [opened, synchronize, reopened]
-  # release:
-  #   types: [published]
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
 
 jobs:
   call-test-build:
-    uses: ./.github/workflows/create_artifacts.yml
+    uses: ./.github/workflows/test_build.yml
 
   check-artifacts:
     needs: call-test-build
@@ -21,6 +22,8 @@ jobs:
     steps:
       - name: Download all  artifacts
         uses: actions/download-artifact@v3
+        with:
+          path: artifacts
       - name: List files
         run: ls -R
 
