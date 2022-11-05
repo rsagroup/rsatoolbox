@@ -16,6 +16,7 @@ jobs:
     uses: ./.github/workflows/create_artifacts.yml
 
   check-artifacts:
+    runs-on: ubuntu-latest
     steps:
       - name: Download all  artifacts
         uses: actions/download-artifact@v3
