@@ -1,5 +1,5 @@
 """Setup.py now only remains as a build script for the cython extensions.
-Using setup.py for other things is now deprecated and may have unexpected results:
+Using setup.py for other things is now deprecated:
     setup.py test -> pytest
     setup.py develop -> pip install -e
 """
