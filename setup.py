@@ -1,4 +1,5 @@
 from setuptools import setup, Extension
+import setuptools_scm  # noqa: F401
 from Cython.Build import build_ext ## missing dev time req
 from os.path import isfile
 
