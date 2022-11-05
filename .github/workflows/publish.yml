@@ -16,6 +16,7 @@ jobs:
     uses: ./.github/workflows/create_artifacts.yml
 
   check-artifacts:
+    needs: call-test-build
     runs-on: ubuntu-latest
     steps:
       - name: Download all  artifacts
