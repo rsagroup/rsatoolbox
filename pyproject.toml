@@ -39,8 +39,8 @@ documentation = "https://rsatoolbox.readthedocs.io/"
 [tool.setuptools_scm]
 local_scheme = "node-and-timestamp"
 
-[tool.setuptools]
-where = "src"
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.dynamic]
 readme = {file = "README.md"}
