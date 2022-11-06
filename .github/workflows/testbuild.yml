@@ -68,7 +68,7 @@ jobs:
       run: pytest
     - name: Check package compliance
       run: |
-        pip install twine
+        pip install -q twine
         twine check dist/*
     - name: Store artifact
       uses: actions/upload-artifact@v3
@@ -101,7 +101,7 @@ jobs:
         output-dir: dist
     - name: Check package compliance
       run: |
-        pip install twine
+        pip install -q twine
         twine check dist/*
     - name: Store artifact
       uses: actions/upload-artifact@v3
