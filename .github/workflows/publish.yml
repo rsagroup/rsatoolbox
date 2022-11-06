@@ -16,7 +16,7 @@ jobs:
   call-test-build:
     uses: ./.github/workflows/testbuild.yml
 
-  check-artifacts:
+  publish-artifacts:
     needs: call-test-build
     runs-on: ubuntu-latest
     steps:
