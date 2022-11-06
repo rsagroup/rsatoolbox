@@ -3,11 +3,19 @@
 Getting started
 ===============
 
-The easiest way to install rsatoolbox is with pip:
+To install the latest release of rsatoolbox:
 
 .. code-block:: sh
 
     pip install rsatoolbox
+
+
+To get the bleeding edge or "pre-release" version:
+
+.. code-block:: sh
+
+    pip install --pre rsatoolbox
+
 
 To use rsatoolbox:
 

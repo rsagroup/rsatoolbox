@@ -1,8 +1,12 @@
-name: pull_request_builds
+name: Test and Build
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
 
@@ -10,6 +14,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
     - uses: actions/setup-python@v4
       with:
         python-version: '3.10'
@@ -35,6 +41,8 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
     - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
@@ -58,6 +66,10 @@ jobs:
       run: pip install -r tests/requirements.txt
     - name: Unit tests
       run: pytest
+    - name: Check package compliance
+      run: |
+        pip install -q twine
+        twine check dist/*
     - name: Store artifact
       uses: actions/upload-artifact@v3
       with:
@@ -74,6 +86,8 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
     - uses: actions/setup-python@v4
       with:
         python-version: '3.10'
@@ -85,8 +99,10 @@ jobs:
       uses: pypa/cibuildwheel@v2.11.1
       with:
         output-dir: dist
-    - name: Install test dependencies
-      run: pip install -r tests/requirements.txt
+    - name: Check package compliance
+      run: |
+        pip install -q twine
+        twine check dist/*
     - name: Store artifact
       uses: actions/upload-artifact@v3
       with:

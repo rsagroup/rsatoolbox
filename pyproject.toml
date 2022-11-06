@@ -1,11 +1,12 @@
 [build-system]
 requires = [
     "setuptools~=65.3",
-    "setuptools-scm",
+    "setuptools-scm[toml]~=7.0.0",
     "wheel",
     "numpy>=1.21.2",
     "scipy",
-    "cython~=3.0.0a11"
+    "cython~=3.0.0a11",
+    "twine~=4.0.1"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -13,11 +14,10 @@ build-backend = "setuptools.build_meta"
 name = "rsatoolbox"
 description = "Representational Similarity Analysis (RSA) in Python"
 requires-python = ">=3.7,<3.11"
-version = "0.0.5"
 authors = [
     {name="rsatoolbox authors"},
 ]
-keywords = ["neuroscience "]
+keywords = ["neuroscience"]
 license = {file = "LICENSE"}
 classifiers = [
       'Programming Language :: Python',
@@ -31,11 +31,17 @@ classifiers = [
       'Programming Language :: Python :: 3.9',
       'Programming Language :: Python :: 3.10',
 ]
-dynamic = ["readme", "dependencies"]
+dynamic = ["readme", "dependencies", "version"]
 
-[tool.setuptools]
-packages = ["rsatoolbox"]
-package-dir = {"" = "src"}
+[project.urls]
+homepage = "https://github.com/rsagroup/rsatoolbox"
+documentation = "https://rsatoolbox.readthedocs.io/"
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.dynamic]
 readme = {file = "README.md"}
