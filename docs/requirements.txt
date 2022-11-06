@@ -2,4 +2,3 @@ sphinx
 nbsphinx
 nbsphinx-link
 ipykernel
-importlib_metadata;python_version<'3.8'

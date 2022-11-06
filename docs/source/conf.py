@@ -14,7 +14,7 @@
 #
 import os
 import sys
-from importlib.metadata import version as identify_version
+from pkg_resources import get_distribution
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
 
@@ -25,7 +25,7 @@ copyright = '2021, rsatoolbox authors'
 author = 'rsatoolbox authors'
 
 # The full version
-release = identify_version('myproject')
+release = get_distribution('rsatoolbox').version
 
 # The short X.Y version
 version = '.'.join(release.split('.')[:2])
