@@ -54,6 +54,8 @@ jobs:
       run: pip install build
     - name: Build package
       run: python -m build --sdist
+    - name: Check package compliance
+      run: twine check dist/*
     - name: Install rsatoolbox (Linux, Mac)
       run: pip install dist/*
       if: matrix.os != 'windows-latest'
@@ -95,8 +97,8 @@ jobs:
       uses: pypa/cibuildwheel@v2.11.1
       with:
         output-dir: dist
-    - name: Install test dependencies
-      run: pip install -r tests/requirements.txt
+    - name: Check package compliance
+      run: twine check dist/*
     - name: Store artifact
       uses: actions/upload-artifact@v3
       with:

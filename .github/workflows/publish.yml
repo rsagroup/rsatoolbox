@@ -17,8 +17,7 @@ jobs:
     uses: ./.github/workflows/testbuild.yml
 
   publish-artifacts:
-    ## requires maintainer permission as otherwise secrets would be accesible to all writers
-    environment: production ## maybe only apply this to the release jobs
+    environment: production ## can only run on main branch (only admins can see secrets)
     needs: call-test-build
     runs-on: ubuntu-latest
     steps:
