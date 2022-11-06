@@ -1,8 +1,8 @@
 name: Test and Build
 
 on:
-  # pull_request:  ## MERGE
-  #   types: [opened, synchronize, reopened]
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_call:
 
 permissions:
