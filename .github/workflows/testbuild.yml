@@ -1,7 +1,7 @@
 name: Test and Build
 
 on:
-  # pull_request:
+  # pull_request:  ## MERGE
   #   types: [opened, synchronize, reopened]
   workflow_call:
 
@@ -54,8 +54,6 @@ jobs:
       run: pip install build
     - name: Build package
       run: python -m build --sdist
-    - name: Check package compliance
-      run: twine check dist/*
     - name: Install rsatoolbox (Linux, Mac)
       run: pip install dist/*
       if: matrix.os != 'windows-latest'
@@ -68,6 +66,10 @@ jobs:
       run: pip install -r tests/requirements.txt
     - name: Unit tests
       run: pytest
+    - name: Check package compliance
+      run: |
+        pip install twine
+        twine check dist/*
     - name: Store artifact
       uses: actions/upload-artifact@v3
       with:
@@ -98,7 +100,9 @@ jobs:
       with:
         output-dir: dist
     - name: Check package compliance
-      run: twine check dist/*
+      run: |
+        pip install twine
+        twine check dist/*
     - name: Store artifact
       uses: actions/upload-artifact@v3
       with:

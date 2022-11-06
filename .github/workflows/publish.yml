@@ -3,11 +3,13 @@
 name: Publish
 
 on:
-  pull_request: ## temporary for testing, tb removed
+  pull_request: ## MERGE: remove
     types: [opened, synchronize, reopened]
   push:
     branches:
       - main
+  release:
+     types: [published]
 
 permissions:
   contents: read
@@ -17,7 +19,8 @@ jobs:
     uses: ./.github/workflows/testbuild.yml
 
   publish-artifacts:
-    environment: production ## can only run on main branch (only admins can see secrets)
+    ## MERGE
+    # environment: production ## can only run on main branch (only admins can see secrets)
     needs: call-test-build
     runs-on: ubuntu-latest
     steps:
