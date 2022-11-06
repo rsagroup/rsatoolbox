@@ -34,7 +34,7 @@ jobs:
           mv artifacts/wheels-ubuntu-latest/*.whl dist/
           mv artifacts/wheels-windows-latest/*.whl dist/
       - name: Publish package
-        uses: pypa/gh-action-pypi-publish@release/v1.5.1
+        uses: pypa/gh-action-pypi-publish@v1.5.1
         with:
           verbose: true
           password: ${{ secrets.API_TOKEN_TEST_PYPI }}
