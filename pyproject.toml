@@ -37,7 +37,7 @@ homepage = "https://github.com/rsagroup/rsatoolbox"
 documentation = "https://rsatoolbox.readthedocs.io/"
 
 [tool.setuptools_scm]
-local_scheme = "node-and-timestamp"
+local_scheme = "no-local-version"
 
 [tool.setuptools.packages.find]
 where = ["src"]
