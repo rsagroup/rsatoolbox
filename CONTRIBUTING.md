@@ -8,6 +8,12 @@ Your cycle
 5. When you're done with the feature, ask for reviews from two team members or ask the maintainers for help.
 6. When the reviewers have approved the Pull Request, they will merge it into the master branch. At this point you want to checkout the master branch again and pull so that you have your latest changes, and can open a new branch for a new feature. 
 
+Here is an example shell command to build rsatoolbox, install it in your environment, and run the unit tests on it, in one go:
+
+```sh
+python -m build && sleep 1 && pip install --pre --force-reinstall dist/*.whl && pytest
+```
+
 
 Rules
 =====
@@ -20,6 +26,14 @@ Rules
 6. Larger new features should come with narrative documentation and an example.
 7. When you're ready for your Pull Request to be reviewed, in the top right corner you can suggest two reviewers,
 or alternatively, ping @ilogue or @HeikoSchuett and we will assign reviewers.
+
+
+Deployment
+==========
+
+
+- when a PR is merged into the branch main, it is build as a pre-release (or "development") package and uploaded to pypi. The latest pre-release version can be installed using `pip install --pre rsatoolbox`
+- when a release tag is added to the branch main, the package is instead marked as a released (or "stable") version.
 
 
 Naming scheme
