@@ -5,6 +5,8 @@ Definition of RSA RDMs class and subclasses
 
 @author: baihan
 """
+from __future__ import annotations
+from typing import Dict, Optional
 from copy import deepcopy
 from collections.abc import Iterable
 import numpy as np
@@ -46,6 +48,11 @@ class RDMs:
         n_cond(int): number of patterns
 
     """
+    dissimilarities: np.ndarray
+    dissimilarity_measure: Optional[str]
+    descriptors: Dict
+    rdm_descriptors: Dict
+    pattern_descriptors: Dict
 
     def __init__(self, dissimilarities,
                  dissimilarity_measure=None,
@@ -153,6 +160,21 @@ class RDMs:
         """
         matrices, _, _ = batch_to_matrices(self.dissimilarities)
         return matrices
+
+    def copy(self) -> RDMs:
+        """Return a copy of this object, with all properties
+        equal to the original's
+
+        Returns:
+            RDMs: Value copy
+        """
+        return RDMs(
+            dissimilarities=self.dissimilarities.copy(),
+            dissimilarity_measure=self.dissimilarity_measure,
+            descriptors=deepcopy(self.descriptors),
+            rdm_descriptors=deepcopy(self.rdm_descriptors),
+            pattern_descriptors=deepcopy(self.pattern_descriptors)
+        )
 
     def subset_pattern(self, by, value):
         """ Returns a smaller RDMs with patterns with certain descriptor values

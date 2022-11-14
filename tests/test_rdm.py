@@ -450,6 +450,41 @@ class TestRDM(unittest.TestCase):
             )
         )
 
+    def test_copy(self):
+        from rsatoolbox.rdm import RDMs
+        orig = RDMs(
+            dissimilarities=np.random.rand(2, 3),
+            dissimilarity_measure='euclidean',
+            descriptors=dict(foo='bar', baz='foz'),
+            rdm_descriptors=dict(thrusters=['port', 'starboard']),
+            pattern_descriptors=dict(
+                names=['a', 'b', 'c'],
+                order=np.array([6, 7, 8])
+            )
+        )
+        copy = orig.copy()
+        ## We don't want a reference:
+        self.assertIsNot(copy, orig)
+        self.assertIsNot(copy.dissimilarities, orig.dissimilarities)
+        self.assertIsNot(
+            copy.pattern_descriptors.get('order'),
+            orig.pattern_descriptors.get('order')
+        )
+        ## But check that attributes are equal
+        assert_array_equal(copy.dissimilarities, orig.dissimilarities)
+        self.assertEqual(copy.dissimilarity_measure,
+            orig.dissimilarity_measure)
+        self.assertEqual(copy.descriptors, orig.descriptors)
+        self.assertEqual(copy.rdm_descriptors, orig.rdm_descriptors)
+        assert_array_equal(
+            copy.pattern_descriptors.get('names'),
+            orig.pattern_descriptors.get('names')
+        )
+        assert_array_equal(
+            copy.pattern_descriptors.get('order'),
+            orig.pattern_descriptors.get('order')
+        )
+
 
 class TestSave(unittest.TestCase):
     def test_dict_conversion(self):
