@@ -56,7 +56,7 @@ class TestCalcRDM(unittest.TestCase):
             channel_descriptors=dict(feats=['v1', 'v2', 'v3'])
         )
 
-    def test_calc_euclid_nconds(self):
+    def test_calc_euclidean_nconds(self):
         d = self.test_data
         rdm = rsr.calc_rdm([d, d], descriptor='conds',
                            method='euclidean')
@@ -74,7 +74,7 @@ class TestCalcRDM(unittest.TestCase):
         self.assertTrue(np.all(data.measurements == measurements))
 
     @patch('rsatoolbox.rdm.calc._parse_input')
-    def test_calc_euclid_as_scipy(self, _parse_input):
+    def test_calc_euclidean_as_scipy(self, _parse_input):
         from rsatoolbox.rdm import calc_rdm
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}

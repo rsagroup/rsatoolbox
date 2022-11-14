@@ -70,7 +70,7 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             rdm = from_partials(rdms, descriptor=descriptor)
     else:
         if method == 'euclidean':
-            rdm = calc_rdm_euclid(dataset, descriptor)
+            rdm = calc_rdm_euclidean(dataset, descriptor)
         elif method == 'correlation':
             rdm = calc_rdm_correlation(dataset, descriptor)
         elif method == 'mahalanobis':
@@ -163,7 +163,7 @@ def calc_rdm_movie(
     return rdm
 
 
-def calc_rdm_euclid(dataset, descriptor=None):
+def calc_rdm_euclidean(dataset, descriptor=None):
     """
     Args:
         dataset (rsatoolbox.data.DatasetBase):
@@ -237,7 +237,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
 
     """
     if noise is None:
-        rdm = calc_rdm_euclid(dataset, descriptor)
+        rdm = calc_rdm_euclidean(dataset, descriptor)
     else:
         measurements, desc, descriptor = _parse_input(dataset, descriptor)
         noise = _check_noise(noise, dataset.n_channel)
