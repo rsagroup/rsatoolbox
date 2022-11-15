@@ -19,6 +19,7 @@ from rsatoolbox.util.descriptor_utils import subset_descriptor
 from rsatoolbox.util.descriptor_utils import check_descriptor_length_error
 from rsatoolbox.util.descriptor_utils import append_descriptor
 from rsatoolbox.util.descriptor_utils import dict_to_list
+from rsatoolbox.util.descriptor_utils import desc_eq
 from rsatoolbox.util.data_utils import extract_dict
 from rsatoolbox.util.file_io import write_dict_hdf5
 from rsatoolbox.util.file_io import write_dict_pkl
@@ -102,6 +103,28 @@ class RDMs:
                 f'rdm_descriptors = \n{self.rdm_descriptors}\n'
                 f'pattern_descriptors = \n{self.pattern_descriptors}\n'
                 )
+
+    def __eq__(self, other: RDMs) -> bool:
+        """Test for equality
+        This magic method gets called when you compare two
+        RDMs objects: `rdms1 == rdms2`.
+        True if the objects are of the same type, and 
+        dissimilarities and descriptors are equal.
+
+        Args:
+            other (RDMs): The second RDMs object to
+                compare this one with
+
+        Returns:
+            bool: True if equal
+        """
+        return all([
+            isinstance(other, RDMs),
+            np.all(self.dissimilarities==other.dissimilarities),
+            self.descriptors==other.descriptors,
+            desc_eq(self.rdm_descriptors, other.rdm_descriptors),
+            desc_eq(self.pattern_descriptors, other.pattern_descriptors),
+        ])
 
     def __str__(self):
         """

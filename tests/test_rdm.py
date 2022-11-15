@@ -485,6 +485,26 @@ class TestRDM(unittest.TestCase):
             orig.pattern_descriptors.get('order')
         )
 
+    def test_equality(self):
+        from rsatoolbox.rdm import RDMs
+        orig = RDMs(
+            dissimilarities=np.random.rand(2, 3),
+            dissimilarity_measure='euclidean',
+            descriptors=dict(foo='bar', baz='foz'),
+            rdm_descriptors=dict(thrusters=['port', 'starboard']),
+            pattern_descriptors=dict(
+                names=['a', 'b', 'c'],
+                order=np.array([6, 7, 8])
+            )
+        )
+        self.assertEqual(orig, orig.copy())
+        other1 = orig.copy()
+        other1.dissimilarities[1, 1] = 1.1
+        self.assertNotEqual(orig, other1)
+        other2 = orig.copy()
+        other2.pattern_descriptors['order'][1] = 10
+        self.assertNotEqual(orig, other2)
+
 
 class TestSave(unittest.TestCase):
     def test_dict_conversion(self):
