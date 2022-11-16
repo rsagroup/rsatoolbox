@@ -113,6 +113,15 @@ class DatasetBase:
         raise NotImplementedError()
 
     def copy(self) -> DatasetBase:
+        """Copy Dataset
+        To be implemented in child class
+
+        Raises:
+            NotImplementedError: raised if not implemented
+
+        Returns:
+            DatasetBase: Never returns
+        """
         raise NotImplementedError
 
     def split_obs(self, by):

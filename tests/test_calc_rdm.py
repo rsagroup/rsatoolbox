@@ -220,6 +220,23 @@ class TestCalcRDM(unittest.TestCase):
             self.test_data_balanced.obs_descriptors['conds'],
             self.obs_balanced['conds'])
 
+    def test_calc_passes_on_descriptors(self):
+        """Descriptors on dataset should be on resulting
+        RDMs where appropriate.
+        """
+        from rsatoolbox.rdm.calc import calc_rdm
+        rdms = calc_rdm(self.test_data)
+        self.assertIn('conds', rdms.pattern_descriptors)
+        self.assertEqual(
+            rdms.pattern_descriptors['conds'],
+            np.array([0, 1, 2, 3, 4, 5])
+        )
+        self.assertIn('rois', rdms.rdm_descriptors)
+        self.assertEqual(
+            rdms.rdm_descriptors['rois'],
+            np.array(['V1', 'V1', 'IT', 'IT', 'V4'])
+        )
+
 
 class TestCalcRDMMovie(unittest.TestCase):
 

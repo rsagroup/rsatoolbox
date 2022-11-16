@@ -149,8 +149,8 @@ class TestData(unittest.TestCase):
             descriptors=dict(session=0, subj='AB'),
             obs_descriptors=dict(conds=np.array(
                 [0, 0, 1, 1, 2, 2, 2, 3, 4, 5])),
-            channel_descriptors=dict(rois=
-                ['V1', 'V1', 'IT', 'IT', 'V4'])
+            channel_descriptors=dict(
+                rois=['V1', 'V1', 'IT', 'IT', 'V4'])
         )
         other = orig.copy()
         self.assertEqual(orig, other)
@@ -422,8 +422,8 @@ class TestTemporalDataset(unittest.TestCase):
             measurements=np.random.randn(5, 4, 3),
             descriptors=dict(session=0, subj='AB'),
             obs_descriptors=dict(conds=np.arange(5)),
-            channel_descriptors=dict(rois=
-                ['V1', 'V2', 'V3', 'IT']),
+            channel_descriptors=dict(
+                rois=['V1', 'V2', 'V3', 'IT']),
             time_descriptors=dict(
                 time=tps,
                 time_formatted=['%0.0f ms' % (x) for x in tps]
