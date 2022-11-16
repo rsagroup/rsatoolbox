@@ -8,6 +8,7 @@ Definition of RSA Dataset class and subclasses
 
 from __future__ import annotations
 from typing import List, Optional
+from copy import deepcopy
 import numpy as np
 from pandas import DataFrame
 from rsatoolbox.util.data_utils import get_unique_unsorted
@@ -18,6 +19,7 @@ from rsatoolbox.util.descriptor_utils import num_index
 from rsatoolbox.util.descriptor_utils import format_descriptor
 from rsatoolbox.util.descriptor_utils import parse_input_descriptor
 from rsatoolbox.util.descriptor_utils import append_obs_descriptors
+from rsatoolbox.util.descriptor_utils import desc_eq
 from rsatoolbox.util.file_io import write_dict_hdf5
 from rsatoolbox.util.file_io import write_dict_pkl
 from rsatoolbox.util.file_io import read_dict_hdf5
@@ -93,6 +95,25 @@ class DatasetBase:
                 f'obs_descriptors: \n{string_obs_desc}\n\n'
                 f'channel_descriptors: \n{string_channel_desc}\n'
                 )
+
+    def __eq__(self, other: DatasetBase) -> bool:
+        """Equality check, to be implemented in the specific
+        Dataset class
+
+        Args:
+            other (DatasetBase): The object to compare to.
+
+        Raises:
+            NotImplementedError: This is not valid if not implemented
+                by the specific Dataset class
+
+        Returns:
+            bool: Never returns
+        """
+        raise NotImplementedError()
+
+    def copy(self) -> DatasetBase:
+        raise NotImplementedError
 
     def split_obs(self, by):
         """ Returns a list Datasets split by obs
@@ -259,6 +280,41 @@ class Dataset(DatasetBase):
     Dataset class is a standard version of DatasetBase.
     It contains one data set - or multiple data sets with the same structure
     """
+
+    def __eq__(self, other: Dataset) -> bool:
+        """Test for equality
+        This magic method gets called when you compare two
+        Datasets objects: `ds1 == ds2`.
+        True if the objects are of the same type, and 
+        measurements and descriptors are equal.
+
+        Args:
+            other (Dataset): The second Dataset to compare to
+
+        Returns:
+            bool: True if the objects' properties are equal
+        """
+        return all([
+            isinstance(other, Dataset),
+            np.all(self.measurements==other.measurements),
+            self.descriptors==other.descriptors,
+            desc_eq(self.obs_descriptors, other.obs_descriptors),
+            desc_eq(self.channel_descriptors, other.channel_descriptors),
+        ])
+
+    def copy(self) -> Dataset:
+        """Return a copy of this object, with all properties
+        equal to the original's
+
+        Returns:
+            Dataset: Value copy
+        """
+        return Dataset(
+            measurements=self.measurements.copy(),
+            descriptors=deepcopy(self.descriptors),
+            obs_descriptors=deepcopy(self.obs_descriptors),
+            channel_descriptors=deepcopy(self.channel_descriptors)
+        )
 
     def split_obs(self, by):
         """ Returns a list Datasets splited by obs
@@ -539,6 +595,16 @@ class TemporalDataset(Dataset):
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
         self.time_descriptors = parse_input_descriptor(time_descriptors)
 
+    def __eq__(self, other: TemporalDataset) -> bool:
+        return all([
+            isinstance(other, TemporalDataset),
+            np.all(self.measurements==other.measurements),
+            self.descriptors==other.descriptors,
+            desc_eq(self.obs_descriptors, other.obs_descriptors),
+            desc_eq(self.channel_descriptors, other.channel_descriptors),
+            desc_eq(self.time_descriptors, other.time_descriptors)
+        ])
+
     def __str__(self):
         """
         defines the output of print
@@ -558,6 +624,21 @@ class TemporalDataset(Dataset):
                 f'channel_descriptors: \n{string_channel_desc}\n'
                 f'time_descriptors: \n{string_time_desc}\n'
                 )
+
+    def copy(self) -> TemporalDataset:
+        """Return a copy of this object, with all properties
+        equal to the original's
+
+        Returns:
+            Dataset: Value copy
+        """
+        return TemporalDataset(
+            measurements=self.measurements.copy(),
+            descriptors=deepcopy(self.descriptors),
+            obs_descriptors=deepcopy(self.obs_descriptors),
+            channel_descriptors=deepcopy(self.channel_descriptors),
+            time_descriptors=deepcopy(self.time_descriptors)
+        )
 
     def split_obs(self, by):
         """ Returns a list TemporalDataset splited by obs

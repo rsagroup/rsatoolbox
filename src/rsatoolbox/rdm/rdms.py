@@ -108,7 +108,7 @@ class RDMs:
         """Test for equality
         This magic method gets called when you compare two
         RDMs objects: `rdms1 == rdms2`.
-        True if the objects are of the same type, and 
+        True if the objects are of the same type, and
         dissimilarities and descriptors are equal.
 
         Args:

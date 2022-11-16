@@ -9,6 +9,7 @@ Test for Dataset class
 import unittest
 import rsatoolbox.data as rsd
 import numpy as np
+from numpy.testing import assert_array_equal
 
 
 class TestData(unittest.TestCase):
@@ -110,6 +111,58 @@ class TestData(unittest.TestCase):
         self.assertEqual(subset.n_channel, 3)
         self.assertEqual(subset.channel_descriptors['rois'][0], 'IT')
         self.assertEqual(subset.channel_descriptors['rois'][-1], 'V4')
+
+    def test_copy(self):
+        from rsatoolbox.data import Dataset
+        orig = Dataset(
+            measurements=np.random.randn(10, 5),
+            descriptors=dict(session=0, subj='AB'),
+            obs_descriptors=dict(conds=np.array(
+                [0, 0, 1, 1, 2, 2, 2, 3, 4, 5])),
+            channel_descriptors=dict(rois=
+                ['V1', 'V1', 'IT', 'IT', 'V4'])
+        )
+        copy = orig.copy()
+        ## We don't want a reference:
+        self.assertIsNot(copy, orig)
+        self.assertIsNot(copy.measurements, orig.measurements)
+        self.assertIsNot(
+            copy.obs_descriptors.get('conds'),
+            orig.obs_descriptors.get('conds')
+        )
+        ## But check that attributes are equal
+        assert_array_equal(copy.measurements, orig.measurements)
+        self.assertEqual(copy.descriptors, orig.descriptors)
+        assert_array_equal(
+            copy.obs_descriptors.get('conds'),
+            orig.obs_descriptors.get('conds')
+        )
+        assert_array_equal(
+            copy.channel_descriptors.get('rois'),
+            orig.channel_descriptors.get('rois')
+        )
+
+    def test_equality(self):
+        from rsatoolbox.data import Dataset
+        orig = Dataset(
+            measurements=np.random.randn(10, 5),
+            descriptors=dict(session=0, subj='AB'),
+            obs_descriptors=dict(conds=np.array(
+                [0, 0, 1, 1, 2, 2, 2, 3, 4, 5])),
+            channel_descriptors=dict(rois=
+                ['V1', 'V1', 'IT', 'IT', 'V4'])
+        )
+        other = orig.copy()
+        self.assertEqual(orig, other)
+        other = orig.copy()
+        other.measurements[1, 1] = 1.1
+        self.assertNotEqual(orig, other)
+        other = orig.copy()
+        other.obs_descriptors['conds'][1] = 9
+        self.assertNotEqual(orig, other)
+        other = orig.copy()
+        other.channel_descriptors['rois'][1] = 'MT'
+        self.assertNotEqual(orig, other)
 
 
 class TestTemporalDataset(unittest.TestCase):
@@ -328,7 +381,70 @@ class TestTemporalDataset(unittest.TestCase):
         self.assertEqual(data.obs_descriptors['conds'][0], obs_des['conds'][0])
         self.assertEqual(data.obs_descriptors['conds'][1], obs_des['conds'][1])
 
+    def test_copy(self):
+        from rsatoolbox.data import TemporalDataset
+        orig = TemporalDataset(
+            measurements=np.random.randn(5, 4, 3),
+            descriptors=dict(session=0, subj='AB'),
+            obs_descriptors=dict(conds=np.arange(5)),
+            channel_descriptors=dict(rois=
+                ['V1', 'V2', 'V3', 'IT']),
+            time_descriptors=dict(
+                time=np.linspace(0, 1000, 3),
+                time_formatted=['%0.0f ms' % (x) for x in np.linspace(0, 1000, 3)]
+            )
+        )
+        copy = orig.copy()
+        ## We don't want a reference:
+        self.assertIsNot(copy, orig)
+        self.assertIsNot(copy.measurements, orig.measurements)
+        self.assertIsNot(
+            copy.time_descriptors.get('time_formatted'),
+            orig.time_descriptors.get('time_formatted')
+        )
+        ## But check that attributes are equal
+        assert_array_equal(copy.measurements, orig.measurements)
+        self.assertEqual(copy.descriptors, orig.descriptors)
+        assert_array_equal(
+            copy.time_descriptors.get('time'),
+            orig.time_descriptors.get('time')
+        )
+        assert_array_equal(
+            copy.time_descriptors.get('time_formatted'),
+            orig.time_descriptors.get('time_formatted')
+        )
+
+    def test_equality(self):
+        from rsatoolbox.data import TemporalDataset
+        orig = TemporalDataset(
+            measurements=np.random.randn(5, 4, 3),
+            descriptors=dict(session=0, subj='AB'),
+            obs_descriptors=dict(conds=np.arange(5)),
+            channel_descriptors=dict(rois=
+                ['V1', 'V2', 'V3', 'IT']),
+            time_descriptors=dict(
+                time=np.linspace(0, 1000, 3),
+                time_formatted=['%0.0f ms' % (x) for x in np.linspace(0, 1000, 3)]
+            )
+        )
+        other = orig.copy()
+        self.assertEqual(orig, other)
+        other = orig.copy()
+        other.measurements[1, 1, 1] = 1.1
+        self.assertNotEqual(orig, other)
+        other = orig.copy()
+        other.obs_descriptors['conds'][1] = 9
+        self.assertNotEqual(orig, other)
+        other = orig.copy()
+        other.time_descriptors['time'][1] = 99
+        self.assertNotEqual(orig, other)
+        other = orig.copy()
+        other.time_descriptors['time_formatted'][1] = 'Wednesday'
+        self.assertNotEqual(orig, other)
+
+
 class TestDataComputations(unittest.TestCase):
+
     def setUp(self):
         measurements = np.random.rand(10, 5)
         des = {'session': 0, 'subj': 0}
@@ -355,6 +471,7 @@ class TestDataComputations(unittest.TestCase):
 
 
 class TestNoiseComputations(unittest.TestCase):
+
     def setUp(self):
         self.residuals = np.random.rand(100, 25)
         self.residuals = self.residuals - np.mean(self.residuals, axis=0,
@@ -409,6 +526,7 @@ class TestNoiseComputations(unittest.TestCase):
 
 
 class TestSave(unittest.TestCase):
+
     def test_dict_conversion(self):
         measurements = np.zeros((10, 5))
         des = {'session': 0, 'subj': 0}
@@ -450,6 +568,7 @@ class TestSave(unittest.TestCase):
 
 
 class TestMerge(unittest.TestCase):
+
     def setUp(self):
         measurements = np.random.rand(4, 10)
         des = {'session': 0, 'subj': 0}
@@ -479,6 +598,7 @@ class TestMerge(unittest.TestCase):
 
 
 class TestOESplit(unittest.TestCase):
+
     def test_oe_split(self):
         measurements = np.random.rand(4, 10)
         des = {'session': 0, 'subj': 0}

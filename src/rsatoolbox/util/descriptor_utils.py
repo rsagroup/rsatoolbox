@@ -213,6 +213,6 @@ def desc_eq(a: DescriptorDict, b: DescriptorDict) -> bool:
     """
     if set(a.keys()) == set(b.keys()):
         return all(
-            [all(np.asarray(a[k]) == np.asarray(b[k])) for k in a.keys()]
+            all(np.asarray(a[k]) == np.asarray(b[k])) for k in a.keys()
         )
     return False
