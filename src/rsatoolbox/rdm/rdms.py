@@ -120,8 +120,8 @@ class RDMs:
         """
         return all([
             isinstance(other, RDMs),
-            np.all(self.dissimilarities==other.dissimilarities),
-            self.descriptors==other.descriptors,
+            np.all(self.dissimilarities == other.dissimilarities),
+            self.descriptors == other.descriptors,
             desc_eq(self.rdm_descriptors, other.rdm_descriptors),
             desc_eq(self.pattern_descriptors, other.pattern_descriptors),
         ])

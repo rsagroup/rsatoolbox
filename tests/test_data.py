@@ -119,18 +119,18 @@ class TestData(unittest.TestCase):
             descriptors=dict(session=0, subj='AB'),
             obs_descriptors=dict(conds=np.array(
                 [0, 0, 1, 1, 2, 2, 2, 3, 4, 5])),
-            channel_descriptors=dict(rois=
-                ['V1', 'V1', 'IT', 'IT', 'V4'])
+            channel_descriptors=dict(
+                rois=['V1', 'V1', 'IT', 'IT', 'V4'])
         )
         copy = orig.copy()
-        ## We don't want a reference:
+        # We don't want a reference:
         self.assertIsNot(copy, orig)
         self.assertIsNot(copy.measurements, orig.measurements)
         self.assertIsNot(
             copy.obs_descriptors.get('conds'),
             orig.obs_descriptors.get('conds')
         )
-        ## But check that attributes are equal
+        # But check that attributes are equal
         assert_array_equal(copy.measurements, orig.measurements)
         self.assertEqual(copy.descriptors, orig.descriptors)
         assert_array_equal(
@@ -383,26 +383,27 @@ class TestTemporalDataset(unittest.TestCase):
 
     def test_copy(self):
         from rsatoolbox.data import TemporalDataset
+        tps = np.linspace(0, 1000, 3)
         orig = TemporalDataset(
             measurements=np.random.randn(5, 4, 3),
             descriptors=dict(session=0, subj='AB'),
             obs_descriptors=dict(conds=np.arange(5)),
-            channel_descriptors=dict(rois=
-                ['V1', 'V2', 'V3', 'IT']),
+            channel_descriptors=dict(
+                rois=['V1', 'V2', 'V3', 'IT']),
             time_descriptors=dict(
-                time=np.linspace(0, 1000, 3),
-                time_formatted=['%0.0f ms' % (x) for x in np.linspace(0, 1000, 3)]
+                time=tps,
+                time_formatted=['%0.0f ms' % (x) for x in tps]
             )
         )
         copy = orig.copy()
-        ## We don't want a reference:
+        # We don't want a reference:
         self.assertIsNot(copy, orig)
         self.assertIsNot(copy.measurements, orig.measurements)
         self.assertIsNot(
             copy.time_descriptors.get('time_formatted'),
             orig.time_descriptors.get('time_formatted')
         )
-        ## But check that attributes are equal
+        # But check that attributes are equal
         assert_array_equal(copy.measurements, orig.measurements)
         self.assertEqual(copy.descriptors, orig.descriptors)
         assert_array_equal(
@@ -416,6 +417,7 @@ class TestTemporalDataset(unittest.TestCase):
 
     def test_equality(self):
         from rsatoolbox.data import TemporalDataset
+        tps = np.linspace(0, 1000, 3)
         orig = TemporalDataset(
             measurements=np.random.randn(5, 4, 3),
             descriptors=dict(session=0, subj='AB'),
@@ -423,8 +425,8 @@ class TestTemporalDataset(unittest.TestCase):
             channel_descriptors=dict(rois=
                 ['V1', 'V2', 'V3', 'IT']),
             time_descriptors=dict(
-                time=np.linspace(0, 1000, 3),
-                time_formatted=['%0.0f ms' % (x) for x in np.linspace(0, 1000, 3)]
+                time=tps,
+                time_formatted=['%0.0f ms' % (x) for x in tps]
             )
         )
         other = orig.copy()

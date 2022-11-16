@@ -285,7 +285,7 @@ class Dataset(DatasetBase):
         """Test for equality
         This magic method gets called when you compare two
         Datasets objects: `ds1 == ds2`.
-        True if the objects are of the same type, and 
+        True if the objects are of the same type, and
         measurements and descriptors are equal.
 
         Args:
@@ -296,8 +296,8 @@ class Dataset(DatasetBase):
         """
         return all([
             isinstance(other, Dataset),
-            np.all(self.measurements==other.measurements),
-            self.descriptors==other.descriptors,
+            np.all(self.measurements == other.measurements),
+            self.descriptors == other.descriptors,
             desc_eq(self.obs_descriptors, other.obs_descriptors),
             desc_eq(self.channel_descriptors, other.channel_descriptors),
         ])
@@ -598,8 +598,8 @@ class TemporalDataset(Dataset):
     def __eq__(self, other: TemporalDataset) -> bool:
         return all([
             isinstance(other, TemporalDataset),
-            np.all(self.measurements==other.measurements),
-            self.descriptors==other.descriptors,
+            np.all(self.measurements == other.measurements),
+            self.descriptors == other.descriptors,
             desc_eq(self.obs_descriptors, other.obs_descriptors),
             desc_eq(self.channel_descriptors, other.channel_descriptors),
             desc_eq(self.time_descriptors, other.time_descriptors)
