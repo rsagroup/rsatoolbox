@@ -7,12 +7,15 @@ Calculation of RDMs from datasets
 
 from collections.abc import Iterable
 from copy import deepcopy
+from typing import TYPE_CHECKING, Optional, Tuple
 import numpy as np
 from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox.rdm.rdms import concat
 from rsatoolbox.rdm.combine import from_partials
 from rsatoolbox.data import average_dataset_by
 from rsatoolbox.util.rdm_utils import _extract_triu_
+if TYPE_CHECKING:
+    from rsatoolbox.data.dataset import DatasetBase
 
 
 def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
@@ -437,14 +440,14 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
     return rdm
 
 
-def _calc_rdm_crossnobis_single(measurements1, measurements2, noise):
+def _calc_rdm_crossnobis_single(measurements1, measurements2, noise) -> np.ndarray:
     kernel = measurements1 @ noise @ measurements2.T
     rdm = np.expand_dims(np.diag(kernel), 0) + np.expand_dims(np.diag(kernel), 1)\
         - kernel - kernel.T
     return _extract_triu_(rdm) / measurements1.shape[1]
 
 
-def _gen_default_cv_descriptor(dataset, descriptor):
+def _gen_default_cv_descriptor(dataset, descriptor) -> np.ndarray:
     """ generates a default cv_descriptor for crossnobis
     This assumes that the first occurence each descriptor value forms the
     first group, the second occurence forms the second group, etc.
@@ -472,7 +475,7 @@ def _calc_pairwise_differences(measurements):
     return diff
 
 
-def _parse_input(dataset, descriptor):
+def _parse_input(dataset: DatasetBase, descriptor: Optional[str]) -> Tuple[np.ndarray, np.ndarray, str]:
     if descriptor is None:
         measurements = dataset.measurements
         desc = np.arange(measurements.shape[0])
