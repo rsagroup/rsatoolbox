@@ -220,21 +220,62 @@ class TestCalcRDM(unittest.TestCase):
             self.test_data_balanced.obs_descriptors['conds'],
             self.obs_balanced['conds'])
 
-    def test_calc_passes_on_descriptors(self):
-        """Descriptors on dataset should be on resulting
-        RDMs where appropriate.
+    def test_calc_single_ds_passes_on_descriptors(self):
+        """Calc_rdm() should use dataset descriptors as rdm
+        descriptors on the resulting RDMs; as well as
+        observation descriptors that have unique values
+        for the used patterns as pattern descriptors.
         """
         from rsatoolbox.rdm.calc import calc_rdm
-        rdms = calc_rdm(self.test_data)
-        self.assertIn('conds', rdms.pattern_descriptors)
-        self.assertEqual(
+        rdms = calc_rdm(self.test_data)   
+        self.assertEqual(rdms.rdm_descriptors.get('session'), [0])
+        self.assertEqual(rdms.rdm_descriptors.get('subj'), [0])
+        assert_array_equal(
+            rdms.pattern_descriptors['conds'],
+            self.test_data.obs_descriptors['conds']
+        )
+        assert_array_equal(
+            rdms.pattern_descriptors['fold'],
+            self.test_data.obs_descriptors['fold']
+        )
+
+    def test_calc_wdesc_single_ds_passes_on_descriptors(self):
+        """When using a target observation descriptor;
+        Calc_rdm() should use observation descriptors
+        that have unique values for the used patterns as
+        pattern descriptors.
+        """
+        from rsatoolbox.rdm.calc import calc_rdm
+        rdms = calc_rdm(self.test_data, descriptor='conds')
+        self.assertEqual(rdms.rdm_descriptors.get('session'), [0])
+        self.assertEqual(rdms.rdm_descriptors.get('subj'), [0])
+        assert_array_equal(
             rdms.pattern_descriptors['conds'],
             np.array([0, 1, 2, 3, 4, 5])
         )
-        self.assertIn('rois', rdms.rdm_descriptors)
-        self.assertEqual(
+
+    def test_calc_multi_ds_passes_on_descriptors(self):
+        """When passing multiple Datasets to calc_rdm,
+        it should use the individual dataset descriptors
+        as rdm descriptors.
+        """
+        from rsatoolbox.rdm.calc import calc_rdm
+        rdms = calc_rdm(self.test_data.split_channel(by='rois'))
+        assert_array_equal(
+            rdms.rdm_descriptors['session'], 
+            [0, 0, 0]
+        )
+        assert_array_equal(
+            rdms.rdm_descriptors['subj'],
+            [0, 0, 0]
+        )
+        assert_array_equal(
             rdms.rdm_descriptors['rois'],
-            np.array(['V1', 'V1', 'IT', 'IT', 'V4'])
+            np.array(['V1', 'IT', 'V4'])
+        )
+        assert_array_equal(
+            rdms.pattern_descriptors['conds'],
+            np.array([0, 1, 2, 3, 4, 5])
         )
 
 
