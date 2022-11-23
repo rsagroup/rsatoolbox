@@ -81,10 +81,8 @@ class TestCalcRDM(unittest.TestCase):
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
         data.measurements = np.random.rand(6, 5)
-        desc_true = [0, 1, 2, 3, 4, 5]
-        measurements, desc, descriptor = _parse_input(data, None)
-        self.assertTrue(descriptor == 'pattern')
-        self.assertTrue(np.all(np.array(desc_true) == desc))
+        measurements, desc = _parse_input(data, None)
+        self.assertIsNone(desc)
         self.assertTrue(np.all(data.measurements == measurements))
 
     @patch('rsatoolbox.rdm.calc._parse_input')
@@ -92,9 +90,11 @@ class TestCalcRDM(unittest.TestCase):
         from rsatoolbox.rdm import calc_rdm
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
+        data.obs_descriptors = dict(conds=np.arange(6))
+        data.channel_descriptors = dict()
         data.measurements = np.random.rand(6, 5)
         desc = [0, 1, 2, 3, 4, 5]
-        _parse_input.return_value = (data.measurements, desc, 'conds')
+        _parse_input.return_value = (data.measurements, desc)
         rdm_expected = pdist(data.measurements)**2/5
         rdms = calc_rdm(
             data,
@@ -113,9 +113,11 @@ class TestCalcRDM(unittest.TestCase):
         from rsatoolbox.rdm import calc_rdm
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
+        data.obs_descriptors = dict(conds=np.arange(6))
+        data.channel_descriptors = dict()
         data.measurements = np.random.rand(6, 5)
         desc = [0, 1, 2, 3, 4, 5]
-        _parse_input.return_value = (data.measurements, desc, 'conds')
+        _parse_input.return_value = (data.measurements, desc)
         rdm_expected = 1 - np.corrcoef(data.measurements)
         rdme = rsr.RDMs(
             dissimilarities=np.array([rdm_expected]),
@@ -241,8 +243,6 @@ class TestCalcRDM(unittest.TestCase):
         observation descriptors that have unique values
         for the used patterns as pattern descriptors.
         """
-        # TODO: rework _parse_input to get all descriptors,
-        # or add new _parse_descriptors
         from rsatoolbox.rdm.calc import calc_rdm
         rdms = calc_rdm(self.test_data, method=method)   
         self.assertEqual(rdms.rdm_descriptors.get('session'), [0])
@@ -274,6 +274,7 @@ class TestCalcRDM(unittest.TestCase):
             rdms.pattern_descriptors['conds'],
             np.array([0, 1, 2, 3, 4, 5])
         )
+        ## TODO: check other descriptors
 
 
     @parameterized.expand(NO_CV_METHODS)
@@ -404,9 +405,12 @@ class TestCalcRDMMovie(unittest.TestCase):
         time = self.test_data_time.time_descriptors['time']
         bins = np.reshape(time, [5, 3])
         rdm = rsr.calc_rdm_movie(
-            self.test_data_time, descriptor='conds',
-            method='mahalanobis', time_descriptor='time',
-            bins=bins)
+            self.test_data_time,
+            descriptor='conds',
+            method='mahalanobis',
+            time_descriptor='time',
+            bins=bins
+        )
         assert rdm.n_cond == 6
         assert len([r for r in rdm]) == 5
         assert rdm.rdm_descriptors['time'][0] == np.mean(time[:3])
