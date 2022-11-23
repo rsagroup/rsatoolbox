@@ -267,6 +267,10 @@ class TestCalcRDM(unittest.TestCase):
         kwargs = dict(method=method, descriptor='conds')
         if method in ('crossnobis', 'poisson_cv'):
             kwargs['cv_descriptor'] = 'fold'
+        self.test_data.obs_descriptors['foo'] = np.array([
+            10, 10, 11, 11, 12, 12, 12, 13, 14, 15,
+            10, 10, 11, 11, 12, 12, 12, 13, 14, 15
+        ])
         rdms = calc_rdm(self.test_data, **kwargs)
         self.assertEqual(rdms.rdm_descriptors.get('session'), [0])
         self.assertEqual(rdms.rdm_descriptors.get('subj'), [0])
@@ -274,8 +278,10 @@ class TestCalcRDM(unittest.TestCase):
             rdms.pattern_descriptors['conds'],
             np.array([0, 1, 2, 3, 4, 5])
         )
-        ## TODO: check other descriptors
-
+        assert_array_equal(
+            rdms.pattern_descriptors['foo'],
+            np.array([10, 11, 12, 13, 14, 15])
+        )
 
     @parameterized.expand(NO_CV_METHODS)
     def test_calc_multi_ds_passes_on_descriptors(self, method):
@@ -302,7 +308,7 @@ class TestCalcRDM(unittest.TestCase):
         )
         assert_array_equal(
             rdms.pattern_descriptors['conds'],
-            np.array([0, 1, 2, 3, 4, 5])
+            self.test_data.obs_descriptors['conds']
         )
 
 
