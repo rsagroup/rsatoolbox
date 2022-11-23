@@ -72,6 +72,8 @@ class TestData(unittest.TestCase):
         self.assertEqual(splited_list[0].n_channel, 2)
         self.assertEqual(splited_list[2].n_channel, 1)
         self.assertEqual(splited_list[1].channel_descriptors['rois'][0], 'IT')
+        self.assertEqual(splited_list[0].descriptors.get('rois'), 'V1')
+        self.assertEqual(splited_list[1].descriptors.get('rois'), 'IT')
 
     def test_dataset_subset_obs(self):
         measurements = np.zeros((10, 5))

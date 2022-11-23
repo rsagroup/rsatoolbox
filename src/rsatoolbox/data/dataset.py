@@ -355,17 +355,18 @@ class Dataset(DatasetBase):
         """ Returns a list Datasets splited by channels
 
         Args:
-            by(String): the descriptor by which the splitting is made
+            by(String): the descriptor by which the split is done
 
         Returns:
-            list of Datasets,  splitted by the selected channel_descriptor
+            list of Datasets,  split by the selected channel_descriptor
         """
         unique_values, inverse = get_unique_inverse(self.channel_descriptors[by])
         dataset_list = []
-        for i_v, _ in enumerate(unique_values):
+        for i_v, v in enumerate(unique_values):
             selection = np.where(inverse == i_v)[0]
             measurements = self.measurements[:, selection]
             descriptors = self.descriptors.copy()
+            descriptors[by] = v
             obs_descriptors = self.obs_descriptors
             channel_descriptors = subset_descriptor(
                 self.channel_descriptors, selection)
@@ -679,7 +680,7 @@ class TemporalDataset(Dataset):
         return dataset_list
 
     def split_channel(self, by):
-        """ Returns a list TemporalDataset splited by channels
+        """ Returns a list of TemporalDataset split by channels
 
         Args:
             by(String): the descriptor by which the splitting is made
