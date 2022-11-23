@@ -15,7 +15,7 @@ from rsatoolbox.rdm.combine import from_partials
 from rsatoolbox.data import average_dataset_by
 from rsatoolbox.util.rdm_utils import _extract_triu_
 if TYPE_CHECKING:
-    from rsatoolbox.data.dataset import DatasetBase
+    from rsatoolbox.data.base import DatasetBase
     from numpy.typing import NDArray
 
 
