@@ -485,8 +485,8 @@ def _check_noise(noise, n_channel):
     return noise
 
 
-def _build_rdms(utv: NDArray, ds: DatasetBase, method: str, 
-        obs_desc_name: str | None, 
+def _build_rdms(utv: NDArray, ds: DatasetBase, method: str,
+        obs_desc_name: str | None,
         obs_desc_vals: Optional[NDArray]=None,
         cv: Optional[NDArray]=None,
         noise: Optional[NDArray]=None
@@ -521,7 +521,7 @@ def _build_rdms(utv: NDArray, ds: DatasetBase, method: str,
         rdms.descriptors['cv_descriptor'] = cv
     return rdms
 
-def _averaging_occurred(ds: DatasetBase, obs_desc_name: str | None, 
+def _averaging_occurred(ds: DatasetBase, obs_desc_name: str | None,
         obs_desc_vals: NDArray | None
     ) -> bool:
     if obs_desc_name is None:
