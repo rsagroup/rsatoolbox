@@ -307,7 +307,7 @@ class Dataset(DatasetBase):
                 Default is "name".
 
         Returns:
-            Dataset: RSAtoolbox Dataset representing the data from the DataFrame
+            Dataset: Dataset representing the data from the DataFrame
         """
         if channels is None:
             channels = [c for (c, t) in df.dtypes.items() if 'float' in str(t)]
@@ -347,7 +347,8 @@ class Dataset(DatasetBase):
         desc = channel_descriptor or list(self.channel_descriptors.keys())[0]
         ch_names = self.channel_descriptors[desc]
         df = DataFrame(self.measurements, columns=ch_names)
-        for dname, dval in {**self.obs_descriptors, **self.descriptors}.items():
+        all_descriptors = {**self.obs_descriptors, **self.descriptors}
+        for dname, dval in all_descriptors.items():
             df[dname] = dval
         return df
 

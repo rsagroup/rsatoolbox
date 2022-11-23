@@ -117,8 +117,8 @@ def calc_rdm_movie(
             precision matrix used to calculate the RDM
             used only for Mahalanobis and Crossnobis estimators
             defaults to an identity matrix, i.e. euclidean distance
-        time_descriptor (String): descriptor key that points to the time dimension in
-            dataset.time_descriptors. Defaults to 'time'.
+        time_descriptor (String): descriptor key that points to the time
+            dimension in dataset.time_descriptors. Defaults to 'time'.
         bins (array-like): list of bins, with bins[i] containing the vector
             of time-points for the i-th bin. Defaults to no binning.
 
@@ -237,11 +237,17 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
     measurements, desc = _parse_input(dataset, descriptor)
     noise = _check_noise(noise, dataset.n_channel)
     kernel = measurements @ noise @ measurements.T
-    rdm = np.expand_dims(np.diag(kernel), 0) + np.expand_dims(np.diag(kernel), 1)\
-        - 2 * kernel
+    rdm = np.expand_dims(np.diag(kernel), 0) + \
+        np.expand_dims(np.diag(kernel), 1) - 2 * kernel
     rdm = _extract_triu_(rdm) / measurements.shape[1]
-    return _build_rdms(rdm, dataset, 'squared mahalanobis', descriptor, desc,
-        noise=noise)
+    return _build_rdms(
+        rdm,
+        dataset,
+        'squared mahalanobis',
+        descriptor,
+        desc,
+        noise=noise
+    )
 
 
 def calc_rdm_crossnobis(dataset, descriptor, noise=None,
@@ -301,8 +307,10 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
         for i_fold in range(len(cv_folds)):
             fold = cv_folds[i_fold]
             data_test = datasetCopy.subset_obs(cv_descriptor, fold)
-            data_train = datasetCopy.subset_obs(cv_descriptor,
-                                            np.setdiff1d(cv_folds, fold))
+            data_train = datasetCopy.subset_obs(
+                cv_descriptor,
+                np.setdiff1d(cv_folds, fold)
+            )
             measurements_train, _, _ = \
                 average_dataset_by(data_train, descriptor)
             measurements_test, _, _ = \
@@ -328,8 +336,14 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
                     rdms.append(rdm)
     rdms = np.array(rdms)
     rdm = np.einsum('ij->j', rdms) / rdms.shape[0]
-    return _build_rdms(rdm, dataset, 'crossnobis', descriptor,
-        noise=noise, cv=cv_descriptor)
+    return _build_rdms(
+        rdm,
+        dataset,
+        'crossnobis',
+        descriptor,
+        noise=noise,
+        cv=cv_descriptor
+    )
 
 
 def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
@@ -355,8 +369,8 @@ def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
     measurements = (measurements + prior_lambda * prior_weight) \
         / (1 + prior_weight)
     kernel = measurements @ np.log(measurements).T
-    rdm = np.expand_dims(np.diag(kernel), 0) + np.expand_dims(np.diag(kernel), 1)\
-        - kernel - kernel.T
+    rdm = np.expand_dims(np.diag(kernel), 0) + \
+        np.expand_dims(np.diag(kernel), 1) - kernel - kernel.T
     rdm = _extract_triu_(rdm) / measurements.shape[1]
     return _build_rdms(rdm, dataset, 'poisson', descriptor, desc)
 
@@ -407,17 +421,17 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
                              + prior_lambda * prior_weight) \
             / (1 + prior_weight)
         kernel = measurements_train @ np.log(measurements_test).T
-        rdm = np.expand_dims(np.diag(kernel), 0) + np.expand_dims(np.diag(kernel), 1)\
-            - kernel - kernel.T
+        rdm = np.expand_dims(np.diag(kernel), 0) + \
+            np.expand_dims(np.diag(kernel), 1) - kernel - kernel.T
         rdm = _extract_triu_(rdm) / measurements_train.shape[1]
     return _build_rdms(rdm, dataset, 'poisson_cv', descriptor)
 
 
-def _calc_rdm_crossnobis_single(measurements1, measurements2, noise) -> np.ndarray:
-    kernel = measurements1 @ noise @ measurements2.T
-    rdm = np.expand_dims(np.diag(kernel), 0) + np.expand_dims(np.diag(kernel), 1)\
-        - kernel - kernel.T
-    return _extract_triu_(rdm) / measurements1.shape[1]
+def _calc_rdm_crossnobis_single(meas1, meas2, noise) -> NDArray:
+    kernel = meas1 @ noise @ meas2.T
+    rdm = np.expand_dims(np.diag(kernel), 0) + \
+        np.expand_dims(np.diag(kernel), 1) - kernel - kernel.T
+    return _extract_triu_(rdm) / meas1.shape[1]
 
 
 def _gen_default_cv_descriptor(dataset, descriptor) -> np.ndarray:
@@ -448,8 +462,10 @@ def _calc_pairwise_differences(measurements):
     return diff
 
 
-def _parse_input(dataset: DatasetBase, descriptor: Optional[str]
-    ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+def _parse_input(
+            dataset: DatasetBase,
+            descriptor: Optional[str]
+        ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     if descriptor is None:
         measurements = dataset.measurements
         desc = None
@@ -485,19 +501,22 @@ def _check_noise(noise, n_channel):
     return noise
 
 
-def _build_rdms(utv: NDArray, ds: DatasetBase, method: str,
-        obs_desc_name: str | None,
-        obs_desc_vals: Optional[NDArray]=None,
-        cv: Optional[NDArray]=None,
-        noise: Optional[NDArray]=None
-    ) -> RDMs:
+def _build_rdms(
+            utv: NDArray,
+            ds: DatasetBase,
+            method: str,
+            obs_desc_name: str | None,
+            obs_desc_vals: Optional[NDArray] = None,
+            cv: Optional[NDArray] = None,
+            noise: Optional[NDArray] = None
+        ) -> RDMs:
     rdms = RDMs(
         dissimilarities=np.array([utv]),
         dissimilarity_measure=method,
         rdm_descriptors=deepcopy(ds.descriptors)
     )
     if (obs_desc_vals is None) and (obs_desc_name is not None):
-        ## obtain the unique values in the target obs descriptor
+        # obtain the unique values in the target obs descriptor
         _, obs_desc_vals, _ = average_dataset_by(ds, obs_desc_name)
 
     if _averaging_occurred(ds, obs_desc_name, obs_desc_vals):
@@ -506,7 +525,7 @@ def _build_rdms(utv: NDArray, ds: DatasetBase, method: str,
             dvals = np.asarray(dvals)
             avg_dvals = np.full_like(obs_desc_vals, np.nan, dtype=dvals.dtype)
             for i, v in enumerate(obs_desc_vals):
-                subset = dvals[orig_obs_desc_vals==v]
+                subset = dvals[orig_obs_desc_vals == v]
                 if len(set(subset)) > 1:
                     break
                 avg_dvals[i] = subset[0]
@@ -514,16 +533,19 @@ def _build_rdms(utv: NDArray, ds: DatasetBase, method: str,
                 rdms.pattern_descriptors[dname] = avg_dvals
     else:
         rdms.pattern_descriptors = deepcopy(ds.obs_descriptors)
-    ## Additional rdm_descriptors
+    # Additional rdm_descriptors
     if noise is not None:
         rdms.descriptors['noise'] = noise
     if cv is not None:
         rdms.descriptors['cv_descriptor'] = cv
     return rdms
 
-def _averaging_occurred(ds: DatasetBase, obs_desc_name: str | None,
-        obs_desc_vals: NDArray | None
-    ) -> bool:
+
+def _averaging_occurred(
+            ds: DatasetBase,
+            obs_desc_name: str | None,
+            obs_desc_vals: NDArray | None
+        ) -> bool:
     if obs_desc_name is None:
         return False
     orig_obs_desc_vals = ds.obs_descriptors[obs_desc_name]

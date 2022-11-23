@@ -24,7 +24,7 @@ NO_CV_METHODS = [
     'euclidean',
     'correlation',
     'mahalanobis',
-    'poisson',  
+    'poisson',
 ]
 
 class TestCalcRDM(unittest.TestCase):
@@ -244,7 +244,7 @@ class TestCalcRDM(unittest.TestCase):
         for the used patterns as pattern descriptors.
         """
         from rsatoolbox.rdm.calc import calc_rdm
-        rdms = calc_rdm(self.test_data, method=method)   
+        rdms = calc_rdm(self.test_data, method=method)
         self.assertEqual(rdms.rdm_descriptors.get('session'), [0])
         self.assertEqual(rdms.rdm_descriptors.get('subj'), [0])
         assert_array_equal(
@@ -295,7 +295,7 @@ class TestCalcRDM(unittest.TestCase):
             method=method
         )
         assert_array_equal(
-            rdms.rdm_descriptors['session'], 
+            rdms.rdm_descriptors['session'],
             [0, 0, 0]
         )
         assert_array_equal(
