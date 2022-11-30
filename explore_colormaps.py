@@ -17,6 +17,7 @@ https://matplotlib.org/stable/tutorials/colors/colormaps.html#lightness-of-matpl
 from os.path import join
 import numpy
 from matplotlib.pyplot import subplots, close
+from matplotlib.colors import ListedColormap
 from scipy.io import loadmat
 from seaborn import color_palette
 from rsatoolbox.rdm.rdms import RDMs, get_categorical_rdm
@@ -33,29 +34,33 @@ model = get_categorical_rdm([0]*5 + [1]*5 + [0]*5 + [1]*5 + [0]*20)
 noise = RDMs(dissimilarities=numpy.random.rand(780))
 rdm_variants = [model, noise, data]
 
-cm_options = [None, 'flare_r', 'crest_r',
+cm_options = [None, 'flare_r', 'crest_r', 'gray', 'bone',
     'magma', 'viridis', 'plasma', 'inferno', 'cividis']
-fig, axes = subplots(
-    ncols=len(rdm_variants)+1,
-    nrows=len(cm_options),
-    figsize=(len(rdm_variants)+1, len(cm_options))
-)
-for c, cmap in enumerate(cm_options):
-    if cmap is None:
-        colormap, cmap_name = rdm_colormap(), 'current'
-    else:
-        colormap, cmap_name = color_palette(cmap, as_cmap=True), cmap
-    for r, rdm in enumerate(rdm_variants):
-        img = show_rdm_panel(rdm, ax=axes[c, r], cmap=colormap)
-    subplot_ax = axes[c, len(rdm_variants)]
-    sample_fig, sample_axes = subplots(figsize=(2, 2))
-    sample = numpy.tile(numpy.arange(100), [100, 1]).T
-    for ax in [subplot_ax, sample_axes]:
-        ax.imshow(sample, cmap=colormap)
-        ax.axis('off')
-        ax.set_title(cmap_name, fontsize=10)
-    sample_fig.savefig(f'{cmap_name}.png', dpi=100)
 
-fig.tight_layout()
-fig.savefig('rdm_colormaps.png', dpi=300)
-close('all')
+for direction in ('dark2light', 'light2dark'):
+    fig, axes = subplots(
+        ncols=len(rdm_variants)+1,
+        nrows=len(cm_options),
+        figsize=(len(rdm_variants)+1, len(cm_options))
+    )
+    for c, cmap in enumerate(cm_options):
+        if cmap is None:
+            colormap, cmap_name = rdm_colormap(), 'current'
+        else:
+            if direction == 'light2dark':
+                cmap = cmap[:-2] if '_r' in cmap else cmap + '_r'
+            colormap, cmap_name = color_palette(cmap, as_cmap=True), cmap
+        for r, rdm in enumerate(rdm_variants):
+            img = show_rdm_panel(rdm, ax=axes[c, r], cmap=colormap)
+        subplot_ax = axes[c, len(rdm_variants)]
+        sample_fig, sample_axes = subplots(figsize=(2, 2))
+        sample = numpy.tile(numpy.arange(100), [100, 1]).T
+        for ax in [subplot_ax, sample_axes]:
+            ax.imshow(sample, cmap=colormap)
+            ax.axis('off')
+            ax.set_title(cmap_name, fontsize=10)
+        sample_fig.savefig(f'{cmap_name}.png', dpi=100)
+
+    fig.tight_layout()
+    fig.savefig(f'rdm_colormaps_{direction}.png', dpi=300)
+    close('all')
