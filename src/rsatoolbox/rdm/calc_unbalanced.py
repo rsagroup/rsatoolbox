@@ -7,7 +7,7 @@ channels or numbers of measurements per dissimilarity
 @author: heiko
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, Tuple, Union, List
 from collections.abc import Iterable
 from copy import deepcopy
 import warnings
@@ -20,9 +20,10 @@ from rsatoolbox.cengine.similarity import calc_one, calc
 if TYPE_CHECKING:
     from rsatoolbox.data.base import DatasetBase
     from numpy.typing import NDArray
+    SingleOrMultiDataset = Union[DatasetBase, List[DatasetBase]]
 
 
-def calc_rdm_unbalanced(dataset: DatasetBase, method='euclidean',
+def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
                         descriptor=None, noise=None, cv_descriptor=None,
                         prior_lambda=1, prior_weight=0.1,
                         weighting='number', enforce_same=False) -> RDMs:
