@@ -451,17 +451,6 @@ def _gen_default_cv_descriptor(dataset, descriptor) -> np.ndarray:
     return cv_descriptor
 
 
-def _calc_pairwise_differences(measurements):
-    n, m = measurements.shape
-    diff = np.zeros((int(n * (n - 1) / 2), m))
-    k = 0
-    for i in range(measurements.shape[0]):
-        for j in range(i+1, measurements.shape[0]):
-            diff[k] = measurements[i] - measurements[j]
-            k += 1
-    return diff
-
-
 def _parse_input(
             dataset: DatasetBase,
             descriptor: Optional[str]
