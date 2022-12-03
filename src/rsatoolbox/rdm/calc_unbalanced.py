@@ -6,7 +6,8 @@ channels or numbers of measurements per dissimilarity
 
 @author: heiko
 """
-
+from __future__ import annotations
+from typing import TYPE_CHECKING, Tuple
 from collections.abc import Iterable
 from copy import deepcopy
 import warnings
@@ -16,12 +17,15 @@ from rsatoolbox.rdm.rdms import concat
 from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.matrix import row_col_indicator_rdm
 from rsatoolbox.cengine.similarity import calc_one, calc
+if TYPE_CHECKING:
+    from rsatoolbox.data.base import DatasetBase
+    from numpy.typing import NDArray
 
 
-def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
-                        noise=None, cv_descriptor=None,
+def calc_rdm_unbalanced(dataset: DatasetBase, method='euclidean',
+                        descriptor=None, noise=None, cv_descriptor=None,
                         prior_lambda=1, prior_weight=0.1,
-                        weighting='number', enforce_same=False):
+                        weighting='number', enforce_same=False) -> RDMs:
     """
     calculate a RDM from an input dataset for unbalanced datasets.
 
@@ -88,7 +92,10 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
             cv_desc_int = np.arange(dataset.n_obs, dtype=int)
             crossval = 0
         else:
-            _, indices = np.unique(dataset.obs_descriptors[cv_descriptor], return_inverse=True)
+            _, indices = np.unique(
+                dataset.obs_descriptors[cv_descriptor],
+                return_inverse=True
+            )
             cv_desc_int = indices.astype(int)
             crossval = 1
         if method == 'euclidean':
@@ -124,11 +131,12 @@ def calc_rdm_unbalanced(dataset, method='euclidean', descriptor=None,
     return rdm
 
 
-def calc_one_similarity(data_i, data_j,
-                        cv_desc_i, cv_desc_j,
+def calc_one_similarity(data_i: DatasetBase, data_j: DatasetBase,
+                        cv_desc_i: NDArray, cv_desc_j: NDArray,
                         method='euclidean',
                         noise=None, weighting='number',
-                        prior_lambda=1, prior_weight=0.1):
+                        prior_lambda=1, prior_weight=0.1
+                        ) -> Tuple[NDArray, NDArray]:
     """
     finds all pairs of vectors to be compared and calculates one distance
 
