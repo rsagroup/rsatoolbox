@@ -14,6 +14,7 @@ import warnings
 import numpy as np
 from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox.rdm.rdms import concat
+from rsatoolbox.rdm.calc import _build_rdms
 from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.matrix import row_col_indicator_rdm
 from rsatoolbox.cengine.similarity import calc_one, calc
@@ -107,6 +108,8 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
             method_idx = 3
         elif method in ['poisson', 'poisson_cv']:
             method_idx = 4
+        else:
+            raise ValueError(f'Unknown method: {method}')
         if weighting == 'equal':
             weight_idx = 0
         else:
@@ -124,11 +127,8 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
         rdm = np.array(rdm)
         self_sim = np.array(self_sim)
         rdm = row_idx @ self_sim + col_idx @ self_sim - 2 * rdm
-        rdm = RDMs(
-            dissimilarities=np.array([rdm]),
-            dissimilarity_measure=method,
-            rdm_descriptors=deepcopy(dataset.descriptors))
-        rdm.pattern_descriptors[descriptor] = list(unique_cond)
+        rdm = _build_rdms(rdm, dataset, method, descriptor, unique_cond,
+            cv_desc_int, noise)
     return rdm
 
 
