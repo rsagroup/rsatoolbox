@@ -62,7 +62,7 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
         sim = compare_spearman(rdm1, rdm2)
     elif method == 'corr':
         sim = compare_correlation(rdm1, rdm2)
-    elif method == 'kendall' or method == 'tau-b':
+    elif method in ('kendall', 'tau-b'):
         sim = compare_kendall_tau(rdm1, rdm2)
     elif method == 'tau-a':
         sim = compare_kendall_tau_a(rdm1, rdm2)
@@ -372,14 +372,7 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
         # Compute the extended version of RDM vectors in whitened space
         vector1_m = _cov_weighting(vector1, nan_idx, sigma_k)
         vector2_m = _cov_weighting(vector2, nan_idx, sigma_k)
-        # compute the inner products v1^T v2 for all combinations
-        cos = np.einsum('ij,kj->ik', vector1_m, vector2_m)
-        # divide by sqrt(v1^T v1)
-        cos /= np.sqrt(np.einsum('ij,ij->i', vector1_m,
-                                 vector1_m)).reshape((-1, 1))
-        # divide by sqrt(v2^T v2)
-        cos /= np.sqrt(np.einsum('ij,ij->i', vector2_m,
-                                 vector2_m)).reshape((1, -1))
+        cos = _cosine(vector1_m, vector2_m)
     return cos
 
 
@@ -462,11 +455,26 @@ def _cosine(vector1, vector2):
             cosine angle between vectors
 
     """
+    norm_1 = np.sqrt(np.einsum('ij,ij->i', vector1, vector1))
+    norm_2 = np.sqrt(np.einsum('ij,ij->i', vector2, vector2))
+    sel_1 = norm_1 > 0
+    sel_2 = norm_2 > 0
+    # without more indexing if all vectors are nonzero length
+    if np.all(sel_1) and np.all(sel_2):
+        # compute all inner products
+        cos_ok = np.einsum('ij,kj->ik', vector1, vector2)
+        # divide by sqrt of the inner products with themselves
+        cos_ok /= norm_1.reshape((-1, 1))
+        cos_ok /= norm_2.reshape((1, -1))
+        return cos_ok
+    # keep track of indexing if some vectors are 0
     # compute all inner products
-    cos = np.einsum('ij,kj->ik', vector1, vector2)
+    cos_ok = np.einsum('ij,kj->ik', vector1[sel_1], vector2[sel_2])
     # divide by sqrt of the inner products with themselves
-    cos /= np.sqrt(np.einsum('ij,ij->i', vector1, vector1)).reshape((-1, 1))
-    cos /= np.sqrt(np.einsum('ij,ij->i', vector2, vector2)).reshape((1, -1))
+    cos_ok /= norm_1[sel_1].reshape((-1, 1))
+    cos_ok /= norm_2[sel_2].reshape((1, -1))
+    cos = np.zeros((vector1.shape[0], vector2.shape[0]))
+    np.putmask(cos, np.outer(norm_1 > 0, norm_2 > 0), cos_ok)
     return cos
 
 
@@ -534,8 +542,8 @@ def _tau_a(vector1, vector2):
                       (vector2[1:] != vector2[:-1]), True]
     cnt = np.diff(np.nonzero(obs)[0]).astype('int64', copy=False)
     ntie = (cnt * (cnt - 1) // 2).sum()  # joint ties
-    xtie, x0, x1 = _count_rank_tie(vector1)     # ties in x, stats
-    ytie, y0, y1 = _count_rank_tie(vector2)     # ties in y, stats
+    xtie, _, _ = _count_rank_tie(vector1)     # ties in x, stats
+    ytie, _, _ = _count_rank_tie(vector2)     # ties in y, stats
     tot = (size * (size - 1)) // 2
     # Note that tot = con + dis + (xtie - ntie) + (ytie - ntie) + ntie
     #               = con + dis + xtie + ytie - ntie

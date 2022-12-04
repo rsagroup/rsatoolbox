@@ -4,11 +4,13 @@
 
 @author: baihan
 """
-
-from typing import Union, List, Dict
-
+from __future__ import annotations
+from typing import Union, List, Dict, Tuple, TYPE_CHECKING
+from numpy.typing import NDArray
 import numpy as np
 from scipy.spatial.distance import squareform
+if TYPE_CHECKING:
+    from rsatoolbox.rdm.rdms import RDMs
 
 
 def batch_to_vectors(rdms):
@@ -114,39 +116,46 @@ def add_pattern_index(rdms, pattern_descriptor):
     return pattern_descriptor, pattern_select
 
 
-def _parse_input_rdms(rdm1, rdm2):
+def _parse_input_rdms(rdm1: RDMs, rdm2: RDMs) -> Tuple[NDArray, NDArray, NDArray]:
     """Gets the vector representation of input RDMs, raises an error if
-    the two RDMs objects have different dimensions
+    the two RDMs objects have different dimensions, and remove nans
 
     Args:
-        rdm1 (rsatoolbox.rdm.RDMs):
-            first set of RDMs
-        rdm2 (rsatoolbox.rdm.RDMs):
-            second set of RDMs
+        rdm1 (RDMs): first set of RDMs
+        rdm2 (RDMs): second set of RDMs
 
+    Returns:
+        Tuple[NDArray, NDArray, NDArray]: Tuple of three:
+            0) vector of dissimilarities for rdm1 without nans
+            1) vector of dissimilarities for rdm2 without nans
+            2) boolean mask of non-nan pairs
     """
-    if not isinstance(rdm1, np.ndarray):
-        vector1 = rdm1.get_vectors()
-    else:
-        if len(rdm1.shape) == 1:
-            vector1 = rdm1.reshape(1, -1)
-        else:
-            vector1 = rdm1
-    if not isinstance(rdm2, np.ndarray):
-        vector2 = rdm2.get_vectors()
-    else:
-        if len(rdm2.shape) == 1:
-            vector2 = rdm2.reshape(1, -1)
-        else:
-            vector2 = rdm2
+    vector1 = rdm1.get_vectors()
+    vector2 = rdm2.get_vectors()
+    return _parse_nan_vectors(vector1, vector2)
+
+
+def _parse_nan_vectors(vector1: NDArray, vector2: NDArray) -> Tuple[NDArray, NDArray, NDArray]:
+    """Remove nans from two dissimilarity vectors
+
+    Args:
+        vector1 (NDArray): first set of dissimilarity vectors
+        vector2 (NDArray): second set of dissimilarity vectors
+
+    Returns:
+        Tuple[NDArray, NDArray, NDArray]: Tuple of three:
+            0) vector of dissimilarities for vector1 without nans
+            1) vector of dissimilarities for vector2 without nans
+            2) boolean mask of non-nan pairs
+    """
     if not vector1.shape[1] == vector2.shape[1]:
         raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
-    nan_idx = ~np.isnan(vector1)
-    vector1_no_nan = vector1[nan_idx].reshape(vector1.shape[0], -1)
+    not_nan_mask = ~np.isnan(vector1)
+    vector1_no_nan = vector1[not_nan_mask].reshape(vector1.shape[0], -1)
     vector2_no_nan = vector2[~np.isnan(vector2)].reshape(vector2.shape[0], -1)
     if not vector1_no_nan.shape[1] == vector2_no_nan.shape[1]:
         raise ValueError('rdm1 and rdm2 have different nan positions')
-    return vector1_no_nan, vector2_no_nan, nan_idx
+    return vector1_no_nan, vector2_no_nan, not_nan_mask
 
 
 def _extract_triu_(X):

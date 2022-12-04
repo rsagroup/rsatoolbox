@@ -338,10 +338,10 @@ class TestResult(unittest.TestCase):
         self.assertEqual(
             string,
             'Results for running fixed evaluation for corr on 2 models:\n\n'
-            + 'Model |  Eval ± SEM   | p (against 0) | p (against NC) |\n'
-            + '--------------------------------------------------------\n'
-            + 't1    | 0.873 ± 0.100 |        0.006  |         0.496  |\n'
-            + 't2    | 0.120 ± 0.141 |        0.243  |         0.037  |\n\n'
+            + 'Model |   Eval ± SEM   | p (against 0) | p (against NC) |\n'
+            + '---------------------------------------------------------\n'
+            + 't1    |  0.873 ± 0.100 |        0.006  |         0.496  |\n'
+            + 't2    |  0.120 ± 0.141 |        0.243  |         0.037  |\n\n'
             + 'p-values are based on uncorrected t-tests')
 
 

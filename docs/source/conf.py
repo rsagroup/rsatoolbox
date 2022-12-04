@@ -14,6 +14,7 @@
 #
 import os
 import sys
+from pkg_resources import get_distribution
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
 
@@ -23,10 +24,11 @@ project = 'rsatoolbox'
 copyright = '2021, rsatoolbox authors'
 author = 'rsatoolbox authors'
 
+# The full version
+release = get_distribution('rsatoolbox').version
+
 # The short X.Y version
-version = '0.0'
-# The full version, including alpha/beta/rc tags
-release = '0.0.4'
+version = '.'.join(release.split('.')[:2])
 
 
 # -- General configuration ---------------------------------------------------

@@ -9,7 +9,6 @@ import numpy as np
 from scipy import stats
 from scipy.stats import rankdata, wilcoxon
 from scipy.stats import t as tdist
-from collections.abc import Iterable
 from rsatoolbox.model import Model
 from rsatoolbox.rdm import RDMs
 from .matrix import pairwise_contrast
@@ -108,13 +107,13 @@ def pool_rdm(rdms, method='cosine'):
         rdm_vec = rdm_vec / np.nanstd(rdm_vec, axis=1, keepdims=True)
         rdm_vec = _nan_mean(rdm_vec)
         rdm_vec = rdm_vec - np.nanmin(rdm_vec)
-    elif method in ['spearman', 'rho-a']:
+    elif method in ('spearman', 'rho-a'):
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'rho-a':
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
-    elif method in ['kendall', 'tau-b']:
+    elif method in ('kendall', 'tau-b'):
         Warning('Noise ceiling for tau based on averaged ranks!')
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
@@ -402,8 +401,7 @@ def bootstrap_pair_tests(evaluations):
                    np.sum(evaluations[:, i_model] == evaluations[:, j_model]))
             proportions[j_model, i_model] = proportions[i_model, j_model]
     proportions = np.minimum(proportions, 1 - proportions) * 2
-    proportions = (
-        len(evaluations) - 1) / len(evaluations) * proportions \
+    proportions = (len(evaluations) - 1) / len(evaluations) * proportions \
         + 1 / len(evaluations)
     np.fill_diagonal(proportions, 1)
     return proportions

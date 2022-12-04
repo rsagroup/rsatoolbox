@@ -10,7 +10,7 @@ import scipy.sparse
 from rsatoolbox.rdm import compare
 from rsatoolbox.util.matrix import get_v
 from rsatoolbox.util.pooling import pool_rdm
-from rsatoolbox.util.rdm_utils import _parse_input_rdms
+from rsatoolbox.util.rdm_utils import _parse_nan_vectors
 
 
 class Fitter:
@@ -131,9 +131,24 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
                      pattern_idx=pattern_idx,
                      pattern_descriptor=pattern_descriptor,
                      sigma_k=sigma_k, ridge_weight=ridge_weight)
-    theta0 = np.random.rand(model.n_param)
-    theta = opt.minimize(_loss_opt, theta0)
-    return theta.x / np.sqrt(np.sum(theta.x ** 2))
+    thetas = []
+    losses = []
+    for _ in range(2 * model.n_param):
+        theta0 = np.random.rand(model.n_param)
+        theta = opt.minimize(
+            _loss_opt,
+            theta0,
+            method='BFGS',
+            tol=0.000001
+        )
+        thetas.append(theta.x)
+        losses.append(theta.fun)
+    id = np.argmin(losses)
+    theta = thetas[id]
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
+    return theta.flatten() / np.sqrt(norm)
 
 
 def fit_optimize_positive(
@@ -164,9 +179,35 @@ def fit_optimize_positive(
                      pattern_idx=pattern_idx,
                      pattern_descriptor=pattern_descriptor,
                      sigma_k=sigma_k, ridge_weight=ridge_weight)
+    theta0 = np.zeros(model.n_param)
+    thetas = [theta0]
+    losses = [_loss_opt(theta0)]
     theta0 = np.random.rand(model.n_param)
-    theta = opt.minimize(_loss_opt, theta0)
-    return theta.x ** 2 / np.sqrt(np.sum(theta.x ** 4))
+    theta = opt.minimize(
+        fun=_loss_opt,
+        x0=theta0,
+        method='BFGS',
+        tol=0.000001
+    )
+    thetas.append(theta.x)
+    losses.append(theta.fun)
+    for i in range(model.n_param):
+        theta0 = np.ones(model.n_param) * 0.001
+        theta0[i] = 1
+        theta = opt.minimize(
+            fun=_loss_opt,
+            x0=theta0,
+            method='BFGS',
+            tol=0.000001
+        )
+        thetas.append(theta.x)
+        losses.append(theta.fun)
+    id = np.argmin(losses)
+    theta = thetas[id] ** 2
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
+    return theta.flatten() / np.sqrt(norm)
 
 
 def fit_interpolate(model, data, method='cosine', pattern_idx=None,
@@ -251,7 +292,7 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
     vectors = pred.get_vectors()
     data_mean = pool_rdm(data, method=method)
     y = data_mean.get_vectors()
-    vectors, y, nan_idx = _parse_input_rdms(vectors, y)
+    vectors, y, nan_idx = _parse_nan_vectors(vectors, y)
     # Normalizations
     if method == 'cosine':
         v = None
@@ -278,6 +319,9 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
         y = v_inv_x @ y.T
         X = vectors @ v_inv_x.T + ridge_weight * np.eye(vectors.shape[0])
     theta = np.linalg.solve(X, y)
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
     return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
@@ -319,7 +363,7 @@ def fit_regress_nn(model, data, method='cosine', pattern_idx=None,
     vectors = pred.get_vectors()
     data_mean = pool_rdm(data, method=method)
     y = data_mean.get_vectors()
-    vectors, y, nan_idx = _parse_input_rdms(vectors, y)
+    vectors, y, non_nan_mask = _parse_nan_vectors(vectors, y)
     # Normalizations
     if method == 'cosine':
         v = None
@@ -328,15 +372,18 @@ def fit_regress_nn(model, data, method='cosine', pattern_idx=None,
         v = None
     elif method == 'cosine_cov':
         v = get_v(pred.n_cond, sigma_k)
-        v = v[nan_idx[0]][:, nan_idx[0]]
+        v = v[non_nan_mask[0]][:, non_nan_mask[0]]
     elif method == 'corr_cov':
         vectors = vectors - np.mean(vectors, 1, keepdims=True)
         y = y - np.mean(y)
         v = get_v(pred.n_cond, sigma_k)
-        v = v[nan_idx[0]][:, nan_idx[0]]
+        v = v[non_nan_mask[0]][:, non_nan_mask[0]]
     else:
         raise ValueError('method argument invalid')
     theta, _ = _nn_least_squares(vectors.T, y[0], ridge_weight=ridge_weight, V=v)
+    norm = np.sum(theta ** 2)
+    if norm == 0:
+        return theta.flatten()
     return theta.flatten() / np.sqrt(np.sum(theta ** 2))
 
 
@@ -401,7 +448,7 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
                                                atol=10 ** -9)[0]
                         for i in range(A.shape[1])])
         y_V_A = V_A @ y
-        w = A.T @ V @ y
+        w = y_V_A
         ATA = A.T @ V_A.T + ridge_weight * np.eye(A.shape[1])
     while np.max(w) > 100 * np.finfo(float).eps:
         p[np.argmax(w)] = True

@@ -20,10 +20,10 @@ from .noise_ceiling import cv_noise_ceiling
 
 
 def eval_dual_bootstrap(
-    models, data, method='cosine', fitter=None,
-    k_pattern=1, k_rdm=1, N=1000, n_cv=2,
-    pattern_descriptor='index', rdm_descriptor='index',
-    use_correction=True):
+        models, data, method='cosine', fitter=None,
+        k_pattern=1, k_rdm=1, N=1000, n_cv=2,
+        pattern_descriptor='index', rdm_descriptor='index',
+        use_correction=True):
     """dual bootstrap evaluation of models
     i.e. models are evaluated in a bootstrap over rdms, one over patterns
     and a bootstrap over both using the same bootstrap samples for each.
@@ -144,17 +144,19 @@ def eval_dual_bootstrap(
     if use_correction and n_cv > 1:
         # we essentially project from the two points for 1 repetition and
         # for n_cv repetitions to infinitely many cv repetitions
-        evals_mean = np.mean(np.mean(evaluations[eval_ok], -1), -1)
-        evals_1 = np.mean(evaluations[eval_ok], -2)
-        noise_ceil_mean = np.mean(noise_ceil[:, eval_ok], -1)
-        noise_ceil_1 = noise_ceil[:, eval_ok]
-        var_mean = np.cov(
-            np.concatenate([evals_mean.T, noise_ceil_mean]))
-        var_1 = []
-        for i in range(n_cv):
-            var_1.append(np.cov(np.concatenate([
-                evals_1[:, :, i].T, noise_ceil_1[:, :, i]])))
-        var_1 = np.mean(np.array(var_1), axis=0)
+        evals_nonan = np.mean(np.mean(evaluations[eval_ok], -2), -2)
+        evals_1 = np.mean(evaluations[eval_ok], -3)
+        noise_ceil_nonan = np.mean(
+            noise_ceil[:, eval_ok], -2).transpose([1, 0, 2])
+        noise_ceil_1 = noise_ceil[:, eval_ok].transpose([1, 0, 2, 3])
+        matrix = np.concatenate([evals_nonan, noise_ceil_nonan], 1)
+        matrix -= np.mean(matrix, 0, keepdims=True)
+        var_mean = np.einsum('ijk,ilk->kjl', matrix, matrix) \
+            / (matrix.shape[0] - 1)
+        matrix_1 = np.concatenate([evals_1, noise_ceil_1], 1)
+        matrix_1 -= np.mean(matrix_1, 0, keepdims=True)
+        var_1 = np.einsum('ijmk,ilmk->kjl', matrix_1, matrix_1) \
+            / (matrix_1.shape[0] - 1) / matrix_1.shape[2]
         # this is the main formula for the correction:
         variances = (n_cv * var_mean - var_1) / (n_cv - 1)
     else:
@@ -235,7 +237,7 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
-        sample, rdm_idx, pattern_idx = \
+        sample, _, pattern_idx = \
             bootstrap_sample(data, rdm_descriptor=rdm_descriptor,
                              pattern_descriptor=pattern_descriptor)
         if len(np.unique(pattern_idx)) >= 3:
@@ -352,7 +354,7 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
     noise_min = []
     noise_max = []
     for i in tqdm.trange(N):
-        sample, rdm_idx = bootstrap_sample_rdm(data, rdm_descriptor)
+        sample, _ = bootstrap_sample_rdm(data, rdm_descriptor)
         for j, mod in enumerate(models):
             rdm_pred = mod.predict_rdm(theta=theta[j])
             evaluations[i, j] = np.mean(compare(rdm_pred, sample,
@@ -407,8 +409,7 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
         models = [models]
     evaluations = []
     noise_ceil = []
-    for i in range(len(train_set)):
-        train = train_set[i]
+    for i, train in enumerate(train_set):
         test = test_set[i]
         if (train[0].n_rdm == 0 or test[0].n_rdm == 0 or
                 train[0].n_cond <= 2 or test[0].n_cond <= 2):
@@ -448,7 +449,7 @@ def crossval(models, rdms, train_set, test_set, ceil_set=None, method='cosine',
 def bootstrap_crossval(models, data, method='cosine', fitter=None,
                        k_pattern=None, k_rdm=None, N=1000, n_cv=2,
                        pattern_descriptor='index', rdm_descriptor='index',
-                       random=True, boot_type='both', use_correction=True):
+                       boot_type='both', use_correction=True):
     """evaluates a set of models by k-fold crossvalidation within a bootstrap
 
     Crossvalidation creates variance in the results for a single bootstrap
@@ -500,7 +501,6 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         n_cv(int) : number of crossvalidation runs per sample (default: 1)
         pattern_descriptor(string): descriptor to group patterns
         rdm_descriptor(string): descriptor to group rdms
-        random(bool): randomize group assignments (default: True)
         boot_type(String): which dimension to bootstrap over (default: 'both')
             alternatives: 'rdm', 'pattern'
         use_correction(bool): switch for the correction for the
@@ -595,10 +595,10 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
 
 
 def eval_dual_bootstrap_random(
-    models, data, method='cosine', fitter=None,
-    n_pattern=None, n_rdm=None, N=1000, n_cv=2,
-    pattern_descriptor='index', rdm_descriptor='index',
-    random=True, boot_type='both', use_correction=True):
+        models, data, method='cosine', fitter=None,
+        n_pattern=None, n_rdm=None, N=1000, n_cv=2,
+        pattern_descriptor='index', rdm_descriptor='index',
+        boot_type='both', use_correction=True):
     """evaluates a set of models by a evaluating a few random crossvalidation
     folds per bootstrap.
 
@@ -625,7 +625,6 @@ def eval_dual_bootstrap_random(
         n_cv(int) : number of crossvalidation runs per sample (default: 1)
         pattern_descriptor(string): descriptor to group patterns
         rdm_descriptor(string): descriptor to group rdms
-        random(bool): randomize group assignments (default: True)
         boot_type(String): which dimension to bootstrap over (default: 'both')
             alternatives: 'rdm', 'pattern'
         use_correction(bool): switch for the correction for the
@@ -686,11 +685,10 @@ def eval_dual_bootstrap_random(
                     method=method,
                     rdm_descriptor=rdm_descriptor)
             noise_ceil[:, i_sample] = nc
-            for idx in range(len(test_set)):
-                test_set[idx][1] = _concat_sampling(pattern_idx,
-                                                    test_set[idx][1])
-                train_set[idx][1] = _concat_sampling(pattern_idx,
-                                                     train_set[idx][1])
+            for test_s in test_set:
+                test_s[1] = _concat_sampling(pattern_idx, test_s[1])
+            for train_s in train_set:
+                train_s[1] = _concat_sampling(pattern_idx, train_s[1])
             cv_result = crossval(
                 models, sample,
                 train_set, test_set,
@@ -770,11 +768,10 @@ def _internal_cv(models, sample,
             sample,
             method=method,
             rdm_descriptor=rdm_descriptor)
-    for idx in range(len(test_set)):
-        test_set[idx][1] = _concat_sampling(pattern_idx,
-                                            test_set[idx][1])
-        train_set[idx][1] = _concat_sampling(pattern_idx,
-                                             train_set[idx][1])
+    for test_s in test_set:
+        test_s[1] = _concat_sampling(pattern_idx, test_s[1])
+    for train_s in train_set:
+        train_s[1] = _concat_sampling(pattern_idx, train_s[1])
     cv_result = crossval(
         models, sample,
         train_set, test_set,
