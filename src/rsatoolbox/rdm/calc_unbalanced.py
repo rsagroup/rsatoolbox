@@ -128,7 +128,7 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
         self_sim = np.array(self_sim)
         rdm = row_idx @ self_sim + col_idx @ self_sim - 2 * rdm
         rdm = _build_rdms(rdm, dataset, method, descriptor, unique_cond,
-            cv_desc_int, noise)
+                          cv_desc_int, noise)
     return rdm
 
 
