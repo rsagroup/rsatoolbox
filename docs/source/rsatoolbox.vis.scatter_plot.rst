@@ -1,5 +1,5 @@
 rsatoolbox.vis.scatter\_plot module
-==========================
+===================================
 
 .. automodule:: rsatoolbox.vis.scatter_plot
    :members:

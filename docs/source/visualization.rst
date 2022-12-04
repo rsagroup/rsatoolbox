@@ -31,6 +31,6 @@ Ploting model evaluations
 
 Results objects can be plotted into the typical bar plot of model evaluations 
 using ``rsatoolbox.vis.plot_model_comparison``. It takes 
-a :doc:`Result object<Results objects>` as input and does all necessary
+a :ref:`Result object <result_object>` as input and does all necessary
 inferences based on the uncertainties stored in the results object. It
 provides many options for changing the layout and the inferences performed.
