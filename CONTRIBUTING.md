@@ -22,10 +22,8 @@ How-to
 4. `rm dist/*` remove any previously built packages if necessary
 5. `python -m build` compile a new rsatoolbox package with your latest changes
 6. `pip install dist/*` install the new package
-7. `pip install -r requirements.txt` install the new package
-8. `pip install -r tests/requirements.txt` install the new package
-9. `pytest` run the unit tests on the installed version of rsatoolbox
-10. run linting tools such as `flake8`, `vulture` to discover any style issues
+7. `pytest` run the unit tests on the installed version of rsatoolbox
+8. run linting tools such as `flake8`, `vulture` to discover any style issues
 
 
 Rules
