@@ -71,8 +71,8 @@ def rdm_colormap_classic(n_cols: int=256, monitor: bool=False):
 
             import numpy as np
             import matplotlib.pyplot as plt
-            from rsatoolbox.vis.colors import rdm_colormap
-            plt.imshow(np.random.rand(10,10),cmap=rdm_colormap())
+            from rsatoolbox.vis.colors import rdm_colormap_classic
+            plt.imshow(np.random.rand(10,10),cmap=rdm_colormap_classic())
             plt.colorbar()
             plt.show()
 
