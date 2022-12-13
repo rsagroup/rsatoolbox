@@ -272,9 +272,9 @@ def show_rdm_panel(
         rdm (rsatoolbox.rdm.RDMs): RDMs object to be plotted (n_rdm must be 1).
         ax (matplotlib.axes._axes.Axes): Matplotlib axis handle. plt.gca() by default.
         cmap (str or Colormap): Colormap to be used.
-            Either the name of a Matplotlib built-in colormap, a Matplotlib 
-            Colormap compatible object, or 'classic' for the matlab toolbox colormap.
-            Defaults to 'bone'.
+            Either the name of a Matplotlib built-in colormap, a Matplotlib
+            Colormap compatible object, or 'classic' for the matlab toolbox
+            colormap. Defaults to 'bone'.
         nanmask (npt.ArrayLike): boolean mask defining RDM elements to suppress
             (by default, the diagonals).
         rdm_descriptor (str): Key for rdm_descriptor to use as panel title, or
