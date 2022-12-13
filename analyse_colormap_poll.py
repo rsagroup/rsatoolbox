@@ -15,14 +15,14 @@ for _, row in df[df.nmoves > 0].iterrows():
 print(sorted(votes.items(), key=lambda cmap_tuple: sum(cmap_tuple[1])))
 
 """ 3 votes:
-[('bone', [1, 0, 0]),
- ('gray', [0, 1, 1]),
- ('inferno', [6, 3, 3]),
- ('cividis', [3, 5, 5]),
- ('magma', [7, 4, 2]),
- ('crest_r', [2, 6, 8]),
- ('current', [5, 2, 9]),
- ('viridis', [4, 9, 4]),
- ('plasma', [8, 8, 6]),
- ('flare_r', [9, 7, 7])]
+[('bone', [1, 0, 0, 0, 1, 2]),
+ ('gray', [0, 4, 1, 1, 2, 0]),
+ ('cividis', [3, 1, 5, 5, 3, 1]),
+ ('crest_r', [2, 3, 6, 8, 0, 3]),
+ ('magma', [7, 5, 4, 2, 5, 7]),
+ ('inferno', [6, 6, 3, 3, 6, 8]),
+ ('flare_r', [9, 2, 7, 7, 4, 6]),
+ ('viridis', [4, 8, 9, 4, 8, 4]),
+ ('current', [5, 9, 2, 9, 9, 5]),
+ ('plasma', [8, 7, 8, 6, 7, 9])]
 """
