@@ -6,7 +6,7 @@ Plot showing an RDMs object
 
 from __future__ import annotations
 import collections
-from typing import TYPE_CHECKING, Union, Tuple
+from typing import TYPE_CHECKING, Union, Tuple, Optional
 import pkg_resources
 import numpy as np
 import matplotlib
@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     import numpy.typing as npt
     import pathlib
     from matplotlib.axes._axes import Axes
+    from matplotlib.colors import Colormap
 
 RDM_STYLE = pkg_resources.resource_filename('rsatoolbox.vis', 'rdm.mplstyle')
 
@@ -25,7 +26,7 @@ RDM_STYLE = pkg_resources.resource_filename('rsatoolbox.vis', 'rdm.mplstyle')
 def show_rdm(
     rdm: rsatoolbox.rdm.RDMs,
     pattern_descriptor: str = None,
-    cmap: Union[str, matplotlib.colors.Colormap] = None,
+    cmap: Union[str, Colormap] = 'bone',
     rdm_descriptor: str = None,
     n_column: int = None,
     n_row: int = None,
@@ -48,8 +49,9 @@ def show_rdm(
         rdm (rsatoolbox.rdm.RDMs): RDMs object to be plotted.
         pattern_descriptor (str): Key into rdm.pattern_descriptors to use for axis
             labels.
-        cmap (Union[str, matplotlib.colors.Colormap]): colormap to be used (by
-            plt.imshow internally). By default we use rdm_colormap.
+        cmap (str or Colormap): Colormap to be used.
+            Either the name of a Matplotlib built-in colormap, or a Matplotlib 
+            Colormap compatible object. Defaults to 'bone'.
         rdm_descriptor (str): Key for rdm_descriptor to use as panel title, or
             str for direct labeling.
         n_column (int): Number of columns in subplot arrangement.
@@ -255,8 +257,8 @@ def _rdm_colorbar(
 
 def show_rdm_panel(
     rdm: rsatoolbox.rdm.RDMs,
-    ax: Axes = None,
-    cmap: Union[str, matplotlib.colors.Colormap] = None,
+    ax: Optional[Axes] = None,
+    cmap: Union[str, Colormap] = 'bone',
     nanmask: npt.ArrayLike = None,
     rdm_descriptor: str = None,
     gridlines: npt.ArrayLike = None,
@@ -268,8 +270,9 @@ def show_rdm_panel(
     Args:
         rdm (rsatoolbox.rdm.RDMs): RDMs object to be plotted (n_rdm must be 1).
         ax (matplotlib.axes._axes.Axes): Matplotlib axis handle. plt.gca() by default.
-        cmap (Union[str, matplotlib.colors.Colormap]): colormap to be used (by
-            plt.imshow internally). By default we use rdm_colormap.
+        cmap (str or Colormap): Colormap to be used.
+            Either the name of a Matplotlib built-in colormap, or a Matplotlib 
+            Colormap compatible object. Defaults to 'bone'.
         nanmask (npt.ArrayLike): boolean mask defining RDM elements to suppress
             (by default, the diagonals).
         rdm_descriptor (str): Key for rdm_descriptor to use as panel title, or
@@ -287,7 +290,7 @@ def show_rdm_panel(
         raise ValueError("expected single rdm - use show_rdm for multi-panel figures")
     if ax is None:
         ax = plt.gca()
-    if cmap is None:
+    if cmap == 'classic':
         cmap = rdm_colormap_classic()
     if nanmask is None:
         nanmask = np.eye(rdm.n_cond, dtype=bool)
