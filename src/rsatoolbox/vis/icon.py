@@ -16,9 +16,9 @@ from PIL import UnidentifiedImageError
 from rsatoolbox.rdm import RDMs
 from rsatoolbox.util.pooling import pool_rdm
 if hasattr(matplotlib.colormaps, 'get_cmap'):
-    get_cmap = matplotlib.colormaps.get_cmap
+    mpl_get_cmap = matplotlib.colormaps.get_cmap
 else:
-    get_cmap = matplotlib.cm.get_cmap  # drop:py37
+    mpl_get_cmap = matplotlib.cm.get_cmap  # drop:py37
 
 
 class Icon:
@@ -247,7 +247,7 @@ class Icon:
             else:
                 im = self._image
             if self.cmap is not None:
-                im = matplotlib.colormaps.get_cmap(self.cmap)(im)
+                im = mpl_get_cmap(self.cmap)(im)
             im = PIL.Image.fromarray((im * 255).astype(np.uint8))
         else:  # we hope it is a PIL image or equivalent
             im = self._image
