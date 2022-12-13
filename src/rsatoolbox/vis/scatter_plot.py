@@ -102,7 +102,12 @@ def show_2d(
     """
     if method == 'MDS':
         MDS = sklearn.manifold.MDS if weights is None else Weighted_MDS
-        embedding = MDS(n_components=2, random_state=seed, dissimilarity='precomputed')
+        embedding = MDS(
+            n_components=2,
+            random_state=seed,
+            dissimilarity='precomputed',
+            normalized_stress='auto'
+        )
     elif method == 't-SNE':
         embedding = sklearn.manifold.TSNE(n_components=2)
     elif method == 'Isomap':
