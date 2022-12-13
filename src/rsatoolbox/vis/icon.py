@@ -18,7 +18,7 @@ from rsatoolbox.util.pooling import pool_rdm
 if hasattr(matplotlib.colormaps, 'get_cmap'):
     get_cmap = matplotlib.colormaps.get_cmap
 else:
-    get_cmap = matplotlib.cm.get_cmap # drop:py37
+    get_cmap = matplotlib.cm.get_cmap  # drop:py37
 
 
 class Icon:
