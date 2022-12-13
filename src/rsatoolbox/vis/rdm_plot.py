@@ -13,7 +13,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import rsatoolbox.rdm
 from rsatoolbox import vis
-from rsatoolbox.vis.colors import rdm_colormap
+from rsatoolbox.vis.colors import rdm_colormap_classic
 if TYPE_CHECKING:
     import numpy.typing as npt
     import pathlib
@@ -288,7 +288,7 @@ def show_rdm_panel(
     if ax is None:
         ax = plt.gca()
     if cmap is None:
-        cmap = rdm_colormap()
+        cmap = rdm_colormap_classic()
     if nanmask is None:
         nanmask = np.eye(rdm.n_cond, dtype=bool)
     if not np.any(gridlines):

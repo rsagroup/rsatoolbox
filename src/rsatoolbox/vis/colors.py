@@ -1,11 +1,9 @@
-#!/usr/bin/python
-# -*- coding: UTF-8 -*-
 """
-Definition of rsatoolbox's colors
+Classic colormap ported from matlab rsatoolbox 
 
 @author: iancharest
 """
-
+from __future__ import annotations
 import numpy as np
 from skimage.color import rgb2hsv, hsv2rgb
 import matplotlib.pyplot as plt
@@ -13,7 +11,7 @@ from matplotlib.colors import ListedColormap
 from scipy.interpolate import interp1d
 
 
-def color_scale(n_cols, anchor_cols=None, monitor=False):
+def color_scale(n_cols: int, anchor_cols=None, monitor=False):
     """ linearly interpolates between a set of given
     anchor colours to give n_cols and displays them
     if monitor is set
@@ -55,7 +53,7 @@ def color_scale(n_cols, anchor_cols=None, monitor=False):
     return cols
 
 
-def rdm_colormap(n_cols=256, monitor=None):
+def rdm_colormap_classic(n_cols: int=256, monitor: bool=False):
     """this function provides a convenient colormap for visualizing
     dissimilarity matrices. it goes from blue to yellow and has grey for
     intermediate values.
