@@ -1,5 +1,5 @@
 """
-Classic colormap ported from matlab rsatoolbox 
+Classic colormap ported from matlab rsatoolbox
 
 @author: iancharest
 """
@@ -53,7 +53,7 @@ def color_scale(n_cols: int, anchor_cols=None, monitor=False):
     return cols
 
 
-def rdm_colormap_classic(n_cols: int=256, monitor: bool=False):
+def rdm_colormap_classic(n_cols: int = 256, monitor: bool = False):
     """this function provides a convenient colormap for visualizing
     dissimilarity matrices. it goes from blue to yellow and has grey for
     intermediate values.

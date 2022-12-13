@@ -50,9 +50,9 @@ def show_rdm(
         pattern_descriptor (str): Key into rdm.pattern_descriptors to use for axis
             labels.
         cmap (str or Colormap): Colormap to be used.
-            Either the name of a Matplotlib built-in colormap, a Matplotlib 
-            Colormap compatible object, or 'classic' for the matlab toolbox colormap.
-            Defaults to 'bone'.
+            Either the name of a Matplotlib built-in colormap, a Matplotlib
+            Colormap compatible object, or 'classic' for the matlab toolbox
+            colormap. Defaults to 'bone'.
         rdm_descriptor (str): Key for rdm_descriptor to use as panel title, or
             str for direct labeling.
         n_column (int): Number of columns in subplot arrangement.
