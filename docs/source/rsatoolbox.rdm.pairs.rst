@@ -1,5 +1,5 @@
 rsatoolbox.rdm.pairs module
-==========================
+===========================
 
 .. automodule:: rsatoolbox.rdm.pairs
    :members:
