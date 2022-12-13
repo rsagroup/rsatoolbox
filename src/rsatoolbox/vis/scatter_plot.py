@@ -106,7 +106,7 @@ def show_2d(
             n_components=2,
             random_state=seed,
             dissimilarity='precomputed',
-            normalized_stress='auto'
+            # normalized_stress='auto' # drop:py37
         )
     elif method == 't-SNE':
         embedding = sklearn.manifold.TSNE(n_components=2)
