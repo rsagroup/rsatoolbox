@@ -6,7 +6,7 @@ icon object which can be plotted into an axis
 
 import os
 import matplotlib.pyplot as plt
-from matplotlib import cm
+import matplotlib
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox, DrawingArea
 import numpy as np
 import PIL
@@ -243,7 +243,7 @@ class Icon:
             else:
                 im = self._image
             if self.cmap is not None:
-                im = cm.get_cmap(self.cmap)(im)
+                im = matplotlib.colormaps.get_cmap(self.cmap)(im)
             im = PIL.Image.fromarray((im * 255).astype(np.uint8))
         else:  # we hope it is a PIL image or equivalent
             im = self._image

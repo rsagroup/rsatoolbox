@@ -437,6 +437,8 @@ class Weighted_MDS(BaseEstimator):
         self.embedding_ = None
         self.stress_ = None
         self.n_iter_ = None
+        # not in use, declared for consistency with sklearn:
+        self.normalized_stress = normalized_stress  
 
     @property
     def _pairwise(self):
