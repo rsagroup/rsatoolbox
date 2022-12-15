@@ -292,23 +292,10 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
     vectors = pred.get_vectors()
     data_mean = pool_rdm(data, method=method)
     y = data_mean.get_vectors()
-    vectors, y, nan_idx = _parse_nan_vectors(vectors, y)
-    # Normalizations
-    if method == 'cosine':
-        v = None
-    elif method == 'corr':
-        vectors = vectors - np.mean(vectors, 1, keepdims=True)
-        v = None
-    elif method == 'cosine_cov':
-        v = get_v(pred.n_cond, sigma_k)
-        v = v[nan_idx[0]][:, nan_idx[0]]
-    elif method == 'corr_cov':
-        vectors = vectors - np.mean(vectors, 1, keepdims=True)
-        y = y - np.mean(y)
-        v = get_v(pred.n_cond, sigma_k)
-        v = v[nan_idx[0]][:, nan_idx[0]]
-    else:
-        raise ValueError('method argument invalid')
+    vectors, y, non_nan_mask = _parse_nan_vectors(vectors, y)
+    vectors, v, y = _normalize(
+        vectors, y, method,
+        pred.n_cond, non_nan_mask, sigma_k)
     if v is None:
         X = vectors @ vectors.T + ridge_weight * np.eye(vectors.shape[0])
         y = vectors @ y.T
@@ -364,22 +351,9 @@ def fit_regress_nn(model, data, method='cosine', pattern_idx=None,
     data_mean = pool_rdm(data, method=method)
     y = data_mean.get_vectors()
     vectors, y, non_nan_mask = _parse_nan_vectors(vectors, y)
-    # Normalizations
-    if method == 'cosine':
-        v = None
-    elif method == 'corr':
-        vectors = vectors - np.mean(vectors, 1, keepdims=True)
-        v = None
-    elif method == 'cosine_cov':
-        v = get_v(pred.n_cond, sigma_k)
-        v = v[non_nan_mask[0]][:, non_nan_mask[0]]
-    elif method == 'corr_cov':
-        vectors = vectors - np.mean(vectors, 1, keepdims=True)
-        y = y - np.mean(y)
-        v = get_v(pred.n_cond, sigma_k)
-        v = v[non_nan_mask[0]][:, non_nan_mask[0]]
-    else:
-        raise ValueError('method argument invalid')
+    vectors, v, y = _normalize(
+        vectors, y, method,
+        pred.n_cond, non_nan_mask, sigma_k)
     theta, _ = _nn_least_squares(vectors.T, y[0], ridge_weight=ridge_weight, V=v)
     norm = np.sum(theta ** 2)
     if norm == 0:
@@ -479,3 +453,26 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
     else:
         loss = (y - A @ x).T @ V @ (y - A @ x)
     return x, loss
+
+
+def _normalize(
+    vectors, y, method,
+    n_cond, non_nan_mask, sigma_k
+):
+    # Normalizations
+    if method == 'cosine':
+        v = None
+    elif method == 'corr':
+        vectors = vectors - np.mean(vectors, 1, keepdims=True)
+        v = None
+    elif method == 'cosine_cov':
+        v = get_v(n_cond, sigma_k)
+        v = v[non_nan_mask[0]][:, non_nan_mask[0]]
+    elif method == 'corr_cov':
+        vectors = vectors - np.mean(vectors, 1, keepdims=True)
+        y = y - np.mean(y)
+        v = get_v(n_cond, sigma_k)
+        v = v[non_nan_mask[0]][:, non_nan_mask[0]]
+    else:
+        raise ValueError('method argument invalid')
+    return vectors, v, y
