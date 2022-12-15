@@ -547,11 +547,25 @@ def concat(*rdms):
             rdms_list = list(rdms[0])
     else:
         rdms_list = list(rdms)
-    rdm = deepcopy(rdms_list[0])
-    assert isinstance(rdm, RDMs), \
+    assert isinstance(rdms_list[0], RDMs), \
         'Supply list of RDMs objects, or RDMs objects as separate arguments'
+    rdm_descriptors = deepcopy(rdms_list[0].rdm_descriptors)
     for rdm_new in rdms_list[1:]:
-        rdm.append(rdm_new)
+        assert isinstance(rdm_new, RDMs), 'rdm for concat should be an RDMs'
+        assert rdm_new.n_cond == rdms_list[0].n_cond, 'rdm for concat had wrong shape'
+        assert rdm_new.dissimilarity_measure == rdms_list[0].dissimilarity_measure, \
+            'appended rdm had wrong dissimilarity measure'
+        rdm_descriptors = append_descriptor(rdm_descriptors, rdm_new.rdm_descriptors)
+    dissimilarities = np.concatenate([
+        rdm.dissimilarities
+        for rdm in rdms_list
+        ], axis=0)
+    rdm = RDMs(
+        dissimilarities=dissimilarities,
+        rdm_descriptors=rdm_descriptors,
+        descriptors=rdms_list[0].descriptors,
+        pattern_descriptors=rdms_list[0].pattern_descriptors
+    )
     return rdm
 
 

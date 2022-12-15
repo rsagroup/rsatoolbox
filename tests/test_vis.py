@@ -96,7 +96,7 @@ def _dummy_rdm():
     import matplotlib.markers
     from collections import defaultdict
 
-    markers = list(matplotlib.markers.MarkerStyle().markers.keys())
+    markers = list(matplotlib.markers.MarkerStyle('').markers.keys())
     images = np.meshgrid(
         np.linspace(0.5, 1.0, 50), np.linspace(0.5, 1.0, 30), np.linspace(0.5, 1.0, 3)
     )
