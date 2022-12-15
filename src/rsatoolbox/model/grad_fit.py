@@ -37,7 +37,7 @@ def _ls_grad(
     ridge_weight=0,
     V=None,
     non_negative=True,
-    ls_thresh=0.8, ls_fact=2,
+    ls_thresh=0.1, ls_fact=2, tol=10**-8,
     verbose=False
 ):
     assert A.shape[0] == y.shape[0]
@@ -45,17 +45,19 @@ def _ls_grad(
     x = np.ones(A.shape[1])
     if V is not None:
         V_inv = np.linalg.inv(V)
-        grad = A.T @ V_inv @ (y - A @ x) - ridge_weight * x
+        grad = 2 * (A.T @ V_inv @ (y - A @ x) - ridge_weight * x)
         yA = y - A @ x
-        loss = yA.T @ V @ yA
+        loss = yA.T @ V @ yA + ridge_weight * np.sum(x**2)
     else:
-        grad = A.T @ (y - A @ x) - ridge_weight * x
-        loss = np.sum((y - A @ x) ** 2)
+        grad = 2 * (A.T @ (y - A @ x) - ridge_weight * x)
+        loss = np.sum((y - A @ x) ** 2) + ridge_weight * np.sum(x**2)
     step_size = 1
-    while np.sum(grad**2) > 1000 * np.finfo(float).eps:
+    while np.sum(grad**2) > tol:
         # Increase step_size while x_new improves enough
         if verbose:
-            print(f"step {step_size}, l={loss}\n")
+            print(f"step {step_size}, l={loss}")
+            print(f"gradnorm: {np.sum(grad**2)}") 
+            print(f"expected increase:{np.sum(grad**2)*step_size}\n")
         repeat_grow = True
         repeat_shrink = True
         while repeat_grow or repeat_shrink:
@@ -63,10 +65,10 @@ def _ls_grad(
             if non_negative:
                 x_new[x_new < 0] = 0
             if V is None:
-                loss_new = np.sum((y - A @ x_new) ** 2)
+                loss_new = np.sum((y - A @ x_new) ** 2) + ridge_weight * np.sum(x_new**2)
             else:
                 yA = y - A @ x_new
-                loss_new = yA.T @ V @ yA
+                loss_new = yA.T @ V @ yA + ridge_weight * np.sum(x_new**2)
             if loss_new < (loss - ls_thresh * np.sum(grad**2) * step_size):
                 step_size = step_size * ls_fact
                 repeat_shrink = False
@@ -79,16 +81,16 @@ def _ls_grad(
                     if non_negative:
                         x_new[x_new < 0] = 0
                     if V is None:
-                        loss_new = np.sum((y - A @ x_new) ** 2)
+                        loss_new = np.sum((y - A @ x_new) ** 2) + ridge_weight * np.sum(x_new**2)
                     else:
                         yA = y - A @ x_new
-                        loss_new = yA.T @ V @ yA
+                        loss_new = yA.T @ V @ yA + ridge_weight * np.sum(x_new**2)
         x = x_new
         loss = loss_new
         if V is not None:
-            grad = A.T @ V_inv @ (y - A @ x) - ridge_weight * x
+            grad = 2 * (A.T @ V_inv @ (y - A @ x) - ridge_weight * x)
         else:
-            grad = A.T @ (y - A @ x) - ridge_weight * x
+            grad = 2 * (A.T @ (y - A @ x) - ridge_weight * x)
         if non_negative:
             grad[(x == 0) & (grad < 0)] = 0
     if V is None:
