@@ -10,6 +10,7 @@ src/rsatoolbox/cengine/*.html
 cadena_ploscb_data.pkl
 fmri_data
 demos/allendata
+demos/temp_rdm.png
 
 # stats files
 stats/**/*.npz
