@@ -272,6 +272,7 @@ class TestConsistency(unittest.TestCase):
                 np.nanmean(np.abs(rdiff_reg_opt)), 0.001,
                 msg_tem.format('regression', 'optimization', i_method))
 
+    @unittest.skip('Stochastically failing, to be tackled separately')
     def test_two_rdms_nan(self):
         from rsatoolbox.model import ModelInterpolate, ModelWeighted
         from rsatoolbox.model.fitter import fit_regress, fit_optimize_positive

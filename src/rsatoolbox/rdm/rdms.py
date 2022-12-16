@@ -5,6 +5,8 @@ Definition of RSA RDMs class and subclasses
 
 @author: baihan
 """
+from __future__ import annotations
+from typing import Dict, Optional
 from copy import deepcopy
 from collections.abc import Iterable
 import numpy as np
@@ -17,6 +19,7 @@ from rsatoolbox.util.descriptor_utils import subset_descriptor
 from rsatoolbox.util.descriptor_utils import check_descriptor_length_error
 from rsatoolbox.util.descriptor_utils import append_descriptor
 from rsatoolbox.util.descriptor_utils import dict_to_list
+from rsatoolbox.util.descriptor_utils import desc_eq
 from rsatoolbox.util.data_utils import extract_dict
 from rsatoolbox.util.file_io import write_dict_hdf5
 from rsatoolbox.util.file_io import write_dict_pkl
@@ -46,6 +49,11 @@ class RDMs:
         n_cond(int): number of patterns
 
     """
+    dissimilarities: np.ndarray
+    dissimilarity_measure: Optional[str]
+    descriptors: Dict
+    rdm_descriptors: Dict
+    pattern_descriptors: Dict
 
     def __init__(self, dissimilarities,
                  dissimilarity_measure=None,
@@ -95,6 +103,28 @@ class RDMs:
                 f'rdm_descriptors = \n{self.rdm_descriptors}\n'
                 f'pattern_descriptors = \n{self.pattern_descriptors}\n'
                 )
+
+    def __eq__(self, other: RDMs) -> bool:
+        """Test for equality
+        This magic method gets called when you compare two
+        RDMs objects: `rdms1 == rdms2`.
+        True if the objects are of the same type, and
+        dissimilarities and descriptors are equal.
+
+        Args:
+            other (RDMs): The second RDMs object to
+                compare this one with
+
+        Returns:
+            bool: True if equal
+        """
+        return all([
+            isinstance(other, RDMs),
+            np.all(self.dissimilarities == other.dissimilarities),
+            self.descriptors == other.descriptors,
+            desc_eq(self.rdm_descriptors, other.rdm_descriptors),
+            desc_eq(self.pattern_descriptors, other.pattern_descriptors),
+        ])
 
     def __str__(self):
         """
@@ -153,6 +183,21 @@ class RDMs:
         """
         matrices, _, _ = batch_to_matrices(self.dissimilarities)
         return matrices
+
+    def copy(self) -> RDMs:
+        """Return a copy of this object, with all properties
+        equal to the original's
+
+        Returns:
+            RDMs: Value copy
+        """
+        return RDMs(
+            dissimilarities=self.dissimilarities.copy(),
+            dissimilarity_measure=self.dissimilarity_measure,
+            descriptors=deepcopy(self.descriptors),
+            rdm_descriptors=deepcopy(self.rdm_descriptors),
+            pattern_descriptors=deepcopy(self.pattern_descriptors)
+        )
 
     def subset_pattern(self, by, value):
         """ Returns a smaller RDMs with patterns with certain descriptor values

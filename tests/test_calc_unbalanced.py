@@ -1,18 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-""" tests for calculation of RDMs
+""" tests for calculation of unbalanced RDMs
 """
-
 import unittest
 from unittest.mock import patch
 import numpy as np
-from numpy.testing import assert_array_almost_equal
+from parameterized import parameterized
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 from scipy.spatial.distance import pdist, squareform
 import rsatoolbox.rdm as rsr
 import rsatoolbox as rsa
+ALL_METHODS = [
+    'euclidean',
+    'correlation',
+    'mahalanobis',
+    'crossnobis',
+    'poisson',
+    'poisson_cv'
+]
+NO_CV_METHODS = [
+    'euclidean',
+    'correlation',
+    'mahalanobis',
+    'poisson',
+]
 
 
-class TestCalcRDM(unittest.TestCase):
+class TestCalcUnbalancedRDM(unittest.TestCase):
 
     def setUp(self):
         measurements = np.random.rand(20, 5)
@@ -217,3 +231,78 @@ class TestCalcRDM(unittest.TestCase):
             cv_descriptor='fold',
             method='poisson_cv')
         assert rdm.n_cond == 6
+
+    @parameterized.expand(NO_CV_METHODS)
+    def test_calc_single_ds_passes_on_descriptors(self, method):
+        """Calc_rdm() should use dataset descriptors as rdm
+        descriptors on the resulting RDMs; as well as
+        observation descriptors that have unique values
+        for the used patterns as pattern descriptors.
+        """
+        from rsatoolbox.rdm.calc_unbalanced import calc_rdm_unbalanced
+        rdms = calc_rdm_unbalanced(self.test_data, method=method)
+        self.assertEqual(rdms.rdm_descriptors.get('session'), [0])
+        self.assertEqual(rdms.rdm_descriptors.get('subj'), [0])
+        assert_array_equal(
+            rdms.pattern_descriptors['conds'],
+            self.test_data.obs_descriptors['conds']
+        )
+        assert_array_equal(
+            rdms.pattern_descriptors['fold'],
+            self.test_data.obs_descriptors['fold']
+        )
+
+    @parameterized.expand(ALL_METHODS)
+    def test_calc_wdesc_single_ds_passes_on_descriptors(self, method):
+        """When using a target observation descriptor;
+        Calc_rdm() should use observation descriptors
+        that have unique values for the used patterns as
+        pattern descriptors.
+        """
+        from rsatoolbox.rdm.calc_unbalanced import calc_rdm_unbalanced
+        kwargs = dict(method=method, descriptor='conds')
+        if method in ('crossnobis', 'poisson_cv'):
+            kwargs['cv_descriptor'] = 'fold'
+        self.test_data.obs_descriptors['foo'] = np.array([
+            10, 10, 11, 11, 12, 12, 12, 13, 14, 15,
+            10, 10, 11, 11, 12, 12, 12, 13, 14, 15
+        ])
+        rdms = calc_rdm_unbalanced(self.test_data, **kwargs)
+        self.assertEqual(rdms.rdm_descriptors.get('session'), [0])
+        self.assertEqual(rdms.rdm_descriptors.get('subj'), [0])
+        assert_array_equal(
+            rdms.pattern_descriptors['conds'],
+            np.array([0, 1, 2, 3, 4, 5])
+        )
+        assert_array_equal(
+            rdms.pattern_descriptors['foo'],
+            np.array([10, 11, 12, 13, 14, 15])
+        )
+
+    @parameterized.expand(NO_CV_METHODS)
+    def test_calc_multi_ds_passes_on_descriptors(self, method):
+        """When passing multiple Datasets to calc_rdm,
+        it should use the individual dataset descriptors
+        as rdm descriptors.
+        """
+        from rsatoolbox.rdm.calc_unbalanced import calc_rdm_unbalanced
+        rdms = calc_rdm_unbalanced(
+            self.test_data.split_channel(by='rois'),
+            method=method
+        )
+        assert_array_equal(
+            rdms.rdm_descriptors['session'],
+            [0, 0, 0]
+        )
+        assert_array_equal(
+            rdms.rdm_descriptors['subj'],
+            [0, 0, 0]
+        )
+        assert_array_equal(
+            rdms.rdm_descriptors['rois'],
+            np.array(['V1', 'IT', 'V4'])
+        )
+        assert_array_equal(
+            rdms.pattern_descriptors['conds'],
+            self.test_data.obs_descriptors['conds']
+        )

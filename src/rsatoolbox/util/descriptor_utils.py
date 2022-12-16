@@ -8,9 +8,12 @@ Some of these methods may convert numpy-array descriptors to list-types.
 
 @author: adkipnis
 """
-
+from __future__ import annotations
+from typing import TYPE_CHECKING, Dict, List
 from collections.abc import Iterable
 import numpy as np
+if TYPE_CHECKING:
+    DescriptorDict = Dict[str, List | np.ndarray]
 
 
 def bool_index(descriptor, value):
@@ -196,3 +199,20 @@ def dict_to_list(d_dict):
         else:
             d_dict[k] = list(d_dict[k])
     return d_dict
+
+
+def desc_eq(a: DescriptorDict, b: DescriptorDict) -> bool:
+    """Whether the two descriptor-style dictionaries are equal
+
+    Args:
+        a (dict): Dictionary with list or array values
+        b (dict): Dictionary with list or array values
+
+    Returns:
+        bool: True if the two dictionaries have the same keys and values
+    """
+    if set(a.keys()) == set(b.keys()):
+        return all(
+            all(np.asarray(a[k]) == np.asarray(b[k])) for k in a.keys()
+        )
+    return False
