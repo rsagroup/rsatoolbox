@@ -1,11 +1,5 @@
+## additional dependencies not listed in root requirements.txt
 pytest
-coverage
-numpy
-scipy
-scikit-learn
-scikit-image
 tqdm
-h5py
-matplotlib
 joblib
 parameterized

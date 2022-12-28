@@ -1,0 +1,41 @@
+
+
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+  release:
+     types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  call-test-build:
+    uses: ./.github/workflows/testbuild.yml
+
+  publish-artifacts:
+    environment: production
+    needs: call-test-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all  artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      - name: List files
+        run: ls -R artifacts
+      - name: Gather artifacts
+        run: |
+          mkdir dist
+          mv artifacts/source/*.tar.gz dist/
+          mv artifacts/wheels-macos-latest/*.whl dist/
+          mv artifacts/wheels-ubuntu-latest/*.whl dist/
+          mv artifacts/wheels-windows-latest/*.whl dist/
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@v1.5.1
+        with:
+          verbose: true
+          password: ${{ secrets.API_TOKEN_PYPI }}
