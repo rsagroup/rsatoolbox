@@ -401,7 +401,6 @@ def _nn_least_squares(A, y, ridge_weight=0, V=None):
     Bro, R., & Jong, S. D. (1997). A fast non-negativity-constrained
     least squares algorithm. Journal of Chemometrics, 11, 9.
 
-
     This is an active set algorithm which is somewhat optimized by
     precomputing A^T V^-1 A and A^T V y such that during the optimization
     only matricies of rank r need to be inverted.

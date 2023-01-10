@@ -37,7 +37,7 @@ def _ls_grad(
     ridge_weight=0,
     V=None,
     non_negative=True,
-    ls_thresh=0.1, ls_fact=2, tol=10**-8,
+    ls_thresh=0.1, ls_fact=2, tol=10**-6,
     verbose=False
 ):
     assert A.shape[0] == y.shape[0]
@@ -56,7 +56,7 @@ def _ls_grad(
         # Increase step_size while x_new improves enough
         if verbose:
             print(f"step {step_size}, l={loss}")
-            print(f"gradnorm: {np.sum(grad**2)}") 
+            print(f"gradnorm: {np.sum(grad**2)}")
             print(f"expected increase:{np.sum(grad**2)*step_size}\n")
         repeat_grow = True
         repeat_shrink = True
