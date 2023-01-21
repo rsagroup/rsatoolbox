@@ -130,9 +130,9 @@ def save_compare_to_zero(idx, n_voxel=200, n_subj=10, n_cond=5,
 def check_compare_models(model1, model2, n_voxel=200, n_subj=10, n_sim=100,
                          method='corr', bootstrap='pattern', sigma_noise=1,
                          test_type='t'):
-    """ runs simulations for comparison to zero
-    It compares whatever model you pass to pure noise data, generated
-    as independent normal noise for the voxels and subjects.
+    """ runs simulations for comparison between models
+    It compares whatever the two models you pass against data that is
+    on average explained equally well by the two models.
 
     Args:
         model(rsatoolbox.model.Model): the model to be tested against each other
@@ -173,6 +173,77 @@ def check_compare_models(model1, model2, n_voxel=200, n_subj=10, n_sim=100,
             dat = rsatoolbox.data.Dataset(raw_u[i_subj])
             data.append(dat)
         rdms = rsatoolbox.rdm.calc_rdm(data)
+        results = run_inference([model1, model2], rdms, method, bootstrap)
+        if test_type == 'perc':
+            idx_valid = ~np.isnan(results.evaluations[:, 0])
+            p = (np.sum(results.evaluations[idx_valid, 0] >
+                        results.evaluations[idx_valid, 1])
+                 / np.sum(idx_valid))
+            p[i_sim] = 2 * np.min(p, 1 - p)
+        elif test_type == 't':
+            p[i_sim] = rsatoolbox.util.inference_util.t_tests(
+                results.evaluations, results.variances, results.dof)[0, 1]
+        elif test_type == 'ranksum':
+            p[i_sim] = rsatoolbox.util.inference_util.ranksum_pair_test(
+                results.evaluations)[0, 1]
+    return p
+
+
+def check_compare_models_rand(
+    n_voxel=200, n_subj=10, n_sim=100, n_cond=10, n_large=1000,
+    method='corr', bootstrap='pattern', sigma_noise=1,
+    test_type='t'):
+    """ runs simulations for comparison between models
+    It compares whatever model you pass to pure noise data, generated
+    as independent normal noise for the voxels and subjects.
+
+    Args:
+        model(rsatoolbox.model.Model): the model to be tested against each other
+        n_voxel(int): number of voxels to be simulated per subject
+        n_subj(int): number of subjects to be simulated
+        n_sim(int): number of simulations to be performed
+        bootstrap(String): type of bootstrapping to be performed
+            see run_inference for details
+        sigma_noise(float): standard deviation of the noise added to the
+            representation
+
+    """
+    model1_u = np.random.randn(n_large, n_voxel)
+    model1_dat = rsatoolbox.data.Dataset(model1_u)
+    rdm1 = rsatoolbox.rdm.calc_rdm(model1_dat)
+    rdm1 = rdm1.dissimilarities[0]
+    model2_u = np.random.randn(n_large, n_voxel)
+    model2_dat = rsatoolbox.data.Dataset(model2_u)
+    rdm2 = rsatoolbox.rdm.calc_rdm(model2_dat)
+    rdm2 = rdm2.dissimilarities[0]
+    rdm1 = rdm1 - np.mean(rdm1)
+    rdm2 = rdm2 - np.mean(rdm2)
+    rdm1 = rdm1 / np.std(rdm1)
+    rdm2 = rdm2 / np.std(rdm2)
+    target_rdm = (rdm1 + rdm2) / 2
+    target_rdm = target_rdm - np.min(target_rdm)
+    # the following guarantees the triangle inequality
+    # without this the generation fails
+    target_rdm = target_rdm + np.max(target_rdm) + 0.01
+    # dat0 = rsatoolbox.data.Dataset(U0)
+    # rdm0 = rsatoolbox.rdm.calc_rdm(dat0)
+    p = np.empty(n_sim)
+    for i_sim in tqdm.trange(n_sim, position=0):
+        # subsample conditions
+        cond = np.random.choice(n_large, n_cond, replace=False)
+        D = squareform(target_rdm)[cond][:,cond]
+        H = rsatoolbox.util.matrix.centering(D.shape[0])
+        G = -0.5 * (H @ D @ H)
+        G = G + np.eye(G.shape[0])
+        U0 = rsatoolbox.simulation.make_signal(G, n_voxel, make_exact=True)
+        raw_u = U0 + sigma_noise * np.random.randn(n_subj, n_cond, n_voxel)
+        data = []
+        for i_subj in range(n_subj):
+            dat = rsatoolbox.data.Dataset(raw_u[i_subj])
+            data.append(dat)
+        rdms = rsatoolbox.rdm.calc_rdm(data)
+        model1 = rsatoolbox.model.ModelFixed('test1', squareform(squareform(rdm1)[cond][:,cond]))
+        model2 = rsatoolbox.model.ModelFixed('test1', squareform(squareform(rdm2)[cond][:,cond]))
         results = run_inference([model1, model2], rdms, method, bootstrap)
         if test_type == 'perc':
             idx_valid = ~np.isnan(results.evaluations[:, 0])
