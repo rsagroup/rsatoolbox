@@ -311,6 +311,22 @@ class TestCalcRDM(unittest.TestCase):
             self.test_data.obs_descriptors['conds']
         )
 
+    def test_calc_with_descriptors_as_list(self):
+        """Can the calc methods deal with descriptors
+        that are defined as List.
+        """
+        conds_list = self.test_data.obs_descriptors['conds'].tolist()
+        self.test_data.obs_descriptors['conds'] = conds_list
+        rdms = rsr.calc_rdm(
+            self.test_data,
+            descriptor='conds',
+            method='euclidean'
+        )
+        assert_array_equal(
+            rdms.pattern_descriptors['conds'],
+            np.unique(self.test_data.obs_descriptors['conds'])
+        )
+
 
 class TestCalcRDMMovie(unittest.TestCase):
 
