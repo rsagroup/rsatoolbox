@@ -317,7 +317,7 @@ class TestCalcRDM(unittest.TestCase):
         """
         conds_list = [
             str(i)
-            for i in self.test_data.obs_descriptors['conds']
+            for i in self.test_data.obs_descriptors['conds']]
         self.test_data.obs_descriptors['conds'] = conds_list
         rdms = rsr.calc_rdm(
             self.test_data,
