@@ -315,7 +315,9 @@ class TestCalcRDM(unittest.TestCase):
         """Can the calc methods deal with descriptors
         that are defined as List.
         """
-        conds_list = self.test_data.obs_descriptors['conds'].tolist()
+        conds_list = [
+            str(i)
+            for i in self.test_data.obs_descriptors['conds']
         self.test_data.obs_descriptors['conds'] = conds_list
         rdms = rsr.calc_rdm(
             self.test_data,
