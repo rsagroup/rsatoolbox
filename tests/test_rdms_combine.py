@@ -1,6 +1,6 @@
 """Unit tests for rescaling and averaging partial RDMs
 """
-#pylint: disable=import-outside-toplevel, no-self-use
+# pylint: disable=import-outside-toplevel, no-self-use
 from unittest import TestCase
 from numpy import array, nan, isnan
 from numpy.testing import assert_almost_equal, assert_array_equal
@@ -21,7 +21,7 @@ class RdmsCombineTests(TestCase):
         """
         from rsatoolbox.rdm.rdms import RDMs
         from rsatoolbox.rdm.combine import rescale
-        partial=array([
+        partial = array([
             [  1,   2, nan,   3, nan, nan],
             [nan, nan, nan,   4,   5,   6],
         ])

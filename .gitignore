@@ -1,5 +1,26 @@
+# Debug and profile files
+debug*.py
+*.Result
+
+# c files resulting from cython
+src/rsatoolbox/cengine/*.c
+src/rsatoolbox/cengine/*.html
+
+# data files from tutorials & demos
+cadena_ploscb_data.pkl
 fmri_data
-allendata
+demos/allendata
+demos/temp_rdm.png
+
+# stats files
+stats/**/*.npz
+stats/**/*.hdf5
+stats/**/*.npy
+stats/**/*.txt
+stats/**/*.csv
+stats/boc
+stats/illustrations
+stats/figures
 
 # IDEs
 .vscode/
@@ -18,8 +39,10 @@ __pycache__/
 
 # C extensions
 *.so
+src/rsatoolbox/*.html
 
 # Distribution / packaging
+wheelhouse/
 .Python
 build/
 develop-eggs/

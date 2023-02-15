@@ -244,6 +244,7 @@ class TestRDM(unittest.TestCase):
         rank_rdm = rank_transform(rdms)
         self.assertEqual(rank_rdm.n_rdm, rdms.n_rdm)
         self.assertEqual(rank_rdm.n_cond, rdms.n_cond)
+        self.assertEqual(rank_rdm.dissimilarity_measure, 'Euclidean (ranks)')
 
     def test_sqrt_transform(self):
         from rsatoolbox.rdm import sqrt_transform
@@ -448,6 +449,61 @@ class TestRDM(unittest.TestCase):
                 rdms.pattern_descriptors.get('conds')
             )
         )
+
+    def test_copy(self):
+        from rsatoolbox.rdm import RDMs
+        orig = RDMs(
+            dissimilarities=np.random.rand(2, 3),
+            dissimilarity_measure='euclidean',
+            descriptors=dict(foo='bar', baz='foz'),
+            rdm_descriptors=dict(thrusters=['port', 'starboard']),
+            pattern_descriptors=dict(
+                names=['a', 'b', 'c'],
+                order=np.array([6, 7, 8])
+            )
+        )
+        copy = orig.copy()
+        ## We don't want a reference:
+        self.assertIsNot(copy, orig)
+        self.assertIsNot(copy.dissimilarities, orig.dissimilarities)
+        self.assertIsNot(
+            copy.pattern_descriptors.get('order'),
+            orig.pattern_descriptors.get('order')
+        )
+        ## But check that attributes are equal
+        assert_array_equal(copy.dissimilarities, orig.dissimilarities)
+        self.assertEqual(copy.dissimilarity_measure,
+            orig.dissimilarity_measure)
+        self.assertEqual(copy.descriptors, orig.descriptors)
+        self.assertEqual(copy.rdm_descriptors, orig.rdm_descriptors)
+        assert_array_equal(
+            copy.pattern_descriptors.get('names'),
+            orig.pattern_descriptors.get('names')
+        )
+        assert_array_equal(
+            copy.pattern_descriptors.get('order'),
+            orig.pattern_descriptors.get('order')
+        )
+
+    def test_equality(self):
+        from rsatoolbox.rdm import RDMs
+        orig = RDMs(
+            dissimilarities=np.random.rand(2, 3),
+            dissimilarity_measure='euclidean',
+            descriptors=dict(foo='bar', baz='foz'),
+            rdm_descriptors=dict(thrusters=['port', 'starboard']),
+            pattern_descriptors=dict(
+                names=['a', 'b', 'c'],
+                order=np.array([6, 7, 8])
+            )
+        )
+        self.assertEqual(orig, orig.copy())
+        other1 = orig.copy()
+        other1.dissimilarities[1, 1] = 1.1
+        self.assertNotEqual(orig, other1)
+        other2 = orig.copy()
+        other2.pattern_descriptors['order'][1] = 10
+        self.assertNotEqual(orig, other2)
 
 
 class TestSave(unittest.TestCase):

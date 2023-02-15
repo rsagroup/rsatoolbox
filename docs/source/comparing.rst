@@ -100,7 +100,7 @@ For this expectation there is a direct formula:
     [ \tilde{\mathbf{a}}]^\top}
     \mathop{\mathbb{E}_{\tilde{\mathbf{b}}}
     [ \tilde{\mathbf{b}}] }\\
-    &=& \frac{12\mathbf{x}^\top\mathbf{y}}{n^3-n} - \frac{6(n-1)^2}{n(n+1)}
+    &=& \frac{12\mathbf{x}^\top\mathbf{y}}{n^3-n} - \frac{3(n+1)}{n-1}
 
 Using :math:`\rho_a` is much faster to compute and the best average RDM for a set of data RDMs is easily computed, which are two important advantages.
 Thus, we generally recommend using this :math:`\rho_a` measure now.
