@@ -561,6 +561,7 @@ def bootstrap_crossval(
     rdm_descriptor="index",
     boot_type="both",
     use_correction=True,
+    calc_noise_ceil=True,
 ):
     """evaluates a set of models by k-fold crossvalidation within a bootstrap
 

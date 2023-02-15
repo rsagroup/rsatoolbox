@@ -6,13 +6,14 @@ from typing import TYPE_CHECKING, List, Optional, Tuple
 import numpy as np
 from scipy.spatial.distance import squareform
 from rsatoolbox.rdm.rdms import RDMs
-from rsatoolbox.util.rdm_utils import _mean, _scale, _ss, _rescale
+from rsatoolbox.util.rdm_utils import _rescale
 
 
 def from_partials(
-        list_of_rdms: List[RDMs],
-        all_patterns: Optional[List[str]] = None,
-        descriptor: str = 'conds') -> RDMs:
+    list_of_rdms: List[RDMs],
+    all_patterns: Optional[List[str]] = None,
+    descriptor: str = "conds",
+) -> RDMs:
     """Make larger RDMs with missing values where needed
 
     Any object-level descriptors will be turned into rdm_descriptors
@@ -34,6 +35,7 @@ def from_partials(
 
     def pdescs(rdms, descriptor):
         return list(rdms.pattern_descriptors.get(descriptor, []))
+
     if all_patterns is None:
         all_patterns = []
         for rdms in list_of_rdms:
@@ -62,9 +64,9 @@ def from_partials(
                 desc_diff_names.append(k)
 
     rdm_desc_names = set(rdm_desc_names + list(desc_diff_names))
-    rdm_descriptors = dict([(n, [None]*n_rdms) for n in rdm_desc_names])
+    rdm_descriptors = dict([(n, [None] * n_rdms) for n in rdm_desc_names])
     measure = None
-    vector_len = int(n_patterns * (n_patterns-1) / 2)
+    vector_len = int(n_patterns * (n_patterns - 1) / 2)
     vectors = np.full((n_rdms, vector_len), np.nan)
     rdm_id = 0
     for rdms in list_of_rdms:
@@ -75,8 +77,8 @@ def from_partials(
             rdm[np.ix_(pidx, pidx)] = squareform(utv, checks=False)
             vectors[rdm_id, :] = squareform(rdm, checks=False)
             for name in rdm_descriptors.keys():
-                if name == 'index':
-                    rdm_descriptors['index'][rdm_id] = rdm_id
+                if name == "index":
+                    rdm_descriptors["index"][rdm_id] = rdm_id
                 elif name in rdms.rdm_descriptors:
                     val = rdms.rdm_descriptors[name][rdm_local_id]
                     rdm_descriptors[name][rdm_id] = val
@@ -90,11 +92,11 @@ def from_partials(
         dissimilarity_measure=measure,
         descriptors=descriptors,
         rdm_descriptors=rdm_descriptors,
-        pattern_descriptors=dict([(descriptor, all_patterns)])
+        pattern_descriptors=dict([(descriptor, all_patterns)]),
     )
 
 
-def rescale(rdms, method: str = 'evidence'):
+def rescale(rdms, method: str = "evidence"):
     """Bring RDMs closer together
 
     Iteratively scales RDMs based on pairs in-common.
@@ -110,93 +112,11 @@ def rescale(rdms, method: str = 'evidence'):
     aligned, weights = _rescale(rdms.dissimilarities, method)
     rdm_descriptors = deepcopy(rdms.rdm_descriptors)
     if weights is not None:
-        rdm_descriptors['rescalingWeights'] = weights
+        rdm_descriptors["rescalingWeights"] = weights
     return RDMs(
         dissimilarities=aligned,
         dissimilarity_measure=rdms.dissimilarity_measure,
         descriptors=deepcopy(rdms.descriptors),
         rdm_descriptors=rdm_descriptors,
-        pattern_descriptors=deepcopy(rdms.pattern_descriptors)
+        pattern_descriptors=deepcopy(rdms.pattern_descriptors),
     )
-<<<<<<< HEAD:rsatoolbox/rdm/combine.py
-=======
-
-
-def _mean(vectors: ndarray, weights: ndarray = None) -> ndarray:
-    """Weighted mean of RDM vectors, ignores nans
-
-    See :meth:`rsatoolbox.rdm.rdms.RDMs.mean`
-
-    Args:
-        vectors (ndarray): dissimilarity vectors of shape (nrdms, nconds)
-        weights (ndarray, optional): Same shape as vectors.
-
-    Returns:
-        ndarray: Average vector of shape (nconds,)
-    """
-    if weights is None:
-        weights = np.ones(vectors.shape)
-        weights[np.isnan(vectors)] = np.nan
-    weighted_sum = np.nansum(vectors * weights, axis=0)
-    return weighted_sum / np.nansum(weights, axis=0)
-
-
-def _ss(vectors: ndarray) -> ndarray:
-    """Sum of squares on the last dimension
-
-    Args:
-        vectors (ndarray): 1- or 2-dimensional data
-
-    Returns:
-        ndarray: the sum of squares, with an extra empty dimension
-    """
-    summed_squares = np.nansum(vectors ** 2, axis=vectors.ndim-1)
-    return np.expand_dims(summed_squares, axis=vectors.ndim-1)
-
-
-def _scale(vectors: ndarray) -> ndarray:
-    """Divide by the root sum of squares
-
-    Args:
-        vectors (ndarray): 1- or 2-dimensional data
-
-    Returns:
-        ndarray: input scaled
-    """
-    return vectors / sqrt(_ss(vectors))
-
-
-def _rescale(dissim: ndarray, method: str) -> Tuple[ndarray, ndarray]:
-    """Rescale RDM vectors
-
-    See :meth:`rsatoolbox.rdm.combine.rescale`
-
-    Args:
-        dissim (ndarray): dissimilarity vectors, shape = (rdms, conds)
-        method (str): one of 'evidence', 'setsize' or 'simple'.
-
-    Returns:
-        (ndarray, ndarray): Tuple of the aligned dissimilarity vectors
-            and the weights used
-    """
-    n_rdms, n_conds = dissim.shape
-    if method == 'evidence':
-        weights = (dissim ** 2).clip(0.2 ** 2)
-    elif method == 'setsize':
-        setsize = np.isfinite(dissim).sum(axis=1)
-        weights = np.tile(1 / setsize, [n_conds, 1]).T
-    else:
-        weights = np.ones(dissim.shape)
-    weights[np.isnan(dissim)] = np.nan
-
-    current_estimate = _scale(_mean(dissim))
-    prev_estimate = np.full([n_conds, ], -inf)
-    while _ss(current_estimate - prev_estimate) > 1e-8:
-        prev_estimate = current_estimate.copy()
-        tiled_estimate = np.tile(current_estimate, [n_rdms, 1])
-        tiled_estimate[np.isnan(dissim)] = nan
-        aligned = _scale(dissim) * sqrt(_ss(tiled_estimate))
-        current_estimate = _scale(_mean(aligned, weights))
-
-    return aligned, weights
->>>>>>> main:src/rsatoolbox/rdm/combine.py
