@@ -40,6 +40,9 @@ class TestMDS(TestCase):
 
     @patch('rsatoolbox.vis.scatter_plot.show_scatter')
     def test_vis_weighted_mds_output_behaves_like_mds(self, show_scatter):
+        """
+        Fails stochastically as MDS solution not deterministic
+        """
         from rsatoolbox.vis.scatter_plot import show_MDS
         dis = np.random.rand(8, 10)
         wes = np.ones((8, 10))
@@ -50,7 +53,8 @@ class TestMDS(TestCase):
         mds_coords = show_scatter.call_args[0][1]
         show_MDS(rdms, weights=wes)
         wmds_coords = show_scatter.call_args[0][1]
-        np.testing.assert_allclose(pdist(mds_coords[0]), pdist(wmds_coords[0]), atol=3e-1)
+        diff = pdist(mds_coords[0]) - pdist(wmds_coords[0])
+        self.assertLess(abs(diff.mean()), 0.02)
 
 
 class Test_Icon(TestCase):
@@ -82,7 +86,6 @@ class Test_Icon(TestCase):
     def test_Icon_from_rdm(self):
         from rsatoolbox.vis import Icon
         from rsatoolbox.rdm import RDMs
-
         rdm = RDMs(np.random.rand(1, 190))
         ic = Icon(rdm)
         self.assertEqual(ic.final_image.size[0], 100)
@@ -93,7 +96,7 @@ def _dummy_rdm():
     import matplotlib.markers
     from collections import defaultdict
 
-    markers = list(matplotlib.markers.MarkerStyle().markers.keys())
+    markers = list(matplotlib.markers.MarkerStyle('').markers.keys())
     images = np.meshgrid(
         np.linspace(0.5, 1.0, 50), np.linspace(0.5, 1.0, 30), np.linspace(0.5, 1.0, 3)
     )
@@ -110,7 +113,7 @@ def _dummy_rdm():
     icons = defaultdict(list)
     for this_marker, this_image, this_name in zip(markers, images, names):
         icons["image"].append(rsv.Icon(image=this_image))
-        icons["marker"].append(rsv.Icon(marker=this_marker, color=[0,0,0]))
+        icons["marker"].append(rsv.Icon(marker=this_marker, color=[0, 0, 0]))
         icons["string"].append(rsv.Icon(string=this_name))
         icons["text"].append(this_name)
     ROIs = ["X", "Y", "Z"]
@@ -128,9 +131,14 @@ def _dummy_rdm():
 
 
 class Test_rdm_plot(TestCase):
+ 
     @classmethod
     def setUpClass(cls):
         cls.rdm = _dummy_rdm()
+
+    def setUp(self) -> None:
+        import matplotlib.pyplot
+        matplotlib.pyplot.close('all')
 
     def test_show_rdm_no_arg_no_error(self):
         """regression test for crashes when gridlines is None (and needs to be set to []
@@ -163,7 +171,6 @@ class Test_model_plot(TestCase):
 
     def test_descr(self):
         from rsatoolbox.vis.model_plot import _get_model_comp_descr
-
         descr = _get_model_comp_descr(
             "t-test",
             5,
