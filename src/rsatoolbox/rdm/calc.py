@@ -509,7 +509,7 @@ def _build_rdms(
         _, obs_desc_vals, _ = average_dataset_by(ds, obs_desc_name)
 
     if _averaging_occurred(ds, obs_desc_name, obs_desc_vals):
-        orig_obs_desc_vals = ds.obs_descriptors[obs_desc_name]
+        orig_obs_desc_vals = np.asarray(ds.obs_descriptors[obs_desc_name])
         for dname, dvals in ds.obs_descriptors.items():
             dvals = np.asarray(dvals)
             avg_dvals = np.full_like(obs_desc_vals, np.nan, dtype=dvals.dtype)
