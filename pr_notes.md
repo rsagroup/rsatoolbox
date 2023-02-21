@@ -11,19 +11,23 @@ indices and betas
 
 ## jasper's todo's
 
+- [x] test masking on sitek script
+- [x] test masking on jones script
+- [x] run daniel's tutorial with current code to see if that fails too??
+- [ ] bold5000 for surface?
 - [ ] remove chunking "else" case of fewer than 1000 centres
 - [ ] evaluate fail silently if nan's
-- [ ] run daniel's tutorial with current code to see if that fails too??
 - [ ] subpress divide by zero warning in calc_corr
 - [ ] remove these notes
 - [ ] remove ad hoc test scripts
 - [ ] remove deprecated fns demo
-- [ ] test masking on sitek script
-- [ ] test masking on jones script
+
 
 ## discussion
 
-- searchlight subpackage or .pipeline?
+- searchlight subpackage, .pipeline, some in .io
+- catch nans early: yes (in searchlight)
+- reason not to split into stages: potential to parallelize across nodes, need to not load verything in memory
 
 ```
 # ## this is the part that throws the error about nans.
