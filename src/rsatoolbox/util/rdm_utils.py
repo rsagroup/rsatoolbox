@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
 
 
-def batch_to_vectors(x):
+def batch_to_vectors(x: NDArray) -> Tuple[NDArray, int, int]:
     """converts a *stack* of RDMs in vector or matrix form into vector form
 
     Args:
@@ -26,7 +26,11 @@ def batch_to_vectors(x):
 
         **n_cond** (int): number of conditions
     """
-    if x.ndim == 2:
+    if x.ndim == 1:
+        v = np.array([x])
+        n_rdm = 1
+        n_cond = _get_n_from_reduced_vectors(v)
+    elif x.ndim == 2:
         v = x
         n_rdm = x.shape[0]
         n_cond = _get_n_from_reduced_vectors(x)
@@ -37,10 +41,8 @@ def batch_to_vectors(x):
         v = np.ndarray((n_rdm, int(n_cond * (n_cond - 1) / 2)))
         for idx in np.arange(n_rdm):
             v[idx, :] = squareform(m[idx, :, :], checks=False)
-    elif x.ndim == 1:
-        v = np.array([x])
-        n_rdm = 1
-        n_cond = _get_n_from_reduced_vectors(v)
+    else:
+        raise ValueError('[batch_to_vectors] input array has too many dims')
     return v, n_rdm, n_cond
 
 
@@ -71,7 +73,7 @@ def batch_to_matrices(x):
     return m, n_rdm, n_cond
 
 
-def _get_n_from_reduced_vectors(x):
+def _get_n_from_reduced_vectors(x: NDArray) -> int:
     """
     calculates the size of the RDM from the vector representation
 
@@ -85,7 +87,7 @@ def _get_n_from_reduced_vectors(x):
     return max(int(np.ceil(np.sqrt(x.shape[1] * 2))), 1)
 
 
-def _get_n_from_length(n):
+def _get_n_from_length(n: int) -> int:
     """
     calculates the size of the RDM from the vector length
 
