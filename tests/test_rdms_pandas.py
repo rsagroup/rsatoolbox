@@ -23,7 +23,6 @@ class RdmsToPandasTests(TestCase):
         self.assertIsInstance(df, pandas.DataFrame)
         self.assertEqual(len(df.columns), 5)
         assert_array_equal(df.dissimilarity.values, dissimilarities.ravel())
-        assert_array_equal(df['rdm_index'].values, list(range(3))*2)
-        assert_array_equal(df['rdm_xy'].values, (['x']*3) + (['y']*3))
+        assert_array_equal(df['rdm_index'].values, ([0]*3) + ([1]*3)) assert_array_equal(df['rdm_xy'].values, (['x']*3) + (['y']*3))
         assert_array_equal(df['pattern_index'].values, list(range(3))*2)
         assert_array_equal(df['pat_abc'].values, conds*2)
