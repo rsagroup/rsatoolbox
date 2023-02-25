@@ -3,6 +3,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from pandas import DataFrame
+import numpy
 if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
 
@@ -25,4 +26,10 @@ def rdms_to_df(rdms: RDMs) -> DataFrame:
         DataFrame: long-form pandas DataFrame with
             dissimilarities and descriptors.
     """
-    return DataFrame()
+    n_rdms, n_conds = rdms.dissimilarities.shape
+    cols = dict(dissimilarity=rdms.dissimilarities.ravel())
+    for dname, dvals in rdms.rdm_descriptors.items():
+        cols[dname] = numpy.repeat(dvals, n_conds)
+    for dname, dvals in rdms.pattern_descriptors.items():
+        cols[dname] = numpy.tile(dvals, n_rdms)
+    return DataFrame(cols)
