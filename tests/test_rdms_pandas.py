@@ -16,13 +16,14 @@ class RdmsToPandasTests(TestCase):
         conds = [c for c in 'abc']
         rdms = RDMs(
             dissimilarities,
-            rdm_descriptors=dict(rdm_xy=['x', 'y']),
-            pattern_descriptors=dict(pat_abc=numpy.asarray(conds))
+            rdm_descriptors=dict(xy=['x', 'y']),
+            pattern_descriptors=dict(abc=numpy.asarray(conds))
         )
         df = rdms.to_df()
         self.assertIsInstance(df, pandas.DataFrame)
-        self.assertEqual(len(df.columns), 4)
+        self.assertEqual(len(df.columns), 5)
         assert_array_equal(df.dissimilarity.values, dissimilarities.ravel())
-        assert_array_equal(df['pat_abc'].values, conds*2)
-        # assert_array_equal(df['pattern_index'].values, list(range(3))*2)
+        assert_array_equal(df['rdm_index'].values, list(range(3))*2)
         assert_array_equal(df['rdm_xy'].values, (['x']*3) + (['y']*3))
+        assert_array_equal(df['pattern_index'].values, list(range(3))*2)
+        assert_array_equal(df['pat_abc'].values, conds*2)

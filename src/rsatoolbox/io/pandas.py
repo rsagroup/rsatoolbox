@@ -29,7 +29,13 @@ def rdms_to_df(rdms: RDMs) -> DataFrame:
     n_rdms, n_conds = rdms.dissimilarities.shape
     cols = dict(dissimilarity=rdms.dissimilarities.ravel())
     for dname, dvals in rdms.rdm_descriptors.items():
+        # rename the default index descriptor as that has special meaning
+        if dname == 'index':
+            dname = 'rdm_index'
         cols[dname] = numpy.repeat(dvals, n_conds)
     for dname, dvals in rdms.pattern_descriptors.items():
+        # rename the default index descriptor as that has special meaning
+        if dname == 'index':
+            dname = 'pattern_index'
         cols[dname] = numpy.tile(dvals, n_rdms)
     return DataFrame(cols)
