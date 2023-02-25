@@ -9,11 +9,6 @@ class RdmsToPandasTests(TestCase):
     def test_to_df(self):
         """Convert an RDMs object to a pandas DataFrame
 
-        Columns for:
-        - similarity
-        - pattern descriptors
-        - rdm descriptors
-
         Default is long form; multiple rdms are stacked row-wise.
         """
         from rsatoolbox.rdm.rdms import RDMs
