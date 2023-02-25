@@ -14,13 +14,15 @@ indices and betas
 - [x] test masking on sitek script
 - [x] test masking on jones script
 - [x] run daniel's tutorial with current code to see if that fails too??
+- [x] remove deprecated fns demo
 - [ ] bold5000 for surface?
 - [ ] remove chunking "else" case of fewer than 1000 centres
 - [ ] evaluate fail silently if nan's
 - [ ] subpress divide by zero warning in calc_corr
 - [ ] remove these notes
 - [ ] remove ad hoc test scripts
-- [ ] remove deprecated fns demo
+- [ ] mp vs jl
+
 
 
 ## discussion
