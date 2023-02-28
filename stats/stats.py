@@ -977,7 +977,7 @@ def run_flex(idx, start_idx, simulation_folder="sim_flex", ecoset_path="~/ecoset
 
 def fix_flex(simulation_folder="sim_flex", ecoset_path="~/ecoset/val/"):
     """runs single flexible model simulations to allow parallelization"""
-    indices = np.random.permutation(1400)
+    indices = np.random.permutation(21600)
     for idx in indices:
         model_idx = int(np.floor(idx / 100))
         start_idx = int(idx % 100)
@@ -1892,8 +1892,14 @@ def fix_boot_cv(simulation_folder="boot_cv", ecoset_path="~/ecoset/val/"):
         )
 
 
+def fix_comp():
+    """runs all comp simulations in random order to run multiple jobs on the cluster"""
+    indices = np.random.permutation(1000)
+    for idx in indices:
+        run_comp(idx)
+
+
 if __name__ == "__main__":
-    run_comp(11)
     import argparse
 
     parser = argparse.ArgumentParser()
@@ -1901,13 +1907,23 @@ if __name__ == "__main__":
     parser.add_argument(
         "sim",
         help="simulation type",
-        choices=["comp", "eco", "flex", "boot_cv", "summarize_eco", "fix_eco"],
+        choices=[
+            "comp",
+            "eco",
+            "flex",
+            "boot_cv",
+            "summarize_eco",
+            "fix_eco",
+            "fix_comp",
+        ],
         default="comp",
     )
     parser.add_argument("index", type=int, help="which simulation index to run")
     args = parser.parse_args()
     if args.sim == "comp":
         run_comp(args.index)
+    elif args.sim == "fix_comp":
+        fix_comp()
     elif args.sim == "eco":
         run_eco(args.index, ecoset_path=args.path)
     elif args.sim == "summarize_eco":
