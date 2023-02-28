@@ -11,6 +11,7 @@ from copy import deepcopy
 from collections.abc import Iterable
 import os
 import numpy as np
+from rsatoolbox.io.pandas import rdms_to_df
 from rsatoolbox.util.rdm_utils import _mean
 from rsatoolbox.util.rdm_utils import batch_to_vectors
 from rsatoolbox.util.rdm_utils import batch_to_matrices
@@ -415,6 +416,16 @@ class RDMs:
         rdm_dict["pattern_descriptors"] = self.pattern_descriptors
         rdm_dict["dissimilarity_measure"] = self.dissimilarity_measure
         return rdm_dict
+
+    def to_df(self):
+        """Return a new long-form pandas DataFrame representing this RDM
+
+        See `rsatoolbox.io.pandas.rdms_to_df` for details
+
+        Returns:
+            pandas.DataFrame: The DataFrame for this RDMs object
+        """
+        return rdms_to_df(self)
 
     def reorder(self, new_order):
         """Reorder the patterns according to the index in new_order
