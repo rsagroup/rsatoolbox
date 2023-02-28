@@ -233,8 +233,8 @@ def check_compare_models_rand(
     test_type="t",
 ):
     """runs simulations for comparison between models
-    It compares whatever model you pass to pure noise data, generated
-    as independent normal noise for the voxels and subjects.
+    It compares two models on data generated such that the two models are
+    equally good for a large set of stimuli and subsamples from that.
 
     Args:
         model(rsatoolbox.model.Model): the model to be tested against each other
@@ -285,24 +285,49 @@ def check_compare_models_rand(
             "test1", squareform(squareform(rdm1)[cond][:, cond])
         )
         model2 = rsatoolbox.model.ModelFixed(
-            "test1", squareform(squareform(rdm2)[cond][:, cond])
+            "test2", squareform(squareform(rdm2)[cond][:, cond])
         )
         results = run_inference([model1, model2], rdms, method, bootstrap)
         if test_type == "perc":
-            idx_valid = ~np.isnan(results.evaluations[:, 0])
-            p = np.sum(
-                results.evaluations[idx_valid, 0] > results.evaluations[idx_valid, 1]
-            ) / np.sum(idx_valid)
-            p[i_sim] = 2 * np.min(p, 1 - p)
+            p[i_sim] = results.test_pairwise(test_type="bootstrap")[0, 1]
         elif test_type == "t":
-            p[i_sim] = rsatoolbox.util.inference_util.t_tests(
-                results.evaluations, results.variances, results.dof
-            )[0, 1]
+            p[i_sim] = results.test_pairwise(test_type="t-test")[0, 1]
         elif test_type == "ranksum":
-            p[i_sim] = rsatoolbox.util.inference_util.ranksum_pair_test(
-                results.evaluations
-            )[0, 1]
+            p[i_sim] = results.test_pairwise(test_type="ranksum")[0, 1]
     return p
+
+
+def save_compare_models_rand(
+    idx,
+    n_voxel=200,
+    n_subj=10,
+    n_cond=5,
+    method="corr",
+    bootstrap="pattern",
+    folder="comp_model_rand",
+    sigma_noise=1,
+    test_type="t",
+    n_sim=100,
+):
+    """saves the results of a simulation to a file"""
+    if not os.path.isdir(folder):
+        os.mkdir(folder)
+    fname = (
+        folder
+        + os.path.sep
+        + "p_%s_%s_%s_%d_%d_%d_%.2f_%03d.npy"
+        % (method, bootstrap, test_type, n_cond, n_subj, n_voxel, sigma_noise, idx)
+    )
+    if not os.path.isfile(fname):
+        p = check_compare_models_rand(
+            n_voxel=n_voxel,
+            n_subj=n_subj,
+            method=method,
+            bootstrap=bootstrap,
+            sigma_noise=sigma_noise,
+            n_sim=n_sim,
+        )
+        np.save(fname, p)
 
 
 def save_compare_models(
@@ -984,8 +1009,7 @@ def run_comp(idx):
         ["fix", "t"],
         ["fancyboot", "t"],
     ]
-    # comp_type = ['noise', 'noise_boot', 'model', 'zero']
-    comp_type = ["model", "zero"]
+    comp_type = ["model", "zero", "mrand"]  # , "noise", "noise_boot"
     n_rep = 50
     (i_boot, i_rep, i_sub, i_cond, i_comp) = np.unravel_index(
         idx, [len(boot_type), n_rep, len(n_subj), len(n_cond), len(comp_type)]
@@ -996,25 +1020,8 @@ def run_comp(idx):
     print("%d conditions" % n_cond[i_cond], flush=True)
     print(boot_type[i_boot], flush=True)
     print(comp_type[i_comp], flush=True)
-    if i_comp == 2:
-        save_noise_ceiling(
-            i_rep,
-            n_subj=n_subj[i_sub],
-            n_cond=n_cond[i_cond],
-            bootstrap=boot_type[i_boot][0],
-            test_type=boot_type[i_boot][1],
-            boot_noise_ceil=False,
-        )
-    elif i_comp == 3:
-        save_noise_ceiling(
-            i_rep,
-            n_subj=n_subj[i_sub],
-            n_cond=n_cond[i_cond],
-            bootstrap=boot_type[i_boot][0],
-            test_type=boot_type[i_boot][1],
-            boot_noise_ceil=True,
-        )
-    elif i_comp == 0:
+
+    if i_comp == 0:
         save_compare_models(
             i_rep,
             n_subj=n_subj[i_sub],
@@ -1029,6 +1036,32 @@ def run_comp(idx):
             n_cond=n_cond[i_cond],
             bootstrap=boot_type[i_boot][0],
             test_type=boot_type[i_boot][1],
+        )
+    elif i_comp == 2:
+        save_compare_models_rand(
+            i_rep,
+            n_subj=n_subj[i_sub],
+            n_cond=n_cond[i_cond],
+            bootstrap=boot_type[i_boot][0],
+            test_type=boot_type[i_boot][1],
+        )
+    elif i_comp == 3:
+        save_noise_ceiling(
+            i_rep,
+            n_subj=n_subj[i_sub],
+            n_cond=n_cond[i_cond],
+            bootstrap=boot_type[i_boot][0],
+            test_type=boot_type[i_boot][1],
+            boot_noise_ceil=False,
+        )
+    elif i_comp == 4:
+        save_noise_ceiling(
+            i_rep,
+            n_subj=n_subj[i_sub],
+            n_cond=n_cond[i_cond],
+            bootstrap=boot_type[i_boot][0],
+            test_type=boot_type[i_boot][1],
+            boot_noise_ceil=True,
         )
 
 
@@ -1860,6 +1893,7 @@ def fix_boot_cv(simulation_folder="boot_cv", ecoset_path="~/ecoset/val/"):
 
 
 if __name__ == "__main__":
+    run_comp(11)
     import argparse
 
     parser = argparse.ArgumentParser()
