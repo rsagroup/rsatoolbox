@@ -1894,7 +1894,7 @@ def fix_boot_cv(simulation_folder="boot_cv", ecoset_path="~/ecoset/val/"):
 
 def fix_comp():
     """runs all comp simulations in random order to run multiple jobs on the cluster"""
-    indices = np.random.permutation(1000)
+    indices = np.random.permutation(21600)
     for idx in indices:
         run_comp(idx)
 
