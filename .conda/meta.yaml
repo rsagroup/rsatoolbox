@@ -29,16 +29,17 @@ requirements:
     - pip
   run:
     - python >=3.7,<3.11
-    - coverage
+    - {{ pin_compatible('numpy') }}
     - scipy
+    - pandas
     - scikit-learn
     - scikit-image
-    - tqdm
-    - h5py
     - matplotlib-base
+    - h5py
     - joblib
-    - pandas
-    - {{ pin_compatible('numpy') }}
+    - tqdm
+    - coverage
+
 
 test:
   imports:
@@ -49,10 +50,13 @@ test:
     - pip
 
 about:
+  home: https://github.com/rsagroup/rsatoolbox
   summary: Representational Similarity Analysis (RSA) in Python
   license: MIT
   license_file: LICENSE
+  doc_url: https://rsatoolbox.readthedocs.io/
+  dev_url: https://github.com/rsagroup/rsatoolbox
 
 extra:
   recipe-maintainers:
-    - Jasper
+    - ilogue
