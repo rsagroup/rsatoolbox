@@ -187,7 +187,7 @@ class TestCalcRDM(unittest.TestCase):
         rdm2 = rsr.calc_rdm(
             zero_data2, descriptor="conds", cv_descriptor="fold", method="crossnobis"
         )
-        assert np.testing.assert_equal(rdm1.dissimilarities, rdm2.dissimilarities)
+        np.testing.assert_equal(rdm1.dissimilarities, rdm2.dissimilarities)
 
     def test_calc_crossnobis_no_descriptors(self):
         rdm = rsr.calc_rdm_crossnobis(self.test_data_balanced, descriptor="conds")

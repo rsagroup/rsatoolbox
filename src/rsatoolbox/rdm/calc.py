@@ -338,7 +338,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     rdm = np.einsum('ij->j', rdms) / rdms.shape[0]
     return _build_rdms(
         rdm,
-        dataset,
+        datasetCopy,
         'crossnobis',
         descriptor,
         noise=noise,
