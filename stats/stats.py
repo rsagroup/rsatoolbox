@@ -96,17 +96,11 @@ def check_compare_to_zero(
         results = run_inference(model, rdms, method, bootstrap)
         idx_valid = ~np.isnan(results.evaluations)
         if test_type == "perc":
-            p[i_sim] = 1 - np.sum(results.evaluations[idx_valid] > 0) / np.sum(
-                idx_valid
-            )
+            p[i_sim] = results.test_zero("bootstrap")
         elif test_type == "t":
-            p[i_sim] = rsatoolbox.util.inference_util.t_test_0(
-                results.evaluations, results.variances, dof=results.dof
-            )
+            p[i_sim] = results.test_zero("t-test")
         elif test_type == "ranksum":
-            p[i_sim] = rsatoolbox.util.inference_util.ranksum_value_test(
-                results.evaluations
-            )
+            p[i_sim] = results.test_zero("ranksum")
     return p
 
 
@@ -205,19 +199,11 @@ def check_compare_models(
         rdms = rsatoolbox.rdm.calc_rdm(data)
         results = run_inference([model1, model2], rdms, method, bootstrap)
         if test_type == "perc":
-            idx_valid = ~np.isnan(results.evaluations[:, 0])
-            p = np.sum(
-                results.evaluations[idx_valid, 0] > results.evaluations[idx_valid, 1]
-            ) / np.sum(idx_valid)
-            p[i_sim] = 2 * np.min(p, 1 - p)
+            p[i_sim] = results.test_pairwise(test_type="bootstrap")[0, 1]
         elif test_type == "t":
-            p[i_sim] = rsatoolbox.util.inference_util.t_tests(
-                results.evaluations, results.variances, results.dof
-            )[0, 1]
+            p[i_sim] = results.test_pairwise(test_type="t-test")[0, 1]
         elif test_type == "ranksum":
-            p[i_sim] = rsatoolbox.util.inference_util.ranksum_pair_test(
-                results.evaluations
-            )[0, 1]
+            p[i_sim] = results.test_pairwise(test_type="ranksum")[0, 1]
     return p
 
 
@@ -1900,6 +1886,7 @@ def fix_comp():
 
 
 if __name__ == "__main__":
+    save_compare_to_zero(1)
     import argparse
 
     parser = argparse.ArgumentParser()
