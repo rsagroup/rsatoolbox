@@ -19,18 +19,16 @@ requirements:
     - {{ compiler('c') }}
   host:
     - python >=3.7,<3.11
-    - setuptools >=65.3,<66.dev0
-    - setuptools-scm >=7.0.0,<7.1.dev0
-    - wheel
+    - cython >=3.0.0a11
     - numpy >=1.21.2
     - scipy
-    - cython >=3.0.0a11,<3.1.dev0
-    - twine >=4.0.1,<4.1.dev0
+    - setuptools
+    - setuptools-scm
     - pip
   run:
     - python >=3.7,<3.11
     - {{ pin_compatible('numpy') }}
-    - scipy
+    - {{ pin_compatible('scipy') }}
     - pandas
     - scikit-learn
     - scikit-image
