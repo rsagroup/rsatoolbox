@@ -5,6 +5,7 @@
 
 import unittest
 import numpy as np
+from numpy.testing import assert_almost_equal
 import rsatoolbox
 from rsatoolbox.cengine.similarity import similarity as similarity_c
 from rsatoolbox.cengine.similarity import calc
@@ -125,6 +126,17 @@ class TestCalc(unittest.TestCase):
                 np.testing.assert_allclose(
                     np.expand_dims(rdm, 0), c.dissimilarities,
                     err_msg='unbalanced unequal to balanced for %s' % method)
+
+    def test_integer_input(self):
+        from rsatoolbox.data.dataset import Dataset
+        from rsatoolbox.rdm.calc_unbalanced import calc_rdm_unbalanced
+        ds = Dataset(np.asarray([[0, 2], [0, 2]]))
+        rdms = calc_rdm_unbalanced(ds)
+        assert_almost_equal(
+            rdms.dissimilarities,
+            [1.41, 2.83, 1.41],
+            decimal=2
+        )
 
 
 # Original Python version used as reference implementation:
