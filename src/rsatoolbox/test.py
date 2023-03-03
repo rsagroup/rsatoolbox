@@ -28,28 +28,41 @@ from unittest import TestCase
 
 class SkeletonTests(TestCase):
 
-    def test_calc_compiled(self):
+    def setUp(self):
         from numpy import asarray
+        from numpy.testing import assert_almost_equal
         from rsatoolbox.data.dataset import Dataset
+        from rsatoolbox.rdm.rdms import RDMs
+        self.data = Dataset(asarray([[0, 0], [1, 1], [2.0, 2.0]]))
+        self.rdms = RDMs(asarray([[1.0, 2, 3], [3, 4, 5]]))
+        self.array = asarray
+        self.arrayAlmostEqual = assert_almost_equal
+
+    def test_calc_compiled(self):
+        """Covers similarity calculation with compiled code
+        """
         from rsatoolbox.rdm.calc_unbalanced import calc_rdm_unbalanced
-        rdms = calc_rdm_unbalanced(Dataset(asarray([[0,1,2], [2,3,4]])))
-        self.assertEqual(rdms.dissimilarities, asarray([]))
+        rdms = calc_rdm_unbalanced(self.data)
+        self.arrayAlmostEqual(rdms.dissimilarities, self.array([[1, 4, 1]]))
 
     def test_model_fit(self):
+        """Covers model fitting with scipy
         """
-
-        This covers scipy
-        """
-        self.fail('todo')
+        from rsatoolbox.model.model import ModelWeighted
+        from rsatoolbox.model.fitter import fit_optimize
+        theta = fit_optimize(ModelWeighted('F', self.rdms), self.rdms)
+        self.arrayAlmostEqual(theta, [0.88, 0.47], decimal=2)
 
     def test_plotting_with_mpl(self):
-        self.fail('todo')
+        from rsatoolbox.vis.rdm_plot import show_rdm
+        show_rdm(self.rdms)
 
     def test_mds(self):
         """
         Covers sklearn and mpl
         """
-        self.fail('todo')
+        from rsatoolbox.vis.scatter_plot import show_MDS
+        show_MDS(self.rdms)
 
     def test_evaluate(self):
         """
