@@ -44,6 +44,7 @@ test:
     - rsatoolbox
   commands:
     - pip check
+    - python -m unittest -v rsatoolbox.test
   requires:
     - pip
 
