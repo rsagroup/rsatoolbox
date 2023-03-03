@@ -22,6 +22,7 @@ These tests have to:
 In other words they have to check that all the moving parts are there,
 without looking at very specific calculation outcomes.
 """
+# pylint: disable=import-outside-toplevel, no-self-use
 from unittest import TestCase
 
 
