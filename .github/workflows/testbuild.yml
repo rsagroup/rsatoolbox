@@ -29,6 +29,8 @@ jobs:
       run: pip install .
     - name: Install test dependencies
       run: pip install -r tests/requirements.txt
+    - name: Skeleton tests
+      run: python -m unittest -v rsatoolbox.test
     - name: Unit tests
       run: pytest
 
