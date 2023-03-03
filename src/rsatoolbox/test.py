@@ -22,19 +22,24 @@ These tests have to:
 In other words they have to check that all the moving parts are there,
 without looking at very specific calculation outcomes.
 """
-# pylint: disable=import-outside-toplevel, no-self-use
+# pylint: disable=import-outside-toplevel
 from unittest import TestCase
 
 
 class SkeletonTests(TestCase):
+    """Toolbox skeleton tests to ensure correct packaging and installation
+    """
 
     def setUp(self):
-        from numpy import asarray
+        """Create basic RDMs and Dataset objects for all tests
+        """
+        from numpy import asarray, ones
         from numpy.testing import assert_almost_equal
         from rsatoolbox.data.dataset import Dataset
         from rsatoolbox.rdm.rdms import RDMs
         self.data = Dataset(asarray([[0, 0], [1, 1], [2.0, 2.0]]))
         self.rdms = RDMs(asarray([[1.0, 2, 3], [3, 4, 5]]))
+        self.larger_rdms = RDMs(ones([3, 10]))
         self.array = asarray
         self.arrayAlmostEqual = assert_almost_equal
 
@@ -54,25 +59,44 @@ class SkeletonTests(TestCase):
         self.arrayAlmostEqual(theta, [0.88, 0.47], decimal=2)
 
     def test_plotting_with_mpl(self):
+        """Covers Matplotlib usage
+        """
         from rsatoolbox.vis.rdm_plot import show_rdm
         show_rdm(self.rdms)
 
     def test_mds(self):
-        """
-        Covers sklearn and mpl
+        """Covers sklearn and Matplotlib usage
         """
         from rsatoolbox.vis.scatter_plot import show_MDS
         show_MDS(self.rdms)
 
     def test_evaluate(self):
+        """Covers tqdm usage and evaluate functionality
         """
-        Covers tqdm
-        """
-        #eval_bootstrap
-        self.fail('todo')
+        from rsatoolbox.inference import eval_bootstrap
+        from rsatoolbox.model import ModelFixed
+        model = ModelFixed('G', self.array([2]*10))
+        result = eval_bootstrap(model, self.larger_rdms, N=3)
+        self.assertAlmostEqual(result.test_zero()[0], 0)
 
     def test_pandas_io(self):
-        self.fail('todo')
+        """Covers pandas usage
+        """
+        df = self.rdms.to_df()
+        self.arrayAlmostEqual(
+            self.array(df.loc[:, 'dissimilarity'].values),
+            self.rdms.dissimilarities.ravel()
+        )
 
     def test_hdf_io(self):
-        self.fail('todo')
+        """Covers h5py library use
+        """
+        from io import BytesIO
+        from rsatoolbox.rdm.rdms import load_rdm
+        fhandle = BytesIO()
+        self.rdms.save(fhandle, file_type='hdf5')
+        reconstituted_rdms = load_rdm(fhandle, file_type='hdf5')
+        self.arrayAlmostEqual(
+            self.rdms.dissimilarities,
+            reconstituted_rdms.dissimilarities
+        )
