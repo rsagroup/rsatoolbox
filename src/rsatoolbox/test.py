@@ -75,7 +75,7 @@ class SkeletonTests(TestCase):
         """
         from rsatoolbox.inference import eval_bootstrap
         from rsatoolbox.model import ModelFixed
-        model = ModelFixed('G', self.array([2]*10))
+        model = ModelFixed('G', self.array([2] * 10))
         result = eval_bootstrap(model, self.larger_rdms, N=3)
         self.assertAlmostEqual(result.test_zero()[0], 0)
 
