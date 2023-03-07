@@ -73,10 +73,10 @@ class SkeletonTests(TestCase):
     def test_evaluate(self):
         """Covers tqdm usage and evaluate functionality
         """
-        from rsatoolbox.inference import eval_bootstrap
+        from rsatoolbox.inference import eval_fixed
         from rsatoolbox.model import ModelFixed
-        model = ModelFixed('G', self.array([2] * 10))
-        result = eval_bootstrap(model, self.larger_rdms, N=3)
+        model = ModelFixed('G', self.array(list(range(10))))
+        result = eval_fixed(model, self.larger_rdms)
         self.assertAlmostEqual(result.test_zero()[0], 0)
 
     def test_pandas_io(self):
