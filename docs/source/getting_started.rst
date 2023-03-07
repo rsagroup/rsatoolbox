@@ -17,6 +17,13 @@ To get the bleeding edge or "pre-release" version:
     pip install --pre rsatoolbox
 
 
+Or if you're using a Conda environment:
+
+.. code-block:: sh
+
+    conda install -c conda-forge rsatoolbox
+
+
 To use rsatoolbox:
 
 .. code-block:: python
