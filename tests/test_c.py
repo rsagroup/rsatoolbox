@@ -87,6 +87,18 @@ class TestCalcOne(unittest.TestCase):
                 sim, sim_c, None,
                 'C unequal to python for %s' % method)
 
+    def test_integer_input_one(self):
+        from rsatoolbox.data.dataset import Dataset
+        from rsatoolbox.rdm.calc_unbalanced import calc_one_similarity
+        ds1 = Dataset(np.asarray([[0, 2], [0, 2]]))
+        ds2 = Dataset(np.asarray([[1, 3], [1, 3]]))
+        rdms = calc_one_similarity(ds1, ds2, np.arange(0, 2), np.arange(2, 4))
+        assert_almost_equal(
+            rdms.dissimilarities,
+            [1.41, 2.83, 1.41],
+            decimal=2
+        )
+
 
 class TestCalc(unittest.TestCase):
 
@@ -127,7 +139,7 @@ class TestCalc(unittest.TestCase):
                     np.expand_dims(rdm, 0), c.dissimilarities,
                     err_msg='unbalanced unequal to balanced for %s' % method)
 
-    def test_integer_input(self):
+    def test_integer_input_rdm(self):
         from rsatoolbox.data.dataset import Dataset
         from rsatoolbox.rdm.calc_unbalanced import calc_rdm_unbalanced
         ds = Dataset(np.asarray([[0, 2], [0, 2]]))
