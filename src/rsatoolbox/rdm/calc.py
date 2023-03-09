@@ -304,8 +304,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     cv_folds = np.unique(np.array(datasetCopy.obs_descriptors[cv_descriptor]))
     rdms = []
     if (noise is None) or (isinstance(noise, np.ndarray) and noise.ndim == 2):
-        for i_fold in range(len(cv_folds)):
-            fold = cv_folds[i_fold]
+        for i_fold, fold in enumerate(cv_folds):
             data_test = datasetCopy.subset_obs(cv_descriptor, fold)
             data_train = datasetCopy.subset_obs(
                 cv_descriptor,
