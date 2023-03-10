@@ -7,10 +7,8 @@ Result object definition
 import numpy as np
 import scipy.stats
 import rsatoolbox.model
-from rsatoolbox.util.file_io import write_dict_hdf5
-from rsatoolbox.util.file_io import write_dict_pkl
-from rsatoolbox.util.file_io import read_dict_hdf5
-from rsatoolbox.util.file_io import read_dict_pkl
+from rsatoolbox.io.hdf5 import read_dict_hdf5, write_dict_hdf5
+from rsatoolbox.io.pkl import read_dict_pkl, write_dict_pkl
 from rsatoolbox.util.file_io import remove_file
 from rsatoolbox.util.inference_util import extract_variances
 from rsatoolbox.util.inference_util import all_tests, pair_tests, nc_tests, zero_tests
