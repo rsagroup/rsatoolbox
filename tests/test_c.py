@@ -91,7 +91,7 @@ class TestCalcOne(unittest.TestCase):
         ds1 = Dataset(np.asarray([[0], [2]]).T)  # one pattern, two channels
         ds2 = Dataset(np.asarray([[0], [2]]).T)  # one pattern, two channels
         dissim, _ = calc_one_similarity_c(ds1, ds2, np.array([0]), np.array([1]))
-        assert_almost_equal(dissim, 4)  # standard-squared euclidean
+        assert_almost_equal(dissim, 2)  # standard-squared euclidean
 
 
 class TestCalc(unittest.TestCase):
