@@ -8,7 +8,7 @@ import os
 from collections.abc import Iterable
 from pathlib import Path
 import pickle
-import h5py
+from h5py import File, Group, Empty
 import numpy as np
 
 
@@ -24,7 +24,7 @@ def write_dict_hdf5(file, dictionary):
     if isinstance(file, str):
         if os.path.exists(file):
             raise ValueError('File already exists!')
-    file = h5py.File(file, 'a')
+    file = File(file, 'a')
     file.attrs['rsatoolbox_version'] = '0.0.1'
     _write_to_group(file, dictionary)
 
@@ -48,7 +48,7 @@ def _write_to_group(group, dictionary):
             subgroup = group.create_group(key)
             _write_to_group(subgroup, value)
         elif value is None:
-            group[key] = h5py.Empty("f")
+            group[key] = Empty("f")
         elif isinstance(value, Iterable):
             if isinstance(value[0], str):
                 group.attrs[key] = value
@@ -92,7 +92,7 @@ def read_dict_hdf5(file):
         dictionary(dict): the loaded dict
 
     """
-    file = h5py.File(file, 'r')
+    file = File(file, 'r')
     return _read_group(file)
 
 
@@ -100,7 +100,7 @@ def _read_group(group):
     """ reads a group from a hdf5 file into a dict, which allows recursion"""
     dictionary = {}
     for key in group.keys():
-        if isinstance(group[key], h5py.Group):
+        if isinstance(group[key], Group):
             dictionary[key] = _read_group(group[key])
         elif group[key].shape is None:
             dictionary[key] = None
