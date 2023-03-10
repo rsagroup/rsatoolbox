@@ -22,10 +22,8 @@ from rsatoolbox.util.descriptor_utils import append_descriptor
 from rsatoolbox.util.descriptor_utils import dict_to_list
 from rsatoolbox.util.descriptor_utils import desc_eq
 from rsatoolbox.util.data_utils import extract_dict
-from rsatoolbox.util.file_io import write_dict_hdf5
-from rsatoolbox.util.file_io import write_dict_pkl
-from rsatoolbox.util.file_io import read_dict_hdf5
-from rsatoolbox.util.file_io import read_dict_pkl
+from rsatoolbox.io.hdf5 import read_dict_hdf5, write_dict_hdf5
+from rsatoolbox.io.pkl import read_dict_pkl, write_dict_pkl
 from rsatoolbox.util.file_io import remove_file
 
 

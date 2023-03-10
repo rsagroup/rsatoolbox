@@ -5,11 +5,11 @@ from importlib.metadata import version
 
 class PickleIOTests(TestCase):
 
-    @patch('rsatoolbox.util.file_io.pickle')
+    @patch('rsatoolbox.io.pkl.pickle')
     def test_write_dict_pkl_version(self, pickle):
         """Check version tag matches current version
         """
-        from rsatoolbox.util.file_io import write_dict_pkl
+        from rsatoolbox.io.pkl import write_dict_pkl
         write_dict_pkl(sentinel.filepath, dict())
         self.assertEqual(
             pickle.dump.call_args[0][0],

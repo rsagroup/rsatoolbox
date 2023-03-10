@@ -4,8 +4,8 @@ from __future__ import annotations
 from rsatoolbox.util.descriptor_utils import check_descriptor_length_error
 from rsatoolbox.util.descriptor_utils import format_descriptor
 from rsatoolbox.util.descriptor_utils import parse_input_descriptor
-from rsatoolbox.util.file_io import write_dict_hdf5
-from rsatoolbox.util.file_io import write_dict_pkl
+from rsatoolbox.io.hdf5 import write_dict_hdf5
+from rsatoolbox.io.pkl import write_dict_pkl
 from rsatoolbox.util.file_io import remove_file
 
 
