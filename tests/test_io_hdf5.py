@@ -10,7 +10,7 @@ class Hdf5IOTests(TestCase):
         """Check version tag matches current version
         """
         from rsatoolbox.io.hdf5 import write_dict_hdf5
-        h5pyFile().attrs = dict()   
+        h5pyFile().attrs = dict()
         write_dict_hdf5('a file path', dict())
         self.assertEqual(
             h5pyFile().attrs.get('rsatoolbox_version'),
