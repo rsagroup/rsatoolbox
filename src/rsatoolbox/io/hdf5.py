@@ -2,13 +2,14 @@
 saving to and reading from HDF5 files
 """
 from __future__ import annotations
+from typing import Union, Dict, List, IO
 import os
 from collections.abc import Iterable
 from h5py import File, Group, Empty
 import numpy as np
 
 
-def write_dict_hdf5(file, dictionary):
+def write_dict_hdf5(fhandle: Union[str, IO], dictionary: Dict) -> None:
     """ writes a nested dictionary containing strings & arrays as data into
     a hdf5 file
 
@@ -17,15 +18,15 @@ def write_dict_hdf5(file, dictionary):
         dictionary(dict): the dict to be saved
 
     """
-    if isinstance(file, str):
-        if os.path.exists(file):
+    if isinstance(fhandle, str):
+        if os.path.exists(fhandle):
             raise ValueError('File already exists!')
-    file = File(file, 'a')
+    file = File(fhandle, 'a')
     file.attrs['rsatoolbox_version'] = '0.0.1'
     _write_to_group(file, dictionary)
 
 
-def _write_to_group(group, dictionary):
+def _write_to_group(group: Group, dictionary: Dict) -> None:
     """ writes a dictionary to a hdf5 group, which can recurse"""
     for key in dictionary.keys():
         value = dictionary[key]
@@ -52,7 +53,7 @@ def _write_to_group(group, dictionary):
             group[key] = value
 
 
-def _write_list(group, key, value):
+def _write_list(group: Group, key: str, value: List) -> None:
     """
     writes a list to a hdf5 file. First tries conversion to np.array.
     If this fails the list is converted to a dict with integer keys.
@@ -77,7 +78,7 @@ def _write_list(group, key, value):
             l_group[str(i)] = v
 
 
-def read_dict_hdf5(file):
+def read_dict_hdf5(fhandle: Union[str, IO]) -> Dict:
     """ writes a nested dictionary containing strings & arrays as data into
     a hdf5 file
 
@@ -88,22 +89,23 @@ def read_dict_hdf5(file):
         dictionary(dict): the loaded dict
 
     """
-    file = File(file, 'r')
+    file = File(fhandle, 'r')
     return _read_group(file)
 
 
-def _read_group(group):
+def _read_group(group: Group) -> Dict:
     """ reads a group from a hdf5 file into a dict, which allows recursion"""
     dictionary = {}
     for key in group.keys():
-        if isinstance(group[key], Group):
-            dictionary[key] = _read_group(group[key])
-        elif group[key].shape is None:
+        sub_val = group[key]
+        if isinstance(sub_val, Group):
+            dictionary[key] = _read_group(sub_val)
+        elif sub_val.shape is None:
             dictionary[key] = None
         else:
-            dictionary[key] = np.array(group[key])
+            dictionary[key] = np.array(sub_val)
             if dictionary[key].dtype.type is np.string_:
-                dictionary[key] = np.array(group[key]).astype('unicode')
+                dictionary[key] = np.array(sub_val).astype('unicode')
             # if (len(dictionary[key].shape) == 1
             #     and dictionary[key].shape[0] == 1):
             #     dictionary[key] = dictionary[key][0]

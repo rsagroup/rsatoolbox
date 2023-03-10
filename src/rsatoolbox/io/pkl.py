@@ -1,10 +1,12 @@
 """
 saving to and reading from pickle files
 """
+from __future__ import annotations
+from typing import Union, Dict, IO
 import pickle
 
 
-def write_dict_pkl(file, dictionary):
+def write_dict_pkl(fhandle: Union[str, IO], dictionary: Dict) -> None:
     """ writes a nested dictionary containing strings & arrays as data into
     a pickle file
 
@@ -13,13 +15,13 @@ def write_dict_pkl(file, dictionary):
         dictionary(dict): the dict to be saved
 
     """
-    if isinstance(file, str):
-        file = open(file, 'wb')
+    if isinstance(fhandle, str):
+        fhandle = open(fhandle, 'wb')
     dictionary['rsatoolbox_version'] = '0.0.1'
-    pickle.dump(dictionary, file, protocol=-1)
+    pickle.dump(dictionary, fhandle, protocol=-1)
 
 
-def read_dict_pkl(file):
+def read_dict_pkl(fhandle: Union[str, IO]) -> Dict:
     """ writes a nested dictionary containing strings & arrays as data into
     a pickle file
 
@@ -31,7 +33,7 @@ def read_dict_pkl(file):
 
 
     """
-    if isinstance(file, str):
-        file = open(file, 'rb')
-    data = pickle.load(file)
+    if isinstance(fhandle, str):
+        fhandle = open(fhandle, 'rb')
+    data = pickle.load(fhandle)
     return data
