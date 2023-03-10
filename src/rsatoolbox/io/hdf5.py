@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Union, Dict, List, IO
 import os
 from collections.abc import Iterable
+from importlib.metadata import version
 from h5py import File, Group, Empty
 import numpy as np
 
@@ -22,7 +23,7 @@ def write_dict_hdf5(fhandle: Union[str, IO], dictionary: Dict) -> None:
         if os.path.exists(fhandle):
             raise ValueError('File already exists!')
     file = File(fhandle, 'a')
-    file.attrs['rsatoolbox_version'] = '0.0.1'
+    file.attrs['rsatoolbox_version'] = version('rsatoolbox')
     _write_to_group(file, dictionary)
 
 

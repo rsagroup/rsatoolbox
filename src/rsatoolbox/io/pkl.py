@@ -3,6 +3,7 @@ saving to and reading from pickle files
 """
 from __future__ import annotations
 from typing import Union, Dict, IO
+from importlib.metadata import version
 import pickle
 
 
@@ -17,7 +18,7 @@ def write_dict_pkl(fhandle: Union[str, IO], dictionary: Dict) -> None:
     """
     if isinstance(fhandle, str):
         fhandle = open(fhandle, 'wb')
-    dictionary['rsatoolbox_version'] = '0.0.1'
+    dictionary['rsatoolbox_version'] = version('rsatoolbox')
     pickle.dump(dictionary, fhandle, protocol=-1)
 
 
