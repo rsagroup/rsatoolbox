@@ -441,9 +441,9 @@ def t_tests(evaluations, variances, dof=1):
     if variances is None:
         raise ValueError("No variance estimates provided for t_test!")
     n_model = evaluations.shape[1]
-    evaluations = _nan_mean(evaluations, 0)
+    evaluations = np.nanmean(evaluations, 0)
     while evaluations.ndim > 1:
-        evaluations = _nan_mean(evaluations, axis=-1)
+        evaluations = np.nanmean(evaluations, axis=-1)
     C = pairwise_contrast(np.arange(n_model))
     diffs = C @ evaluations
     t = diffs / np.sqrt(np.maximum(variances, np.finfo(float).eps))
