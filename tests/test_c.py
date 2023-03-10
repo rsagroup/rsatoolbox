@@ -88,10 +88,9 @@ class TestCalcOne(unittest.TestCase):
 
     def test_integer_input_one(self):
         from rsatoolbox.data.dataset import Dataset
-        from rsatoolbox.rdm.calc_unbalanced import calc_one_similarity
         ds1 = Dataset(np.asarray([[0], [2]]).T)  # one pattern, two channels
         ds2 = Dataset(np.asarray([[0], [2]]).T)  # one pattern, two channels
-        dissim, _ = calc_one_similarity(ds1, ds2, np.array([0]), np.array([1]))
+        dissim, _ = calc_one_similarity_c(ds1, ds2, np.array([0]), np.array([1]))
         assert_almost_equal(dissim, 4)  # standard-squared euclidean
 
 
