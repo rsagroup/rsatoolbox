@@ -3,7 +3,10 @@ saving to and reading from pickle files
 """
 from __future__ import annotations
 from typing import Union, Dict, IO
-from importlib.metadata import version
+try:  # drop:py37 (backport)
+    from importlib.metadata import version
+except ModuleNotFoundError:
+    from importlib_metadata import version
 import pickle
 
 

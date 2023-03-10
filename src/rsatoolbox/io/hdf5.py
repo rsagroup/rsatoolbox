@@ -5,7 +5,10 @@ from __future__ import annotations
 from typing import Union, Dict, List, IO
 import os
 from collections.abc import Iterable
-from importlib.metadata import version
+try:  # drop:py37 (backport)
+    from importlib.metadata import version
+except ModuleNotFoundError:
+    from importlib_metadata import version
 from h5py import File, Group, Empty
 import numpy as np
 

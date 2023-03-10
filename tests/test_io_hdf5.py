@@ -1,6 +1,10 @@
 from unittest import TestCase
 from unittest.mock import patch
-from importlib.metadata import version
+try:  # drop:py37 (backport)
+    from importlib.metadata import version
+except ModuleNotFoundError:
+    from importlib_metadata import version
+    
 
 
 class Hdf5IOTests(TestCase):
