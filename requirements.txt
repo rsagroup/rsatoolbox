@@ -7,4 +7,4 @@ matplotlib
 h5py
 tqdm
 joblib
-importlib-metadata; python_version < "3.8"
+importlib-metadata>=6.0.0; python_version < "3.8"
