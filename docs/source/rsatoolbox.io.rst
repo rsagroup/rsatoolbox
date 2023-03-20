@@ -9,6 +9,7 @@ Submodules
 
    rsatoolbox.io.hdf5
    rsatoolbox.io.meadows
+   rsatoolbox.io.mne
    rsatoolbox.io.pandas
    rsatoolbox.io.pkl
 

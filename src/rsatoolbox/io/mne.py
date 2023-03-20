@@ -2,13 +2,18 @@ from __future__ import annotations
 from typing import Dict
 from os.path import basename
 from rsatoolbox.data.dataset import TemporalDataset
-try:
-    from mne import read_epochs
-except Exception:
-    pass
 
 
 def load_epochs(fpath: str) -> TemporalDataset:
+    """Create TemporalDataset from epochs in mne FIF file
+
+    Args:
+        fpath (str): Full path to epochs file
+
+    Returns:
+        TemporalDataset: dataset with epochs
+    """
+    from mne import read_epochs
     epo = read_epochs(fpath, preload=True, verbose='error')
     fname = basename(fpath)
     descs = dict(filename=fname)
