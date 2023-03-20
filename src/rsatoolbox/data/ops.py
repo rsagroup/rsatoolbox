@@ -1,12 +1,13 @@
 """Operations on multiple Datasets
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING, Union, List, Set, Dict, overload
+from typing import TYPE_CHECKING, Literal, Union, List, Set, overload
 from copy import deepcopy
 from warnings import warn
 from numpy import concatenate, repeat
 import rsatoolbox
 if TYPE_CHECKING:
+    DESC_LEVEL = Union[Literal['obs'], Literal['set']]
     from rsatoolbox.data.dataset import Dataset, TemporalDataset
 
 
@@ -43,17 +44,18 @@ def merge_datasets(sets: Union[List[Dataset], List[TemporalDataset]]
         return rsatoolbox.data.dataset.Dataset(measurements=[])
     if len({type(s) for s in sets}) > 1:
         raise ValueError('All datasets must be of the same type')
+    ds0 = sets[0]
     # numpy pre-allocates so this seems to be a performant solution:
     meas = concatenate([ds.measurements for ds in sets], axis=0)
     obs_descs = dict()
     # loop over obs descriptors that all subsets have in common:
-    for k in _shared_keys([s.obs_descriptors for s in sets]):
+    for k in _shared_descriptors(sets, 'obs'):
         obs_descs[k] = concatenate([ds.obs_descriptors[k] for ds in sets])
     dat_decs = dict()
-    for k in _shared_keys([s.descriptors for s in sets]):
+    for k in _shared_descriptors(sets):
         if len({s.descriptors[k] for s in sets}) == 1:
             # descriptor always has the same value
-            dat_decs[k] = sets[0].descriptors[k]
+            dat_decs[k] = ds0.descriptors[k]
         else:
             # descriptor varies across subsets, so repeat it by observation
             obs_descs[k] = repeat(
@@ -61,25 +63,31 @@ def merge_datasets(sets: Union[List[Dataset], List[TemporalDataset]]
                 [ds.n_obs for ds in sets]
             )
     # order is important as long as TemporalDataset inherits from Dataset
-    if isinstance(sets[0], rsatoolbox.data.dataset.TemporalDataset):
+    if isinstance(ds0, rsatoolbox.data.dataset.TemporalDataset):
         return rsatoolbox.data.dataset.TemporalDataset(
             measurements=meas,
             descriptors=dat_decs,
             obs_descriptors=obs_descs,
-            channel_descriptors=deepcopy(sets[0].channel_descriptors),
-            time_descriptors=deepcopy(sets[0].time_descriptors),
+            channel_descriptors=deepcopy(ds0.channel_descriptors),
+            time_descriptors=deepcopy(ds0.time_descriptors),
         )
-    if isinstance(sets[0], rsatoolbox.data.dataset.Dataset):
+    if isinstance(ds0, rsatoolbox.data.dataset.Dataset):
         return rsatoolbox.data.dataset.Dataset(
             measurements=meas,
             descriptors=dat_decs,
             obs_descriptors=obs_descs,
-            channel_descriptors=deepcopy(sets[0].channel_descriptors)
+            channel_descriptors=deepcopy(ds0.channel_descriptors)
         )
     raise ValueError('Unsupported Dataset type')
 
 
-def _shared_keys(dicts: List[Dict]) -> Set[str]:
-    """Find keys that all dicts have in common
+def _shared_descriptors(
+        datasets: Union[List[Dataset], List[TemporalDataset]],
+        level: DESC_LEVEL = 'set') -> Set[str]:
+    """Find descriptors that all datasets have in common
     """
-    return set.intersection(*[set(d.keys()) for d in dicts])
+    if level == 'set':
+        each_keys = [set(d.descriptors.keys()) for d in datasets]
+    else:
+        each_keys = [set(d.obs_descriptors.keys()) for d in datasets]
+    return set.intersection(*each_keys)
