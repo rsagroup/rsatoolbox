@@ -44,17 +44,17 @@ class MneIOTests(TestCase):
         self.test_dir.cleanup()
         return super().tearDown()
 
-    def test_load_epochs(self):
+    def test_read_epochs(self):
         """Acceptance test for loading a single MNE _epo.fif
         file as TemporalDataset
         """
-        from rsatoolbox.io.mne import load_epochs
-        ds = load_epochs(self.store_test_epochs('test_epo.fif'))
+        from rsatoolbox.io.mne import read_epochs
+        ds = read_epochs(self.store_test_epochs('test_epo.fif'))
         self.assertEqual(ds.measurements.shape, (4, 2, 3))
         assert_almost_equal(ds.measurements, self.data)
         self.assertEqual(ds.descriptors.get('filename'), 'test_epo.fif')
         assert_array_equal(
-            ds.obs_descriptors.get('event'),
+            ds.obs_descriptors.get('event', []),
             [11, 12, 13, 12]
         )
         self.assertEqual(
@@ -70,9 +70,9 @@ class MneIOTests(TestCase):
         """read BIDS-style tab-separated events file as additional
         obs-descriptor
         """
-        from rsatoolbox.io.mne import load_epochs
+        from rsatoolbox.io.mne import read_epochs
         fpath = self.store_test_epochs('sub-01_run-02_task-abc_epo.fif')
-        ds = load_epochs(fpath)
+        ds = read_epochs(fpath)
         self.assertEqual(ds.descriptors.get('sub'), '01')
         self.assertEqual(ds.descriptors.get('run'), '02')
         self.assertEqual(ds.descriptors.get('task'), 'abc')

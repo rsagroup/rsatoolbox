@@ -1,10 +1,12 @@
 from __future__ import annotations
-from typing import Dict
+from typing import Optional, Dict, TYPE_CHECKING
 from os.path import basename
 from rsatoolbox.data.dataset import TemporalDataset
+if TYPE_CHECKING:
+    from mne.epochs import EpochsFIF
 
 
-def load_epochs(fpath: str) -> TemporalDataset:
+def read_epochs(fpath: str) -> TemporalDataset:
     """Create TemporalDataset from epochs in mne FIF file
 
     Args:
@@ -13,17 +15,33 @@ def load_epochs(fpath: str) -> TemporalDataset:
     Returns:
         TemporalDataset: dataset with epochs
     """
-    from mne import read_epochs  # pylint: disable=import-outside-toplevel
-    epo = read_epochs(fpath, preload=True, verbose='error')
+    # pylint: disable-next=import-outside-toplevel
+    from mne import read_epochs as mne_read_epochs
+    epo = mne_read_epochs(fpath, preload=True, verbose='error')
     fname = basename(fpath)
-    descs = dict(filename=fname)
-    fname_descs = descriptors_from_bids_filename(fname)
+    descs = dict(filename=fname, **descriptors_from_bids_filename(fname))
+    return dataset_from_epochs(epo, descs)
+
+
+def dataset_from_epochs(
+            epochs: EpochsFIF,
+            descriptors: Optional[Dict] = None
+        ) -> TemporalDataset:
+    """Create TemporalDataset from MNE epochs object
+
+    Args:
+        fpath (str): Full path to epochs file
+
+    Returns:
+        TemporalDataset: dataset with epochs
+    """
+    descriptors = descriptors or dict()
     return TemporalDataset(
-        measurements=epo.get_data(),
-        descriptors={**descs, **fname_descs},
-        obs_descriptors=dict(event=epo.events[:, 2]),
-        channel_descriptors=dict(name=epo.ch_names),
-        time_descriptors=dict(time=epo.times)
+        measurements=epochs.get_data(),
+        descriptors=descriptors,
+        obs_descriptors=dict(event=epochs.events[:, 2]),
+        channel_descriptors=dict(name=epochs.ch_names),
+        time_descriptors=dict(time=epochs.times)
     )
 
 
