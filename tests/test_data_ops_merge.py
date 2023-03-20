@@ -35,6 +35,7 @@ class MergeTests(TestCase):
         np.testing.assert_array_equal(
             test_data_merged.channel_descriptors['rois'],
             test_data.channel_descriptors['rois'])
+        # TODO: deprecate old implementation
         
     def test_merge_datasets_standard(self):
         """Merge two standard datasets
@@ -77,11 +78,11 @@ class MergeTests(TestCase):
         from rsatoolbox.data.ops import merge_datasets
         ds1 = TemporalDataset(
             measurements=rand(3, 2, 4),
-            time_descriptors=dict(time=numpy.array([0, 1, 2, 3])),
+            time_descriptors=dict(time=numpy.array([0, 1, 2, 3])/10),
         )
         ds2 = TemporalDataset(
             measurements=rand(3, 2, 4)+1,
-            time_descriptors=dict(time=numpy.array([0, 1, 2, 3]))
+            time_descriptors=dict(time=numpy.array([0, 1, 2, 3])/10)
         )
         ds = merge_datasets([ds1, ds2])
         self.assertIsInstance(ds, TemporalDataset)
@@ -90,4 +91,4 @@ class MergeTests(TestCase):
         assert_array_equal(ds.measurements, exp_meas)
         assert_array_equal(
             ds.time_descriptors.get('time', []),
-            [0, 1, 2, 3])
+            [0.0, 0.1, 0.2, 0.3])
