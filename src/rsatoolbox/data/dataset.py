@@ -20,7 +20,6 @@ from rsatoolbox.util.descriptor_utils import subset_descriptor
 from rsatoolbox.util.descriptor_utils import num_index
 from rsatoolbox.util.descriptor_utils import format_descriptor
 from rsatoolbox.util.descriptor_utils import parse_input_descriptor
-from rsatoolbox.util.descriptor_utils import append_obs_descriptors
 from rsatoolbox.util.descriptor_utils import desc_eq
 from rsatoolbox.io.hdf5 import read_dict_hdf5
 from rsatoolbox.io.pkl import read_dict_pkl

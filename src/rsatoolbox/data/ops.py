@@ -2,9 +2,9 @@
 """
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union, List, Set, Dict, overload
-from numpy import concatenate, repeat
 from copy import deepcopy
 from warnings import warn
+from numpy import concatenate, repeat
 import rsatoolbox
 if TYPE_CHECKING:
     from rsatoolbox.data.dataset import Dataset, TemporalDataset
