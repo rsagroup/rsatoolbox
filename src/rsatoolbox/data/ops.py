@@ -1,11 +1,13 @@
 """Operations on multiple Datasets
 """
 from __future__ import annotations
-from typing import Union, List, Set, Dict, overload
+from typing import TYPE_CHECKING, Union, List, Set, Dict, overload
 from numpy import concatenate, repeat
 from copy import deepcopy
 from warnings import warn
-from rsatoolbox.data.dataset import Dataset, TemporalDataset
+import rsatoolbox
+if TYPE_CHECKING:
+    from rsatoolbox.data.dataset import Dataset, TemporalDataset
 
 
 @overload
@@ -38,7 +40,7 @@ def merge_datasets(sets: Union[List[Dataset], List[TemporalDataset]]
     """
     if len(sets) == 0:
         warn('[merge_datasets] Received empty list, returning empty Dataset')
-        return Dataset(measurements=[])
+        return rsatoolbox.data.dataset.Dataset(measurements=[])
     if len({type(s) for s in sets}) > 1:
         raise ValueError('All datasets must be of the same type')
     # numpy pre-allocates so this seems to be a performant solution:
@@ -59,22 +61,23 @@ def merge_datasets(sets: Union[List[Dataset], List[TemporalDataset]]
                 [ds.n_obs for ds in sets]
             )
     # order is important as long as TemporalDataset inherits from Dataset
-    if isinstance(sets[0], TemporalDataset):
-        return TemporalDataset(
+    if isinstance(sets[0], rsatoolbox.data.dataset.TemporalDataset):
+        return rsatoolbox.data.dataset.TemporalDataset(
             measurements=meas,
             descriptors=dat_decs,
             obs_descriptors=obs_descs,
             channel_descriptors=deepcopy(sets[0].channel_descriptors),
             time_descriptors=deepcopy(sets[0].time_descriptors),
         )
-    if isinstance(sets[0], Dataset):
-        return Dataset(
+    if isinstance(sets[0], rsatoolbox.data.dataset.Dataset):
+        return rsatoolbox.data.dataset.Dataset(
             measurements=meas,
             descriptors=dat_decs,
             obs_descriptors=obs_descs,
             channel_descriptors=deepcopy(sets[0].channel_descriptors)
         )
     raise ValueError('Unsupported Dataset type')
+
 
 def _shared_keys(dicts: List[Dict]) -> Set[str]:
     """Find keys that all dicts have in common

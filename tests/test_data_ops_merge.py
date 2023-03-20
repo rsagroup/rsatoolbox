@@ -15,7 +15,7 @@ class MergeTests(TestCase):
         measurements = np.random.rand(4, 10)
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([str(i) for i in range(1, 5)])}
-        chn_des = {'rois': np.array([chr(l) for l in range(65, 75)])}
+        chn_des = {'rois': np.array([chr(r) for r in range(65, 75)])}
         test_data = rsd.Dataset(
             measurements=measurements,
             descriptors=des,
@@ -35,8 +35,7 @@ class MergeTests(TestCase):
         np.testing.assert_array_equal(
             test_data_merged.channel_descriptors['rois'],
             test_data.channel_descriptors['rois'])
-        # TODO: deprecate old implementation
-        
+
     def test_merge_datasets_standard(self):
         """Merge two standard datasets
         """
@@ -64,11 +63,11 @@ class MergeTests(TestCase):
         assert_array_equal(
             ds.obs_descriptors.get('cond', []),
             ['a', 'b', 'c', 'b', 'c', 'd'])
-        ## dataset descriptors that vary should become obs descriptor
+        # dataset descriptors that vary should become obs descriptor
         assert_array_equal(
             ds.obs_descriptors.get('foo', []),
             ['bar']*3 + ['baz']*3)
-        ## dataset descriptors that are identical should remain
+        # dataset descriptors that are identical should remain
         self.assertEqual(ds.descriptors.get('same'), 'us')
 
     def test_merge_datasets_temporal(self):
