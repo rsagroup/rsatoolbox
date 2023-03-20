@@ -13,7 +13,7 @@ def load_epochs(fpath: str) -> TemporalDataset:
     Returns:
         TemporalDataset: dataset with epochs
     """
-    from mne import read_epochs
+    from mne import read_epochs  # pylint: disable=import-outside-toplevel
     epo = read_epochs(fpath, preload=True, verbose='error')
     fname = basename(fpath)
     descs = dict(filename=fname)
@@ -21,7 +21,7 @@ def load_epochs(fpath: str) -> TemporalDataset:
     return TemporalDataset(
         measurements=epo.get_data(),
         descriptors={**descs, **fname_descs},
-        obs_descriptors=dict(triggers=epo.events[:, 2]),
+        obs_descriptors=dict(event=epo.events[:, 2]),
         channel_descriptors=dict(name=epo.ch_names),
         time_descriptors=dict(time=epo.times)
     )

@@ -1,7 +1,7 @@
 from unittest import TestCase
 from os.path import join
 from tempfile import TemporaryDirectory
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_array_equal
 import numpy
 
 
@@ -53,7 +53,10 @@ class MneIOTests(TestCase):
         self.assertEqual(ds.measurements.shape, (4, 2, 3))
         assert_almost_equal(ds.measurements, self.data)
         self.assertEqual(ds.descriptors.get('filename'), 'test_epo.fif')
-        # events desc
+        assert_array_equal(
+            ds.obs_descriptors.get('event'),
+            [11, 12, 13, 12]
+        )
         self.assertEqual(
             ds.channel_descriptors.get('name'),
             ['A1', 'X32']
