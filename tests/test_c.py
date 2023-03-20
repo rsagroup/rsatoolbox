@@ -5,6 +5,7 @@
 
 import unittest
 import numpy as np
+from numpy.testing import assert_almost_equal
 import rsatoolbox
 from rsatoolbox.cengine.similarity import similarity as similarity_c
 from rsatoolbox.cengine.similarity import calc
@@ -63,7 +64,6 @@ class TestCalcOne(unittest.TestCase):
         self.dat_i = np.random.rand(2, 21)
         self.dat_j = np.random.rand(3, 21)
         self.dat = np.concatenate((self.dat_i, self.dat_j), 0)
-        print(self.dat)
         self.data = rsatoolbox.data.Dataset(
             self.dat, obs_descriptors={'idx': [1, 1, 2, 2, 2]})
 
@@ -85,6 +85,13 @@ class TestCalcOne(unittest.TestCase):
             self.assertAlmostEqual(
                 sim, sim_c, None,
                 'C unequal to python for %s' % method)
+
+    def test_integer_input_one(self):
+        from rsatoolbox.data.dataset import Dataset
+        ds1 = Dataset(np.asarray([[0], [2]]).T)  # one pattern, two channels
+        ds2 = Dataset(np.asarray([[0], [2]]).T)  # one pattern, two channels
+        dissim, _ = calc_one_similarity_c(ds1, ds2, np.array([0]), np.array([1]))
+        assert_almost_equal(dissim, 2)  # standard-squared euclidean
 
 
 class TestCalc(unittest.TestCase):
@@ -125,6 +132,13 @@ class TestCalc(unittest.TestCase):
                 np.testing.assert_allclose(
                     np.expand_dims(rdm, 0), c.dissimilarities,
                     err_msg='unbalanced unequal to balanced for %s' % method)
+
+    def test_integer_input_rdm(self):
+        from rsatoolbox.data.dataset import Dataset
+        from rsatoolbox.rdm.calc_unbalanced import calc_rdm_unbalanced
+        ds = Dataset(np.asarray([[0, 0], [2, 2]]))
+        rdms = calc_rdm_unbalanced(ds)
+        assert_almost_equal(rdms.dissimilarities, 4)
 
 
 # Original Python version used as reference implementation:

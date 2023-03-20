@@ -6,10 +6,10 @@
 """
 from __future__ import annotations
 from typing import Union, List, Dict, Tuple, TYPE_CHECKING
-from numpy.typing import NDArray
 import numpy as np
 from scipy.spatial.distance import squareform
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
     from rsatoolbox.rdm.rdms import RDMs
 
 

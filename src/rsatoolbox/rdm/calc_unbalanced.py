@@ -116,7 +116,8 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
             weight_idx = 1
         cond_indices_int = cond_indices.astype(int)
         rdm = calc(
-            dataset.measurements, cond_indices_int,
+            ensure_double(dataset.measurements),
+            cond_indices_int,
             cv_desc_int, len(unique_cond),
             method_idx, noise,
             prior_lambda, prior_weight,
@@ -170,14 +171,33 @@ def calc_one_similarity(data_i: DatasetBase, data_j: DatasetBase,
         method_idx = 3
     elif method in ['poisson', 'poisson_cv']:
         method_idx = 4
+    else:
+        raise ValueError(f'Unknown method: {method}')
     if weighting == 'equal':
         weight_idx = 0
     else:
         weight_idx = 1
     return calc_one(
-        data_i.measurements, data_j.measurements,
+        ensure_double(data_i.measurements),
+        ensure_double(data_j.measurements),
         cv_desc_i, cv_desc_j,
         data_i.n_obs, data_j.n_obs,
         method_idx, noise=noise,
         prior_lambda=prior_lambda, prior_weight=prior_weight,
         weighting=weight_idx)
+
+
+def ensure_double(a: NDArray) -> NDArray[np.float64]:
+    """If required, will convert the array datatype to Float64
+
+    This ensures compatibility with the underlying c type "double".
+    If the array is already compatible, it will pass through.
+    If it is an integer, a converted copy will be made.
+
+    Args:
+        a (NDArray): Numeric numpy array
+
+    Returns:
+        NDArray[np.float64]: The float64 version of the array
+    """
+    return a.astype(np.float64)

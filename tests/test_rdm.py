@@ -246,6 +246,12 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(rank_rdm.n_cond, rdms.n_cond)
         self.assertEqual(rank_rdm.dissimilarity_measure, 'Euclidean (ranks)')
 
+    def test_rank_transform_unknown_measure(self):
+        from rsatoolbox.rdm import rank_transform
+        rdms = rsr.RDMs(dissimilarities=np.zeros((8, 10)))
+        rank_rdm = rank_transform(rdms)
+        self.assertEqual(rank_rdm.dissimilarity_measure, '(ranks)')
+
     def test_sqrt_transform(self):
         from rsatoolbox.rdm import sqrt_transform
         dis = np.zeros((8, 10))
@@ -463,17 +469,19 @@ class TestRDM(unittest.TestCase):
             )
         )
         copy = orig.copy()
-        ## We don't want a reference:
+        # We don't want a reference:
         self.assertIsNot(copy, orig)
         self.assertIsNot(copy.dissimilarities, orig.dissimilarities)
         self.assertIsNot(
             copy.pattern_descriptors.get('order'),
             orig.pattern_descriptors.get('order')
         )
-        ## But check that attributes are equal
+        # But check that attributes are equal
         assert_array_equal(copy.dissimilarities, orig.dissimilarities)
-        self.assertEqual(copy.dissimilarity_measure,
-            orig.dissimilarity_measure)
+        self.assertEqual(
+            copy.dissimilarity_measure,
+            orig.dissimilarity_measure
+        )
         self.assertEqual(copy.descriptors, orig.descriptors)
         self.assertEqual(copy.rdm_descriptors, orig.rdm_descriptors)
         assert_array_equal(
