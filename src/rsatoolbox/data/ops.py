@@ -1,9 +1,10 @@
 """Operations on multiple Datasets
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING, Literal, Union, List, Set, overload
+from typing import TYPE_CHECKING, Union, List, Set, overload
 from copy import deepcopy
 from warnings import warn
+from typing_extensions import Literal
 from numpy import concatenate, repeat
 import rsatoolbox
 if TYPE_CHECKING:
