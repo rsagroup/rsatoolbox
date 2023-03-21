@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Union, List, Set, overload
 from copy import deepcopy
 from warnings import warn
 try:
-    from typing import Literal
+    from typing import Literal  # pylint: disable=ungrouped-imports
 except ImportError:
     from typing_extensions import Literal
 from numpy import concatenate, repeat
