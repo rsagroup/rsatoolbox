@@ -4,7 +4,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Union, List, Set, overload
 from copy import deepcopy
 from warnings import warn
-from typing_extensions import Literal
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 from numpy import concatenate, repeat
 import rsatoolbox
 if TYPE_CHECKING:
