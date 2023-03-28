@@ -163,11 +163,17 @@ class Test_rdm_plot(TestCase):
 
 
 class Test_model_plot(TestCase):
+    methods_supported = [
+        "corr", "cosine", "cosine_cov", "spearman", "corr_cov",
+        "tau-b", "tau-a", "neg_riem_dist", "rho-a"
+    ]
     def test_y_label(self):
         from rsatoolbox.vis.model_plot import _get_y_label
 
-        y_label = _get_y_label("corr")
-        self.assertIsInstance(y_label, str)
+        for this_method in self.methods_supported:
+            with self.subTest(msg=f"Testing {this_method}..."):
+                y_label = _get_y_label(this_method)
+                self.assertIsInstance(y_label, str)
 
     def test_descr(self):
         from rsatoolbox.vis.model_plot import _get_model_comp_descr
