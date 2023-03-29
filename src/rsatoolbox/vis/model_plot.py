@@ -987,4 +987,7 @@ def _get_y_label(method):
     elif method.lower() == 'neg_riem_dist':
         y_label = '[across-subject mean of ' \
             + 'negative riemannian distance]'
+    elif method.lower() == 'rho-a':
+        y_label = '[across-subject mean of ' \
+            + 'Spearman r rank correlation with random tie-breaking]'
     return y_label
