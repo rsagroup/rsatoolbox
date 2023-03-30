@@ -29,4 +29,11 @@ class Test_model_plot(TestCase):
             "droplets",
             "icicles",
         )
-        self.assertIsInstance(descr, str)
+        EXPECTED = (
+            'Model comparisons: two-tailed t-test, p < 0.05, '
+            'Bonferroni-corrected for 10 model-pair comparisonsError bars '
+            'indicate the 56.0% confidence interval.\nOne-sided comparisons '
+            'of each model performance against 0 and against the lower-bound '
+            'estimate of the noise ceiling are Bonferroni-corrected for '
+            '5 models.')
+        self.assertEqual(EXPECTED, descr)
