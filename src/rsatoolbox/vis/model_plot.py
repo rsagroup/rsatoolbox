@@ -255,11 +255,11 @@ def plot_model_comparison(result, sort=False, colors=None,
             idx = np.flip(idx)
         perf = perf[idx]
         evaluations = evaluations[:, idx]
-        if model_var:
+        if model_var is not None:
             model_var = model_var[idx]
-        if noise_ceil_var:
+        if noise_ceil_var is not None:
             noise_ceil_var = noise_ceil_var[idx]
-        if diff_var:
+        if diff_var is not None:
             diff_var = squareform(squareform(diff_var)[idx][:, idx])
         models = [models[i] for i in idx]
         if not ('descend' in sort.lower() or
