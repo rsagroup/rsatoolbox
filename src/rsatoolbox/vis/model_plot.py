@@ -255,11 +255,11 @@ def plot_model_comparison(result, sort=False, colors=None,
             idx = np.flip(idx)
         perf = perf[idx]
         evaluations = evaluations[:, idx]
-        if model_var:
+        if model_var is not None:
             model_var = model_var[idx]
-        if noise_ceil_var:
+        if noise_ceil_var is not None:
             noise_ceil_var = noise_ceil_var[idx]
-        if diff_var:
+        if diff_var is not None:
             diff_var = squareform(squareform(diff_var)[idx][:, idx])
         models = [models[i] for i in idx]
         if not ('descend' in sort.lower() or
@@ -336,7 +336,8 @@ def plot_model_comparison(result, sort=False, colors=None,
     else:
         ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
     if error_bars:
-        limits = get_errorbars(model_var, evaluations, dof, error_bars, test_type)
+        limits = get_errorbars(model_var, evaluations, dof, error_bars,
+                               test_type)
         ax.errorbar(np.arange(evaluations.shape[1]), perf,
                     yerr=limits, fmt='none', ecolor='k',
                     capsize=0, linewidth=3)
@@ -958,7 +959,7 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
     return model_comp_descr
 
 
-def _get_y_label(method):
+def _get_y_label(method) -> str:
     """ generates y-label string
 
     Args:
@@ -971,7 +972,7 @@ def _get_y_label(method):
     """
     if method.lower() == 'cosine':
         y_label = '[across-subject mean of cosine similarity]'
-    if method.lower() in ['cosine_cov', 'whitened cosine']:
+    elif method.lower() in ['cosine_cov', 'whitened cosine']:
         y_label = '[across-subject mean of whitened-RDM cosine]'
     elif method.lower() == 'spearman':
         y_label = '[across-subject mean of Spearman r rank correlation]'
@@ -990,4 +991,6 @@ def _get_y_label(method):
     elif method.lower() == 'rho-a':
         y_label = '[across-subject mean of ' \
             + 'Spearman r rank correlation with random tie-breaking]'
+    else:
+        raise ValueError(f'Unsupported method: {method}')
     return y_label
