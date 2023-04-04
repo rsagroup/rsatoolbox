@@ -96,8 +96,16 @@ class Result:
         name_length = max([max(len(m.name) for m in self.models) + 1, 6])
         means = self.get_means()
         sems = self.get_sem()
-        p_zero = self.test_zero(test_type=test_type)
-        p_noise = self.test_noise(test_type=test_type)
+        if means is None:
+            means = np.nan * np.ones(self.n_model)
+        if sems is None:
+            sems = np.nan * np.ones(self.n_model)
+        try:
+            p_zero = self.test_zero(test_type=test_type)
+            p_noise = self.test_noise(test_type=test_type)
+        except ValueError:
+            p_zero = np.nan * np.ones(self.n_model)
+            p_noise = np.nan * np.ones(self.n_model)
         # header of the results table
         summary += 'Model' + (' ' * (name_length - 5))
         summary += '|   Eval \u00B1 SEM   |'
@@ -118,7 +126,9 @@ class Result:
                 summary += f'{p_noise[i]:>14.3f}  |'
             summary += '\n'
         summary += '\n'
-        if test_type == 't-test':
+        if self.cv_method == 'crossvalidation':
+            summary += 'No p-values available as crossvalidation provides no variance estimate'
+        elif test_type == 't-test':
             summary += 'p-values are based on uncorrected t-tests'
         elif test_type == 'bootstrap':
             summary += 'p-values are based on percentiles of the bootstrap samples'
