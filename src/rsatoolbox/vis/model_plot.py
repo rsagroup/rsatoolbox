@@ -430,7 +430,7 @@ def plot_model_comparison(result, sort=False, colors=None,
             significant = p_pairwise < crit
         else:
             if 'uncorrected' not in multiple_pair_testing.lower():
-                raise Exception(
+                raise ValueError(
                     'plot_model_comparison: Argument ' +
                     'multiple_pair_testing is incorrectly defined as ' +
                     multiple_pair_testing + '.')
