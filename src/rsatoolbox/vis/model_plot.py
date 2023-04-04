@@ -792,7 +792,11 @@ def plot_arrows(axbar, significant):
                 k += 1
             axbar.plot((i, j), (k, k), 'k-', linewidth=2)
             occupied[k-1, i*3+2:j*3+1] = 1
-    h = occupied.sum(axis=1).nonzero()[0].max()+1
+    h = occupied.sum(axis=1)
+    if np.any(h > 0):
+        h = h.nonzero()[0].max()+1
+    else:
+        h = 1
     axbar.set_ylim((0, max(expected_n_lines, h)))
 
 
