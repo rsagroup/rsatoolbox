@@ -260,11 +260,11 @@ class Result:
                 ci_percent = float(eb_type[2:]) / 100
             ci = self.get_ci(ci_percent, test_type)
             means = self.get_means()
-            errorbar_low = -(ci[0] - means)
-            errorbar_high = (ci[1] - means)
+            errorbar_low = means - ci[0]
+            errorbar_high = ci[1] - means
             limits = np.concatenate((errorbar_low, errorbar_high))
             if np.isnan(limits).any() or (abs(limits) == np.inf).any():
-                raise Exception(
+                raise ValueError(
                     'plot_model_comparison: Too few bootstrap samples for ' +
                     'the requested confidence interval: ' + eb_type + '.')
         return (errorbar_low, errorbar_high)
