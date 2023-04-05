@@ -3,7 +3,7 @@
 """
 Inference module utilities
 """
-
+from __future__ import annotations
 from collections.abc import Iterable
 import numpy as np
 from scipy import stats
@@ -13,6 +13,9 @@ from rsatoolbox.model import Model
 from rsatoolbox.rdm import RDMs
 from .matrix import pairwise_contrast
 from .rdm_utils import batch_to_matrices
+from typing import TYPE_CHECKING, Optional
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
 def input_check_model(models, theta=None, fitter=None, N=1):
@@ -68,7 +71,7 @@ def input_check_model(models, theta=None, fitter=None, N=1):
     return models, evaluations, theta, fitter
 
 
-def pool_rdm(rdms, method='cosine'):
+def pool_rdm(rdms, method: str = 'cosine'):
     """pools multiple RDMs into the one with maximal performance under a given
     evaluation metric
     rdm_descriptors of the generated rdms are empty
@@ -130,7 +133,7 @@ def pool_rdm(rdms, method='cosine'):
                 pattern_descriptors=rdms.pattern_descriptors)
 
 
-def _nan_mean(rdm_vector):
+def _nan_mean(rdm_vector: NDArray) -> NDArray:
     """ takes the average over a rdm_vector with nans for masked entries
     without a warning
 
@@ -149,7 +152,7 @@ def _nan_mean(rdm_vector):
     return rdm_mean
 
 
-def _nan_rank_data(rdm_vector):
+def _nan_rank_data(rdm_vector: NDArray) -> NDArray:
     """ rank_data for vectors with nan entries
 
     Args:
@@ -166,9 +169,14 @@ def _nan_rank_data(rdm_vector):
     return ranks
 
 
-def all_tests(evaluations, noise_ceil, test_type='t-test',
-              model_var=None, diff_var=None, noise_ceil_var=None,
-              dof=1):
+def all_tests(
+        evaluations: NDArray,
+        noise_ceil: NDArray,
+        test_type: str = 't-test',
+        model_var: Optional[NDArray] = None,
+        diff_var: Optional[NDArray] = None,
+        noise_ceil_var: Optional[NDArray] = None,
+        dof: int = 1):
     """wrapper running all tests necessary for the model plot
     -> pairwise tests, tests against 0 and against noise ceiling
 
@@ -218,7 +226,11 @@ def all_tests(evaluations, noise_ceil, test_type='t-test',
     return p_pairwise, p_zero, p_noise
 
 
-def pair_tests(evaluations, test_type='t-test', diff_var=None, dof=1):
+def pair_tests(
+        evaluations: NDArray,
+        test_type: str = 't-test',
+        diff_var: Optional[NDArray] = None,
+        dof: int = 1):
     """wrapper running pair tests
 
     Args:
@@ -499,7 +511,11 @@ def t_test_nc(evaluations, variances, noise_ceil, dof=1):
     return p
 
 
-def extract_variances(variance, nc_included=True):
+def extract_variances(
+        variance,
+        nc_included: bool = True,
+        n_rdm: Optional[int] = None,
+        n_pattern: Optional[int] = None):
     """ extracts the variances for the individual model evaluations,
     differences between model evaluations and for the comparison to
     the noise ceiling
@@ -516,6 +532,12 @@ def extract_variances(variance, nc_included=True):
     to the noise ceiling results
 
     nc_included=False assumes that the noise ceiling is fixed instead.
+
+    To get the more accurate estimates that take into account
+    the number of subjects and/or the numbers of stimuli
+    can be passed as n_rdm and n_pattern respectively.
+    This function corrects for all ns that are passed. If you bootstrapped
+    only one factor only pass the N for that factor!
     """
     if variance.ndim == 0:
         variance = np.array([variance])
@@ -532,6 +554,9 @@ def extract_variances(variance, nc_included=True):
             model_variances = variance
             nc_variances = np.array([variance, variance]).T
             diff_variances = np.diag(C @ np.diag(variance) @ C.T)
+        model_variances = _correct_1d(model_variances, n_pattern, n_rdm)
+        nc_variances = _correct_1d(nc_variances, n_pattern, n_rdm)
+        diff_variances = _correct_1d(diff_variances, n_pattern, n_rdm)
     elif variance.ndim == 2:
         # a single covariance matrix
         if nc_included:
@@ -546,6 +571,9 @@ def extract_variances(variance, nc_included=True):
             model_variances = np.diag(variance)
             nc_variances = np.array([model_variances, model_variances]).T
             diff_variances = np.diag(C @ variance @ C.T)
+        model_variances = _correct_1d(model_variances, n_pattern, n_rdm)
+        nc_variances = _correct_1d(nc_variances, n_pattern, n_rdm)
+        diff_variances = _correct_1d(diff_variances, n_pattern, n_rdm)
     elif variance.ndim == 3:
         # general transform for multiple covariance matrices
         if nc_included:
@@ -565,10 +593,28 @@ def extract_variances(variance, nc_included=True):
                                     ).transpose(1, 2, 0)
             diff_variances = np.einsum('ij,kjl,il->ki', C, variance, C)
         # dual bootstrap variance estimate from 3 covariance matrices
-        model_variances = _dual_bootstrap(model_variances)
-        nc_variances = _dual_bootstrap(nc_variances)
-        diff_variances = _dual_bootstrap(diff_variances)
+        model_variances = _dual_bootstrap(model_variances, n_rdm, n_pattern)
+        nc_variances = _dual_bootstrap(nc_variances, n_rdm, n_pattern)
+        diff_variances = _dual_bootstrap(diff_variances, n_rdm, n_pattern)
     return model_variances, diff_variances, nc_variances
+
+
+def _correct_1d(
+        variance: NDArray,
+        n_pattern: Optional[int] = None,
+        n_rdm: Optional[int] = None):
+    if (n_pattern is not None) and (n_rdm is not None):
+        # uncorrected dual bootstrap?
+        n = min(n_rdm, n_pattern)
+    elif n_pattern is not None:
+        n = n_pattern
+    elif n_rdm is not None:
+        n = n_rdm
+    else:
+        n = None
+    if n is not None:
+        variance = (n / (n - 1)) * variance
+    return variance
 
 
 def get_errorbars(model_var, evaluations, dof, error_bars='sem',
@@ -628,20 +674,36 @@ def get_errorbars(model_var, evaluations, dof, error_bars='sem',
     return limits
 
 
-def _dual_bootstrap(variances):
+def _dual_bootstrap(variances, n_rdm=None, n_pattern=None):
     """ helper function to perform the dual bootstrap
 
     Takes a 3x... array of variances and computes the corrections assuming:
     variances[0] are the variances in the double bootstrap
     variances[1] are the variances in the rdm bootstrap
     variances[2] are the variances in the pattern bootstrap
+
+    If both n_rdm and n_pattern are given this uses
+    the more accurate small sample formula.
     """
-    variance = 2 * (variances[1] + variances[2]) \
-        - variances[0]
-    variance = np.maximum(np.maximum(
-        variance, variances[1]), variances[2])
-    variance = np.minimum(
-        variance, variances[0])
+    if n_rdm is None or n_pattern is None:
+        variance = 2 * (variances[1] + variances[2]) \
+            - variances[0]
+        variance = np.maximum(np.maximum(
+            variance, variances[1]), variances[2])
+        variance = np.minimum(
+            variance, variances[0])
+    else:
+        variance = (
+            (n_rdm / (n_rdm - 1)) * variances[1]
+            + (n_pattern / (n_pattern - 1)) * variances[2]
+            - ((n_pattern*n_rdm / (n_pattern - 1) / (n_rdm - 1))
+               * (variances[0] - variances[1] - variances[2])))
+        variance = np.maximum(np.maximum(
+            variance,
+            (n_rdm / (n_rdm - 1)) * variances[1]),
+            (n_pattern / (n_pattern - 1)) * variances[2])
+        variance = np.minimum(
+            variance, variances[0])
     return variance
 
 
