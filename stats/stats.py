@@ -422,10 +422,12 @@ def check_noise_ceiling(
                 ) / np.sum(idx_valid)
             else:
                 p_upper[i_sim] = np.sum(
-                    results.evaluations[idx_valid, 0] < results.noise_ceiling[1]
+                    results.evaluations[idx_valid,
+                                        0] < results.noise_ceiling[1]
                 ) / np.sum(idx_valid)
                 p_lower[i_sim] = np.sum(
-                    results.evaluations[idx_valid, 0] < results.noise_ceiling[0]
+                    results.evaluations[idx_valid,
+                                        0] < results.noise_ceiling[0]
                 ) / np.sum(idx_valid)
         elif test_type == "t":
             if results.noise_ceil_var is None:
@@ -460,10 +462,12 @@ def check_noise_ceiling(
                 )
         elif test_type == "ranksum":
             p_upper[i_sim] = rsatoolbox.util.inference_util.ranksum_value_test(
-                results.evaluations, comp_value=np.mean(results.noise_ceiling[1])
+                results.evaluations, comp_value=np.mean(
+                    results.noise_ceiling[1])
             )
             p_lower[i_sim] = rsatoolbox.util.inference_util.ranksum_value_test(
-                results.evaluations, comp_value=np.mean(results.noise_ceiling[0])
+                results.evaluations, comp_value=np.mean(
+                    results.noise_ceiling[0])
             )
     return np.array([p_lower, p_upper])
 
@@ -605,10 +609,12 @@ def sim_ecoset(
             folders = [f for f in folders if f[0] != "."]
             for i_stim in range(n_stim_all):
                 i_folder = np.random.randint(len(folders))
-                images = os.listdir(os.path.join(ecoset_path, folders[i_folder]))
+                images = os.listdir(os.path.join(
+                    ecoset_path, folders[i_folder]))
                 images = [i for i in images if i[0] != "."]
                 i_image = np.random.randint(len(images))
-                stim_paths.append(os.path.join(folders[i_folder], images[i_image]))
+                stim_paths.append(os.path.join(
+                    folders[i_folder], images[i_image]))
         if not os.path.isfile(fname_base + "stim%04d.txt" % i):
             with open(fname_base + "stim%04d.txt" % i, "w") as f:
                 for item in stim_paths:
@@ -717,7 +723,8 @@ def sim_ecoset(
                 timecourses.append(timecourse)
                 Usamps.append(Usamp)
                 res_subj.append(
-                    get_residuals(design, timecourse, Usamp, resolution=resolution)
+                    get_residuals(design, timecourse, Usamp,
+                                  resolution=resolution)
                 )
             res_subj = np.concatenate(res_subj, axis=0)
             residuals.append(res_subj)
@@ -738,7 +745,8 @@ def sim_ecoset(
             "repeat": np.repeat(np.arange(n_repeat), n_stim),
         }
         for i_subj in range(U.shape[0]):
-            u_subj = U[i_subj, :, :n_stim, :].reshape(n_repeat * n_stim, n_voxel)
+            u_subj = U[i_subj, :, :n_stim, :].reshape(
+                n_repeat * n_stim, n_voxel)
             data.append(rsatoolbox.data.Dataset(u_subj, obs_descriptors=desc))
         if noise_type == "eye":
             noise = None
@@ -1224,7 +1232,8 @@ def summarize_eco(simulation_folder="sim_eco"):
                             if res.evaluations.ndim == 2:
                                 no_nan_idx = ~np.isnan(res.evaluations[:, 0])
                             elif res.evaluations.ndim == 3:
-                                no_nan_idx = ~np.isnan(res.evaluations[:, 0, 0])
+                                no_nan_idx = ~np.isnan(
+                                    res.evaluations[:, 0, 0])
                             if np.any(no_nan_idx):
                                 for i in range(12):
                                     for j in range(12):
@@ -1235,7 +1244,8 @@ def summarize_eco(simulation_folder="sim_eco"):
                                         pairwise[idx, i, j] = np.sum(
                                             diff[no_nan_idx] > 0
                                         )
-                                m = np.mean(res.evaluations[no_nan_idx], axis=0)
+                                m = np.mean(
+                                    res.evaluations[no_nan_idx], axis=0)
                                 while m.ndim > 1:
                                     m = np.mean(m, axis=-1)
                                 mean[idx] = m
@@ -1358,7 +1368,8 @@ def summarize_flex(simulation_folder="sim_flex"):
         for i_res in results.glob("res*.hdf5"):
             idx = int(str(i_res)[-9:-5])
             try:
-                res = rsatoolbox.inference.load_results(i_res, file_type="hdf5")
+                res = rsatoolbox.inference.load_results(
+                    i_res, file_type="hdf5")
                 if res.evaluations.ndim == 2:
                     no_nan_idx = ~np.isnan(res.evaluations[:, 0])
                 elif res.evaluations.ndim == 3:
@@ -1371,7 +1382,8 @@ def summarize_flex(simulation_folder="sim_flex"):
                 if np.any(no_nan_idx):
                     for i in range(12):
                         for j in range(12):
-                            diff = res.evaluations[:, i] - res.evaluations[:, j]
+                            diff = res.evaluations[:, i] - \
+                                res.evaluations[:, j]
                             pairwise[idx, i, j] = np.sum(diff[no_nan_idx] > 0)
                     m = np.mean(res.evaluations[no_nan_idx], axis=0)
                     while m.ndim > 1:
@@ -1725,7 +1737,8 @@ def boot_cv_sim(
 
         # get new sampling locations if necessary
         weight_file = os.path.join(simulation_folder, "weights%04d.npy" % i)
-        indices_file = os.path.join(simulation_folder, "indices_space%04d.npy" % i)
+        indices_file = os.path.join(
+            simulation_folder, "indices_space%04d.npy" % i)
         if os.path.isfile(weight_file):
             indices_space = np.load(indices_file)
             weights = np.load(weight_file)
@@ -1763,13 +1776,15 @@ def boot_cv_sim(
         for i_subj in range(n_subj):
             Utrue_subj = [
                 dnn.sample_representation(
-                    np.squeeze(U_c), indices_space[i_subj], weights[i_subj], [sd, sd]
+                    np.squeeze(U_c), indices_space[i_subj], weights[i_subj], [
+                        sd, sd]
                 )
                 for U_c in U_complete
             ]
             Utrue_subj = np.array(Utrue_subj)
             Utrue_subj = (
-                Utrue_subj / np.sqrt(np.sum(Utrue_subj**2)) * np.sqrt(Utrue_subj.size)
+                Utrue_subj / np.sqrt(np.sum(Utrue_subj**2)) *
+                np.sqrt(Utrue_subj.size)
             )
             Utrue.append(Utrue_subj)
         Utrue = np.array(Utrue)
@@ -1811,7 +1826,8 @@ def boot_cv_sim(
                 timecourses.append(timecourse)
                 Usamps.append(Usamp)
                 res_subj.append(
-                    get_residuals(design, timecourse, Usamp, resolution=resolution)
+                    get_residuals(design, timecourse, Usamp,
+                                  resolution=resolution)
                 )
             res_subj = np.concatenate(res_subj, axis=0)
             residuals.append(res_subj)
@@ -1826,7 +1842,8 @@ def boot_cv_sim(
             "repeat": np.repeat(np.arange(n_repeat), n_stim),
         }
         for i_subj in range(U.shape[0]):
-            u_subj = U[i_subj, :, :n_stim, :].reshape(n_repeat * n_stim, n_voxel)
+            u_subj = U[i_subj, :, :n_stim, :].reshape(
+                n_repeat * n_stim, n_voxel)
             data.append(rsatoolbox.data.Dataset(u_subj, obs_descriptors=desc))
         noise = rsatoolbox.data.prec_from_residuals(residuals)
         rdms = rsatoolbox.rdm.calc_rdm(
@@ -1890,7 +1907,8 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", type=str, help="where is ecoset?", default=None)
+    parser.add_argument("-p", "--path", type=str,
+                        help="where is ecoset?", default=None)
     parser.add_argument(
         "sim",
         help="simulation type",
@@ -1905,7 +1923,8 @@ if __name__ == "__main__":
         ],
         default="comp",
     )
-    parser.add_argument("index", type=int, help="which simulation index to run")
+    parser.add_argument("index", type=int,
+                        help="which simulation index to run")
     args = parser.parse_args()
     if args.sim == "comp":
         run_comp(args.index)

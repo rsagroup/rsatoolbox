@@ -17,12 +17,11 @@ import pandas as pd
 import scipy.stats
 from sklearn.manifold import MDS
 from sklearn.metrics import pairwise as dist
-from helpers import get_fname_base
 import rsatoolbox
 import nn_simulations as dnn
-from helpers import get_stimuli_ecoset, get_fname_base, get_resname
+from helpers import get_stimuli_ecoset, get_fname_base
 from stats import estimate_betas, get_residuals
-from allen_stats import _get_cells_list
+# from allen_stats import _get_cells_list
 
 rcParams.update({'figure.autolayout': True})
 
@@ -98,7 +97,8 @@ def plot_saved_dnn(layer=2, sd=0.05, n_voxel=100, idx=0,
     res_path = fname_base + 'results_%s_%s_%s_%s_%d_%d_%d' % (
         rdm_type, model_type, rdm_comparison, noise_type, n_stimuli,
         k_pattern, k_rdm)
-    results = rsatoolbox.inference.load_results(res_path + '/res%04d.hdf5' % idx)
+    results = rsatoolbox.inference.load_results(
+        res_path + '/res%04d.hdf5' % idx)
     rsatoolbox.vis.plot_model_comparison(results)
 
 
@@ -156,7 +156,7 @@ def plot_compare_to_zero(n_voxel=100, n_subj=10, n_cond=5,
     plt.ylim(bottom=0)
 
 
-def plot_comp(data, alpha=0.05, save_file=None):
+def plot_comp(data, alpha=0.05, save_file=None, y_max=0.15):
     """ plots comp check data
     """
     # methods = np.unique(data[:, 1])
@@ -232,7 +232,10 @@ def plot_comp(data, alpha=0.05, save_file=None):
                       props[i, :, 3, 0], '.',
                       color=sns.palettes.color_palette('Greens_d')[3],
                       markersize=15)
-        plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
+        if y_max <= 3 * alpha:
+            plt.yticks([0, alpha, 2 * alpha, 3 * alpha], fontsize=18)
+        else:
+            plt.yticks([0, alpha, y_max / 2, y_max], fontsize=18)
         if i == 0:
             plt.ylabel('Proportion significant', fontsize=24)
         else:
@@ -245,8 +248,7 @@ def plot_comp(data, alpha=0.05, save_file=None):
                 bbox_to_anchor=(1.0, 1.0), loc=2)
             legend.get_title().set_fontsize('18')
         plt.xticks(np.arange(len(n_subj)), n_subj.astype('int'), fontsize=18)
-        plt.yticks([0, alpha, 2*alpha, 3*alpha])
-        plt.ylim([0, 0.15])
+        plt.ylim([0, y_max])
         plt.xlim([-1, len(n_subj)])
         plt.plot([-1, len(n_subj)], [alpha, alpha], 'k--')
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
@@ -259,7 +261,7 @@ def plot_comp(data, alpha=0.05, save_file=None):
     # Third plot: plot against n_pattern
     plt.figure(figsize=(3 * len(test_ids), 5))
     for i, t_id in enumerate(test_ids):
-        ax = plt.subplot(1, len(test_ids), i+1)
+        ax = plt.subplot(1, len(test_ids), i + 1)
         h0 = plt.plot(np.arange(len(n_cond)) - 0.225,
                       props[i, 0, :, 0], '.',
                       color=sns.palettes.color_palette('Blues_d')[0],
@@ -276,7 +278,10 @@ def plot_comp(data, alpha=0.05, save_file=None):
                       props[i, 3, :, 0], '.',
                       color=sns.palettes.color_palette('Blues_d')[3],
                       markersize=15)
-        plt.yticks([0, alpha, 2*alpha, 3*alpha], fontsize=18)
+        if y_max <= 3 * alpha:
+            plt.yticks([0, alpha, 2 * alpha, 3 * alpha], fontsize=18)
+        else:
+            plt.yticks([0, alpha, y_max / 2, y_max], fontsize=18)
         if i == 0:
             plt.ylabel('Proportion significant', fontsize=24)
         else:
@@ -289,8 +294,7 @@ def plot_comp(data, alpha=0.05, save_file=None):
                 bbox_to_anchor=(1.0, 1.0), loc=2)
             legend.get_title().set_fontsize('18')
         plt.xticks(np.arange(len(n_cond)), n_cond.astype('int'), fontsize=18)
-        plt.yticks([0, alpha, 2*alpha, 3*alpha])
-        plt.ylim([0, 0.15])
+        plt.ylim([0, y_max])
         plt.xlim([-1, len(n_cond)])
         plt.plot([-1, len(n_cond)], [alpha, alpha], 'k--')
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
@@ -449,14 +453,14 @@ def get_summary_stats(simulation_folder='sim_eco'):
                        for i, l in enumerate(np.array(labels['layer'], int))])
     std_diff = np.array([stds[i, :, min(l, 11), min(l, 11)].reshape(-1, 1)
                          + np.einsum('jkk->jk', stds[i])
-                         - 2 * stds[i, :, min(l, 11)] 
+                         - 2 * stds[i, :, min(l, 11)]
                          for i, l in enumerate(np.array(labels['layer'], int))])
     std_diff = np.sqrt(np.maximum(std_diff, 0))
     m_diff = means - np.expand_dims(m_true, -1)
     wrong_model = means > np.expand_dims(m_true, -1)
     print('The true model performed worse than some other model:')
     print('in %f %% of cases' %
-          (100 * np.sum(np.max(wrong_model,-1)) / np.prod(wrong_model.shape[:2])))
+          (100 * np.sum(np.max(wrong_model, -1)) / np.prod(wrong_model.shape[:2])))
     t_diff = m_diff / np.maximum(std_diff, 0.0001)
     print('A significant result in the wrong direction occured:')
     print('in %f %% of cases' %
@@ -468,7 +472,7 @@ def get_summary_stats(simulation_folder='sim_eco'):
            / np.prod(tdiff_2F.shape)))
     t_diff_best = []
     # disregard layer 12 because then the true model was not among the tested models
-    for l in np.unique(labels['layer'])[:-1]: 
+    for l in np.unique(labels['layer'])[:-1]:
         other_layers = np.setdiff1d(np.arange(12), l)
         idx_best = other_layers[np.argmax(np.mean(np.mean(
             means[labels['layer'] == l][:, :, other_layers], 0), 0))]
@@ -529,7 +533,7 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
     CI = [1 - std_expected, 1 + std_expected]
     with sns.axes_style('ticks'):
         sns.set_context('paper', font_scale=2)
-        #### change in SNR ####
+        # change in SNR
         # appendix version
         g1 = sns.catplot(data=data_df, legend=False, col='variation',
                          row='sigma_noise',
@@ -662,7 +666,7 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                            kind='point', ci='sd', palette='Greens_d', dodge=.2,
                            order=[5, 10, 20, 40, 80])
         plt.plot([-0.3, 4.3], [1, 1], 'k--')
-        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1] - CI[0],
                           facecolor='gray', zorder=-1, alpha=0.5)
         g4_m.ax.add_patch(r)
         sns.despine(trim=True, offset=5)
@@ -671,14 +675,15 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             frameon=False, title='# of stimuli',
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g4_m.set_xlabels('# of subjects')
-        g4_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+        g4_m.set_ylabels(
+            r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
 
         g5_m = sns.catplot(data=dat_none_pat, legend=False,
                            x='n_stim', y='std_relative', hue='n_subj',
                            kind='point', ci='sd', palette='Blues_d', dodge=.2,
                            order=[10, 20, 40, 80, 160])
         plt.plot([-0.3, 4.3], [1, 1], 'k--')
-        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1] - CI[0],
                           facecolor='gray', zorder=-1, alpha=0.5)
         g5_m.ax.add_patch(r)
         sns.despine(trim=True, offset=5)
@@ -687,14 +692,15 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             frameon=False, title='# of subjects',
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g5_m.set_xlabels('# of stimuli')
-        g5_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+        g5_m.set_ylabels(
+            r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
 
         g6_m = sns.catplot(data=dat_stim, legend=False,
                            x='n_stim', y='std_relative', hue='n_subj',
                            kind='point', ci='sd', palette='Blues_d', dodge=.2,
                            order=[10, 20, 40, 80, 160])
         plt.plot([-0.3, 4.3], [1, 1], 'k--')
-        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1] - CI[0],
                           facecolor='gray', zorder=-1, alpha=0.5)
         g6_m.ax.add_patch(r)
         sns.despine(trim=True, offset=5)
@@ -703,14 +709,15 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             frameon=False, title='# of subjects',
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g6_m.set_xlabels('# of stimuli')
-        g6_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+        g6_m.set_ylabels(
+            r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
 
         g7_m = sns.catplot(data=dat_subj, legend=False,
                            x='n_subj', y='std_relative', hue='n_stim',
                            kind='point', ci='sd', palette='Greens_d', dodge=.2,
                            order=[5, 10, 20, 40, 80])
         plt.plot([-0.3, 4.3], [1, 1], 'k--')
-        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1] - CI[0],
                           facecolor='gray', zorder=-1, alpha=0.5)
         g7_m.ax.add_patch(r)
         sns.despine(trim=True, offset=5)
@@ -719,7 +726,8 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             frameon=False, title='# of subjects',
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g7_m.set_xlabels('# of stimuli')
-        g7_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+        g7_m.set_ylabels(
+            r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
 
         g8_m = sns.catplot(data=dat_both, col='boot_type', legend=False,
                            x='n_stim', y='std_relative', hue='n_subj',
@@ -727,10 +735,10 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
                            order=[10, 20, 40, 80, 160])
         g8_m.axes[0, 0].plot([-0.3, 4.3], [1, 1], 'k--')
         g8_m.axes[0, 1].plot([-0.3, 4.3], [1, 1], 'k--')
-        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1] - CI[0],
                           facecolor='gray', zorder=-1, alpha=0.5)
         g8_m.axes[0, 0].add_patch(r)
-        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1]-CI[0],
+        r = plt.Rectangle([-0.3, CI[0]], 4.6, CI[1] - CI[0],
                           facecolor='gray', zorder=-1, alpha=0.5)
         g8_m.axes[0, 1].add_patch(r)
         sns.despine(trim=True, offset=5)
@@ -740,16 +748,21 @@ def plot_eco_paper(simulation_folder='sim_eco', savefig=False):
             frameon=False, title='# of subjects',
             bbox_to_anchor=(1.0, 1.0), loc=2)
         g8_m.set_xlabels('# of stimuli')
-        g8_m.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
+        g8_m.set_ylabels(
+            r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$')
 
         if savefig:
             g1_m.fig.savefig('figures/SNR_stim.pdf', bbox_inches='tight')
             g2_m.fig.savefig('figures/SNR_subj.pdf', bbox_inches='tight')
             g3_m.fig.savefig('figures/SNR_rep.pdf', bbox_inches='tight')
-            g4_m.fig.savefig('figures/std_rel_none_rdm.pdf', bbox_inches='tight')
-            g5_m.fig.savefig('figures/std_rel_none_pattern.pdf', bbox_inches='tight')
-            g6_m.fig.savefig('figures/std_rel_stim_pattern.pdf', bbox_inches='tight')
-            g7_m.fig.savefig('figures/std_rel_subj_rdm.pdf', bbox_inches='tight')
+            g4_m.fig.savefig('figures/std_rel_none_rdm.pdf',
+                             bbox_inches='tight')
+            g5_m.fig.savefig(
+                'figures/std_rel_none_pattern.pdf', bbox_inches='tight')
+            g6_m.fig.savefig(
+                'figures/std_rel_stim_pattern.pdf', bbox_inches='tight')
+            g7_m.fig.savefig('figures/std_rel_subj_rdm.pdf',
+                             bbox_inches='tight')
             g8_m.fig.savefig('figures/std_rel_both.pdf', bbox_inches='tight')
             g9_m.fig.savefig('figures/SNR_vox_size.pdf', bbox_inches='tight')
             g10_m.fig.savefig('figures/SNR_variation.pdf', bbox_inches='tight')
@@ -798,7 +811,7 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv',
     for a in g1_m.axes:
         for ax in a:
             ax.plot([-0.3, 2.3], [1, 1], 'k--')
-            r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
+            r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1] - CI[0],
                               facecolor='gray', zorder=-1, alpha=0.5)
             ax.add_patch(r)
     sns.despine(trim=True, offset=5)
@@ -817,12 +830,12 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv',
                        order=[10, 20, 40], row='boot_type')
     for ax in g2_m.axes[0]:
         ax.plot([-0.3, 2.3], [1, 1], 'k--')
-        r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
+        r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1] - CI[0],
                           facecolor='gray', zorder=-1, alpha=0.5)
         ax.add_patch(r)
     for ax in g2_m.axes[1]:
         ax.plot([-0.3, 2.3], [1, 1], 'k--')
-        r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
+        r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1] - CI[0],
                           facecolor='gray', zorder=-1, alpha=0.5)
         ax.add_patch(r)
     sns.despine(trim=True, offset=5)
@@ -892,10 +905,11 @@ def plot_allen(result_file='allen_results.npz', task_file='allen_tasks.csv',
     g6_m.add_legend(
         frameon=False, title='# of repeats',
         bbox_to_anchor=(1.0, 1.0), loc=2)
-    
-    g7_m = sns.catplot(data=data_df, legend=False,
-                   x='targeted_structure', y='log-snr', hue='n_subj',
-                   kind='point', ci='sd', palette='Greens_d', dodge=.2)
+
+    g7_m = sns.catplot(
+        data=data_df, legend=False,
+        x='targeted_structure', y='log-snr', hue='n_subj',
+        kind='point', ci='sd', palette='Greens_d', dodge=.2)
     g7_m.set_xlabels('cortical area', fontsize=18)
     g7_m.set_ylabels('signal to noise ratio', fontsize=18)
     plt.ylim([-2, 1])
@@ -951,11 +965,12 @@ def plot_cells(result_file='cell_results.npz',
     std_expected = np.std(np.sqrt(scipy.stats.f(1000, 100).rvs(100000)))
     # this is the area marked by the gray rectangle in the plot
     CI = [1 - std_expected, 1 + std_expected]
-    
-    g1 = sns.catplot(data=data_df, legend=False,
-                       x='n_stim', y='log-snr', hue='n_cell',
-                       kind='point', ci='sd', palette='Greens_d', dodge=.2,
-                       order=[10, 20, 40])
+
+    g1 = sns.catplot(
+        data=data_df, legend=False,
+        x='n_stim', y='log-snr', hue='n_cell',
+        kind='point', ci='sd', palette='Greens_d', dodge=.2,
+        order=[10, 20, 40])
     g1.set_xlabels('# of stimuli', fontsize=18)
     g1.set_ylabels('signal to noise ratio', fontsize=18)
     plt.ylim([-4, 0])
@@ -973,7 +988,7 @@ def plot_cells(result_file='cell_results.npz',
     for a in g2.axes:
         for ax in a:
             ax.plot([-0.3, 2.3], [1, 1], 'k--')
-            r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1]-CI[0],
+            r = plt.Rectangle([-0.3, CI[0]], 2.6, CI[1] - CI[0],
                               facecolor='gray', zorder=-1, alpha=0.5)
             ax.add_patch(r)
     sns.despine(trim=True, offset=5)
@@ -982,7 +997,7 @@ def plot_cells(result_file='cell_results.npz',
         bbox_to_anchor=(1.0, 1.0), loc=2)
     g2.set_xlabels('# of stimuli', fontsize=16)
     g2.set_ylabels(r'relative uncertainty $[\sigma_{boot}/\sigma_{true}]$',
-                     fontsize=18)
+                   fontsize=18)
 
 
 def plot_metrics(simulation_folder='sim_metric', savefig=False):
@@ -1104,41 +1119,40 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
     sns.set_style("ticks", {"xtick.major.size": 8, "ytick.major.size": 8})
     sns.color_palette('muted')
 
-
     f1 = plt.figure()
     plt.plot(0, np.mean(data_df.loc[
-        (data_df['model_type'] == 'fixed_full') & (data_df['sd_fit'] == 0),'snr']),
-        '.', color=[.6,.6,0], markersize=9)
+        (data_df['model_type'] == 'fixed_full') & (data_df['sd_fit'] == 0), 'snr']),
+        '.', color=[.6, .6, 0], markersize=9)
     plt.plot(0, np.mean(data_df.loc[
-        (data_df['model_type'] == 'fixed_full') & (data_df['sd_fit'] == 0.05),'snr']),
-        '.', color=[.6,.6,0], markersize=14)
+        (data_df['model_type'] == 'fixed_full') & (data_df['sd_fit'] == 0.05), 'snr']),
+        '.', color=[.6, .6, 0], markersize=14)
     plt.plot(0, np.mean(data_df.loc[
-        (data_df['model_type'] == 'fixed_full') & (data_df['sd_fit'] == np.inf),'snr']),
-        '.', color=[.6,.6,0], markersize=20)
+        (data_df['model_type'] == 'fixed_full') & (data_df['sd_fit'] == np.inf), 'snr']),
+        '.', color=[.6, .6, 0], markersize=20)
     plt.plot(2, np.mean(data_df.loc[
-        (data_df['model_type'] == 'fixed_average') & (data_df['sd_fit'] == 0),'snr']),
-        '.', color=[.6,.6,1], markersize=9)
+        (data_df['model_type'] == 'fixed_average') & (data_df['sd_fit'] == 0), 'snr']),
+        '.', color=[.6, .6, 1], markersize=9)
     plt.plot(2, np.mean(data_df.loc[
-        (data_df['model_type'] == 'fixed_average') & (data_df['sd_fit'] == 0.05),'snr']),
-        '.', color=[.6,.6,1], markersize=14)
+        (data_df['model_type'] == 'fixed_average') & (data_df['sd_fit'] == 0.05), 'snr']),
+        '.', color=[.6, .6, 1], markersize=14)
     plt.plot(2, np.mean(data_df.loc[
-        (data_df['model_type'] == 'fixed_average') & (data_df['sd_fit'] == np.inf),'snr']),
-        '.', color=[.6,.6,1], markersize=20)
+        (data_df['model_type'] == 'fixed_average') & (data_df['sd_fit'] == np.inf), 'snr']),
+        '.', color=[.6, .6, 1], markersize=20)
     plt.plot(1, np.mean(data_df.loc[
         (data_df['model_type'] == 'fixed_mean') & (data_df['sd_fit'] == 0), 'snr']),
-        '.', color=[.6,.6,.5], markersize=9)
+        '.', color=[.6, .6, .5], markersize=9)
     plt.plot(1, np.mean(data_df.loc[
         (data_df['model_type'] == 'fixed_mean') & (data_df['sd_fit'] == 0.05), 'snr']),
-        '.', color=[.6,.6,.5], markersize=14)
+        '.', color=[.6, .6, .5], markersize=14)
     plt.plot(1, np.mean(data_df.loc[
         (data_df['model_type'] == 'fixed_mean') & (data_df['sd_fit'] == np.inf), 'snr']),
-        '.', color=[.6,.6,.5], markersize=20)
+        '.', color=[.6, .6, .5], markersize=20)
     plt.plot(4, np.mean(data_df.loc[
-        (data_df['model_type'] == 'select_full'),'snr']),
-        's', color=[.2,.2,0], markersize=10)
+        (data_df['model_type'] == 'select_full'), 'snr']),
+        's', color=[.2, .2, 0], markersize=10)
     plt.plot(5, np.mean(data_df.loc[
-        (data_df['model_type'] == 'select_both'),'snr']),
-        's', color=[.2,.2,.4], markersize=10)
+        (data_df['model_type'] == 'select_both'), 'snr']),
+        's', color=[.2, .2, .4], markersize=10)
     plt.plot(6, np.mean(data_df.loc[
         (data_df['model_type'] == 'select_mean'), 'snr']),
         's', color=[.2, .2, .7], markersize=10)
@@ -1164,7 +1178,7 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
          'selection: weighted',
          'selection: average',
          'linear combination'], rotation=90)
-    
+
     g1 = sns.catplot(data=data_df, legend=False,
                      x='model_type', y='snr', hue='sd_fit',
                      kind='point', ci='sd', dodge=0,
@@ -1277,7 +1291,7 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
                  'weighted_avgfull']
     g5 = sns.histplot(data=data_df, stat="count", multiple="stack",
                       x='std_relative', hue='model_type',
-                      palette= 0.2 + 0.8 *np.array([
+                      palette=0.2 + 0.8 * np.array([
                           [0.6, 0.6, 0],
                           [0.6, 0.6, 0.5],
                           [0.6, 0.6, 1],
@@ -1286,27 +1300,27 @@ def plot_flex(simulation_folder='sim_flex', savefig=False):
                           [0.2, 0.2, 0.7],
                           [0.2, 0.2, 1],
                           [0.1, 0.1, 0.1]
-                          ]),
-                     hue_order=hue_order,
-                     legend=False, alpha=1)
+                      ]),
+                      hue_order=hue_order,
+                      legend=False, alpha=1)
     plt.xticks([0.8, 0.9, 1, 1.1, 1.2, 1.3])
     plt.xlabel('Relative Uncertainty')
     sns.despine(trim=True, offset=5)
     leg_str = ['f:f',
-         'f:w',
-         'f:a',
-         's:f',
-         's:b',
-         's:w',
-         's:a',
-         'lin']
+               'f:w',
+               'f:a',
+               's:f',
+               's:b',
+               's:w',
+               's:a',
+               'lin']
     leg_str.reverse()
     g5.legend(
         leg_str,
         frameon=False, title='Model Type',
         bbox_to_anchor=(1.0, 0.5), loc=6)
     plt.plot([1, 1], [0, 37], 'k--')
-    r = plt.Rectangle([CI[0], 0], CI[1]-CI[0], 37,
+    r = plt.Rectangle([CI[0], 0], CI[1] - CI[0], 37,
                       facecolor='gray', zorder=-5, alpha=0.5)
     g5.add_patch(r)
     for child in g5.get_children():
@@ -1380,7 +1394,8 @@ def plot_boot_cv(simulation_folder='boot_cv', savefig=False):
         p_boot = plt.plot(x[2:], np.log10(var_var[6:]), 'k.')
         p_dat = plt.plot(x, np.log10(var_var[:6]), '.', color='grey')
         plt.box('off')
-        plt.xticks(np.arange(5) + 1, ['2000', '4000', '8000', '16000', '32000'])
+        plt.xticks(np.arange(5) + 1,
+                   ['2000', '4000', '8000', '16000', '32000'])
         plt.yticks(np.log10([0.0001, 0.001, 0.01]), [0.0001, 0.001, 0.01])
         sns.despine(trim=True, offset=5)
         plt.ylabel('variance of estimate', fontsize=18)
@@ -1533,7 +1548,8 @@ def make_illustrations():
         ax.xaxis.set_ticks([])
         ax.yaxis.set_ticks([])
         plt.tight_layout()
-        plt.savefig(os.path.join(folder_out, 'true_activations_%d.pdf' % i_sub))
+        plt.savefig(os.path.join(
+            folder_out, 'true_activations_%d.pdf' % i_sub))
 
     # noisy activations
     for i_sub in range(n_subj):
@@ -1577,21 +1593,11 @@ def make_flex_illustration(i=0, layer_false=2,
                            ecoset_path='~/ecoset/val/', save_fig=False):
     layer_true = 8
     # flex simulation settings
-    variation = 'both'
-    boot = 'fancy'
     n_repeat = 4
     n_stim = 40
-    n_vox = 100
     n_subj = 20
     sd = 0.05
-    smoothing = 0.05
     sigma_noise = 1
-    rdm_type = 'crossnobis'
-    rdm_comparison = 'corr'
-    noise_type = 'residuals'
-    k_pattern = None
-    k_rdm = None
-    model_type = 'select_average'
     # sim_eco defaults
     duration = 1
     pause = 1
@@ -1604,10 +1610,6 @@ def make_flex_illustration(i=0, layer_false=2,
     ecoset_path = pathlib.Path(ecoset_path).expanduser()
 
     fname_base = 'sim_flex/'
-    res_name = get_resname(boot, rdm_type, model_type,
-                           rdm_comparison, noise_type, n_stim,
-                           k_pattern, k_rdm, smoothing)
-    res_path = fname_base + res_name
     model = dnn.get_default_model()
 
     # get stimulus list
@@ -1626,7 +1628,7 @@ def make_flex_illustration(i=0, layer_false=2,
                 stimulus=stim_list[i_stim]))
     U_shape = np.array(U_complete[0].shape)
 
-    # get sampling locations 
+    # get sampling locations
     indices_space = np.load(fname_base + 'indices_space%04d.npy' % i)
     weights = np.load(fname_base + 'weights%04d.npy' % i)
     sigmaP = []
@@ -1690,12 +1692,6 @@ def make_flex_illustration(i=0, layer_false=2,
         u_subj = U[i_subj, :, :n_stim, :].reshape(n_repeat * n_stim,
                                                   n_voxel)
         data.append(rsatoolbox.data.Dataset(u_subj, obs_descriptors=desc))
-    if noise_type == 'eye':
-        noise = None
-    elif noise_type == 'residuals':
-        noise = rsatoolbox.data.prec_from_residuals(residuals)
-    rdms = rsatoolbox.rdm.calc_rdm(data, method=rdm_type, descriptor='stim',
-                                   cv_descriptor='repeat', noise=noise)
     # get true U RDMs
     dat_true = []
     for i_subj in range(U.shape[0]):
@@ -1729,58 +1725,64 @@ def make_flex_illustration(i=0, layer_false=2,
         rdm_feat_8.get_vectors(), rdm_avg_8.get_vectors(), rdm_weighted_8.get_vectors(),
         rdm_feat_2.get_vectors(), rdm_avg_2.get_vectors(), rdm_weighted_2.get_vectors()])
     rdms_subj = rdms_true.get_vectors()
-    
+
     rdms_all = np.concatenate([rdms_models, rdms_subj])
-    
+
     dissimilarities = dist.cosine_distances(rdms_all)
-    
+
     mds = MDS(dissimilarity='precomputed', random_state=1)
     mds.fit(dissimilarities)
     pos = mds.embedding_
 
-    angle = 1.25* np.pi
+    angle = 1.25 * np.pi
     rot = np.array([[np.cos(angle), np.sin(angle)],
                     [-np.sin(angle), np.cos(angle)]])
     pos = pos @ rot
 
     f_mds = plt.figure()
-    plt.plot(pos[:,0], pos[:,1], 'k.', markersize=5)
+    plt.plot(pos[:, 0], pos[:, 1], 'k.', markersize=5)
     plt.axis('equal')
     for i_size in range(8):
         plt.plot(pos[i_size, 0], pos[i_size, 1], '.',
-                 markersize=2*i_size + 5, color=[0, 0.8, 0])
+                 markersize=2 * i_size + 5, color=[0, 0.8, 0])
         plt.plot(pos[i_size + 8, 0], pos[i_size + 8, 1], '.',
-                 markersize=2*i_size + 5, color=[0, 0.8, 1])
+                 markersize=2 * i_size + 5, color=[0, 0.8, 1])
         plt.plot(pos[i_size + 16, 0], pos[i_size + 16, 1], '.',
-                 markersize=2*i_size + 5, color=[0, 0.8, 0.5])
+                 markersize=2 * i_size + 5, color=[0, 0.8, 0.5])
         plt.plot(pos[i_size + 24, 0], pos[i_size + 24, 1], '.',
-                 markersize=2*i_size + 5, color=[0.8, 0, 0])
+                 markersize=2 * i_size + 5, color=[0.8, 0, 0])
         plt.plot(pos[i_size + 32, 0], pos[i_size + 32, 1], '.',
-                 markersize=2*i_size + 5, color=[0.8, 0, 1])
+                 markersize=2 * i_size + 5, color=[0.8, 0, 1])
         plt.plot(pos[i_size + 40, 0], pos[i_size + 40, 1], '.',
-                 markersize=2*i_size + 5, color=[0.8, 0, 0.5])
+                 markersize=2 * i_size + 5, color=[0.8, 0, 0.5])
     angle = 0.2
     rot = np.array([[np.cos(angle), np.sin(angle)],
                     [-np.sin(angle), np.cos(angle)]])
     pos_rot = pos @ rot
     if show_labels:
         plt.annotate('feat %d' % layer_true, pos[7, :], pos_rot[7, :],
-                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     arrowprops=dict(width=1, headwidth=5,
+                                     headlength=5, facecolor='black'),
                      horizontalalignment='center', verticalalignment='center')
         plt.annotate('avg %d' % layer_true, pos[15, :], pos_rot[15, :],
-                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     arrowprops=dict(width=1, headwidth=5,
+                                     headlength=5, facecolor='black'),
                      horizontalalignment='center', verticalalignment='center')
         plt.annotate('weighted %d' % layer_true, pos[23, :], pos_rot[23, :],
-                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     arrowprops=dict(width=1, headwidth=5,
+                                     headlength=5, facecolor='black'),
                      horizontalalignment='center', verticalalignment='center')
         plt.annotate('feat %d' % layer_false, pos[31, :], pos_rot[31, :],
-                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     arrowprops=dict(width=1, headwidth=5,
+                                     headlength=5, facecolor='black'),
                      horizontalalignment='center', verticalalignment='center')
         plt.annotate('avg %d' % layer_false, pos[39, :], pos_rot[39, :],
-                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     arrowprops=dict(width=1, headwidth=5,
+                                     headlength=5, facecolor='black'),
                      horizontalalignment='center', verticalalignment='center')
         plt.annotate('weighted %d' % layer_false, pos[47, :], pos_rot[47, :],
-                     arrowprops=dict(width=1, headwidth=5, headlength=5, facecolor='black'),
+                     arrowprops=dict(width=1, headwidth=5,
+                                     headlength=5, facecolor='black'),
                      horizontalalignment='center', verticalalignment='center')
     plt.axis('off')
 

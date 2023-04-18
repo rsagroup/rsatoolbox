@@ -25,7 +25,7 @@ def load_comp(folder):
         'cosine' = 1
         'spearman' = 2
         'rho_a' = 3
-        ''
+
     bootstrap-type:
         'both' = 0
         'rdm' = 1
