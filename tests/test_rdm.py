@@ -16,6 +16,10 @@ import rsatoolbox as rsa
 
 class TestRDM(unittest.TestCase):
 
+    def setUp(self) -> None:
+        self.rng = np.random.default_rng(0)
+        return super().setUp()
+
     def test_rdm3d_init(self):
         dis = np.zeros((8, 5, 5))
         mes = "Euclidean"
@@ -211,7 +215,7 @@ class TestRDM(unittest.TestCase):
 
     def test_transform(self):
         from rsatoolbox.rdm import transform
-        dis = np.random.rand(8, 10)
+        dis = self.rng.random((8, 10))
         mes = "Euclidean"
         des = {'subj': 0}
         pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
@@ -270,7 +274,7 @@ class TestRDM(unittest.TestCase):
 
     def test_positive_transform(self):
         from rsatoolbox.rdm import positive_transform
-        dis = np.random.rand(8, 10) - 0.5
+        dis = self.rng.random((8, 10)) - 0.5
         mes = "Euclidean"
         des = {'subj': 0}
         pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
@@ -302,7 +306,7 @@ class TestRDM(unittest.TestCase):
     def test_concat(self):
         from rsatoolbox.rdm import concat
         dis = np.zeros((8, 10))
-        dis2 = np.random.rand(8, 10)
+        dis2 = self.rng.random((8, 10))
         mes = "Euclidean"
         des = {'subj': 0}
         pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
@@ -324,7 +328,7 @@ class TestRDM(unittest.TestCase):
     def test_concat_varargs_multiple_rdms(self):
         from rsatoolbox.rdm import concat
         dis = np.zeros((8, 10))
-        dis2 = np.random.rand(8, 10)
+        dis2 = self.rng.random((8, 10))
         mes = "Euclidean"
         des = {'subj': 0}
         pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
@@ -459,7 +463,7 @@ class TestRDM(unittest.TestCase):
     def test_copy(self):
         from rsatoolbox.rdm import RDMs
         orig = RDMs(
-            dissimilarities=np.random.rand(2, 3),
+            dissimilarities=self.rng.random((2, 3)),
             dissimilarity_measure='euclidean',
             descriptors=dict(foo='bar', baz='foz'),
             rdm_descriptors=dict(thrusters=['port', 'starboard']),
@@ -496,7 +500,7 @@ class TestRDM(unittest.TestCase):
     def test_equality(self):
         from rsatoolbox.rdm import RDMs
         orig = RDMs(
-            dissimilarities=np.random.rand(2, 3),
+            dissimilarities=self.rng.random((2, 3)),
             dissimilarity_measure='euclidean',
             descriptors=dict(foo='bar', baz='foz'),
             rdm_descriptors=dict(thrusters=['port', 'starboard']),
@@ -564,7 +568,8 @@ class TestRDMLists(unittest.TestCase):
     """ checking that descriptors stay lists if they are specified as such"""
 
     def setUp(self):
-        dissimilarities = np.random.rand(3, 15)
+        self.rng = np.random.default_rng(0)
+        dissimilarities = self.rng.random((3, 15))
         des = {'session': 0, 'subj': np.arange(7)}
         rdm_des = {'test': ['a', np.arange(5), None]}
         pattern_des = {'test': [np.arange(1), np.arange(2), np.arange(3),
@@ -578,7 +583,7 @@ class TestRDMLists(unittest.TestCase):
             descriptors=des,
             rdm_descriptors=rdm_des,
             pattern_descriptors=pattern_des
-            )
+        )
 
     def test_rdm_init_list(self):
         assert isinstance(self.test_rdm.rdm_descriptors['index'], list)

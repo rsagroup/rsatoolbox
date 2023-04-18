@@ -14,26 +14,27 @@ import rsatoolbox as rsa
 class TestCompareRDM(unittest.TestCase):
 
     def setUp(self):
-        dissimilarities1 = np.random.rand(1, 15)
+        self.rng = np.random.default_rng(0)
+        dissimilarities1 = self.rng.random((1, 15))
         des1 = {'session': 0, 'subj': 0}
         self.test_rdm1 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities1,
             dissimilarity_measure='test',
             descriptors=des1)
-        dissimilarities2 = np.random.rand(3, 15)
+        dissimilarities2 = self.rng.random((3, 15))
         des2 = {'session': 0, 'subj': 0}
         self.test_rdm2 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities2,
             dissimilarity_measure='test',
             descriptors=des2
-            )
-        dissimilarities3 = np.random.rand(7, 15)
+        )
+        dissimilarities3 = self.rng.random((7, 15))
         des2 = {'session': 0, 'subj': 0}
         self.test_rdm3 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities3,
             dissimilarity_measure='test',
             descriptors=des2
-            )
+        )
 
     def test_compare_cosine(self):
         from rsatoolbox.rdm.compare import compare_cosine
@@ -99,17 +100,17 @@ class TestCompareRDM(unittest.TestCase):
         from rsatoolbox.rdm.compare import compare_neg_riemannian_distance
         dataset1 = []
         for i_subj in range(1):
-            dataset1.append(rsa.data.Dataset(np.random.rand(6, 20),
+            dataset1.append(rsa.data.Dataset(self.rng.random((6, 20)),
                                              descriptors={'subj': i_subj}))
 
         dataset2 = []
         for i_subj in range(5):
-            dataset2.append(rsa.data.Dataset(np.random.rand(6, 20),
+            dataset2.append(rsa.data.Dataset(self.rng.random((6, 20)),
                                              descriptors={'subj': i_subj}))
 
         dataset3 = []
         for i_subj in range(7):
-            dataset3.append(rsa.data.Dataset(np.random.rand(6, 20),
+            dataset3.append(rsa.data.Dataset(self.rng.random((6, 20)),
                                              descriptors={'subj': i_subj}))
 
         rdms1 = rsa.rdm.calc_rdm(dataset1, method='euclidean')
@@ -210,7 +211,8 @@ class TestCompareRDM(unittest.TestCase):
 class TestCompareRDMNaN(unittest.TestCase):
 
     def setUp(self):
-        dissimilarities1 = np.random.rand(1, 15)
+        self.rng = np.random.default_rng(0)
+        dissimilarities1 = self.rng.random((1, 15))
         des1 = {'session': 0, 'subj': 0}
         test_rdm1 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities1,
@@ -218,22 +220,22 @@ class TestCompareRDMNaN(unittest.TestCase):
             descriptors=des1)
         self.test_rdm1 = test_rdm1.subsample_pattern(
             'index', [0, 1, 1, 3, 4, 5])
-        dissimilarities2 = np.random.rand(3, 15)
+        dissimilarities2 = self.rng.random((3, 15))
         des2 = {'session': 0, 'subj': 0}
         test_rdm2 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities2,
             dissimilarity_measure='test',
             descriptors=des2
-            )
+        )
         self.test_rdm2 = test_rdm2.subsample_pattern('index',
                                                      [0, 1, 1, 3, 4, 5])
-        dissimilarities3 = np.random.rand(7, 15)
+        dissimilarities3 = self.rng.random((7, 15))
         des2 = {'session': 0, 'subj': 0}
         test_rdm3 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities3,
             dissimilarity_measure='test',
             descriptors=des2
-            )
+        )
         self.test_rdm3 = test_rdm3.subsample_pattern('index',
                                                      [0, 1, 1, 3, 4, 5])
 
@@ -374,26 +376,27 @@ class TestCompareRDMNaN(unittest.TestCase):
 class TestCompareCov(unittest.TestCase):
 
     def setUp(self):
-        dissimilarities1 = np.random.rand(1, 15)
+        self.rng = np.random.default_rng(0)
+        dissimilarities1 = self.rng.random((1, 15))
         des1 = {'session': 0, 'subj': 0}
         self.test_rdm1 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities1,
             dissimilarity_measure='test',
             descriptors=des1)
-        dissimilarities2 = np.random.rand(3, 15)
+        dissimilarities2 = self.rng.random((3, 15))
         des2 = {'session': 0, 'subj': 0}
         self.test_rdm2 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities2,
             dissimilarity_measure='test',
             descriptors=des2
-            )
-        dissimilarities3 = np.random.rand(7, 15)
+        )
+        dissimilarities3 = self.rng.random((7, 15))
         des2 = {'session': 0, 'subj': 0}
         self.test_rdm3 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities3,
             dissimilarity_measure='test',
             descriptors=des2
-            )
+        )
 
     def test_corr_identity_equal(self):
         from rsatoolbox.rdm.compare import compare

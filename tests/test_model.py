@@ -51,15 +51,19 @@ class TestModelSelect(unittest.TestCase):
     """ Tests for the fixed model class
     """
 
+    def setUp(self) -> None:
+        self.rng = np.random.default_rng(0)
+        return super().setUp()
+
     def test_creation(self):
-        rdm = np.random.rand(2, 6)
+        rdm = self.rng.random((2, 6))
         m = model.ModelSelect('Test Model', rdm)
         pred = m.predict()
         assert np.all(pred == rdm[0])
 
     def test_creation_rdm(self):
         from rsatoolbox.rdm import RDMs
-        rdm = np.random.rand(2, 6)
+        rdm = self.rng.random((2, 6))
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
                        pattern_descriptors=pattern_descriptors)
@@ -73,7 +77,7 @@ class TestModelSelect(unittest.TestCase):
 
     def test_fit(self):
         from rsatoolbox.rdm import RDMs
-        rdm = np.random.rand(2, 6)
+        rdm = self.rng.random((2, 6))
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_descriptors = {'ind': np.array([1, 2])}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
@@ -89,15 +93,19 @@ class TestModelWeighted(unittest.TestCase):
     """ Tests for the fixed model class
     """
 
+    def setUp(self) -> None:
+        self.rng = np.random.default_rng(0)
+        return super().setUp()
+
     def test_creation(self):
-        rdm = np.random.rand(4, 15)
+        rdm = self.rng.random((4, 15))
         m = model.ModelWeighted('Test Model', rdm)
         pred = m.predict([1, 0, 0, 0])
         assert np.all(pred == rdm[0])
 
     def test_creation_rdm(self):
         from rsatoolbox.rdm import RDMs
-        rdm = np.random.rand(2, 6)
+        rdm = self.rng.random((2, 6))
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
                        pattern_descriptors=pattern_descriptors)
@@ -111,7 +119,7 @@ class TestModelWeighted(unittest.TestCase):
 
     def test_fit(self):
         from rsatoolbox.rdm import RDMs
-        rdm = np.random.rand(2, 6)
+        rdm = self.rng.random((2, 6))
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_descriptors = {'ind': np.array([1, 2])}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
@@ -126,15 +134,19 @@ class TestModelInterpolate(unittest.TestCase):
     """ Tests for the fixed model class
     """
 
+    def setUp(self) -> None:
+        self.rng = np.random.default_rng(0)
+        return super().setUp()
+
     def test_creation(self):
-        rdm = np.random.rand(4, 15)
+        rdm = self.rng.random((4, 15))
         m = model.ModelInterpolate('Test Model', rdm)
         pred = m.predict([1, 0, 0, 0])
         assert np.all(pred == rdm[0])
 
     def test_creation_rdm(self):
         from rsatoolbox.rdm import RDMs
-        rdm = np.random.rand(2, 6)
+        rdm = self.rng.random((2, 6))
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd']}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
                        pattern_descriptors=pattern_descriptors)
@@ -148,7 +160,7 @@ class TestModelInterpolate(unittest.TestCase):
 
     def test_fit(self):
         from rsatoolbox.rdm import RDMs
-        rdm = np.random.rand(5, 15)
+        rdm = self.rng.random((5, 15))
         pattern_descriptors = {'test': ['a', 'b', 'c', 'd', 'e', 'f']}
         rdm_descriptors = {'ind': np.array([1, 2, 3, 1, 2])}
         rdm_obj = RDMs(rdm, dissimilarity_measure='euclid',
@@ -166,7 +178,9 @@ class TestConsistency(unittest.TestCase):
     """
 
     def setUp(self):
+        self.rng = np.random.default_rng(0)
         self.sample_data()
+        return super().setUp()
 
     def sample_data(self):
         from rsatoolbox.data import Dataset
@@ -174,7 +188,7 @@ class TestConsistency(unittest.TestCase):
         from rsatoolbox.rdm import concat
         rdms = []
         for _ in range(5):
-            data = np.random.rand(6, 20)
+            data = self.rng.random((6, 20))
             data_s = Dataset(data)
             rdms.append(calc_rdm(data_s))
         self.rdms = concat(rdms)
@@ -329,10 +343,14 @@ class TestNNLS(unittest.TestCase):
     with other solutions where they apply
     """
 
+    def setUp(self) -> None:
+        self.rng = np.random.default_rng(0)
+        return super().setUp()
+
     def test_nnls_scipy(self):
         from scipy.optimize import nnls
         from rsatoolbox.model.fitter import _nn_least_squares
-        A = np.random.rand(10, 3)
+        A = self.rng.random((10, 3))
         b = A @ np.array([1, -0.1, -0.1])
         x_scipy, loss_scipy = nnls(A, b)
         x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b)
@@ -345,10 +363,11 @@ class TestNNLS(unittest.TestCase):
 
     def test_nnls_eye(self):
         from rsatoolbox.model.fitter import _nn_least_squares
-        A = np.random.rand(10, 3)
+        A = self.rng.random((10, 3))
         b = A @ np.array([1, -0.1, -0.1])
         x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b)
-        x_rsatoolbox_v, loss_rsatoolbox_v = _nn_least_squares(A, b, V=np.eye(10))
+        x_rsatoolbox_v, loss_rsatoolbox_v = _nn_least_squares(
+            A, b, V=np.eye(10))
         assert_allclose(
             x_rsatoolbox, x_rsatoolbox_v,
             err_msg='non-negative-least squares changes with V=np.eye')
@@ -358,7 +377,7 @@ class TestNNLS(unittest.TestCase):
 
     def test_nnls_eye_ridge(self):
         from rsatoolbox.model.fitter import _nn_least_squares
-        A = np.random.rand(10, 3)
+        A = self.rng.random((10, 3))
         b = A @ np.array([1, -0.1, -0.1])
         x_rsatoolbox, loss_rsatoolbox = _nn_least_squares(A, b, ridge_weight=1)
         x_rsatoolbox_v, loss_rsatoolbox_v = _nn_least_squares(
