@@ -6,6 +6,7 @@ Inference module utilities
 from __future__ import annotations
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Optional
+import warnings
 import numpy as np
 from scipy import stats
 from scipy.stats import rankdata, wilcoxon
@@ -117,11 +118,11 @@ def pool_rdm(rdms, method: str = 'cosine'):
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     elif method in ('kendall', 'tau-b'):
-        raise Warning('Noise ceiling for tau based on averaged ranks!')
+        warnings.warn('Noise ceiling for tau based on averaged ranks!')
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'tau-a':
-        raise Warning('Noise ceiling for tau based on averaged ranks!')
+        warnings.warn('Noise ceiling for tau based on averaged ranks!')
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     else:
