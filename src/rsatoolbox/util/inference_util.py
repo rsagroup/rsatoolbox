@@ -5,6 +5,7 @@ Inference module utilities
 """
 from __future__ import annotations
 from collections.abc import Iterable
+from typing import TYPE_CHECKING, Optional
 import numpy as np
 from scipy import stats
 from scipy.stats import rankdata, wilcoxon
@@ -13,7 +14,6 @@ from rsatoolbox.model import Model
 from rsatoolbox.rdm import RDMs
 from .matrix import pairwise_contrast
 from .rdm_utils import batch_to_matrices
-from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
@@ -117,11 +117,11 @@ def pool_rdm(rdms, method: str = 'cosine'):
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     elif method in ('kendall', 'tau-b'):
-        Warning('Noise ceiling for tau based on averaged ranks!')
+        raise Warning('Noise ceiling for tau based on averaged ranks!')
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     elif method == 'tau-a':
-        Warning('Noise ceiling for tau based on averaged ranks!')
+        raise Warning('Noise ceiling for tau based on averaged ranks!')
         rdm_vec = np.array([_nan_rank_data(v) for v in rdm_vec])
         rdm_vec = _nan_mean(rdm_vec)
     else:
@@ -405,7 +405,7 @@ def bootstrap_pair_tests(evaluations):
     proportions = np.zeros((evaluations.shape[1], evaluations.shape[1]))
     while len(evaluations.shape) > 2:
         evaluations = np.mean(evaluations, axis=-1)
-    for i_model in range(evaluations.shape[1]-1):
+    for i_model in range(evaluations.shape[1] - 1):
         for j_model in range(i_model + 1, evaluations.shape[1]):
             proportions[i_model, j_model] = np.sum(
                 evaluations[:, i_model] < evaluations[:, j_model]) \
@@ -663,12 +663,12 @@ def get_errorbars(model_var, evaluations, dof, error_bars='sem',
             errorbar_high = std_eval \
                 * tdist.ppf(prop_cut, dof)
     else:
-        raise Exception('computing errorbars: Argument ' +
-                        'error_bars is incorrectly defined as '
-                        + str(error_bars) + '.')
+        raise ValueError('computing errorbars: Argument ' +
+                         'error_bars is incorrectly defined as '
+                         + str(error_bars) + '.')
     limits = np.stack((errorbar_low, errorbar_high))
     if np.isnan(limits).any() or (abs(limits) == np.inf).any():
-        raise Exception(
+        raise ValueError(
             'computing errorbars: Too few bootstrap samples for the ' +
             'requested confidence interval: ' + error_bars + '.')
     return limits
@@ -696,7 +696,7 @@ def _dual_bootstrap(variances, n_rdm=None, n_pattern=None):
         variance = (
             (n_rdm / (n_rdm - 1)) * variances[1]
             + (n_pattern / (n_pattern - 1)) * variances[2]
-            - ((n_pattern*n_rdm / (n_pattern - 1) / (n_rdm - 1))
+            - ((n_pattern * n_rdm / (n_pattern - 1) / (n_rdm - 1))
                * (variances[0] - variances[1] - variances[2])))
         variance = np.maximum(np.maximum(
             variance,
