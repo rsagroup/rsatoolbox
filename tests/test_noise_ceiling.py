@@ -13,24 +13,29 @@ from parameterized import parameterized
 
 class TestNoiseCeiling(unittest.TestCase):
 
-    def test_cv_noise_ceiling(self):
-        from rsatoolbox.inference import cv_noise_ceiling
-        from rsatoolbox.inference import sets_k_fold_rdm
+    def setUp(self) -> None:
         from rsatoolbox.rdm import RDMs
-        dis = np.random.rand(11, 10)  # 11 5x5 rdms
+        self.rng = np.random.default_rng(0)
+        dis = self.rng.random((11, 10))  # 11 5x5 rdms
         mes = "Euclidean"
         des = {'subj': 0}
         rdm_des = {'session': np.array([1, 1, 2, 2, 4, 5, 6, 7, 7, 7, 7])}
         pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
-        rdms = RDMs(
+        self.rdms = RDMs(
             dissimilarities=dis,
             rdm_descriptors=rdm_des,
             pattern_descriptors=pattern_des,
             dissimilarity_measure=mes,
             descriptors=des
         )
-        _, test_set, ceil_set = sets_k_fold_rdm(rdms, k_rdm=3, random=False)
-        _, _ = cv_noise_ceiling(rdms, ceil_set, test_set, method='cosine')
+        return super().setUp()
+
+    def test_cv_noise_ceiling(self):
+        from rsatoolbox.inference import cv_noise_ceiling
+        from rsatoolbox.inference import sets_k_fold_rdm
+        _, test_set, ceil_set = sets_k_fold_rdm(
+            self.rdms, k_rdm=3, random=False)
+        _, _ = cv_noise_ceiling(self.rdms, ceil_set, test_set, method='cosine')
 
     @parameterized.expand([
         ['cosine'],
@@ -41,17 +46,4 @@ class TestNoiseCeiling(unittest.TestCase):
     ])
     def test_boot_noise_ceiling_runs_for_method(self, method):
         from rsatoolbox.inference import boot_noise_ceiling
-        from rsatoolbox.rdm import RDMs
-        dis = np.random.rand(11, 10)  # 11 5x5 rdms
-        mes = "Euclidean"
-        des = {'subj': 0}
-        rdm_des = {'session': np.array([1, 1, 2, 2, 4, 5, 6, 7, 7, 7, 7])}
-        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
-        rdms = RDMs(
-            dissimilarities=dis,
-            rdm_descriptors=rdm_des,
-            pattern_descriptors=pattern_des,
-            dissimilarity_measure=mes,
-            descriptors=des
-        )
-        _, _ = boot_noise_ceiling(rdms, method=method)
+        _, _ = boot_noise_ceiling(self.rdms, method=method)

@@ -5,17 +5,21 @@ test that the operations in the demos are still functional
 """
 
 import unittest
+import numpy as np
 
 
 class TestDemos(unittest.TestCase):
 
+    def setUp(self) -> None:
+        self.rng = np.random.default_rng(0)
+        return super().setUp()
+
     def test_example_dataset(self):
-        import numpy as np
         import matplotlib.pyplot as plt
         import rsatoolbox.data as rsd  # abbreviation to deal with dataset
 
         # import the measurements for the dataset
-        measurements = {'simTruePatterns': np.random.randn(92, 100)}
+        measurements = {'simTruePatterns': self.rng.standard_normal((92, 100))}
         measurements = measurements['simTruePatterns']
         nCond = measurements.shape[0]
         nVox = measurements.shape[1]
@@ -41,7 +45,7 @@ class TestDemos(unittest.TestCase):
         # create an example dataset with random data, subset some conditions
         nChannel = 50
         nObs = 12
-        randomData = np.random.rand(nObs, nChannel)
+        randomData = self.rng.random((nObs, nChannel))
         des = {'session': 1, 'subj': 1}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5])}
         chn_des = {'voxels': np.array(
@@ -59,7 +63,7 @@ class TestDemos(unittest.TestCase):
         nChannel = 3
         nChannelVox = 10  # three ROIs, each with 10 voxels
         nObs = 4
-        randomData = np.random.rand(nObs, nChannel*nChannelVox)
+        randomData = self.rng.random((nObs, nChannel * nChannelVox))
         des = {'session': 1, 'subj': 1}
         obs_des = {'conds': np.array([0, 1, 2, 3])}
         chn_des = ['ROI1', 'ROI2', 'ROI3'] * nChannelVox
@@ -76,7 +80,7 @@ class TestDemos(unittest.TestCase):
         nVox = 50  # 50 voxels/electrodes/measurement channels
         nCond = 10  # 10 conditions
         nSubj = 5  # 5 different subjects
-        randomData = np.random.rand(nCond, nVox, nSubj)
+        randomData = self.rng.random((nCond, nVox, nSubj))
 
         # We can then create a list of dataset objects
         # by appending each dataset for each subject.
@@ -88,22 +92,21 @@ class TestDemos(unittest.TestCase):
 
         data = []  # list of dataset objects
         for i in np.arange(nSubj):
-            des = {'session': 1, 'subj': i+1}
+            des = {'session': 1, 'subj': i + 1}
             # append the dataset object to the data list
             data.append(rsd.Dataset(
                 measurements=randomData[:, :, 0],
                 descriptors=des,
                 obs_descriptors=obs_des,
                 channel_descriptors=chn_des
-                ))
+            ))
 
     def test_example_dissimilarities(self):
         # relevant imports
-        import numpy as np
         import rsatoolbox.data as rsd  # abbreviation to deal with dataset
         import rsatoolbox.rdm as rsr
         # create a dataset object
-        measurements = {'simTruePatterns': np.random.randn(92, 100)}
+        measurements = {'simTruePatterns': self.rng.standard_normal((92, 100))}
         measurements = measurements['simTruePatterns']
         nCond = measurements.shape[0]
         nVox = measurements.shape[1]
@@ -147,7 +150,8 @@ class TestDemos(unittest.TestCase):
         n_models = len(matlab_data[0])
         model_names = [matlab_data[0][i][0][0] for i in range(n_models)]
         measurement_model = [matlab_data[0][i][1][0] for i in range(n_models)]
-        rdms_array = np.array([matlab_data[0][i][3][0] for i in range(n_models)])
+        rdms_array = np.array([matlab_data[0][i][3][0]
+                              for i in range(n_models)])
         model_rdms = rsatoolbox.rdm.RDMs(
             rdms_array,
             rdm_descriptors={
@@ -164,15 +168,16 @@ class TestDemos(unittest.TestCase):
         i_rep = 2  # np.random.randint(len(repr_names))
         i_noise = 1  # np.random.randint(len(noise_std))
         i_fwhm = 0  # np.random.randint(len(fwhms))
-        rdms_data = rsatoolbox.rdm.RDMs(rdms_matrix[:, i_rep, i_fwhm, i_noise, :].transpose())
+        rdms_data = rsatoolbox.rdm.RDMs(
+            rdms_matrix[:, i_rep, i_fwhm, i_noise, :].transpose())
         models_flex = []
         for i_model in np.unique(model_names):
             models_flex.append(
                 rsatoolbox.model.ModelSelect(
                     i_model,
                     model_rdms.subset('brain_computational_model', i_model)
-                    )
                 )
+            )
         results_3_full = rsatoolbox.inference.eval_dual_bootstrap(
             models_flex, rdms_data, k_pattern=4, k_rdm=2, method='corr', N=5)
         print(results_3_full)
@@ -198,7 +203,7 @@ class TestDemos(unittest.TestCase):
             rdm_descriptors={'brain_computational_model': model_names,
                              'measurement_model': measurement_model},
             dissimilarity_measure='Euclidean'
-            )
+        )
 
         conv1_rdms = model_rdms.subset('brain_computational_model', 'conv1')
         plt.figure(figsize=(10, 10))
@@ -427,7 +432,7 @@ class TestDemos(unittest.TestCase):
             pattern_descriptors=condition_descriptors,
             rdm_descriptors={
                 'name': np.array([f"RDM{i}" for i in range(4)])}
-            )
+        )
 
         rdms_a = concat([rdms_[0], rdms_[1]])
         rdms_b = concat([rdms_[2], rdms_[3]])
@@ -444,7 +449,7 @@ class TestDemos(unittest.TestCase):
                 "B": (0, 1, 0),
                 "C": (0, 0, 1),
             }
-            )
+        )
 
 
 if __name__ == '__main__':
