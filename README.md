@@ -14,11 +14,18 @@ Conceived during the RSA retreat 2019 in Blue Mountains.
 
 #### Getting Started
 
-The easiest way to install rsatoolbox is with pip:
+To install the latest stable version of rsatoolbox with pip:
 
 ```sh
 pip install rsatoolbox
 ```
+
+or with conda:
+
+```sh
+conda install -c conda-forge rsatoolbox
+```
+
 
 here is a simple code sample:
 
