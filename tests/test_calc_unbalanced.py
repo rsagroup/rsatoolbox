@@ -29,7 +29,8 @@ NO_CV_METHODS = [
 class TestCalcUnbalancedRDM(unittest.TestCase):
 
     def setUp(self):
-        measurements = np.random.rand(20, 5)
+        self.rng = np.random.default_rng(0)
+        measurements = self.rng.random((20, 5))
         measurements_deterministic = np.array([
             [0.11, 0.12, 0.21, 0.22, 0.30, 0.31],
             [0.13, 0.14, 0.24, 0.21, 0.29, 0.28],
@@ -52,13 +53,13 @@ class TestCalcUnbalancedRDM(unittest.TestCase):
             descriptors=des,
             obs_descriptors=obs_des,
             channel_descriptors=chn_des
-            )
+        )
         self.test_data_balanced = rsa.data.Dataset(
             measurements=measurements,
             descriptors=des,
             obs_descriptors=obs_balanced,
             channel_descriptors=chn_des
-            )
+        )
         self.test_data_deterministic = rsa.data.Dataset(
             measurements=measurements_deterministic,
             descriptors=des,
@@ -80,10 +81,10 @@ class TestCalcUnbalancedRDM(unittest.TestCase):
     def test_calc_euclid_as_scipy(self, _parse_input):
         from rsatoolbox.rdm import calc_rdm_unbalanced
         data = rsa.data.Dataset(
-            np.random.rand(6, 5),
+            self.rng.random((6, 5)),
             descriptors={'session': 0, 'subj': 0},
             obs_descriptors={'conds': [0, 1, 2, 3, 4, 5]}
-            )
+        )
         rdm_expected = pdist(data.measurements) ** 2 / 5
         rdms = calc_rdm_unbalanced(
             data,
@@ -94,17 +95,17 @@ class TestCalcUnbalancedRDM(unittest.TestCase):
             assert_array_almost_equal(
                 rdm_expected,
                 rdms.dissimilarities.flatten()
-                )
             )
+        )
 
     @patch('rsatoolbox.rdm.calc._parse_input')
     def test_calc_correlation(self, _parse_input):
         from rsatoolbox.rdm import calc_rdm_unbalanced
         data = rsa.data.Dataset(
-            np.random.rand(6, 5),
+            self.rng.random((6, 5)),
             descriptors={'session': 0, 'subj': 0},
             obs_descriptors={'conds': [0, 1, 2, 3, 4, 5]}
-            )
+        )
         rdm_expected = 1 - np.corrcoef(data.measurements)
         rdme = rsr.RDMs(
             dissimilarities=np.array([rdm_expected]),
@@ -143,7 +144,7 @@ class TestCalcUnbalancedRDM(unittest.TestCase):
         assert_array_almost_equal(
             rdm_bal.dissimilarities.flatten(),
             rdm_check.dissimilarities.flatten()
-            )
+        )
 
     def test_calc_crossnobis(self):
         rdm = rsr.calc_rdm_unbalanced(self.test_data,
@@ -164,7 +165,7 @@ class TestCalcUnbalancedRDM(unittest.TestCase):
         assert_array_almost_equal(
             rdm_bal.dissimilarities.flatten(),
             rdm_check.dissimilarities.flatten()
-            )
+        )
 
     def test_calc_crossnobis_no_descriptor(self):
         rdm = rsr.calc_rdm_unbalanced(
@@ -174,7 +175,7 @@ class TestCalcUnbalancedRDM(unittest.TestCase):
         assert rdm.n_cond == 6
 
     def test_calc_crossnobis_noise(self):
-        noise = np.random.randn(10, 5)
+        noise = self.rng.random((10, 5))
         noise = np.matmul(noise.T, noise)
         rdm = rsr.calc_rdm_unbalanced(
             self.test_data,
@@ -195,7 +196,7 @@ class TestCalcUnbalancedRDM(unittest.TestCase):
         assert_array_almost_equal(
             rdm_bal.dissimilarities.flatten(),
             rdm_check.dissimilarities.flatten()
-            )
+        )
 
     def test_calc_poisson(self):
         """ for the poisson-KL the dissimilarities differ! This is explained

@@ -10,6 +10,10 @@ if TYPE_CHECKING:
 
 class RdmsToPandasTests(TestCase):
 
+    def setUp(self) -> None:
+        self.rng = numpy.random.default_rng(0)
+        return super().setUp()
+
     def assertValuesEqual(self,
                           actual: Series,
                           expected: Union[NDArray, List]):
@@ -21,7 +25,7 @@ class RdmsToPandasTests(TestCase):
         Default is long form; multiple rdms are stacked row-wise.
         """
         from rsatoolbox.rdm.rdms import RDMs
-        dissimilarities = numpy.random.rand(2, 6)
+        dissimilarities = self.rng.random((2, 6))
         rdms = RDMs(
             dissimilarities,
             rdm_descriptors=dict(xy=[c for c in 'xy']),
@@ -31,10 +35,10 @@ class RdmsToPandasTests(TestCase):
         self.assertIsInstance(df, DataFrame)
         self.assertEqual(len(df.columns), 7)
         self.assertValuesEqual(df.dissimilarity, dissimilarities.ravel())
-        self.assertValuesEqual(df['rdm_index'], ([0]*6) + ([1]*6))
-        self.assertValuesEqual(df['xy'], (['x']*6) + (['y']*6))
+        self.assertValuesEqual(df['rdm_index'], ([0] * 6) + ([1] * 6))
+        self.assertValuesEqual(df['xy'], (['x'] * 6) + (['y'] * 6))
         self.assertValuesEqual(df['pattern_index_1'],
-                               ([0]*3 + [1]*2 + [2]*1)*2)
-        self.assertValuesEqual(df['pattern_index_2'], [1, 2, 3, 2, 3, 3]*2)
-        self.assertValuesEqual(df['abcd_1'], [c for c in 'aaabbc']*2)
-        self.assertValuesEqual(df['abcd_2'], [c for c in 'bcdcdd']*2)
+                               ([0] * 3 + [1] * 2 + [2] * 1) * 2)
+        self.assertValuesEqual(df['pattern_index_2'], [1, 2, 3, 2, 3, 3] * 2)
+        self.assertValuesEqual(df['abcd_1'], [c for c in 'aaabbc'] * 2)
+        self.assertValuesEqual(df['abcd_2'], [c for c in 'bcdcdd'] * 2)
