@@ -2,7 +2,7 @@
 """
 # pylint: disable=import-outside-toplevel, no-self-use
 from unittest import TestCase
-from numpy import array, nan, isnan, mean, abs, diff
+from numpy import array, nan, isnan, mean, abs as _abs, diff
 from numpy.testing import assert_almost_equal, assert_array_equal
 from scipy.stats import pearsonr
 
@@ -84,12 +84,12 @@ class RdmsCombineTests(TestCase):
         ## high threshold, fewer iterations, substantial difference remaining
         rescaled_rdms = rescale(partial_rdms, method='simple', threshold=10)
         common_pair = rescaled_rdms.dissimilarities[:, 3]
-        rel_diff = abs(diff(common_pair)/mean(common_pair))
+        rel_diff = _abs(diff(common_pair)/mean(common_pair))
         self.assertGreater(rel_diff[0], 0.1)
         ## low threshold, more iterations, difference small
         rescaled_rdms = rescale(partial_rdms, method='simple', threshold=0.00001)
         common_pair = rescaled_rdms.dissimilarities[:, 3]
-        rel_diff = abs(diff(common_pair)/mean(common_pair))
+        rel_diff = _abs(diff(common_pair)/mean(common_pair))
         self.assertLess(rel_diff[0], 0.01)
 
     def test_mean_no_weights(self):
