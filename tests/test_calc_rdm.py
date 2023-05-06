@@ -29,7 +29,8 @@ NO_CV_METHODS = [
 class TestCalcRDM(unittest.TestCase):
 
     def setUp(self):
-        measurements = np.random.rand(20, 5)
+        self.rng = np.random.default_rng(0)
+        measurements = self.rng.random((20, 5))
         measurements_deterministic = np.array(
             [
                 [0.11, 0.12, 0.21, 0.22, 0.30, 0.31],
@@ -85,7 +86,7 @@ class TestCalcRDM(unittest.TestCase):
         from rsatoolbox.rdm.calc import _parse_input
         data = Mock()
         data.descriptors = {'session': 0, 'subj': 0}
-        data.measurements = np.random.rand(6, 5)
+        data.measurements = self.rng.random((6, 5))
         measurements, desc = _parse_input(data, None)
         self.assertIsNone(desc)
         self.assertTrue(np.all(data.measurements == measurements))
@@ -97,7 +98,7 @@ class TestCalcRDM(unittest.TestCase):
         data.descriptors = {'session': 0, 'subj': 0}
         data.obs_descriptors = dict(conds=np.arange(6))
         data.channel_descriptors = dict()
-        data.measurements = np.random.rand(6, 5)
+        data.measurements = self.rng.random((6, 5))
         desc = [0, 1, 2, 3, 4, 5]
         _parse_input.return_value = (data.measurements, desc)
         rdm_expected = pdist(data.measurements) ** 2 / 5
@@ -112,7 +113,7 @@ class TestCalcRDM(unittest.TestCase):
         data.descriptors = {'session': 0, 'subj': 0}
         data.obs_descriptors = dict(conds=np.arange(6))
         data.channel_descriptors = dict()
-        data.measurements = np.random.rand(6, 5)
+        data.measurements = self.rng.random((6, 5))
         desc = [0, 1, 2, 3, 4, 5]
         _parse_input.return_value = (data.measurements, desc)
         rdm_expected = 1 - np.corrcoef(data.measurements)
@@ -141,7 +142,7 @@ class TestCalcRDM(unittest.TestCase):
             method='mahalanobis'
         )
         assert rdm.n_cond == 6
-        noise = np.linalg.inv(np.cov(np.random.randn(10, 5).T))
+        noise = np.linalg.inv(np.cov(self.rng.standard_normal((10, 5)).T))
         rdm = rsr.calc_rdm(
             self.test_data,
             descriptor='conds',
@@ -202,7 +203,7 @@ class TestCalcRDM(unittest.TestCase):
         assert rdm.n_cond == 5
 
     def test_calc_crossnobis_noise(self):
-        noise = np.random.randn(10, 5)
+        noise = self.rng.standard_normal((10, 5))
         noise = np.matmul(noise.T, noise)
         rdm = rsr.calc_rdm_crossnobis(
             self.test_data_balanced, descriptor='conds', noise=noise
@@ -211,7 +212,7 @@ class TestCalcRDM(unittest.TestCase):
 
     def test_calc_crossnobis_noise_list(self):
         # generate two positive definite noise matricies
-        noise = np.random.randn(2, 10, 5)
+        noise = self.rng.standard_normal((2, 10, 5))
         noise = np.einsum('ijk,ijl->ikl', noise, noise)
         rdm = rsr.calc_rdm_crossnobis(
             self.test_data_balanced,
@@ -377,7 +378,8 @@ class TestCalcRDM(unittest.TestCase):
 class TestCalcRDMMovie(unittest.TestCase):
 
     def setUp(self):
-        measurements_time = np.random.rand(20, 5, 15)
+        self.rng = np.random.default_rng(0)
+        measurements_time = self.rng.random((20, 5, 15))
         tim_des = {'time': np.linspace(0, 200, 15)}
         des = {'session': 0, 'subj': 0}
         obs_des = {
@@ -471,7 +473,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.n_cond == 5
 
     def test_calc_rdm_movie_crossnobis_noise(self):
-        noise = np.random.randn(10, 5)
+        noise = self.rng.standard_normal((10, 5))
         noise = np.matmul(noise.T, noise)
         rdm = rsr.calc_rdm_movie(
             self.test_data_time_balanced,
@@ -483,7 +485,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.n_cond == 5
 
     def test_calc_rdm_movie_rdm_movie_poisson(self):
-        noise = np.random.randn(10, 5)
+        noise = self.rng.standard_normal((10, 5))
         noise = np.matmul(noise.T, noise)
         rdm = rsr.calc_rdm_movie(
             self.test_data_time_balanced,

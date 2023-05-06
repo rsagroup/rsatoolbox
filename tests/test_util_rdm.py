@@ -31,12 +31,17 @@ class TestRdmUtils(unittest.TestCase):
         assert n_rdm == 8
         assert n_cond == 5
 
+
 class TestPoolRDM(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.rng = np.random.default_rng(0)
+        return super().setUp()
 
     def test_pool_standard(self):
         from rsatoolbox.rdm import RDMs
         from rsatoolbox.util.pooling import pool_rdm
-        dissimilarities = np.random.rand(5, 10)
+        dissimilarities = self.rng.random((5, 10))
         rdms = RDMs(dissimilarities)
         for method in ['euclid', 'cosine', 'corr', 'cosine_cov', 'corr_cov',
                        'spearman', 'rho-a', 'tau-b', 'tau-a']:
@@ -47,7 +52,7 @@ class TestPoolRDM(unittest.TestCase):
     def test_pool_nan(self):
         from rsatoolbox.rdm import RDMs
         from rsatoolbox.util.pooling import pool_rdm
-        dissimilarities = np.random.rand(5, 10)
+        dissimilarities = self.rng.random((5, 10))
         dissimilarities[:, 3] = np.nan
         rdms = RDMs(dissimilarities)
         for method in ['euclid', 'cosine', 'corr', 'cosine_cov', 'corr_cov',

@@ -98,8 +98,16 @@ class Result:
         name_length = max([max(len(m.name) for m in self.models) + 1, 6])
         means = self.get_means()
         sems = self.get_sem()
-        p_zero = self.test_zero(test_type=test_type)
-        p_noise = self.test_noise(test_type=test_type)
+        if means is None:
+            means = np.nan * np.ones(self.n_model)
+        if sems is None:
+            sems = np.nan * np.ones(self.n_model)
+        try:
+            p_zero = self.test_zero(test_type=test_type)
+            p_noise = self.test_noise(test_type=test_type)
+        except ValueError:
+            p_zero = np.nan * np.ones(self.n_model)
+            p_noise = np.nan * np.ones(self.n_model)
         # header of the results table
         summary += 'Model' + (' ' * (name_length - 5))
         summary += '|   Eval \u00B1 SEM   |'
@@ -120,7 +128,9 @@ class Result:
                 summary += f'{p_noise[i]:>14.3f}  |'
             summary += '\n'
         summary += '\n'
-        if test_type == 't-test':
+        if self.cv_method == 'crossvalidation':
+            summary += 'No p-values available as crossvalidation provides no variance estimate'
+        elif test_type == 't-test':
             summary += 'p-values are based on uncorrected t-tests'
         elif test_type == 'bootstrap':
             summary += 'p-values are based on percentiles of the bootstrap samples'
@@ -252,11 +262,11 @@ class Result:
                 ci_percent = float(eb_type[2:]) / 100
             ci = self.get_ci(ci_percent, test_type)
             means = self.get_means()
-            errorbar_low = -(ci[0] - means)
+            errorbar_low = means - ci[0]
             errorbar_high = ci[1] - means
             limits = np.concatenate((errorbar_low, errorbar_high))
             if np.isnan(limits).any() or (abs(limits) == np.inf).any():
-                raise RuntimeError(
+                raise ValueError(
                     'plot_model_comparison: Too few bootstrap samples for ' +
                     'the requested confidence interval: ' + eb_type + '.')
         return (errorbar_low, errorbar_high)
