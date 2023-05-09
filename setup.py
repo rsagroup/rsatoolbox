@@ -6,12 +6,19 @@ Using setup.py for other things is now deprecated:
 from setuptools import setup, Extension
 import setuptools_scm  # noqa # pylint: disable=unused-import
 from Cython.Build import build_ext
+import numpy
 
 
 setup(
-    ext_modules = [
+    ext_modules=[
         Extension(
-            "rsatoolbox.cengine.similarity",
-            ["src/rsatoolbox/cengine/similarity.pyx"])],
-    cmdclass={'build_ext': build_ext}
+            "rsatoolbox.cengine.similarity", ["src/rsatoolbox/cengine/similarity.pyx"]
+        ),
+        Extension(
+            "rsatoolbox.cengine.non_neg_ls",
+            sources=["src/rsatoolbox/cengine/non_neg_ls.pyx"],
+            include_dirs=[numpy.get_include()],
+        ),
+    ],
+    cmdclass={"build_ext": build_ext},
 )
