@@ -96,7 +96,7 @@ def from_partials(
     )
 
 
-def rescale(rdms, method: str = 'evidence'):
+def rescale(rdms, method: str = 'evidence', threshold=1e-8):
     """Bring RDMs closer together
 
     Iteratively scales RDMs based on pairs in-common.
@@ -105,11 +105,15 @@ def rescale(rdms, method: str = 'evidence'):
     Args:
         method (str, optional): One of 'evidence', 'setsize' or
             'simple'. Defaults to 'evidence'.
+        threshold (float): Stop iterating when the sum of squares 
+            difference between iterations is smaller than this value.
+            A smaller value means more iterations, but the algorithm
+            may not always converge.
 
     Returns:
         RDMs: RDMs object with the aligned RDMs
     """
-    aligned, weights = _rescale(rdms.dissimilarities, method)
+    aligned, weights = _rescale(rdms.dissimilarities, method, threshold)
     rdm_descriptors = deepcopy(rdms.rdm_descriptors)
     if weights is not None:
         rdm_descriptors['rescalingWeights'] = weights
@@ -166,7 +170,7 @@ def _scale(vectors: ndarray) -> ndarray:
     return vectors / sqrt(_ss(vectors))
 
 
-def _rescale(dissim: ndarray, method: str) -> Tuple[ndarray, ndarray]:
+def _rescale(dissim: ndarray, method: str, threshold=1e-8) -> Tuple[ndarray, ndarray]:
     """Rescale RDM vectors
 
     See :meth:`rsatoolbox.rdm.combine.rescale`
@@ -191,7 +195,7 @@ def _rescale(dissim: ndarray, method: str) -> Tuple[ndarray, ndarray]:
 
     current_estimate = _scale(_mean(dissim))
     prev_estimate = np.full([n_conds, ], -inf)
-    while _ss(current_estimate - prev_estimate) > 1e-8:
+    while _ss(current_estimate - prev_estimate) > threshold:
         prev_estimate = current_estimate.copy()
         tiled_estimate = np.tile(current_estimate, [n_rdms, 1])
         tiled_estimate[np.isnan(dissim)] = nan
