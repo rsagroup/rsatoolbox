@@ -701,17 +701,39 @@ class TemporalDataset(Dataset):
         self.measurements = self.measurements[order]
         self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
 
-    def convert_to_dataset(self, by):
-        """ converts to Dataset long format.
-            time dimension is absorbed into observation dimension
+    def time_as_channels(self) -> Dataset:
+        """Converts this to a standard Dataset "long format",
+        where timepoints are represented as additional channels.
 
         Args:
-            by(String): the descriptor which indicates the time dimension in
-                the time_descriptor
+            by (str): the descriptor which indicates the time dimension in
+                the time_descriptor.
 
         Returns:
             Dataset
+        """
+        n_obs, n_chans, n_tps = self.measurements.shape
+        old_chn_des = self.channel_descriptors
+        chn_des = {k: np.repeat(v, n_tps) for (k, v) in old_chn_des.items()}
+        for k, v in self.time_descriptors.items():
+            chn_des[k] = np.tile(v, n_chans)
+        return Dataset(
+            measurements=self.measurements.reshape(n_obs, -1),
+            descriptors=deepcopy(self.descriptors),
+            obs_descriptors=deepcopy(self.obs_descriptors),
+            channel_descriptors=chn_des
+        )
 
+    def time_as_observations(self, by='time') -> Dataset:
+        """Converts this to a standard Dataset "long format",
+        where timepoints are represented as additional observations.
+
+        Args:
+            by (str): the descriptor which indicates the time dimension in
+                the time_descriptor.
+
+        Returns:
+            Dataset
         """
         time = get_unique_unsorted(self.time_descriptors[by])
 
@@ -750,6 +772,24 @@ class TemporalDataset(Dataset):
                           obs_descriptors=obs_descriptors,
                           channel_descriptors=channel_descriptors)
         return dataset
+
+    def convert_to_dataset(self, by):
+        """ converts to Dataset long format.
+            time dimension is absorbed into observation dimension
+
+        Deprecated: Use `TemporalDataset.time_as_observations()` instead.
+
+        Args:
+            by(String): the descriptor which indicates the time dimension in
+                the time_descriptor
+
+        Returns:
+            Dataset
+
+        """
+        warn('Deprecated: [TemporalDataset.convert_to_dataset()]. Replace by '
+            '[TemporalDataset.time_as_observations()]', DeprecationWarning)
+        return self.time_as_observations(by)
 
     def to_dict(self):
         """ Generates a dictionary which contains the information to

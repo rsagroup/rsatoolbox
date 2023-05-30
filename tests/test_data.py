@@ -398,6 +398,39 @@ class TestTemporalDataset(unittest.TestCase):
         self.assertEqual(data.obs_descriptors['conds'][0], obs_des['conds'][0])
         self.assertEqual(data.obs_descriptors['conds'][1], obs_des['conds'][1])
 
+    def test_temporaldataset_time_as_channels(self):
+        from rsatoolbox.data.dataset import TemporalDataset
+        measurements = np.zeros((3, 2, 4)) # 3 trials, 2 channels, 4 timepoints
+        des = {'session': 0, 'subj': 0}
+        obs_des = {'conds': np.array([0, 1, 1])}
+        chn_des = {'electrode': np.array(['A1', 'B2'])}
+        tim_des = {'time': np.linspace(0, 900, 4),
+                   'time_formatted': ['%0.0f ms' % (x) for x in np.linspace(0, 900, 4)]}
+        data_temporal = TemporalDataset(
+            measurements=measurements,
+            descriptors=des,
+            obs_descriptors=obs_des,
+            channel_descriptors=chn_des,
+            time_descriptors=tim_des
+        )
+        data = data_temporal.time_as_channels()
+        self.assertEqual(data.n_obs, 3)
+        self.assertEqual(data.n_channel, 2*4)
+        self.assertEqual(len(data.channel_descriptors['time']), 2*4)
+        assert_array_equal(
+            data.channel_descriptors['time'],
+            np.concatenate([tim_des['time'], tim_des['time']])
+        )
+        assert_array_equal(
+            data.channel_descriptors['time_formatted'],
+            tim_des['time_formatted'] + tim_des['time_formatted']
+        )
+        self.assertEqual(len(data.channel_descriptors['electrode']), 2*4)
+        assert_array_equal(
+            data.channel_descriptors['electrode'],
+            ['A1', 'A1', 'A1', 'A1', 'B2', 'B2', 'B2', 'B2']
+        )
+
     def test_copy(self):
         from rsatoolbox.data import TemporalDataset
         tps = np.linspace(0, 1000, 3)
