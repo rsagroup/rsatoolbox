@@ -14,9 +14,9 @@ import warnings
 import numpy as np
 from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox.rdm.rdms import concat
-from rsatoolbox.rdm.calc import _build_rdms
 from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.matrix import row_col_indicator_rdm
+from rsatoolbox.util.build_rdm import _build_rdms
 from rsatoolbox.cengine.similarity import calc_one, calc
 if TYPE_CHECKING:
     from rsatoolbox.data.base import DatasetBase
