@@ -18,7 +18,7 @@ jobs:
         fetch-depth: 0
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.11'
     - name: Python Version
       run: python --version
     - name: Update Pip
@@ -29,6 +29,8 @@ jobs:
       run: pip install .
     - name: Install test dependencies
       run: pip install -r tests/requirements.txt
+    - name: Skeleton tests
+      run: python -m unittest -v rsatoolbox.test
     - name: Unit tests
       run: pytest
 
@@ -37,7 +39,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v3
@@ -64,6 +66,8 @@ jobs:
       if: matrix.os == 'windows-latest'
     - name: Install test dependencies
       run: pip install -r tests/requirements.txt
+    - name: Skeleton tests
+      run: python -m unittest -v rsatoolbox.test
     - name: Unit tests
       run: pytest
     - name: Check package compliance
@@ -90,7 +94,7 @@ jobs:
         fetch-depth: 0
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.11'
     - name: Python Version
       run: python --version
     - name: Update Pip

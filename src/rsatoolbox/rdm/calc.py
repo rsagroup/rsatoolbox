@@ -304,8 +304,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     cv_folds = np.unique(np.array(datasetCopy.obs_descriptors[cv_descriptor]))
     rdms = []
     if (noise is None) or (isinstance(noise, np.ndarray) and noise.ndim == 2):
-        for i_fold in range(len(cv_folds)):
-            fold = cv_folds[i_fold]
+        for i_fold, fold in enumerate(cv_folds):
             data_test = datasetCopy.subset_obs(cv_descriptor, fold)
             data_train = datasetCopy.subset_obs(
                 cv_descriptor,
@@ -338,7 +337,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     rdm = np.einsum('ij->j', rdms) / rdms.shape[0]
     return _build_rdms(
         rdm,
-        dataset,
+        datasetCopy,
         'crossnobis',
         descriptor,
         noise=noise,
@@ -509,7 +508,7 @@ def _build_rdms(
         _, obs_desc_vals, _ = average_dataset_by(ds, obs_desc_name)
 
     if _averaging_occurred(ds, obs_desc_name, obs_desc_vals):
-        orig_obs_desc_vals = ds.obs_descriptors[obs_desc_name]
+        orig_obs_desc_vals = np.asarray(ds.obs_descriptors[obs_desc_name])
         for dname, dvals in ds.obs_descriptors.items():
             dvals = np.asarray(dvals)
             avg_dvals = np.full_like(obs_desc_vals, np.nan, dtype=dvals.dtype)

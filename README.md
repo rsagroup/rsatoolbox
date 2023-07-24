@@ -20,6 +20,12 @@ To install the latest stable version of rsatoolbox with pip:
 pip install rsatoolbox
 ```
 
+or with conda:
+
+```sh
+conda install -c conda-forge rsatoolbox
+```
+
 
 here is a simple code sample:
 
