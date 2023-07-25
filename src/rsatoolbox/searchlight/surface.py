@@ -1,4 +1,9 @@
+"""
 
+Notes Jasper:
+- prep_vol .. -> for volume data only, supposed to be faster than DL implementation in volume.py
+- prep_surf .. -> does same but for surface
+"""
 import warnings
 import os
 from collections.abc import Iterable
