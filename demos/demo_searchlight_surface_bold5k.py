@@ -6,16 +6,17 @@ The 214 repeated images are spread out over 100 runs in 10 sessions (2 images pe
 
 - [ ] both hemis
 - [ ] coco, scenes, imagenet or all
-- [ ] if we cut out relevant events, must clip HRF
-- [ ] otherwise, get betas per run
+- [x] otherwise, get betas per run
 - [ ] whitening
+- [ ] model each individual rep within run
 
 """
 ## suppress warnings on nibabel
 # pyright: reportPrivateImportUsage=false 
-from os.path import expanduser, join
+from os.path import expanduser, join, isfile
+import itertools
 import datalad.api as datalad
-import nibabel, pandas, numpy
+import nibabel, pandas, numpy, tqdm
 from scipy.interpolate import pchip
 
 #description: https://bold5000-dataset.github.io/website/overview.html
@@ -31,7 +32,7 @@ fmriprep_dir = join(dataset_dir, 'derivatives', 'fmriprep')
 # dl = datalad.clone(
 #     source=f'///openneuro/ds00{openneuro_id}', 
 #     path=dataset_dir,
-#     description='BOLD5000 v1'
+#     description='BOLD5000 v1' 
 # )
 ## download fmriprep output for subject 1; ~49GB, 12h to download
 # dl.get('derivatives/fmriprep/sub-CSI1/')
@@ -62,16 +63,25 @@ hrf = hrf / hrf.max()
 """388s 194 volumes
 
 """
-#sessions_runs = zip(range(1, 15+1), range(1, 10+1))
-sessions_runs = [(1, 1)]
-for (s, r) in sessions_runs:
+
+n_obs = (112 * 4) + (1 * 3) 
+
+sessions_runs = list(itertools.product(range(1, 15+1), range(1, 10+1)))
+#sessions_runs = [(1, 1)]
+all_events = []
+all_betas = []
+for (s, r) in tqdm.tqdm(sessions_runs): ## 2m35s
     ses_raw_dir = join(dataset_dir, 'sub-CSI1', f'ses-{s:02}', 'func')
     evt_fpath = join(ses_raw_dir, 
         f'sub-CSI1_ses-{s:02}_task-5000scenes_run-{r:02}_events.tsv')
+    
+    if not isfile(evt_fpath):
+        print(f'Missing run: session {s} run {r}')
+        continue
+
     events_df = pandas.read_csv(evt_fpath, sep='\t')
     events_df['trial_type'] = events_df['ImgName']
 
-    ## 'rep' in ImgType
 
     ses_fmriprep_dir = join(fmriprep_dir, 'sub-CSI1', f'ses-{s:02}', 'func')
     bold_fpath = join(ses_fmriprep_dir,
@@ -95,7 +105,7 @@ for (s, r) in sessions_runs:
             yvals = yvals + numpy.nan_to_num(f)
         dm[:, c] = yvals
 
-    ## add polynomials
+    # pct signal change
     data = data / data.mean(axis=0)
 
     ## least square fitting
@@ -114,7 +124,19 @@ for (s, r) in sessions_runs:
         betas += X[:, these_cols] @ data[run]
         start_col += data[run].shape[0]
 
+    # gather betas if in rep conditions
+    conds_df = events_df.drop_duplicates(subset=['ImgName'])
+    relevant_conds = conds_df.ImgType.str.contains('rep_').values
+    all_events += [conds_df[relevant_conds]]
+    all_betas += [betas[relevant_conds, :]]
+all_df = pandas.concat(all_events).reset_index()
+## keep only columns we may need
+all_df = all_df[['Sess', 'Run', 'trial_type', 'ImgType', 'Response']]
+all_betas_a = numpy.vstack(all_betas)
 
+## save point
+all_df.to_csv('events.csv')
+numpy.save('betas.npy', all_betas_a)
 
 
 """from exploration
