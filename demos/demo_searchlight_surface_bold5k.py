@@ -8,6 +8,7 @@ The 214 repeated images are spread out over 100 runs in 10 sessions (2 images pe
 - [ ] coco, scenes, imagenet or all
 - [ ] if we cut out relevant events, must clip HRF
 - [ ] otherwise, get betas per run
+- [ ] whitening
 
 """
 ## suppress warnings on nibabel
@@ -25,15 +26,15 @@ openneuro_id = 1499
 your_data_dir = expanduser('~/data')
 dataset_dir = join(your_data_dir, f'ds00{openneuro_id}')
 fmriprep_dir = join(dataset_dir, 'derivatives', 'fmriprep')
-dl = datalad.clone(
-    source=f'///openneuro/ds00{openneuro_id}', 
-    path=dataset_dir,
-    description='BOLD5000 v1'
-)
 
 
+# dl = datalad.clone(
+#     source=f'///openneuro/ds00{openneuro_id}', 
+#     path=dataset_dir,
+#     description='BOLD5000 v1'
+# )
 ## download fmriprep output for subject 1; ~49GB, 12h to download
-dl.get('derivatives/fmriprep/sub-CSI1/')
+# dl.get('derivatives/fmriprep/sub-CSI1/')
 
 # meta_fpath = join(root_dir, 'sub-04/ses-1/func/sub-04_ses-1_task-motor_run-01_bold.json')
 # with open(meta_fpath) as fhandle:
@@ -53,10 +54,10 @@ timepts_block = numpy.arange(0, int((hrf.size-1)*STANDARD_TR), tr)
 hrf = pchip(numpy.arange(hrf.size)*STANDARD_TR, hrf)(timepts_block)
 hrf = hrf / hrf.max()
 
-
-fpath_anat = join(fmriprep_dir, 'sub-CSI1', 'anat', f'sub-CSI1_T1w_inflated.L.surf.gii')
-img_anat = nibabel.load(fpath_anat)
-coords = img_anat.agg_data('pointset')
+# ## get coords of vertices
+# fpath_anat = join(fmriprep_dir, 'sub-CSI1', 'anat', f'sub-CSI1_T1w_inflated.L.surf.gii')
+# img_anat = nibabel.load(fpath_anat)
+# coords = img_anat.agg_data('pointset')
 
 """388s 194 volumes
 
@@ -68,6 +69,7 @@ for (s, r) in sessions_runs:
     evt_fpath = join(ses_raw_dir, 
         f'sub-CSI1_ses-{s:02}_task-5000scenes_run-{r:02}_events.tsv')
     events_df = pandas.read_csv(evt_fpath, sep='\t')
+    events_df['trial_type'] = events_df['ImgName']
 
     ## 'rep' in ImgType
 
@@ -78,7 +80,7 @@ for (s, r) in sessions_runs:
 
 
     ## make design matrix
-    conditions = events_df.ImgName.unique()
+    conditions = events_df.trial_type.unique()
     n_vols = data.shape[-1]
     dm = numpy.zeros((n_vols, conditions.size))
     all_times = numpy.linspace(0, tr*(n_vols-1), n_vols)
@@ -94,7 +96,7 @@ for (s, r) in sessions_runs:
         dm[:, c] = yvals
 
     ## add polynomials
-    pdata = wdata / wdata.mean(axis=0)
+    data = data / data.mean(axis=0)
 
     ## least square fitting
     # The matrix addition is equivalent to concatenating the list of data and the list of
