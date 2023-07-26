@@ -17,6 +17,7 @@ from os.path import expanduser, join, isfile
 import itertools
 import datalad.api as datalad
 import nibabel, pandas, numpy, tqdm
+from sklearn import neighbors as skl_neighbors
 from scipy.interpolate import pchip
 
 #description: https://bold5000-dataset.github.io/website/overview.html
@@ -55,10 +56,16 @@ timepts_block = numpy.arange(0, int((hrf.size-1)*STANDARD_TR), tr)
 hrf = pchip(numpy.arange(hrf.size)*STANDARD_TR, hrf)(timepts_block)
 hrf = hrf / hrf.max()
 
-# ## get coords of vertices
-# fpath_anat = join(fmriprep_dir, 'sub-CSI1', 'anat', f'sub-CSI1_T1w_inflated.L.surf.gii')
-# img_anat = nibabel.load(fpath_anat)
-# coords = img_anat.agg_data('pointset')
+print('starting neighbor search')
+
+## get coords of vertices
+fpath_anat = join(fmriprep_dir, 'sub-CSI1', 'anat', f'sub-CSI1_T1w_inflated.L.surf.gii')
+img_anat = nibabel.load(fpath_anat)
+coords = img_anat.agg_data('pointset')
+nn = skl_neighbors.NearestNeighbors(radius=5)
+adjacency = nn.fit(coords).radius_neighbors_graph(coords).tolil() # sparse
+
+#raise ValueError
 
 """388s 194 volumes
 
