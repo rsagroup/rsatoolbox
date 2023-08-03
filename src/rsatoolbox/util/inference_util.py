@@ -205,7 +205,7 @@ def all_tests(
         p_pairwise = t_tests(evaluations, diff_var, dof=dof)
         p_zero = t_test_0(evaluations, model_var, dof=dof)
         p_noise = t_test_nc(evaluations, noise_ceil_var[:, 0],
-                            np.mean(noise_ceil[0]), dof)
+                            np.nanmean(noise_ceil[0]), dof)
     elif test_type == 'bootstrap':
         if len(noise_ceil.shape) > 1:
             noise_lower_bs = noise_ceil[0]
@@ -217,7 +217,7 @@ def all_tests(
         diffs = noise_lower_bs - evaluations
         p_noise = ((diffs <= 0).sum(axis=0) + 1) / evaluations.shape[0]
     elif test_type == 'ranksum':
-        noise_c = np.mean(noise_ceil[0])
+        noise_c = np.nanmean(noise_ceil[0])
         p_pairwise = ranksum_pair_test(evaluations)
         p_zero = ranksum_value_test(evaluations, 0)
         p_noise = ranksum_value_test(evaluations, noise_c)
@@ -313,7 +313,7 @@ def nc_tests(evaluations, noise_ceil, test_type='t-test',
     """
     if test_type == 't-test':
         p_noise = t_test_nc(evaluations, noise_ceil_var[:, 0],
-                            np.mean(noise_ceil[0]), dof)
+                            np.nanmean(noise_ceil[0]), dof)
     elif test_type == 'bootstrap':
         if len(noise_ceil.shape) > 1:
             noise_lower_bs = noise_ceil[0]
@@ -323,7 +323,7 @@ def nc_tests(evaluations, noise_ceil, test_type='t-test',
         diffs = noise_lower_bs - evaluations
         p_noise = ((diffs <= 0).sum(axis=0) + 1) / evaluations.shape[0]
     elif test_type == 'ranksum':
-        noise_c = np.mean(noise_ceil[0])
+        noise_c = np.nanmean(noise_ceil[0])
         p_noise = ranksum_value_test(evaluations, noise_c)
     else:
         raise ValueError('test_type not recognized.\n'
@@ -405,7 +405,7 @@ def bootstrap_pair_tests(evaluations):
     """
     proportions = np.zeros((evaluations.shape[1], evaluations.shape[1]))
     while len(evaluations.shape) > 2:
-        evaluations = np.mean(evaluations, axis=-1)
+        evaluations = np.nanmean(evaluations, axis=-1)
     for i_model in range(evaluations.shape[1] - 1):
         for j_model in range(i_model + 1, evaluations.shape[1]):
             proportions[i_model, j_model] = np.sum(
@@ -441,7 +441,7 @@ def t_tests(evaluations, variances, dof=1):
     n_model = evaluations.shape[1]
     evaluations = np.mean(evaluations, 0)
     while evaluations.ndim > 1:
-        evaluations = np.mean(evaluations, axis=-1)
+        evaluations = np.nanmean(evaluations, axis=-1)
     C = pairwise_contrast(np.arange(n_model))
     diffs = C @ evaluations
     t = diffs / np.sqrt(np.maximum(variances, np.finfo(float).eps))
@@ -470,7 +470,7 @@ def t_test_0(evaluations, variances, dof=1):
         raise ValueError('No variance estimates provided for t_test!')
     evaluations = np.mean(evaluations, 0)
     while evaluations.ndim > 1:
-        evaluations = np.mean(evaluations, axis=-1)
+        evaluations = np.nanmean(evaluations, axis=-1)
     t = evaluations / np.sqrt(np.maximum(variances, np.finfo(float).eps))
     p = 1 - stats.t.cdf(t, dof)
     return p
@@ -503,7 +503,7 @@ def t_test_nc(evaluations, variances, noise_ceil, dof=1):
         raise ValueError('No variance estimates provided for t_test!')
     evaluations = np.mean(evaluations, 0)
     while evaluations.ndim > 1:
-        evaluations = np.mean(evaluations, axis=-1)
+        evaluations = np.nanmean(evaluations, axis=-1)
     p = np.empty(len(evaluations))
     for i, eval_i in enumerate(evaluations):
         t = (eval_i - noise_ceil) / np.sqrt(
@@ -651,7 +651,7 @@ def get_errorbars(model_var, evaluations, dof, error_bars='sem',
                 axis=0)
             perf = np.mean(evaluations, 0)
             while perf.ndim > 1:
-                perf = np.mean(perf, -1)
+                perf = np.nanmean(perf, -1)
             errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
                              - perf)
             errorbar_high = (np.quantile(framed_evals, 1 - prop_cut,
