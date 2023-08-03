@@ -169,7 +169,7 @@ def _smacof_single(dissimilarities, metric=True, n_components=2, init=None,
         if verbose >= 2:
             print('it: %d, stress %s' % (it, stress))
         if old_stress is not None:
-            if(old_stress - stress / dis) < eps:
+            if (old_stress - stress / dis) < eps:
                 if verbose:
                     print('breaking at iteration %d with stress %s' % (it,
                                                                        stress))
