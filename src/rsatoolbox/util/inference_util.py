@@ -439,7 +439,7 @@ def t_tests(evaluations, variances, dof=1):
     if variances is None:
         raise ValueError('No variance estimates provided for t_test!')
     n_model = evaluations.shape[1]
-    evaluations = np.mean(evaluations, 0)
+    evaluations = np.nanmean(evaluations, 0)
     while evaluations.ndim > 1:
         evaluations = np.nanmean(evaluations, axis=-1)
     C = pairwise_contrast(np.arange(n_model))
@@ -468,7 +468,7 @@ def t_test_0(evaluations, variances, dof=1):
     """
     if variances is None:
         raise ValueError('No variance estimates provided for t_test!')
-    evaluations = np.mean(evaluations, 0)
+    evaluations = np.nanmean(evaluations, 0)
     while evaluations.ndim > 1:
         evaluations = np.nanmean(evaluations, axis=-1)
     t = evaluations / np.sqrt(np.maximum(variances, np.finfo(float).eps))
@@ -501,7 +501,7 @@ def t_test_nc(evaluations, variances, noise_ceil, dof=1):
     """
     if variances is None:
         raise ValueError('No variance estimates provided for t_test!')
-    evaluations = np.mean(evaluations, 0)
+    evaluations = np.nanmean(evaluations, 0)
     while evaluations.ndim > 1:
         evaluations = np.nanmean(evaluations, axis=-1)
     p = np.empty(len(evaluations))
@@ -649,7 +649,7 @@ def get_errorbars(model_var, evaluations, dof, error_bars='sem',
                          (1, n_models)),
                  evaluations),
                 axis=0)
-            perf = np.mean(evaluations, 0)
+            perf = np.nanmean(evaluations, 0)
             while perf.ndim > 1:
                 perf = np.nanmean(perf, -1)
             errorbar_low = -(np.quantile(framed_evals, prop_cut, axis=0)
