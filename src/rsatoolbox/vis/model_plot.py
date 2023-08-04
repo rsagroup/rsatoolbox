@@ -255,18 +255,19 @@ def plot_model_comparison(result, sort=False, colors=None,
             idx = np.flip(idx)
         perf = perf[idx]
         evaluations = evaluations[:, idx]
-        if model_var:
+        if model_var is not None:
             model_var = model_var[idx]
-        if noise_ceil_var:
+        if noise_ceil_var is not None:
             noise_ceil_var = noise_ceil_var[idx]
-        if diff_var:
+        if diff_var is not None:
             diff_var = squareform(squareform(diff_var)[idx][:, idx])
         models = [models[i] for i in idx]
         if not ('descend' in sort.lower() or
                 'ascend' in sort.lower()):
-            raise Exception('plot_model_comparison: Argument ' +
-                            'sort is incorrectly defined as '
-                            + sort + '.')
+            raise ValueError(
+                'plot_model_comparison: Argument ' +
+                'sort is incorrectly defined as ' +
+                sort + '.')
 
     # run tests
     if any([test_pair_comparisons,
@@ -290,9 +291,10 @@ def plot_model_comparison(result, sort=False, colors=None,
         elif 'nili' in test_pair_comparisons.lower():
             h_pair_tests = 0.4
         else:
-            raise Exception('plot_model_comparison: Argument ' +
-                            'test_pair_comparisons is incorrectly defined as '
-                            + test_pair_comparisons + '.')
+            raise ValueError(
+                'plot_model_comparison: Argument ' +
+                'test_pair_comparisons is incorrectly defined as ' +
+                test_pair_comparisons + '.')
         ax = plt.axes((l, b, w, h*(1-h_pair_tests)))
         axbar = plt.axes((l, b + h * (1 - h_pair_tests), w,
                           h * h_pair_tests * 0.7))
@@ -336,7 +338,8 @@ def plot_model_comparison(result, sort=False, colors=None,
     else:
         ax.bar(np.arange(evaluations.shape[1]), perf, color=colors)
     if error_bars:
-        limits = get_errorbars(model_var, evaluations, dof, error_bars, test_type)
+        limits = get_errorbars(model_var, evaluations, dof, error_bars,
+                               test_type)
         ax.errorbar(np.arange(evaluations.shape[1]), perf,
                     yerr=limits, fmt='none', ecolor='k',
                     capsize=0, linewidth=3)
@@ -359,7 +362,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                     marker=10, markersize=half_sym_size,
                     linewidth=0)
         else:
-            raise Exception(
+            raise ValueError(
                 'plot_model_comparison: Argument test_above_0' +
                 ' is incorrectly defined as ' + test_above_0 + '.')
 
@@ -396,7 +399,7 @@ def plot_model_comparison(result, sort=False, colors=None,
                     markerfacecolor=noise_ceil_col,
                     markeredgecolor='none', linewidth=0)
         else:
-            raise Exception(
+            raise ValueError(
                 'plot_model_comparison: Argument ' +
                 'test_below_noise_ceil is incorrectly defined as ' +
                 test_below_noise_ceil + '.')
@@ -428,7 +431,7 @@ def plot_model_comparison(result, sort=False, colors=None,
             significant = p_pairwise < crit
         else:
             if 'uncorrected' not in multiple_pair_testing.lower():
-                raise Exception(
+                raise ValueError(
                     'plot_model_comparison: Argument ' +
                     'multiple_pair_testing is incorrectly defined as ' +
                     multiple_pair_testing + '.')
@@ -792,7 +795,11 @@ def plot_arrows(axbar, significant):
                 k += 1
             axbar.plot((i, j), (k, k), 'k-', linewidth=2)
             occupied[k-1, i*3+2:j*3+1] = 1
-    h = occupied.sum(axis=1).nonzero()[0].max()+1
+    h = occupied.sum(axis=1)
+    if np.any(h > 0):
+        h = h.nonzero()[0].max()+1
+    else:
+        h = 1
     axbar.set_ylim((0, max(expected_n_lines, h)))
 
 
@@ -904,7 +911,7 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
                             ' model-pair comparisons)')
     else:
         if 'uncorrected' not in multiple_pair_testing.lower():
-            raise Exception(
+            raise ValueError(
                 'plot_model_comparison: Argument ' +
                 'multiple_pair_testing is incorrectly defined as ' +
                 multiple_pair_testing + '.')
@@ -958,7 +965,7 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
     return model_comp_descr
 
 
-def _get_y_label(method):
+def _get_y_label(method) -> str:
     """ generates y-label string
 
     Args:
@@ -971,7 +978,7 @@ def _get_y_label(method):
     """
     if method.lower() == 'cosine':
         y_label = '[across-subject mean of cosine similarity]'
-    if method.lower() in ['cosine_cov', 'whitened cosine']:
+    elif method.lower() in ['cosine_cov', 'whitened cosine']:
         y_label = '[across-subject mean of whitened-RDM cosine]'
     elif method.lower() == 'spearman':
         y_label = '[across-subject mean of Spearman r rank correlation]'
@@ -987,4 +994,9 @@ def _get_y_label(method):
     elif method.lower() == 'neg_riem_dist':
         y_label = '[across-subject mean of ' \
             + 'negative riemannian distance]'
+    elif method.lower() == 'rho-a':
+        y_label = '[across-subject mean of ' \
+            + 'Spearman r rank correlation with random tie-breaking]'
+    else:
+        raise ValueError(f'Unsupported method: {method}')
     return y_label

@@ -7,10 +7,8 @@ Result object definition
 import numpy as np
 import scipy.stats
 import rsatoolbox.model
-from rsatoolbox.util.file_io import write_dict_hdf5
-from rsatoolbox.util.file_io import write_dict_pkl
-from rsatoolbox.util.file_io import read_dict_hdf5
-from rsatoolbox.util.file_io import read_dict_pkl
+from rsatoolbox.io.hdf5 import read_dict_hdf5, write_dict_hdf5
+from rsatoolbox.io.pkl import read_dict_pkl, write_dict_pkl
 from rsatoolbox.util.file_io import remove_file
 from rsatoolbox.util.inference_util import extract_variances
 from rsatoolbox.util.inference_util import all_tests, pair_tests, nc_tests, zero_tests
@@ -42,7 +40,7 @@ class Result:
     """
 
     def __init__(self, models, evaluations, method, cv_method, noise_ceiling,
-                 variances=None, dof=1, fitter=None):
+                 variances=None, dof=1, fitter=None, n_rdm=None, n_pattern=None):
         if isinstance(models, rsatoolbox.model.Model):
             models = [models]
         assert len(models) == evaluations.shape[1], 'evaluations shape does' \
@@ -57,6 +55,8 @@ class Result:
         self.dof = dof
         self.fitter = fitter
         self.n_bootstraps = evaluations.shape[0]
+        self.n_rdm = n_rdm
+        self.n_pattern = n_pattern
         if variances is not None:
             # if the variances only refer to the models this should have the
             # same number of entries as the models list.
@@ -65,7 +65,7 @@ class Result:
             else:
                 nc_included = variances.shape[-1] != len(models)
             self.model_var, self.diff_var, self.noise_ceil_var = \
-                extract_variances(variances, nc_included)
+                extract_variances(variances, nc_included, n_rdm, n_pattern)
         else:
             self.model_var = None
             self.diff_var = None
@@ -98,8 +98,16 @@ class Result:
         name_length = max([max(len(m.name) for m in self.models) + 1, 6])
         means = self.get_means()
         sems = self.get_sem()
-        p_zero = self.test_zero(test_type=test_type)
-        p_noise = self.test_noise(test_type=test_type)
+        if means is None:
+            means = np.nan * np.ones(self.n_model)
+        if sems is None:
+            sems = np.nan * np.ones(self.n_model)
+        try:
+            p_zero = self.test_zero(test_type=test_type)
+            p_noise = self.test_noise(test_type=test_type)
+        except ValueError:
+            p_zero = np.nan * np.ones(self.n_model)
+            p_noise = np.nan * np.ones(self.n_model)
         # header of the results table
         summary += 'Model' + (' ' * (name_length - 5))
         summary += '|   Eval \u00B1 SEM   |'
@@ -120,7 +128,9 @@ class Result:
                 summary += f'{p_noise[i]:>14.3f}  |'
             summary += '\n'
         summary += '\n'
-        if test_type == 't-test':
+        if self.cv_method == 'crossvalidation':
+            summary += 'No p-values available as crossvalidation provides no variance estimate'
+        elif test_type == 't-test':
             summary += 'p-values are based on uncorrected t-tests'
         elif test_type == 'bootstrap':
             summary += 'p-values are based on percentiles of the bootstrap samples'
@@ -252,11 +262,11 @@ class Result:
                 ci_percent = float(eb_type[2:]) / 100
             ci = self.get_ci(ci_percent, test_type)
             means = self.get_means()
-            errorbar_low = -(ci[0] - means)
-            errorbar_high = (ci[1] - means)
+            errorbar_low = means - ci[0]
+            errorbar_high = ci[1] - means
             limits = np.concatenate((errorbar_low, errorbar_high))
             if np.isnan(limits).any() or (abs(limits) == np.inf).any():
-                raise Exception(
+                raise ValueError(
                     'plot_model_comparison: Too few bootstrap samples for ' +
                     'the requested confidence interval: ' + eb_type + '.')
         return (errorbar_low, errorbar_high)
