@@ -14,4 +14,6 @@ Demos
    demo_temporal
    demo_meg_mne
    demo_searchlight
+   demo_spikes
+   demo_spikes_alexnet
    rescale_partials

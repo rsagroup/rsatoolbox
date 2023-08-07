@@ -89,4 +89,12 @@ Beyond the functions to manipulate the data provided by ``rsatoolbox.data.Datase
 ``split_time``, ``subset_time``, ``bin_time``, ``convert_to_dataset``.
 
 
+.. _Spiking_Data
+
+Spiking Data
+------------
+
+Import of spiking data into rsatoolbox tends to be relatively easy, because the data often comes in the form of numpy arrays already.
+You can find an example in :ref:`demo_spikes<demo_spikes.nblink>` .
+
 TODO: TIPS TO IMPORT FMRI / EEG ETC DATA
