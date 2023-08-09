@@ -180,7 +180,7 @@ class Dataset(DatasetBase):
 
         """
         desc = self.obs_descriptors[by]
-        order = np.argsort(desc)
+        order = np.argsort(desc, kind='stable')
         self.measurements = self.measurements[order]
         self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
 
