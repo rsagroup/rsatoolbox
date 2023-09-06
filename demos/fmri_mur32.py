@@ -1,7 +1,16 @@
 """
 Work on a demo based on Marieke's 32-stim dataset
 
-see also ilogue/mur32
+see also https://github.com/ilogue/mur32
+
+
+## TODO
+
+- [ ] rename and move events files
+- [ ] copy data to worker
+- [ ] install fmriprep on worker
+- [ ] debug & run fmriprep
+
 """
 
 from os.path import expanduser, join
@@ -15,4 +24,7 @@ df = pandas.read_csv(fpath, sep='\t')
 
 ## pass optional descriptors == events columns
 ## ignore trial_types
+
+## TODO
+
 
