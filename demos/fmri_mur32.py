@@ -6,10 +6,11 @@ see also https://github.com/ilogue/mur32
 
 ## TODO
 
-- [ ] rename and move events files
-- [ ] copy data to worker
-- [ ] install fmriprep on worker
-- [ ] debug & run fmriprep
+- [x] rename and move events files
+- [x] copy data to worker
+- [x] install fmriprep on worker
+- [x] fmriprep 01-06
+- [ ] fmriprep 07-14
 
 """
 
