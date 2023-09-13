@@ -292,7 +292,12 @@ class TestDemos(unittest.TestCase):
             models_flex, rdms_data, train_set, test_set,
             ceil_set=ceil_set, method='corr')
         # plot results
-        rsatoolbox.vis.plot_model_comparison(results_3_cv)
+        rsatoolbox.vis.plot_model_comparison(
+            results_3_cv,
+            error_bars=False,
+            test_pair_comparisons=False,
+            test_above_0=False,
+            test_below_noise_ceil=False)
 
         results_3_full = rsatoolbox.inference.bootstrap_crossval(
             models_flex, rdms_data, k_pattern=4, k_rdm=2, method='corr', N=5)

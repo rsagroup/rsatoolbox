@@ -180,7 +180,7 @@ class Dataset(DatasetBase):
 
         """
         desc = self.obs_descriptors[by]
-        order = np.argsort(desc)
+        order = np.argsort(desc, kind='stable')
         self.measurements = self.measurements[order]
         self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
 
@@ -684,21 +684,6 @@ class TemporalDataset(Dataset):
             channel_descriptors=channel_descriptors,
             time_descriptors=time_descriptors)
         return dataset
-
-    def sort_by(self, by):
-        """ sorts the dataset by a given observation descriptor
-
-        Args:
-            by(String): the descriptor by which the dataset shall be sorted
-
-        Returns:
-            ---
-
-        """
-        desc = self.obs_descriptors[by]
-        order = np.argsort(desc)
-        self.measurements = self.measurements[order]
-        self.obs_descriptors = subset_descriptor(self.obs_descriptors, order)
 
     def convert_to_dataset(self, by):
         """ converts to Dataset long format.

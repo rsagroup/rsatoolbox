@@ -37,17 +37,19 @@ class TestCrossval(unittest.TestCase):
         from rsatoolbox.inference import crossval
         rdms = self.rdms
         m = self.m
-        train_set = [(rdms.subset_pattern('type', [0, 1]), np.array([0, 1])),
-                     (rdms.subset_pattern('type', [0, 4]), np.array([0, 4])),
+        train_set = [(rdms.subset_pattern('type', [0, 1, 2]), np.array([0, 1, 2])),
+                     (rdms.subset_pattern('type', [3, 4, 5]), np.array([3, 4, 5])),
                      ]
-        test_set = [(rdms.subset_pattern('type', [2, 4]), np.array([2, 4])),
-                    (rdms.subset_pattern('type', [1, 2]), np.array([1, 2])),
+        test_set = [(rdms.subset_pattern('type', [3, 4, 5]), np.array([3, 4, 5])),
+                    (rdms.subset_pattern('type', [0, 1, 2]), np.array([0, 1, 2])),
                     ]
-        ceil_set = [(rdms.subset_pattern('type', [2, 4]), np.array([2, 4])),
-                    (rdms.subset_pattern('type', [1, 2]), np.array([1, 2])),
+        ceil_set = [(rdms.subset_pattern('type', [3, 4, 5]), np.array([3, 4, 5])),
+                    (rdms.subset_pattern('type', [0, 1, 2]), np.array([0, 1, 2])),
                     ]
-        crossval(m, rdms, train_set, test_set, ceil_set,
-                 pattern_descriptor='type')
+        res = crossval(
+            m, rdms, train_set, test_set, ceil_set,
+            pattern_descriptor='type')
+        print(res)
 
     def test_bootstrap_crossval(self):
         from rsatoolbox.inference import bootstrap_crossval
