@@ -5,8 +5,8 @@ Definition of RSA Model class and subclasses
 """
 
 import numpy as np
-from rsatoolbox.rdm import RDMs
-from rsatoolbox.rdm import rdms_from_dict
+from rsatoolbox.rdm.rdms import RDMs
+from rsatoolbox.rdm.rdms import rdms_from_dict
 from rsatoolbox.util.rdm_utils import batch_to_vectors
 from .fitter import fit_mock, fit_optimize, fit_select, fit_interpolate
 

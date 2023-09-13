@@ -157,7 +157,7 @@ def get_searchlight_RDMs(data_2d, centers, neighbors, events,
             RDM_corr = calc_rdm(center_data, method=method,
                                 descriptor='events')
             RDM[chunks, :] = RDM_corr.dissimilarities
-    else:
+    else: ## TODO: remove as this seems a very unlikely case
         center_data = []
         for c in range(n_centers):
             # grab this center and neighbors

@@ -3,6 +3,7 @@ scipy
 scikit-learn
 scikit-image
 pandas
+nilearn
 matplotlib
 h5py
 tqdm
