@@ -12,6 +12,9 @@ see also https://github.com/ilogue/mur32
 - [x] fmriprep 01-06
 - [ ] fmriprep 07-14
 
+
+roi as a bool descriptor?
+
 """
 
 from os.path import expanduser, join
@@ -26,6 +29,11 @@ df = pandas.read_csv(fpath, sep='\t')
 ## pass optional descriptors == events columns
 ## ignore trial_types
 
-## TODO
 
+
+## load_fmriprep(root_dir)
+## load_fmriprep(root_dir, sub_index=3)
+
+## io/bids
+## io/fmriprep
 
