@@ -1,8 +1,8 @@
 """Unit tests for rescaling and averaging partial RDMs
 """
-#pylint: disable=import-outside-toplevel, no-self-use
+# pylint: disable=import-outside-toplevel, no-self-use
 from unittest import TestCase
-from numpy import array, nan, isnan
+from numpy import array, nan, isnan, mean, abs as _abs, diff
 from numpy.testing import assert_almost_equal, assert_array_equal
 from scipy.stats import pearsonr
 
@@ -21,7 +21,7 @@ class RdmsCombineTests(TestCase):
         """
         from rsatoolbox.rdm.rdms import RDMs
         from rsatoolbox.rdm.combine import rescale
-        partial=array([
+        partial = array([
             [  1,   2, nan,   3, nan, nan],
             [nan, nan, nan,   4,   5,   6],
         ])
@@ -69,6 +69,28 @@ class RdmsCombineTests(TestCase):
             ]),
             decimal=4
         )
+
+    def test_rescale_threshold(self):
+        """The rescale function bring the RDMs as close together as possible
+        """
+        from rsatoolbox.rdm.rdms import RDMs
+        from rsatoolbox.rdm.combine import rescale
+        partial_rdms = RDMs(
+            dissimilarities=array([
+                [  1,   2, nan,   3, nan, nan],
+                [nan, nan, nan,   4,   5, nan],
+            ])
+        )
+        ## high threshold, fewer iterations, substantial difference remaining
+        rescaled_rdms = rescale(partial_rdms, method='simple', threshold=10)
+        common_pair = rescaled_rdms.dissimilarities[:, 3]
+        rel_diff = _abs(diff(common_pair)/mean(common_pair))
+        self.assertGreater(rel_diff[0], 0.1)
+        ## low threshold, more iterations, difference small
+        rescaled_rdms = rescale(partial_rdms, method='simple', threshold=0.00001)
+        common_pair = rescaled_rdms.dissimilarities[:, 3]
+        rel_diff = _abs(diff(common_pair)/mean(common_pair))
+        self.assertLess(rel_diff[0], 0.01)
 
     def test_mean_no_weights(self):
         """RDMs.mean() returns an RDMs with the nan omitted mean of the rdms

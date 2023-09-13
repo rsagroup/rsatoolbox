@@ -12,5 +12,6 @@ Demos
    demo_rdm_vis
    demo_unbalanced
    demo_temporal
+   demo_meg_mne
    demo_searchlight
    rescale_partials

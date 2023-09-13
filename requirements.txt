@@ -1,12 +1,10 @@
-coverage
 numpy>=1.21.2
 scipy
 scikit-learn
 scikit-image
-tqdm
-h5py
-matplotlib
-joblib
-nibabel
 pandas
-petname==2.2
+matplotlib
+h5py
+tqdm
+joblib
+importlib-metadata>=6.0.0; python_version < "3.8"
