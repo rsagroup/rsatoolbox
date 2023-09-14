@@ -2,7 +2,9 @@
 """
 
 
-def import_nibabel():
+def import_nibabel(mock=None):
+    if mock:
+        return mock
     try:
         import nibabel
     except ImportError:
