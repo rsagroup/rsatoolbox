@@ -15,6 +15,10 @@ see also https://github.com/ilogue/mur32
 
 roi as a bool descriptor?
 
+-> SPM
+-> fmriprep
+-> BIDS
+
 """
 
 from os.path import expanduser, join
