@@ -4,8 +4,6 @@ Parsing and importing of fMRI data on BIDS format
 import os
 import glob
 import numpy as np
-import pandas as pd
-from nibabel import nifti1
 
 
 class BidsDerivatives:
@@ -121,52 +119,6 @@ class BidsDerivatives:
         """
         raise NotImplementedError(
             "subset_session_type method not implemented in used class, \
-                you must first subset to one subject!")
-
-    def load_betas_SPM(self, stim_ids_dict=None):
-        """
-        Collects 3d images of prespecified beta coefficients
-        (typical SPM GLM results) and corresponding metadata
-        (condition + run info) into respective lists
-
-        Args:
-            run_dirs (list of str):
-                paths to directories containing beta NIfTi files
-            stim_ids_dict (dict): {condition : beta coefficient number}
-                e.g. {'face': 1, 'house': 2}
-
-        Returns:
-            beta_array_superset (list of 3d numpy arrays):
-                all beta 3d arrays for the keys in stim_ids_dict found in each
-                run directory
-            dim4_descriptors (list of str):
-                corresponding descriptors
-                e.g. ['cond_face_run_05', 'cond_house_run_30']
-        """
-        raise NotImplementedError(
-            "load_betas_SPM method not implemented in used class, \
-                you must first subset to one subject!")
-
-    def load_residuals_SPM(self, res_range=None):
-        """
-        Collects 3d images of a range of GLM residuals
-        (typical SPM GLM results) and corresponding metadata
-        (scan number + run info) into respective lists
-
-        Args:
-            run_dirs (list of str):
-                paths to directories containing beta NIfTi files
-            res_range (range): range of to be saved residual images per run
-
-        Returns:
-            residual_array_superset (list of 3d numpy arrays):
-                all residual 3d arrays for scans in res_range
-            dim4_descriptors (list of str):
-                corresponding descriptors
-                e.g. ['res_0001_run_01', 'res_0002_run_01']
-        """
-        raise NotImplementedError(
-            "load_residuals_SPM method not implemented in used class, \
                 you must first subset to one subject!")
 
     def get_subjects(self):
