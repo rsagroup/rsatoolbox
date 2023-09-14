@@ -15,29 +15,37 @@ see also https://github.com/ilogue/mur32
 
 roi as a bool descriptor?
 
--> SPM
--> fmriprep
--> BIDS
-
 """
-
-from os.path import expanduser, join
-import json
-import nibabel, pandas
+from os.path import expanduser
+from rsatoolbox.io.fmriprep import find_fmriprep_runs
+from rsatoolbox.data.dataset import Dataset
 
 
 data_dir = expanduser('~/data/rsatoolbox/mur32')
-fpath = join(data_dir, 'sub-01', 'sub-01_run-01_events.tsv')
-df = pandas.read_csv(fpath, sep='\t')
+# fpath = join(data_dir, 'sub-01', 'sub-01_run-01_events.tsv')
+# df = pandas.read_csv(fpath, sep='\t')
 
-## pass optional descriptors == events columns
 ## ignore trial_types
 
+## FIRST DO THIS STEP BY STEP FOR ONE ENTRY, then loop
+datasets = []
+for run in find_fmriprep_runs(data_dir):
+    patterns = simple_glm(run.get_data(), run)
+    ds = Dataset(
+        measurements=patterns,
+        **run.to_descriptors()
+    )
+    datasets.append(ds)
 
 
-## load_fmriprep(root_dir)
-## load_fmriprep(root_dir, sub_index=3)
+## display structure of DS here
 
-## io/bids
-## io/fmriprep
+## display glass brain atlas regions (wishlist)
+
+## Create RDM per subject and region
+# - use runs for noise
+
+
+## Inference on subjects
+
 

@@ -1,4 +1,4 @@
-"""Just-in-time importing of optional dependencies 
+"""Just-in-time importing of optional dependencies
 """
 
 
@@ -15,4 +15,4 @@ def import_nibabel(mock=None):
 class OptionalImportMissingException(Exception):
 
     def __init__(self, name: str):
-        super().__init__(f'Missing optional dependency: {name}')
+        super().__init__(f'[rsatoolbox] Missing optional dependency: {name}')
