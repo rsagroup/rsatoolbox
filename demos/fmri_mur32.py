@@ -11,9 +11,7 @@ see also https://github.com/ilogue/mur32
 - [x] install fmriprep on worker
 - [x] fmriprep 01-06
 - [ ] fmriprep 07-14
-
-
-roi as a bool descriptor?
+- [ ] roi as a bool descriptor?
 
 """
 from os.path import expanduser

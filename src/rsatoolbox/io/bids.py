@@ -9,10 +9,12 @@ import numpy, pandas
 if TYPE_CHECKING:
     from numpy.typing import NDArray
     from pandas import DataFrame
-    import nibabel
 
 
 class BidsFile:
+
+    def __init__(self, fpath: str) -> None:
+        self.fpath = fpath
 
     def get_events(self) -> DataFrame:
         return pandas.DataFrame()
@@ -27,8 +29,9 @@ class BidsFile:
 
 class BidsMriFile(BidsFile):
 
-    def __init__(self, nibabel) -> None:
+    def __init__(self, fpath: str, nibabel) -> None:
         self.nibabel = nibabel
+        super().__init__(fpath)
 
     def get_data(self) -> NDArray:
         return numpy.array([])
@@ -65,4 +68,5 @@ class BidsLayout:
             for task in tasks:
                 subset += [f for f in fpaths if f'task-{task}' in f]
             fpaths = subset
-        return fpaths
+        nibabel = import_nibabel()
+        return [BidsMriFile(f, nibabel) for f in fpaths]

@@ -65,3 +65,6 @@ class FmriprepRun:
             Dict: kwargs for DatasetBase
         """
         return dict()
+    
+    def __repr__(self) -> str:
+        return f'<{self.__class__.__name__}>'
