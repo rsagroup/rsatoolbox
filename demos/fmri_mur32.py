@@ -29,7 +29,7 @@ data_dir = expanduser('~/data/rsatoolbox/mur32')
 
 ## FIRST DO THIS STEP BY STEP FOR ONE ENTRY, then loop
 datasets = []
-for run in find_fmriprep_runs(data_dir):
+for run in find_fmriprep_runs(data_dir, tasks=['main']):
     patterns = simple_glm(run.get_data(), run)
     ds = Dataset(
         measurements=patterns,
