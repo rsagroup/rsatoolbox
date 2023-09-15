@@ -22,15 +22,14 @@ from rsatoolbox.data.dataset import Dataset
 
 
 data_dir = expanduser('~/data/rsatoolbox/mur32')
-# fpath = join(data_dir, 'sub-01', 'sub-01_run-01_events.tsv')
-# df = pandas.read_csv(fpath, sep='\t')
 
-## ignore trial_types
+runs = find_fmriprep_runs(data_dir, tasks=['main'])
+
 
 ## FIRST DO THIS STEP BY STEP FOR ONE ENTRY, then loop
 datasets = []
 for run in find_fmriprep_runs(data_dir, tasks=['main']):
-    patterns = simple_glm(run.get_data(), run)
+    patterns = simple_glm(run)
     ds = Dataset(
         measurements=patterns,
         **run.to_descriptors()

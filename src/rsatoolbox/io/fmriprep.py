@@ -9,15 +9,13 @@ if TYPE_CHECKING:
 
 def find_fmriprep_runs(
         bids_root_path: str,
-        tasks: Optional[List[str]]=None,
-        space='MNI152NLin2009cAsym') -> List[FmriprepRun]:
+        tasks: Optional[List[str]]=None) -> List[FmriprepRun]:
     """Find all sub/ses/task/run entries for which there is a preproc_bold file
     """
     bids = BidsLayout(bids_root_path)
     files = bids.find_mri_derivative_files(
         derivative='fmriprep',
         tasks=tasks,
-        space=space,
         desc='preproc_bold'
     )
     return [FmriprepRun(f) for f in files]
@@ -46,6 +44,9 @@ class FmriprepRun:
     
     def get_parcellation(self):
         return self.boldFile.get_mri_sibling(desc='aparcaseg').get_data()
+    
+    # def get_confounds(self):
+    #     return self.boldFile.get_tsv_sibling(desc='confounds').get_data() ## tsv
     
     def to_descriptors(self) -> Dict:
         """Get dictionary of dataset, observation and channel- level descriptors
