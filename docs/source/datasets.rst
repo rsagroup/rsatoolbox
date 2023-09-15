@@ -87,6 +87,3 @@ As an example, we assume to have measured data from 10 trials, each with six EEG
 
 Beyond the functions to manipulate the data provided by ``rsatoolbox.data.Dataset``, the ``rsatoolbox.data.TemporalDataset`` class provides the following functions:
 ``split_time``, ``subset_time``, ``bin_time``, ``convert_to_dataset``.
-
-
-TODO: TIPS TO IMPORT FMRI / EEG ETC DATA
