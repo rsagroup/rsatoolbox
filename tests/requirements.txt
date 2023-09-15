@@ -3,3 +3,4 @@ pytest
 tqdm
 joblib
 parameterized
+mne
