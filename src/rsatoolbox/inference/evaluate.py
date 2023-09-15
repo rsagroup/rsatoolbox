@@ -173,7 +173,8 @@ def eval_dual_bootstrap(
             / (matrix.shape[0] - 1)
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    n_pattern=data.n_cond)
     return result
 
 
@@ -201,7 +202,7 @@ def eval_fixed(models, data, theta=None, method='cosine'):
     noise_ceil = boot_noise_ceiling(
         data, method=method, rdm_descriptor='index')
     if data.n_rdm > 1:
-        variances = np.cov(evaluations[0], ddof=1) \
+        variances = np.cov(evaluations[0], ddof=0) \
             / evaluations.shape[-1]
         dof = evaluations.shape[-1] - 1
     else:
@@ -209,7 +210,9 @@ def eval_fixed(models, data, theta=None, method='cosine'):
         dof = 0
     result = Result(models, evaluations, method=method,
                     cv_method='fixed', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    n_pattern=None)
+    result.n_pattern = data.n_cond
     return result
 
 
@@ -269,7 +272,8 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
     dof = min(data.n_rdm, data.n_cond) - 1
     result = Result(models, evaluations, method=method,
                     cv_method='bootstrap', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    n_pattern=data.n_cond)
     return result
 
 
@@ -329,7 +333,9 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
     dof = data.n_cond - 1
     result = Result(models, evaluations, method=method,
                     cv_method='bootstrap_pattern', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof, n_rdm=None,
+                    n_pattern=data.n_cond)
+    result.n_rdm = data.n_rdm
     return result
 
 
@@ -378,7 +384,9 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
     variances = np.cov(evaluations.T)
     result = Result(models, evaluations, method=method,
                     cv_method='bootstrap_rdm', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    n_pattern=None)
+    result.n_pattern = data.n_cond
     return result
 
 
@@ -590,7 +598,8 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    n_pattern=data.n_cond)
     return result
 
 
@@ -735,7 +744,8 @@ def eval_dual_bootstrap_random(
         variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof)
+                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    n_pattern=data.n_cond)
     return result
 
 
