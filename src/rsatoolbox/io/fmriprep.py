@@ -4,22 +4,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List, Dict, Optional
 from rsatoolbox.io.bids import BidsLayout
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
-    from rsatoolbox.io.bids import BidsFile
-    from numpy.typing import NDArray
+    from rsatoolbox.io.bids import BidsMriFile
 
 
 def find_fmriprep_runs(
         bids_root_path: str,
         tasks: Optional[List[str]]=None,
         space='MNI152NLin2009cAsym') -> List[FmriprepRun]:
-    """
-    find all sub/ses/task/run entries for which we have a bold entry
-    then find related: (by space [T1w])
-
+    """Find all sub/ses/task/run entries for which there is a preproc_bold file
     """
     bids = BidsLayout(bids_root_path)
-    files = bids.find_derivative_files(
+    files = bids.find_mri_derivative_files(
         derivative='fmriprep',
         tasks=tasks,
         space=space,
@@ -30,26 +25,42 @@ def find_fmriprep_runs(
 
 class FmriprepRun:
     """Represents a single fmriprep BOLD run and metadata
-
-    - events
-    - meta
-    - brain mask (other desc)
-    - aparc+seg (other desc) 
     """
-    def __init__(self, bids: BidsFile) -> None:
-        pass
 
-    def get_data(self) -> NDArray:
-        pass
+    boldFile: BidsMriFile
+
+    def __init__(self, boldFile: BidsMriFile) -> None:
+        self.boldFile = boldFile
+
+    def get_data(self):
+        return self.boldFile.get_data()
+
+    def get_events(self):
+        return self.boldFile.get_events()
+    
+    def get_meta(self):
+        return self.boldFile.get_meta()
+    
+    def get_brain_mask(self):
+        return self.boldFile.get_mri_sibling(desc='brain_mask').get_data()
+    
+    def get_parcellation(self):
+        return self.boldFile.get_mri_sibling(desc='aparcaseg').get_data()
     
     def to_descriptors(self) -> Dict:
-        """_summary_
+        """Get dictionary of dataset, observation and channel- level descriptors
 
         self.descriptors = parse_input_descriptor(descriptors)
+        -> shape, meta
+
+
         self.obs_descriptors = parse_input_descriptor(obs_descriptors)
+        -> events
+
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
+        -> vox index
 
         Returns:
-            Dict: _description_
+            Dict: kwargs for DatasetBase
         """
         return dict()
