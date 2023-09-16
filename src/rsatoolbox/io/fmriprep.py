@@ -1,6 +1,7 @@
 """Tools to navigate output of fmriprep, the fmri preprocessing pipeline
 """
 from __future__ import annotations
+from os.path import relpath, join
 from typing import TYPE_CHECKING, List, Dict, Optional
 from rsatoolbox.io.bids import BidsLayout
 if TYPE_CHECKING:
@@ -45,9 +46,6 @@ class FmriprepRun:
     def get_parcellation(self):
         return self.boldFile.get_mri_sibling(desc='aparcaseg').get_data()
     
-    # def get_confounds(self):
-    #     return self.boldFile.get_tsv_sibling(desc='confounds').get_data() ## tsv
-    
     def to_descriptors(self) -> Dict:
         """Get dictionary of dataset, observation and channel- level descriptors
 
@@ -67,4 +65,6 @@ class FmriprepRun:
         return dict()
     
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__} [{self.boldFile.relpath}]>'
+        fmriprep_prefix = join('derivatives', 'fmriprep')
+        fp_path = relpath(self.boldFile.relpath, fmriprep_prefix)
+        return f'<{self.__class__.__name__} [{fp_path}]>'
