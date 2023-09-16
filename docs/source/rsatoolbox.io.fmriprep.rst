@@ -1,5 +1,5 @@
 rsatoolbox.io.fmriprep module
-========================
+=============================
 
 .. automodule:: rsatoolbox.io.fmriprep
    :members:

@@ -11,6 +11,7 @@ Submodules
    rsatoolbox.data.dataset
    rsatoolbox.data.neurodataset
    rsatoolbox.data.noise
+   rsatoolbox.data.ops
 
 Module contents
 ---------------
