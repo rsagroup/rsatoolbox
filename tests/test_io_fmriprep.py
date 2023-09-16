@@ -2,6 +2,7 @@
 """
 from unittest import TestCase
 from unittest.mock import patch, Mock
+import pandas
 
 
 class TestIoFmriprep(TestCase):
@@ -33,3 +34,19 @@ class TestIoFmriprep(TestCase):
         bidsFile = Mock()
         run = FmriprepRun(bidsFile)
         descs = run.to_descriptors()
+
+
+class TestEventsDesignMatrix(TestCase):
+
+    def test_make_design_matrix(self):
+        from rsatoolbox.io.fmriprep import make_design_matrix
+        events = pandas.DataFrame([
+            dict(onset=1, duration=0.5, trial_type='a'),
+            dict(onset=2, duration=0.5, trial_type='b'),
+            dict(onset=3, duration=0.5, trial_type='a'),
+            dict(onset=4, duration=0.5, trial_type='b'),
+            dict(onset=5, duration=0.5, trial_type='a'),
+            dict(onset=6, duration=0.5, trial_type='b'),
+        ])
+        dm = make_design_matrix(events, tr=2.0, n_vols=4)
+        self.assertEqual(dm.shape, (4, 2))
