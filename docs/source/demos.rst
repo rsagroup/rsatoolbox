@@ -14,5 +14,6 @@ Demos
    demo_temporal
    demo_meg_mne
    demo_eeg
+   demo_fmri
    demo_searchlight
    rescale_partials
