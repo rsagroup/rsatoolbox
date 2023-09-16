@@ -1,9 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch, sentinel
-try:  # drop:py37 (backport)
-    from importlib.metadata import version
-except ModuleNotFoundError:
-    from importlib_metadata import version
+from importlib.metadata import version
 
 
 class PickleIOTests(TestCase):
