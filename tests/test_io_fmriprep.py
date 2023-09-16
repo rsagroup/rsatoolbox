@@ -19,16 +19,14 @@ class TestIoFmriprep(TestCase):
     def test_FmriprepRun_siblings(self):
         from rsatoolbox.io.fmriprep import FmriprepRun
         bidsFile = Mock()
-        brainMask = Mock()
-        aparc = Mock()
         sibs = dict(
-            brain_mask=brainMask,
-            aparcaseg=aparc
+            brain_mask=Mock(),
+            aparcaseg=Mock()
         )
-        bidsFile.get_mri_sibling.side_effect = lambda k: sibs[k]
+        bidsFile.get_mri_sibling.side_effect = lambda desc: sibs[desc]
         run = FmriprepRun(bidsFile)
-        self.assertIs(run.get_brain_mask(), brainMask.get_data())
-        self.assertIs(run.get_parcellation(), aparc.get_data())
+        self.assertIs(run.get_brain_mask(), sibs['brain_mask'].get_data())
+        self.assertIs(run.get_parcellation(), sibs['aparcaseg'].get_data())
 
     def test_FmriprepRun_to_descriptors(self):
         from rsatoolbox.io.fmriprep import FmriprepRun

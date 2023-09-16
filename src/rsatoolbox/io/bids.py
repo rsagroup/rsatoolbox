@@ -2,7 +2,8 @@
 """
 from __future__ import annotations
 from glob import glob
-from os.path import join, isdir, isfile
+import json
+from os.path import join, isdir, relpath
 from typing import TYPE_CHECKING, List, Optional, Dict, Any
 from rsatoolbox.io.optional import import_nibabel
 import numpy, pandas
@@ -13,14 +14,25 @@ if TYPE_CHECKING:
 
 class BidsFile:
 
-    def __init__(self, fpath: str) -> None:
-        self.fpath = fpath
+    _meta: Optional[Dict]
+
+    def __init__(self, relpath: str, layout: BidsLayout) -> None:
+        self.relpath = relpath
+        self.layout = layout
+        self._meta = None
+
+    @property
+    def fpath(self) -> str:
+        return self.layout.abs_path(self)
 
     def get_events(self) -> DataFrame:
         return pandas.DataFrame()
     
     def get_meta(self) -> Dict:
-        return dict()
+        if self._meta is None:
+            with open(self.fpath.replace('.nii.gz', '.json')) as fhandle:
+                self._meta = json.load(fhandle)
+        return self._meta
     
     def get_sibling(self, desc: str) -> BidsFile:
         ## get file with same entities except DESC
@@ -29,12 +41,12 @@ class BidsFile:
 
 class BidsMriFile(BidsFile):
 
-    def __init__(self, fpath: str, nibabel) -> None:
+    def __init__(self, relpath: str, layout: BidsLayout, nibabel) -> None:
         self.nibabel = nibabel
-        super().__init__(fpath)
+        super().__init__(relpath, layout)
 
     def get_data(self) -> NDArray:
-        return numpy.array([])
+        return self.nibabel.load(self.fpath).get_fdata()
     
     def get_mri_sibling(self, desc: str) -> BidsMriFile:
         ## get file with same entities except DESC
@@ -44,14 +56,19 @@ class BidsMriFile(BidsFile):
 class BidsLayout:
 
     _path: str
+    _nibabel: Optional[Any]
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, nibabel: Optional[Any]=None):
         self._path = path
+        self._nibabel = nibabel
+
+    def abs_path(self, file: BidsFile) -> str:
+        return join(self._path, file.relpath)
 
     def find_mri_derivative_files(self,
             derivative: str,
             desc: str,
-            tasks: Optional[List[str]]=None,
+            tasks: Optional[List[str]]=None
             ) -> List[BidsMriFile]:
         deriv_dir = join(self._path, 'derivatives', derivative)
         if not isdir(deriv_dir):
@@ -68,5 +85,5 @@ class BidsLayout:
             for task in tasks:
                 subset += [f for f in fpaths if f'task-{task}' in f]
             fpaths = subset
-        nibabel = import_nibabel()
-        return [BidsMriFile(f, nibabel) for f in fpaths]
+        nibabel = import_nibabel(self._nibabel)
+        return [BidsMriFile(relpath(f, self._path), self, nibabel) for f in fpaths]

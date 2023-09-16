@@ -1,7 +1,8 @@
 """Tests BIDS Input/output
 """
-from unittest import TestCase, skip
-from unittest.mock import patch
+from __future__ import annotations
+from unittest import TestCase
+from unittest.mock import patch, Mock
 
 
 @patch('rsatoolbox.io.bids.BidsMriFile')
@@ -17,10 +18,10 @@ class TestIoBids(TestCase):
             '/root/derivatives/ana/sub-04/ses-03/mod/sub-04_ses-03_task-x_run-02_space-ikea_desc-t1.nii.gz',
             '/root/derivatives/ana/sub-04/ses-03/mod/sub-04_ses-03_task-x_run-02_space-ikea_desc-t1.json',
         ], *patches)
-        layout = BidsLayout('/root')
+        layout = BidsLayout('/root', nibabel=self.nibabel)
         out = layout.find_mri_derivative_files(derivative='ana', desc='t1')
         self.assertEqual(out, [
-            '/root/derivatives/ana/sub-04/ses-03/mod/sub-04_ses-03_task-x_run-02_space-ikea_desc-t1.nii.gz',
+            'derivatives/ana/sub-04/ses-03/mod/sub-04_ses-03_task-x_run-02_space-ikea_desc-t1.nii.gz',
         ])
 
     def test_BidsLayout_find_derivative_files_filters_tasks(self, *patches):
@@ -31,10 +32,10 @@ class TestIoBids(TestCase):
             '/root/derivatives/ana/sub-04/ses-03/mod/sub-04_ses-03_task-y_run-02_space-ikea_desc-t1.nii.gz',
             '/root/derivatives/ana/sub-04/ses-03/mod/sub-04_ses-03_task-y_run-02_space-ikea_desc-t1.json',
         ], *patches)
-        layout = BidsLayout('/root')
+        layout = BidsLayout('/root', nibabel=self.nibabel)
         out = layout.find_mri_derivative_files(derivative='ana', desc='t1', tasks=['y'])
         self.assertEqual(out, [
-            '/root/derivatives/ana/sub-04/ses-03/mod/sub-04_ses-03_task-y_run-02_space-ikea_desc-t1.nii.gz',
+            'derivatives/ana/sub-04/ses-03/mod/sub-04_ses-03_task-y_run-02_space-ikea_desc-t1.nii.gz',
         ])
         
     def glob_will_return(self, fpaths, isdir, glob, BidsMriFile):
@@ -42,4 +43,8 @@ class TestIoBids(TestCase):
         """
         isdir.return_value = True
         glob.return_value = fpaths
-        BidsMriFile.side_effect = lambda f: f
+        BidsMriFile.side_effect = lambda f, b, n: f
+
+    def setUp(self) -> None:
+        self.nibabel = Mock()
+        return super().setUp()
