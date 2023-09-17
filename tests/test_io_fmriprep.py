@@ -5,7 +5,7 @@ from unittest.mock import patch, Mock
 import pandas
 
 
-class TestIoFmriprep(TestCase):
+class TestFindFmriprepRuns(TestCase):
 
     @patch('rsatoolbox.io.fmriprep.BidsLayout')
     @patch('rsatoolbox.io.fmriprep.FmriprepRun')
@@ -16,6 +16,9 @@ class TestIoFmriprep(TestCase):
         out = find_fmriprep_runs('/path')
         BidsLayout.assert_called_with('/path')
         self.assertEqual(out, ['run-a', 'run-b'])
+
+
+class TestFmriprepRun(TestCase):
 
     def test_FmriprepRun_siblings(self):
         from rsatoolbox.io.fmriprep import FmriprepRun
@@ -32,8 +35,53 @@ class TestIoFmriprep(TestCase):
     def test_FmriprepRun_to_descriptors(self):
         from rsatoolbox.io.fmriprep import FmriprepRun
         bidsFile = Mock()
+        bidsFile.modality = 'moda'
+        bidsFile.sub = '05'
+        bidsFile.ses = '04'
+        bidsFile.task = 'T1'
+        bidsFile.run = '03'
+        bidsFile.mod = 'mod'
+        bidsFile.get_events.return_value = pandas.DataFrame([
+            dict(trial_type='s1'),
+            dict(trial_type='s2'),
+            dict(trial_type='s1'),
+            dict(trial_type='s3'),
+        ])
         run = FmriprepRun(bidsFile)
         descs = run.to_descriptors()
+        self.assertIn('descriptors', descs)
+        self.assertEqual(descs['descriptors'], dict(
+            sub='05', ses='04', run='03', task='T1'
+        ))
+        self.assertIn('obs_descriptors', descs)
+        self.assertIn('trial_type', descs['obs_descriptors'])
+        self.assertEqual(
+            list(descs['obs_descriptors']['trial_type']), 
+            ['s1', 's2', 's1', 's3']
+        )
+        self.assertIn('channel_descriptors', descs)
+        self.assertEqual(descs['channel_descriptors'], dict())
+
+    def test_FmriprepRun_to_descriptors_collapsed(self):
+        """If we set collapse_by_trial_type=true,
+        observations should be collapsed by trial_type.
+        """
+        from rsatoolbox.io.fmriprep import FmriprepRun
+        bidsFile = Mock()
+        bidsFile.get_events.return_value = pandas.DataFrame([
+            dict(trial_type='s1'),
+            dict(trial_type='s2'),
+            dict(trial_type='s1'),
+            dict(trial_type='s3'),
+        ])
+        run = FmriprepRun(bidsFile)
+        descs = run.to_descriptors(collapse_by_trial_type=True)
+        self.assertIn('obs_descriptors', descs)
+        self.assertIn('trial_type', descs['obs_descriptors'])
+        self.assertEqual(
+            list(descs['obs_descriptors']['trial_type']), 
+            ['s1', 's2', 's3']
+        )
 
 
 class TestEventsDesignMatrix(TestCase):

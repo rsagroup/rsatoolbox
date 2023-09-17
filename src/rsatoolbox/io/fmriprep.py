@@ -51,23 +51,33 @@ class FmriprepRun:
     def get_parcellation(self):
         return self.boldFile.get_mri_sibling(desc='aparcaseg').get_data()
     
-    def to_descriptors(self) -> Dict:
+    def to_descriptors(self, collapse_by_trial_type: bool=False) -> Dict:
         """Get dictionary of dataset, observation and channel- level descriptors
 
-        self.descriptors = parse_input_descriptor(descriptors)
-        -> shape, meta
-
-
-        self.obs_descriptors = parse_input_descriptor(obs_descriptors)
-        -> events
-
-        self.channel_descriptors = parse_input_descriptor(channel_descriptors)
-        -> vox index
-
         Returns:
-            Dict: kwargs for DatasetBase
+            Dict: kwargs for DatasetBase with keys:
+                descriptors: sub, ses, run and task BIDS entities
+                obs_descriptors: trial_type from BIDS events
+                channel_descriptors: empty
         """
-        return dict()
+        ds_descs = dict()
+        ds_descs['sub'] = self.boldFile.sub
+        if self.boldFile.ses:
+            ds_descs['ses'] = self.boldFile.ses
+        if self.boldFile.run:
+            ds_descs['run'] = self.boldFile.run
+        if self.boldFile.run:
+            ds_descs['task'] = self.boldFile.task
+        obs_descs = dict()
+        if collapse_by_trial_type:
+            obs_descs['trial_type'] = self.boldFile.get_events()['trial_type'].unique()
+        else:
+            obs_descs['trial_type'] = self.boldFile.get_events()['trial_type'].values
+        return dict(
+            descriptors=ds_descs,
+            obs_descriptors=obs_descs,
+            channel_descriptors=dict()
+        )
     
     def __repr__(self) -> str:
         fmriprep_prefix = join('derivatives', 'fmriprep')
