@@ -41,6 +41,24 @@ class TestBidsLayout(TestCase):
             'derivatives/ana/sub-04/ses-03/mod/sub-04_ses-03_task-y_run-02_space-ikea_desc-t1.nii.gz',
         ]))
 
+    def test_find_table_key_for(self, *patches):
+        from rsatoolbox.io.bids import BidsLayout
+        self.glob_will_return([], *patches)
+        layout = BidsLayout('/root', nibabel=self.nibabel)
+        derivFile = Mock()
+        derivFile = Mock()
+        derivFile.derivative = 'abra'
+        derivFile.modality = 'moda'
+        derivFile.desc = 'bla'
+        derivFile.sub = '05'
+        derivFile.space = None
+        derivFile.suffix = 'mod'
+        derivFile.ext = 'foo.bz'
+        out = layout.find_table_key_for(derivFile)
+        self.assertEqual(out, self.os_path_like(
+            'derivatives/abra/desc-bla_mod.tsv'
+        ))
+
     def test_BidsLayout_find_events_for(self, *patches):
         from rsatoolbox.io.bids import BidsLayout
         self.glob_will_return([], *patches)

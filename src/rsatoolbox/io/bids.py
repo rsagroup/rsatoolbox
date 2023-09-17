@@ -15,12 +15,12 @@ if TYPE_CHECKING:
 class BidsFile:
 
     _meta: Optional[BidsJsonFile]
-    sub: str
+    sub: Optional[str]
     ses: Optional[str]
     run: Optional[str]
     task: Optional[str]
     space: Optional[str]
-    modality: str
+    modality: Optional[str]
     derivative: Optional[str]
     desc: Optional[str]
     suffix: str
@@ -40,18 +40,16 @@ class BidsFile:
             parts = parts[2:]
         else:
             self.derivative = None
-        sub = self._findEntity('sub', fname)
-        if sub is None:
-            raise ValueError(f'Missing sub entity in bids filename: {fname}')
-        self.sub = sub
+        self.sub = self._findEntity('sub', fname)
         self.ses = self._findEntity('ses', fname)
         self.run = self._findEntity('run', fname)
         self.task = self._findEntity('task', fname)
         self.space = self._findEntity('space', fname)
-        if self.ses:
-            self.modality = parts[2]
-        else:
-            self.modality = parts[1]
+        if len(parts) > 1:
+            if self.ses:
+                self.modality = parts[2]
+            else:
+                self.modality = parts[1]
         self.desc = self._findEntity('desc', fname)
         suffix_ext = fname.split('_')[-1]
         self.suffix = suffix_ext.split('.')[0]
@@ -107,6 +105,9 @@ class BidsMriFile(BidsFile):
     
     def get_mri_sibling(self, desc: str, suffix: str) -> BidsMriFile:
         return self.layout.find_mri_sibling_of(self, desc, suffix)
+    
+    def get_key(self) -> BidsTableFile:
+        return self.layout.find_table_key_for(self)
 
 
 class BidsLayout:
@@ -162,6 +163,11 @@ class BidsLayout:
         fpath = self._replace(base, dict(derivative=None, space=None,
             desc=None, suffix='events', ext='tsv'))
         return BidsTableFile(fpath, self)
+    
+    def find_table_key_for(self, base: BidsFile) -> BidsTableFile:
+        path_segs = ['derivatives', base.derivative] if base.derivative else []
+        path_segs += [f'desc-{base.desc}_{base.suffix}.tsv']
+        return BidsTableFile(join(*path_segs), self)
     
     def find_mri_sibling_of(self, base: BidsMriFile, desc: str, suffix: str) -> BidsMriFile:
         fpath = self._replace(base, dict(desc=desc, suffix=suffix))

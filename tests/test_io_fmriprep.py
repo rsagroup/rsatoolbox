@@ -91,12 +91,21 @@ class TestFmriprepRun(TestCase):
         from rsatoolbox.io.fmriprep import FmriprepRun
         bidsFile = Mock()
         parc = Mock()
-        parc.get_data.return_value = numpy.array([45.0, 67.0, 89.0])
+        parc.get_data.return_value = numpy.array([[0, 2], [0, 4]])
+        df = pandas.DataFrame([
+            dict(index=0, name='nothing'),
+            dict(index=2, name='foo'),
+            dict(index=4, name='bar'),
+        ])
+        parc.get_key().get_frame.return_value = df
         bidsFile.get_mri_sibling.return_value = parc
         run = FmriprepRun(bidsFile)
         descs = run.get_channel_descriptors()
         self.assertIn('aparcaseg', descs)
-        assert_array_equal(descs['aparcaseg'], [45, 67, 89])
+        assert_array_equal(
+            descs['aparcaseg'],
+            ['nothing', 'foo', 'nothing', 'bar']
+        )
 
 
 class TestEventsDesignMatrix(TestCase):

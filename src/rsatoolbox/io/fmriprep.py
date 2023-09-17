@@ -53,6 +53,10 @@ class FmriprepRun:
         parc_file = self.boldFile.get_mri_sibling(desc='aparcaseg', suffix='dseg')
         return parc_file.get_data().astype(int)
     
+    def get_parcellation_labels(self):
+        parc_file = self.boldFile.get_mri_sibling(desc='aparcaseg', suffix='dseg')
+        return parc_file.get_key().get_frame().set_index('index')
+    
     def to_descriptors(self, collapse_by_trial_type: bool=False) -> Dict:
         """Get dictionary of dataset, observation and channel- level descriptors
 
@@ -88,8 +92,10 @@ class FmriprepRun:
         return obs_descs
     
     def get_channel_descriptors(self) -> Dict:
-        self.get_parcellation().ravel()
-        return dict(aparcaseg=self.get_parcellation().ravel())
+        parc_ix_3d = self.get_parcellation()
+        labels_df = self.get_parcellation_labels()
+        labels = labels_df.loc[parc_ix_3d.ravel()]['name'].values
+        return dict(aparcaseg=labels)
     
     def __repr__(self) -> str:
         fmriprep_prefix = join('derivatives', 'fmriprep')
