@@ -508,3 +508,17 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.n_cond == 6
         assert len([r for r in rdm]) == 5
         assert rdm.rdm_descriptors['time'][0] == np.mean(time[:3])
+
+
+class CvDescriptorTests(unittest.TestCase):
+
+    def test_gen_default_cv_descriptor_list_desc(self):
+        """_gen_default_cv_descriptor should work with List descriptor
+        """
+        from rsatoolbox.rdm.calc import  _gen_default_cv_descriptor
+        from rsatoolbox.data.dataset import Dataset
+        ds = Dataset(
+            measurements=np.zeros([4, 3]),
+            obs_descriptors=dict(cond=['a', 'b', 'a', 'b'])
+        )
+        _gen_default_cv_descriptor(ds, 'cond')
