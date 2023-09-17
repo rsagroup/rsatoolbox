@@ -45,11 +45,13 @@ class FmriprepRun:
     def get_meta(self):
         return self.boldFile.get_meta()
     
-    def get_brain_mask(self):
-        return self.boldFile.get_mri_sibling(desc='brain_mask').get_data()
+    def get_mask(self) -> NDArray:
+        mask_file = self.boldFile.get_mri_sibling(desc='brain', suffix='mask')
+        return mask_file.get_data().astype(bool)
     
     def get_parcellation(self):
-        return self.boldFile.get_mri_sibling(desc='aparcaseg').get_data()
+        parc_file = self.boldFile.get_mri_sibling(desc='aparcaseg', suffix='dseg')
+        return parc_file.get_data().astype(int)
     
     def to_descriptors(self, collapse_by_trial_type: bool=False) -> Dict:
         """Get dictionary of dataset, observation and channel- level descriptors
@@ -60,6 +62,13 @@ class FmriprepRun:
                 obs_descriptors: trial_type from BIDS events
                 channel_descriptors: empty
         """
+        return dict(
+            descriptors=self.get_dataset_descriptors(),
+            obs_descriptors=self.get_obs_descriptors(collapse_by_trial_type),
+            channel_descriptors=self.get_channel_descriptors()
+        )
+
+    def get_dataset_descriptors(self) -> Dict:
         ds_descs = dict()
         ds_descs['sub'] = self.boldFile.sub
         if self.boldFile.ses:
@@ -68,16 +77,19 @@ class FmriprepRun:
             ds_descs['run'] = self.boldFile.run
         if self.boldFile.run:
             ds_descs['task'] = self.boldFile.task
+        return ds_descs
+    
+    def get_obs_descriptors(self, collapse_by_trial_type: bool=False) -> Dict:
         obs_descs = dict()
         if collapse_by_trial_type:
             obs_descs['trial_type'] = self.boldFile.get_events()['trial_type'].unique()
         else:
             obs_descs['trial_type'] = self.boldFile.get_events()['trial_type'].values
-        return dict(
-            descriptors=ds_descs,
-            obs_descriptors=obs_descs,
-            channel_descriptors=dict()
-        )
+        return obs_descs
+    
+    def get_channel_descriptors(self) -> Dict:
+        self.get_parcellation().ravel()
+        return dict(aparcaseg=self.get_parcellation().ravel())
     
     def __repr__(self) -> str:
         fmriprep_prefix = join('derivatives', 'fmriprep')

@@ -14,13 +14,17 @@ if TYPE_CHECKING:
 
 class BidsFile:
 
-    _meta: Optional[Dict]
+    _meta: Optional[BidsJsonFile]
     sub: str
     ses: Optional[str]
     run: Optional[str]
     task: Optional[str]
+    space: Optional[str]
     modality: str
     derivative: Optional[str]
+    desc: Optional[str]
+    suffix: str
+    ext: str
 
     def __init__(self, relpath: str, layout: BidsLayout) -> None:
         self.relpath = relpath
@@ -43,10 +47,15 @@ class BidsFile:
         self.ses = self._findEntity('ses', fname)
         self.run = self._findEntity('run', fname)
         self.task = self._findEntity('task', fname)
+        self.space = self._findEntity('space', fname)
         if self.ses:
             self.modality = parts[2]
         else:
             self.modality = parts[1]
+        self.desc = self._findEntity('desc', fname)
+        suffix_ext = fname.split('_')[-1]
+        self.suffix = suffix_ext.split('.')[0]
+        self.ext = '.'.join(suffix_ext.split('.')[1:])
 
     def _findEntity(self, entity: str, in_fname: str) -> Optional[str]:
         in_fname.split('_')
@@ -58,21 +67,30 @@ class BidsFile:
     def fpath(self) -> str:
         return self.layout.abs_path(self)
     
-    def get_meta(self) -> Dict:
+    def get_meta(self) -> Dict[str, Any]:
         if self._meta is None:
-            with open(self.fpath.replace('.nii.gz', '.json')) as fhandle:
-                self._meta = json.load(fhandle)
-        return self._meta
-    
-    def get_sibling(self, desc: str) -> BidsFile:
-        ## get file with same entities except DESC
-        pass
+            self._meta = self.layout.find_meta_for(self)
+        return self._meta.get_data()
 
 
 class BidsTableFile(BidsFile):
 
     def get_frame(self) -> DataFrame:
         return pandas.read_csv(self.fpath, sep='\t')
+    
+class BidsJsonFile(BidsFile):
+
+    _data: Optional[Dict]
+
+    def __init__(self, relpath: str, layout: BidsLayout) -> None:
+        super().__init__(relpath, layout)
+        self._data = None
+
+    def get_data(self) -> Dict:
+        if self._data is None:
+            with open(self.fpath) as fhandle:
+                self._data = json.load(fhandle)
+        return self._data
 
 
 class BidsMriFile(BidsFile):
@@ -87,8 +105,8 @@ class BidsMriFile(BidsFile):
     def get_events(self) -> DataFrame:
         return self.layout.find_events_for(self).get_frame()
     
-    def get_mri_sibling(self, desc: str) -> BidsMriFile:
-        return
+    def get_mri_sibling(self, desc: str, suffix: str) -> BidsMriFile:
+        return self.layout.find_mri_sibling_of(self, desc, suffix)
 
 
 class BidsLayout:
@@ -102,22 +120,52 @@ class BidsLayout:
 
     def abs_path(self, file: BidsFile) -> str:
         return join(self._path, file.relpath)
+    
+    def _replace(self, base: BidsFile, replace_entities: Dict) -> str:
+
+        def replace_or_inherit(base: BidsFile, entity: str) -> Optional[str]:
+            if entity in replace_entities:
+                return replace_entities[entity]
+            return getattr(base, entity)
+
+        path_segs = []
+        derivative = replace_or_inherit(base, 'derivative')
+        path_segs += ['derivatives', derivative] if derivative else []
+        sub = replace_or_inherit(base, 'sub')
+        path_segs += [f'sub-{sub}'] if sub else []
+        ses = replace_or_inherit(base, 'ses')
+        path_segs += [f'ses-{ses}'] if ses else []
+        modality = replace_or_inherit(base, 'modality')
+        path_segs += [modality] if modality else []
+
+        fname_segs = [f'sub-{sub}']
+        fname_segs += [f'ses-{ses}'] if ses else []
+        task = replace_or_inherit(base, 'task')
+        fname_segs += [f'task-{task}'] if task else []
+        run = replace_or_inherit(base, 'run')
+        fname_segs += [f'run-{run}'] if run else []
+        space = replace_or_inherit(base, 'space')
+        fname_segs += [f'space-{space}'] if space else []
+        desc = replace_or_inherit(base, 'desc')
+        fname_segs += [f'desc-{desc}'] if desc else []
+        suffix = replace_or_inherit(base, 'suffix')
+        ext = replace_or_inherit(base, 'ext')
+        fname_segs += [f'{suffix}.{ext}']
+        path_segs += ['_'.join(fname_segs)]
+        return join(*path_segs)
+    
+    def find_meta_for(self, base: BidsFile) -> BidsJsonFile:
+        fpath = self._replace(base, dict(ext='json'))
+        return BidsJsonFile(fpath, self)
 
     def find_events_for(self, base: BidsFile) -> BidsTableFile:
-        path_segs = [f'sub-{base.sub}']
-        if base.ses is not None:
-            path_segs += [f'ses-{base.ses}']
-        path_segs += [base.modality]
-        fname_segs = [f'sub-{base.sub}']
-        if base.ses is not None:
-            fname_segs += [f'ses-{base.ses}']
-        if base.task is not None:
-            fname_segs += [f'task-{base.task}']
-        if base.run is not None:
-            fname_segs += [f'run-{base.run}']
-        fname_segs += ['events.tsv']
-        path_segs += ['_'.join(fname_segs)]
-        return BidsTableFile(join(*path_segs), self)
+        fpath = self._replace(base, dict(derivative=None, space=None,
+            desc=None, suffix='events', ext='tsv'))
+        return BidsTableFile(fpath, self)
+    
+    def find_mri_sibling_of(self, base: BidsMriFile, desc: str, suffix: str) -> BidsMriFile:
+        fpath = self._replace(base, dict(desc=desc, suffix=suffix))
+        return BidsMriFile(fpath, self, self._nibabel)
 
     def find_mri_derivative_files(self,
             derivative: str,
@@ -139,5 +187,5 @@ class BidsLayout:
             for task in tasks:
                 subset += [f for f in fpaths if f'task-{task}' in f]
             fpaths = subset
-        nibabel = import_nibabel(self._nibabel)
-        return [BidsMriFile(relpath(f, self._path), self, nibabel) for f in fpaths]
+        self._nibabel = import_nibabel(self._nibabel)
+        return [BidsMriFile(relpath(f, self._path), self, self._nibabel) for f in fpaths]

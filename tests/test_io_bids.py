@@ -57,6 +57,25 @@ class TestBidsLayout(TestCase):
             'sub-05/ses-04/moda/sub-05_ses-04_task-T1_run-03_events.tsv'
         ))
         
+    def test_BidsLayout_find_mri_sibling_of(self, *patches):
+        from rsatoolbox.io.bids import BidsLayout
+        self.glob_will_return([], *patches)
+        layout = BidsLayout('/root', nibabel=self.nibabel)
+        derivFile = Mock()
+        derivFile.derivative = 'abra'
+        derivFile.modality = 'moda'
+        derivFile.sub = '05'
+        derivFile.ses = '04'
+        derivFile.space = None
+        derivFile.task = 'T1'
+        derivFile.run = '03'
+        derivFile.suffix = 'mod'
+        derivFile.ext = 'foo.bz'
+        out = layout.find_mri_sibling_of(derivFile, desc='bla', suffix='mod')
+        self.assertEqual(out, self.os_path_like(
+            'derivatives/abra/sub-05/ses-04/moda/sub-05_ses-04_task-T1_run-03_desc-bla_mod.foo.bz'
+        ))
+
     def glob_will_return(self, fpaths, isdir, glob, BidsMriFile, BidsTableFile):
         """Setup the patches such that the passed file paths will be returned
         """
@@ -82,10 +101,12 @@ class TestBidsFile(TestCase):
         from rsatoolbox.io.bids import BidsFile
         layout = Mock()
         file = BidsFile('derivatives/ana/sub-04/ses-03/mod/' +
-            'sub-04_ses-03_task-Tx_run-02_space-ikea_desc-t1.nii.gz', layout)
+            'sub-04_ses-03_task-Tx_run-02_space-ikea_desc-t1_bar.nii.gz', layout)
         self.assertEqual(file.derivative, 'ana')
         self.assertEqual(file.sub, '04')
         self.assertEqual(file.ses, '03')
         self.assertEqual(file.modality, 'mod')
         self.assertEqual(file.task, 'Tx')
         self.assertEqual(file.run, '02')
+        self.assertEqual(file.suffix, 'bar')
+        self.assertEqual(file.ext, 'nii.gz')

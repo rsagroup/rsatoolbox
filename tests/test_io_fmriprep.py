@@ -2,7 +2,8 @@
 """
 from unittest import TestCase
 from unittest.mock import patch, Mock
-import pandas
+from numpy.testing import assert_array_equal
+import pandas, numpy
 
 
 class TestFindFmriprepRuns(TestCase):
@@ -23,16 +24,18 @@ class TestFmriprepRun(TestCase):
     def test_FmriprepRun_siblings(self):
         from rsatoolbox.io.fmriprep import FmriprepRun
         bidsFile = Mock()
+        mask = Mock()
+        parc = Mock()
         sibs = dict(
-            brain_mask=Mock(),
-            aparcaseg=Mock()
+            brain=mask,
+            aparcaseg=parc
         )
-        bidsFile.get_mri_sibling.side_effect = lambda desc: sibs[desc]
+        bidsFile.get_mri_sibling.side_effect = lambda desc, **kw: sibs[desc]
         run = FmriprepRun(bidsFile)
-        self.assertIs(run.get_brain_mask(), sibs['brain_mask'].get_data())
-        self.assertIs(run.get_parcellation(), sibs['aparcaseg'].get_data())
+        self.assertIs(run.get_mask(), mask.get_data().astype(bool))
+        self.assertIs(run.get_parcellation(), parc.get_data().astype(int))
 
-    def test_FmriprepRun_to_descriptors(self):
+    def test_FmriprepRun_dataset_descriptors(self):
         from rsatoolbox.io.fmriprep import FmriprepRun
         bidsFile = Mock()
         bidsFile.modality = 'moda'
@@ -41,6 +44,15 @@ class TestFmriprepRun(TestCase):
         bidsFile.task = 'T1'
         bidsFile.run = '03'
         bidsFile.mod = 'mod'
+        run = FmriprepRun(bidsFile)
+        descs = run.get_dataset_descriptors()
+        self.assertEqual(descs, dict(
+            sub='05', ses='04', run='03', task='T1'
+        ))
+
+    def test_FmriprepRun_obs_descriptors(self):
+        from rsatoolbox.io.fmriprep import FmriprepRun
+        bidsFile = Mock()
         bidsFile.get_events.return_value = pandas.DataFrame([
             dict(trial_type='s1'),
             dict(trial_type='s2'),
@@ -48,21 +60,14 @@ class TestFmriprepRun(TestCase):
             dict(trial_type='s3'),
         ])
         run = FmriprepRun(bidsFile)
-        descs = run.to_descriptors()
-        self.assertIn('descriptors', descs)
-        self.assertEqual(descs['descriptors'], dict(
-            sub='05', ses='04', run='03', task='T1'
-        ))
-        self.assertIn('obs_descriptors', descs)
-        self.assertIn('trial_type', descs['obs_descriptors'])
+        descs = run.get_obs_descriptors()
+        self.assertIn('trial_type', descs)
         self.assertEqual(
-            list(descs['obs_descriptors']['trial_type']), 
+            list(descs['trial_type']), 
             ['s1', 's2', 's1', 's3']
         )
-        self.assertIn('channel_descriptors', descs)
-        self.assertEqual(descs['channel_descriptors'], dict())
 
-    def test_FmriprepRun_to_descriptors_collapsed(self):
+    def test_FmriprepRun_obs_descriptors_collapsed(self):
         """If we set collapse_by_trial_type=true,
         observations should be collapsed by trial_type.
         """
@@ -75,13 +80,23 @@ class TestFmriprepRun(TestCase):
             dict(trial_type='s3'),
         ])
         run = FmriprepRun(bidsFile)
-        descs = run.to_descriptors(collapse_by_trial_type=True)
-        self.assertIn('obs_descriptors', descs)
-        self.assertIn('trial_type', descs['obs_descriptors'])
+        descs = run.get_obs_descriptors(collapse_by_trial_type=True)
+        self.assertIn('trial_type', descs)
         self.assertEqual(
-            list(descs['obs_descriptors']['trial_type']), 
+            list(descs['trial_type']), 
             ['s1', 's2', 's3']
         )
+
+    def test_FmriprepRun_channel_descriptors(self):
+        from rsatoolbox.io.fmriprep import FmriprepRun
+        bidsFile = Mock()
+        parc = Mock()
+        parc.get_data.return_value = numpy.array([45.0, 67.0, 89.0])
+        bidsFile.get_mri_sibling.return_value = parc
+        run = FmriprepRun(bidsFile)
+        descs = run.get_channel_descriptors()
+        self.assertIn('aparcaseg', descs)
+        assert_array_equal(descs['aparcaseg'], [45, 67, 89])
 
 
 class TestEventsDesignMatrix(TestCase):
