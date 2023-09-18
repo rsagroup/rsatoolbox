@@ -2,7 +2,7 @@
 """
 from __future__ import annotations
 from os.path import relpath, join
-from typing import TYPE_CHECKING, List, Dict, Optional
+from typing import TYPE_CHECKING, List, Dict, Optional, Tuple
 import numpy
 from scipy.interpolate import pchip
 from rsatoolbox.io.bids import BidsLayout
@@ -48,6 +48,10 @@ class FmriprepRun:
     def get_mask(self) -> NDArray:
         mask_file = self.boldFile.get_mri_sibling(desc='brain', suffix='mask')
         return mask_file.get_data().astype(bool)
+    
+    def get_confounds(self) -> DataFrame:
+        confounds_file = self.boldFile.get_table_sibling(desc='confounds', suffix='timeseries')
+        return confounds_file.get_frame()
     
     def get_parcellation(self):
         parc_file = self.boldFile.get_mri_sibling(desc='aparcaseg', suffix='dseg')
@@ -103,15 +107,20 @@ class FmriprepRun:
         return f'<{self.__class__.__name__} [{fp_path}]>'
 
 
-def make_design_matrix(events: DataFrame, tr: float, n_vols: int) -> NDArray:
+def make_design_matrix(events: DataFrame, tr: float, n_vols: int, 
+                       confounds: Optional[DataFrame]) -> Tuple[NDArray, NDArray]:
     """Create a matrix of HRF-convolved predictors from BIDS events
 
     Args:
         events (DataFrame): BIDS-style table of events
         tr (float): Time to repeat scan in seconds
+        n_vols (int): duration of the matrix (max extend beyond design)
+        confounds (DataFrame): A table of BOLD confounds
 
     Returns:
-        NDArray: volumes * conditions
+        Tuple of:
+            NDArray: volumes * conditions
+            NDArray: boolean mask to signifiy predictors vs confounds
     """
     block_dur = numpy.median(events.duration)
 
@@ -140,4 +149,15 @@ def make_design_matrix(events: DataFrame, tr: float, n_vols: int) -> NDArray:
             f = pchip(o + hrf_times, hrf, extrapolate=False)(all_times)
             yvals = yvals + numpy.nan_to_num(f)
         dm[:, c] = yvals
-    return dm
+    pred_mask = numpy.ones(dm.shape[1])
+
+    if confounds is not None:
+        assert confounds.shape[0] == n_vols
+        ## derivatives have n/a values for first vol
+        cf = confounds.dropna(axis=1).values
+        #cf = (cf - cf.mean(axis=0)) / (cf.max(axis=0) - cf.min(axis=0))
+        dm = numpy.hstack([dm, cf])
+        pred_mask = numpy.hstack([pred_mask, numpy.zeros(cf.shape[1])])
+    dm = (dm - dm.mean(axis=0)) / (dm.max(axis=0) - dm.min(axis=0))
+    
+    return dm, pred_mask.astype(bool)

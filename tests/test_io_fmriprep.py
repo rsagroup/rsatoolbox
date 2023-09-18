@@ -120,5 +120,13 @@ class TestEventsDesignMatrix(TestCase):
             dict(onset=5, duration=0.5, trial_type='a'),
             dict(onset=6, duration=0.5, trial_type='b'),
         ])
-        dm = make_design_matrix(events, tr=2.0, n_vols=4)
-        self.assertEqual(dm.shape, (4, 2))
+        confounds = pandas.DataFrame([
+            dict(sig1=1.0, sig2=0.5),
+            dict(sig1=1.1, sig2=0.4),
+            dict(sig1=1.2, sig2=0.3),
+            dict(sig1=1.3, sig2=0.2),
+        ])
+        dm, pred_mask = make_design_matrix(events, tr=2.0, n_vols=4,
+                                           confounds=confounds)
+        self.assertEqual(dm.shape, (4, 2+2))
+        assert_array_equal(pred_mask, [True, True, False, False])

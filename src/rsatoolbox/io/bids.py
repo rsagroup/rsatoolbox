@@ -69,6 +69,9 @@ class BidsFile:
         if self._meta is None:
             self._meta = self.layout.find_meta_for(self)
         return self._meta.get_data()
+    
+    def get_table_sibling(self, desc: str, suffix: str) -> BidsTableFile:
+        return self.layout.find_table_sibling_of(self, desc, suffix)
 
 
 class BidsTableFile(BidsFile):
@@ -169,6 +172,10 @@ class BidsLayout:
         path_segs += [f'desc-{base.desc}_{base.suffix}.tsv']
         return BidsTableFile(join(*path_segs), self)
     
+    def find_table_sibling_of(self, base: BidsFile, desc: str, suffix: str) -> BidsTableFile:
+        fpath = self._replace(base, dict(desc=desc, suffix=suffix, ext='tsv', space=None))
+        return BidsTableFile(fpath, self)
+
     def find_mri_sibling_of(self, base: BidsMriFile, desc: str, suffix: str) -> BidsMriFile:
         fpath = self._replace(base, dict(desc=desc, suffix=suffix))
         return BidsMriFile(fpath, self, self._nibabel)
