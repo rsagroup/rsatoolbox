@@ -126,7 +126,8 @@ class TestEventsDesignMatrix(TestCase):
             dict(sig1=1.2, sig2=0.3),
             dict(sig1=1.3, sig2=0.2),
         ])
-        dm, pred_mask = make_design_matrix(events, tr=2.0, n_vols=4,
+        dm, pred_mask, dof = make_design_matrix(events, tr=2.0, n_vols=4,
                                            confounds=confounds)
         self.assertEqual(dm.shape, (4, 2+2))
+        self.assertEqual(dof, 0)
         assert_array_equal(pred_mask, [True, True, False, False])

@@ -33,6 +33,14 @@ class FmriprepRun:
 
     boldFile: BidsMriFile
 
+    @property
+    def run(self):
+        return self.boldFile.run
+    
+    @property
+    def sub(self):
+        return self.boldFile.sub
+
     def __init__(self, boldFile: BidsMriFile) -> None:
         self.boldFile = boldFile
 
@@ -108,7 +116,7 @@ class FmriprepRun:
 
 
 def make_design_matrix(events: DataFrame, tr: float, n_vols: int, 
-                       confounds: Optional[DataFrame]) -> Tuple[NDArray, NDArray]:
+                       confounds: Optional[DataFrame]) -> Tuple[NDArray, NDArray, int]:
     """Create a matrix of HRF-convolved predictors from BIDS events
 
     Args:
@@ -121,6 +129,7 @@ def make_design_matrix(events: DataFrame, tr: float, n_vols: int,
         Tuple of:
             NDArray: volumes * conditions
             NDArray: boolean mask to signifiy predictors vs confounds
+            int: degrees of freedom
     """
     block_dur = numpy.median(events.duration)
 
@@ -159,5 +168,6 @@ def make_design_matrix(events: DataFrame, tr: float, n_vols: int,
         dm = numpy.hstack([dm, cf])
         pred_mask = numpy.hstack([pred_mask, numpy.zeros(cf.shape[1])])
     dm = (dm - dm.mean(axis=0)) / (dm.max(axis=0) - dm.min(axis=0))
+    dof = n_vols - dm.shape[1]
     
-    return dm, pred_mask.astype(bool)
+    return dm, pred_mask.astype(bool), dof
