@@ -4,8 +4,8 @@
 
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
-import numpy as np
 from copy import deepcopy
+import numpy as np
 from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox.data import average_dataset_by
 
