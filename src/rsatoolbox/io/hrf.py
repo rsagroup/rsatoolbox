@@ -1,7 +1,7 @@
 """Standard haemodynamic response function sampled at 100ms
 """
 import numpy
-HRF = numpy.array([ 
+HRF = numpy.array([
         0.       ,  0.0000053,  0.0000355,  0.000104 ,  0.00022  ,
         0.000388 ,  0.00061  ,  0.000886 ,  0.00122  ,  0.00159  ,
         0.00202  ,  0.00249  ,  0.003    ,  0.00354  ,  0.00411  ,

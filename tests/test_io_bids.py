@@ -74,7 +74,7 @@ class TestBidsLayout(TestCase):
         self.assertEqual(out, self.os_path_like(
             'sub-05/ses-04/moda/sub-05_ses-04_task-T1_run-03_events.tsv'
         ))
-        
+
     def test_BidsLayout_find_mri_sibling_of(self, *patches):
         from rsatoolbox.io.bids import BidsLayout
         self.glob_will_return([], *patches)

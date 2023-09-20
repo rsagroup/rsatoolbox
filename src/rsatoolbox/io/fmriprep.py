@@ -36,7 +36,7 @@ class FmriprepRun:
     @property
     def run(self):
         return self.boldFile.run
-    
+
     @property
     def sub(self):
         return self.boldFile.sub
@@ -63,7 +63,7 @@ class FmriprepRun:
         Returns:
             DataFrame: _description_
         """
-        cf_names = cf_names or ['global_signal', 'csf', 'white_matter', 
+        cf_names = cf_names or ['global_signal', 'csf', 'white_matter',
             'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z']
         confounds_file = self.boldFile.get_table_sibling(desc='confounds', suffix='timeseries')
         df = confounds_file.get_frame()
@@ -123,7 +123,7 @@ class FmriprepRun:
         return f'<{self.__class__.__name__} [{fp_path}]>'
 
 
-def make_design_matrix(events: DataFrame, tr: float, n_vols: int, 
+def make_design_matrix(events: DataFrame, tr: float, n_vols: int,
                        confounds: Optional[DataFrame]) -> Tuple[NDArray, NDArray, int]:
     """Create a matrix of HRF-convolved predictors from BIDS events
 

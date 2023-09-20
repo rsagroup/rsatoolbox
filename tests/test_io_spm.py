@@ -29,7 +29,6 @@ class TestIoSPM(TestCase):
             glm.dim4_descriptors)
 
     def test_beta_pooling_w_dict(self):
-        stim_ids_dict = {"Face": 1, "House": 2}
         from rsatoolbox.io.spm import SpmGlm
         glm = SpmGlm('/path', self.nibabel, self.glob)
         glm.load_betas()

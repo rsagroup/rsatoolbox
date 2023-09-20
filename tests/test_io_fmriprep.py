@@ -63,7 +63,7 @@ class TestFmriprepRun(TestCase):
         descs = run.get_obs_descriptors()
         self.assertIn('trial_type', descs)
         self.assertEqual(
-            list(descs['trial_type']), 
+            list(descs['trial_type']),
             ['s1', 's2', 's1', 's3']
         )
 

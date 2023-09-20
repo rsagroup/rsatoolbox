@@ -64,7 +64,7 @@ class BidsFile:
     @property
     def fpath(self) -> str:
         return self.layout.abs_path(self)
-    
+
     def get_meta(self) -> Dict[str, Any]:
         if self._meta is None:
             self._meta = self.layout.find_meta_for(self)
