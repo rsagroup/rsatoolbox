@@ -57,9 +57,17 @@ class FmriprepRun:
         mask_file = self.boldFile.get_mri_sibling(desc='brain', suffix='mask')
         return mask_file.get_data().astype(bool)
     
-    def get_confounds(self) -> DataFrame:
+    def get_confounds(self, cf_names: Optional[List[str]]=None) -> DataFrame:
+        """_summary_
+
+        Returns:
+            DataFrame: _description_
+        """
+        cf_names = cf_names or ['global_signal', 'csf', 'white_matter', 
+            'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z']
         confounds_file = self.boldFile.get_table_sibling(desc='confounds', suffix='timeseries')
-        return confounds_file.get_frame()
+        df = confounds_file.get_frame()
+        return df[cf_names]
     
     def get_parcellation(self):
         parc_file = self.boldFile.get_mri_sibling(desc='aparcaseg', suffix='dseg')
