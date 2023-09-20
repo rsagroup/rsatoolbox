@@ -5,18 +5,21 @@ test that the operations in the demos are still functional
 """
 
 import unittest
+import numpy as np
 
 
 class TestDemos(unittest.TestCase):
 
+    def setUp(self) -> None:
+        self.rng = np.random.default_rng(0)
+        return super().setUp()
+
     def test_example_dataset(self):
-        import numpy as np
         import matplotlib.pyplot as plt
-        import rsatoolbox
         import rsatoolbox.data as rsd  # abbreviation to deal with dataset
 
         # import the measurements for the dataset
-        measurements = {'simTruePatterns': np.random.randn(92, 100)}
+        measurements = {'simTruePatterns': self.rng.standard_normal((92, 100))}
         measurements = measurements['simTruePatterns']
         nCond = measurements.shape[0]
         nVox = measurements.shape[1]
@@ -42,7 +45,7 @@ class TestDemos(unittest.TestCase):
         # create an example dataset with random data, subset some conditions
         nChannel = 50
         nObs = 12
-        randomData = np.random.rand(nObs, nChannel)
+        randomData = self.rng.random((nObs, nChannel))
         des = {'session': 1, 'subj': 1}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5])}
         chn_des = {'voxels': np.array(
@@ -60,7 +63,7 @@ class TestDemos(unittest.TestCase):
         nChannel = 3
         nChannelVox = 10  # three ROIs, each with 10 voxels
         nObs = 4
-        randomData = np.random.rand(nObs, nChannel*nChannelVox)
+        randomData = self.rng.random((nObs, nChannel * nChannelVox))
         des = {'session': 1, 'subj': 1}
         obs_des = {'conds': np.array([0, 1, 2, 3])}
         chn_des = ['ROI1', 'ROI2', 'ROI3'] * nChannelVox
@@ -77,7 +80,7 @@ class TestDemos(unittest.TestCase):
         nVox = 50  # 50 voxels/electrodes/measurement channels
         nCond = 10  # 10 conditions
         nSubj = 5  # 5 different subjects
-        randomData = np.random.rand(nCond, nVox, nSubj)
+        randomData = self.rng.random((nCond, nVox, nSubj))
 
         # We can then create a list of dataset objects
         # by appending each dataset for each subject.
@@ -89,24 +92,21 @@ class TestDemos(unittest.TestCase):
 
         data = []  # list of dataset objects
         for i in np.arange(nSubj):
-            des = {'session': 1, 'subj': i+1}
+            des = {'session': 1, 'subj': i + 1}
             # append the dataset object to the data list
             data.append(rsd.Dataset(
                 measurements=randomData[:, :, 0],
                 descriptors=des,
                 obs_descriptors=obs_des,
                 channel_descriptors=chn_des
-                ))
+            ))
 
     def test_example_dissimilarities(self):
         # relevant imports
-        import numpy as np
-        from scipy import io
-        import rsatoolbox
         import rsatoolbox.data as rsd  # abbreviation to deal with dataset
         import rsatoolbox.rdm as rsr
         # create a dataset object
-        measurements = {'simTruePatterns': np.random.randn(92, 100)}
+        measurements = {'simTruePatterns': self.rng.standard_normal((92, 100))}
         measurements = measurements['simTruePatterns']
         nCond = measurements.shape[0]
         nVox = measurements.shape[1]
@@ -122,11 +122,12 @@ class TestDemos(unittest.TestCase):
                            channel_descriptors=chn_des)
         # calculate an RDM
         RDM_euc = rsr.calc_rdm(data)
-        RDM_corr = rsr.calc_rdm(data,
-                                method='correlation', descriptor='conds')
+        _ = rsr.calc_rdm(
+            data,
+            method='correlation', descriptor='conds')
         # create an RDM object
         rdm_des = {'RDM': np.array(['RDM_1'])}
-        RDM_euc2 = rsr.RDMs(
+        _ = rsr.RDMs(
             RDM_euc.dissimilarities,
             dissimilarity_measure=RDM_euc.dissimilarity_measure,
             descriptors=RDM_euc.descriptors,
@@ -135,6 +136,51 @@ class TestDemos(unittest.TestCase):
         print(RDM_euc.dissimilarities)  # here a vector
         dist_matrix = RDM_euc.get_matrices()
         print(dist_matrix)
+
+    def test_dual_boot(self):
+        import numpy as np
+        from scipy import io
+        import rsatoolbox
+        import os
+        path = os.path.dirname(os.path.abspath(__file__))
+        matlab_data = io.matlab.loadmat(
+            os.path.join(path, '..', 'demos',
+                         'rdms_inferring', 'modelRDMs_A2020.mat'))
+        matlab_data = matlab_data['modelRDMs']
+        n_models = len(matlab_data[0])
+        model_names = [matlab_data[0][i][0][0] for i in range(n_models)]
+        measurement_model = [matlab_data[0][i][1][0] for i in range(n_models)]
+        rdms_array = np.array([matlab_data[0][i][3][0]
+                              for i in range(n_models)])
+        model_rdms = rsatoolbox.rdm.RDMs(
+            rdms_array,
+            rdm_descriptors={
+                'brain_computational_model': model_names,
+                'measurement_model': measurement_model},
+            dissimilarity_measure='Euclidean'
+        )
+        model_names = [matlab_data[0][i][0][0] for i in range(n_models)]
+        matlab_data = io.matlab.loadmat(
+            os.path.join(path, '..', 'demos',
+                         'rdms_inferring', 'noisyModelRDMs_A2020.mat'))
+        rdms_matlab = matlab_data['noisyModelRDMs']
+        rdms_matrix = rdms_matlab.squeeze().astype('float')
+        i_rep = 2  # np.random.randint(len(repr_names))
+        i_noise = 1  # np.random.randint(len(noise_std))
+        i_fwhm = 0  # np.random.randint(len(fwhms))
+        rdms_data = rsatoolbox.rdm.RDMs(
+            rdms_matrix[:, i_rep, i_fwhm, i_noise, :].transpose())
+        models_flex = []
+        for i_model in np.unique(model_names):
+            models_flex.append(
+                rsatoolbox.model.ModelSelect(
+                    i_model,
+                    model_rdms.subset('brain_computational_model', i_model)
+                )
+            )
+        results_3_full = rsatoolbox.inference.eval_dual_bootstrap(
+            models_flex, rdms_data, k_pattern=4, k_rdm=2, method='corr', N=5)
+        print(results_3_full)
 
     def test_exercise_all(self):
         import numpy as np
@@ -157,12 +203,13 @@ class TestDemos(unittest.TestCase):
             rdm_descriptors={'brain_computational_model': model_names,
                              'measurement_model': measurement_model},
             dissimilarity_measure='Euclidean'
-            )
+        )
 
         conv1_rdms = model_rdms.subset('brain_computational_model', 'conv1')
         plt.figure(figsize=(10, 10))
-        rsatoolbox.vis.show_rdm(conv1_rdms,
-                           rdm_descriptor='measurement_model')
+        rsatoolbox.vis.show_rdm(
+            conv1_rdms,
+            rdm_descriptor='measurement_model')
 
         conv1_rdms = model_rdms.subset('brain_computational_model', 'conv1')
         print(conv1_rdms)
@@ -229,8 +276,10 @@ class TestDemos(unittest.TestCase):
 
         models_flex = []
         for i_model in np.unique(model_names):
-            models_flex.append(rsatoolbox.model.ModelSelect(i_model,
-                model_rdms.subset('brain_computational_model', i_model)))
+            models_flex.append(
+                rsatoolbox.model.ModelSelect(
+                    i_model,
+                    model_rdms.subset('brain_computational_model', i_model)))
 
         print('created the following models:')
         for i in range(len(models_flex)):
@@ -243,7 +292,12 @@ class TestDemos(unittest.TestCase):
             models_flex, rdms_data, train_set, test_set,
             ceil_set=ceil_set, method='corr')
         # plot results
-        rsatoolbox.vis.plot_model_comparison(results_3_cv)
+        rsatoolbox.vis.plot_model_comparison(
+            results_3_cv,
+            error_bars=False,
+            test_pair_comparisons=False,
+            test_above_0=False,
+            test_below_noise_ceil=False)
 
         results_3_full = rsatoolbox.inference.bootstrap_crossval(
             models_flex, rdms_data, k_pattern=4, k_rdm=2, method='corr', N=5)
@@ -332,9 +386,10 @@ class TestDemos(unittest.TestCase):
             '%0.0f ms' % (np.round(x * 1000, 2))
             for x in rdms_data_binned.rdm_descriptors['time']]
 
-        rsatoolbox.vis.show_rdm(rdms_data_binned,
-                           pattern_descriptor='conds',
-                           rdm_descriptor='time_formatted')
+        rsatoolbox.vis.show_rdm(
+            rdms_data_binned,
+            pattern_descriptor='conds',
+            rdm_descriptor='time_formatted')
         from rsatoolbox.rdm import get_categorical_rdm
         rdms_model_in = get_categorical_rdm(['%d' % x for x in range(4)])
         rdms_model_lr = get_categorical_rdm(['l', 'r', 'l', 'r'])
@@ -347,8 +402,10 @@ class TestDemos(unittest.TestCase):
         model_rdms.rdm_descriptors['model_names'] = model_names
         model_rdms.pattern_descriptors['cond_names'] = cond_names
         plt.figure(figsize=(10, 10))
-        rsatoolbox.vis.show_rdm(model_rdms, rdm_descriptor='model_names',
-                           pattern_descriptor='cond_names')
+        rsatoolbox.vis.show_rdm(
+            model_rdms,
+            rdm_descriptor='model_names',
+            pattern_descriptor='cond_names')
         from rsatoolbox.rdm import compare
         r = []
         for mod in model_rdms:
@@ -375,16 +432,18 @@ class TestDemos(unittest.TestCase):
         matlab_data = loadmat(
             os.path.join(path, '..', 'demos', '92imageData/92_brainRDMs.mat'))['RDMs']
         n_rdms = len(matlab_data[0])
-        rdms_ = RDMs(np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
-                  pattern_descriptors=condition_descriptors,
-                  rdm_descriptors={'name': np.array([f"RDM{i}"
-                                                     for i in range(4)])}
-                  )
+        rdms_ = RDMs(
+            np.array([matlab_data[0][i][0][0] for i in range(n_rdms)]),
+            pattern_descriptors=condition_descriptors,
+            rdm_descriptors={
+                'name': np.array([f"RDM{i}" for i in range(4)])}
+        )
 
         rdms_a = concat([rdms_[0], rdms_[1]])
         rdms_b = concat([rdms_[2], rdms_[3]])
 
-        rdm_comparison_scatterplot((rdms_a, rdms_b),
+        rdm_comparison_scatterplot(
+            (rdms_a, rdms_b),
             show_marginal_distributions=True,
             show_identity_line=True,
             show_legend=False,
@@ -395,7 +454,8 @@ class TestDemos(unittest.TestCase):
                 "B": (0, 1, 0),
                 "C": (0, 0, 1),
             }
-            )
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

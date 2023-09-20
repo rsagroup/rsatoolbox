@@ -7,7 +7,11 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   rsatoolbox.io.hdf5
    rsatoolbox.io.meadows
+   rsatoolbox.io.mne
+   rsatoolbox.io.pandas
+   rsatoolbox.io.pkl
 
 Module contents
 ---------------

@@ -74,16 +74,22 @@ class TestDescriptorUtils(unittest.TestCase):
         descriptors = {'foo': ['bar', 'bar2']}
         check_descriptor_length_error(descriptors, 'test', 2)
 
-    def test_append_obs_descriptors(self):
-        from rsatoolbox.util.descriptor_utils import append_obs_descriptors
-        descriptors_1 = {'foo': ['bar1', 'bar2'], 'boo': ['far1']}
-        descriptors_2 = {'foo': ['bar3', 'bar4'], 'boo': ['far2']}
-        desc_appended = append_obs_descriptors(descriptors_1, descriptors_2)
-        self.assertSequenceEqual(list(desc_appended['foo']),
-                                 ['bar%d' % i for i in range(1, 5)])
-        self.assertSequenceEqual(list(desc_appended['boo']),
-                                 ['far%d' % i for i in range(1, 3)])
-
-
-if __name__ == '__main__':
-    unittest.main()
+    def test_desc_eq(self):
+        from rsatoolbox.util.descriptor_utils import desc_eq
+        from numpy import array
+        self.assertTrue(desc_eq(
+            dict(abc=['a', 'b', 'c'], idx=array([1.1, 2.2])),
+            dict(abc=['a', 'b', 'c'], idx=array([1.1, 2.2])),
+        ))
+        self.assertFalse(desc_eq(
+            dict(abc=['a', 'b', 'c'], idx=array([1.1, 2.2])),
+            dict(abc=['a', 'b', 'c'], idx=array([1.1, 3.3])),
+        ), 'desc_eq should be False if an array element is different')
+        self.assertFalse(desc_eq(
+            dict(abc=['a', 'b', 'c'], idx=array([1.1, 2.2])),
+            dict(abc=['a', 'b', 'D'], idx=array([1.1, 3.3])),
+        ), 'desc_eq should be False if a list element is different')
+        self.assertFalse(desc_eq(
+            dict(abc=['a', 'b', 'c'], idx=array([1.1, 2.2])),
+            dict(abc=['a', 'b', 'c'], idx=array([1.1, 2.2]), foo=[4, 5]),
+        ), 'desc_eq should be False if the keys are different')

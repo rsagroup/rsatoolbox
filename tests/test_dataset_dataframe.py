@@ -11,13 +11,17 @@ class DatasetToDataframeTests(TestCase):
     """Acceptance test for converting to a dataframe and back.
     """
 
+    def setUp(self) -> None:
+        self.rng = numpy.random.default_rng(0)
+        return super().setUp()
+
     def test_dataset_to_dataframe_and_back(self):
         """Converting a Dataset to a dataframe, and then loading that dataframe
         as a DataSet should preserve data and some metadata.
         """
         from rsatoolbox.data.dataset import Dataset
         ds_in = Dataset(
-            measurements=numpy.random.rand(3, 2),
+            measurements=self.rng.random((3, 2)),
             descriptors=dict(foo='bar'),
             obs_descriptors=dict(participant=['a', 'b', 'c']),
             channel_descriptors=dict(name=['x', 'y'])
@@ -40,7 +44,7 @@ class DatasetToDataframeTests(TestCase):
         """
         from rsatoolbox.data.dataset import Dataset
         ds_in = Dataset(
-            measurements=numpy.random.rand(3, 2),
+            measurements=self.rng.random((3, 2)),
             descriptors=dict(foo='bar'),
             obs_descriptors=dict(participant=['a', 'b', 'c']),
             channel_descriptors=dict(foc=['x', 'y'], bac=[1, 2])
