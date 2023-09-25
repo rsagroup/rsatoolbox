@@ -83,7 +83,7 @@ Spearman's rho
 Spearman's rank-correlation in its original form is higher for predictions with tied ranks, which introduces an unwanted bias into analyses.
 As a solution earlier versions recommended the use of Kendall's :math:`\tau_a` to remove this problem. This problem can also be solved by using
 the expected Spearman's :math:`\rho` under random tiebreaking as an evaluation criterion instead. This coefficient was called :math:`\rho_a` by Kendall.
-For this expectation there is a direct formula:
+For this expectation there is a direct formula based on the rank transformed entries of the two RDMs :math:`\mathbf{x}` and :math:`\mathbf{y}`:
 
 .. math::
 
