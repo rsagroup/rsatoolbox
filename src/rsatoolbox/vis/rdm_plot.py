@@ -34,7 +34,7 @@ def show_rdm(
     gridlines: npt.ArrayLike = None,
     num_pattern_groups: int = None,
     figsize: Tuple[float, float] = None,
-    nanmask: npt.ArrayLike = None,
+    nanmask: npt.ArrayLike | str | None = "diagonal",
     style: Union[str, pathlib.Path] = RDM_STYLE,
     vmin: float = None,
     vmax: float = None,
@@ -68,8 +68,9 @@ def show_rdm(
         figsize (Tuple[float, float]): mpl.Figure argument. By default we
             auto-scale to achieve a figure that fits on a standard A4 / US Letter page
             in portrait orientation.
-        nanmask (npt.ArrayLike): boolean mask defining RDM elements to suppress
-            (by default, the diagonals).
+        nanmask (Union[npt.ArrayLike, str, None]): boolean mask defining RDM elements to suppress
+            (by default, the diagonal).
+            Use the string "diagonal" to suppress the diagonal.
         style (Union[str, pathlib.Path]): Path to mplstyle file that controls
             various figure aesthetics (default rsatoolbox/vis/rdm.mplstyle).
         vmin (float): Minimum intensity for colorbar mapping. matplotlib imshow
@@ -99,7 +100,12 @@ def show_rdm(
             f"show_colorbar can be None, panel or figure, got: {show_colorbar}"
         )
     if nanmask is None:
-        nanmask = np.eye(rdm.n_cond, dtype=bool)
+        nanmask = np.zeros((rdm.n_cond, rdm.n_cond), dtype=bool)
+    elif isinstance(nanmask, str):
+        if nanmask == "diagonal":
+            nanmask = np.eye(rdm.n_cond, dtype=bool)
+        else:
+            raise ValueError("Invalid nanmask value")
     n_panel = rdm.n_rdm
     if show_colorbar == "figure":
         n_panel += 1

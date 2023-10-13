@@ -2,9 +2,9 @@
 
 [![Documentation Status](https://readthedocs.org/projects/rsatoolbox/badge/?version=latest)](https://rsatoolbox.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/rsatoolbox.svg)](https://badge.fury.io/py/rsatoolbox)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/rsatoolbox/badges/version.svg)](https://anaconda.org/conda-forge/rsatoolbox)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/626ca9ec9f75485a9f73783c02710b1f)](https://www.codacy.com/gh/rsagroup/rsatoolbox?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rsagroup/rsatoolbox&amp;utm_campaign=Badge_Grade)
 [![CodeFactor](https://www.codefactor.io/repository/github/rsagroup/rsatoolbox/badge)](https://www.codefactor.io/repository/github/rsagroup/rsatoolbox)
-[![codecov](https://codecov.io/gh/rsagroup/rsatoolbox/branch/master/graph/badge.svg)](https://codecov.io/gh/rsagroup/rsatoolbox)
 
 
 Conceived during the RSA retreat 2019 in Blue Mountains.

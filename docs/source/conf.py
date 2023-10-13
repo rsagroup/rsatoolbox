@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('../'))
 # -- Project information -----------------------------------------------------
 
 project = 'rsatoolbox'
-copyright = '2021, rsatoolbox authors'
+copyright = '2023, rsatoolbox authors'
 author = 'rsatoolbox authors'
 
 # The full version

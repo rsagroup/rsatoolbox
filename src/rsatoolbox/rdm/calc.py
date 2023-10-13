@@ -164,6 +164,7 @@ def calc_rdm_movie(
 
         rdm = concat(rdms)
         rdm.rdm_descriptors[time_descriptor] = time
+    rdm.dissimilarity_measure = method
     return rdm
 
 

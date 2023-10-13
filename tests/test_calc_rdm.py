@@ -428,6 +428,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert len([r for r in rdm]) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
         assert len(rdm.rdm_descriptors['time']) == 15
+        assert rdm.dissimilarity_measure == "mahalanobis"
 
     def test_calc_rdm_movie_euclidean(self):
         rdm = rsr.calc_rdm_movie(
@@ -439,6 +440,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.n_cond == 6
         assert len([r for r in rdm]) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
+        assert rdm.dissimilarity_measure == "euclidean"
 
     def test_calc_rdm_movie_correlation(self):
         rdm = rsr.calc_rdm_movie(
@@ -450,6 +452,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.n_cond == 6
         assert len([r for r in rdm]) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
+        assert rdm.dissimilarity_measure == "correlation"
 
     def test_calc_rdm_movie_crossnobis(self):
         rdm = rsr.calc_rdm_movie(
@@ -462,6 +465,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.n_cond == 6
         assert len([r for r in rdm]) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
+        assert rdm.dissimilarity_measure == "crossnobis"
 
     def test_calc_rdm_movie_crossnobis_no_descriptors(self):
         rdm = rsr.calc_rdm_movie(
