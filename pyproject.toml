@@ -1,12 +1,12 @@
 [build-system]
 requires = [
-    "setuptools~=65.3",
-    "setuptools-scm[toml]~=7.0.0",
+    "setuptools>=68.0",
+    "setuptools-scm[toml]>=8.0",
     "wheel",
     "numpy>=1.21.2",
     "scipy",
-    "cython~=3.0.0a11",
-    "twine~=4.0.1"
+    "cython~=3.0",
+    "twine>=4.0.1"
 ]
 build-backend = "setuptools.build_meta"
 
