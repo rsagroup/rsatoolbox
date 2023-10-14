@@ -2,7 +2,10 @@
 """
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from importlib.resources import files, as_file
+try:
+    from importlib.resources import files, as_file
+except ImportError:
+    from importlib_resources import files, as_file
 if TYPE_CHECKING:
     from pathlib import Path
 
