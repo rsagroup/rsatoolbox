@@ -25,7 +25,8 @@ from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_random_state, check_array, check_symmetric
 from sklearn.isotonic import IsotonicRegression
 from scipy.spatial.distance import squareform
-from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
+from rsatoolbox.util.rdm_utils import _get_n_from_length
+
 
 
 def weight_to_matrices(x):
@@ -40,7 +41,7 @@ def weight_to_matrices(x):
     if x.ndim == 2:
         v = x
         n_rdm = x.shape[0]
-        n_cond = _get_n_from_reduced_vectors(x)
+        n_cond = _get_n_from_length(x.shape[1])
         m = np.ndarray((n_rdm, n_cond, n_cond))
         for idx in np.arange(n_rdm):
             m[idx, :, :] = squareform(v[idx, :])

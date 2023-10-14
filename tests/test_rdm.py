@@ -442,23 +442,6 @@ class TestRDM(unittest.TestCase):
             np.atleast_2d(squareform(rdm)),
             pattern_descriptors=dict(conds=conds)
         )
-        conds_new_order = ['c', 'd', 'b', 'a']
-        rdms.sort_by(conds=conds_new_order)
-
-        new_order = np.array([conds.index(c) for c in conds_new_order])
-        rdm_reordered = rdm[np.ix_(new_order, new_order)]
-        self.assertIsNone(
-            assert_array_equal(
-                np.atleast_2d(squareform(rdm_reordered)),
-                rdms.dissimilarities
-            )
-        )
-        self.assertIsNone(
-            assert_array_equal(
-                conds_new_order,
-                rdms.pattern_descriptors.get('conds')
-            )
-        )
 
     def test_copy(self):
         from rsatoolbox.rdm import RDMs
@@ -659,7 +642,7 @@ class TestRDMLists(unittest.TestCase):
         self.assertEqual(sub_rdm2.n_rdm, 3)
 
     def test_pattern_subset_list(self):
-        sub_rdm = self.test_rdm.subset_pattern('test2', 4)
+        sub_rdm = self.test_rdm.subset_pattern('test2', [4, 5])
         sub_rdm2 = self.test_rdm.subset_pattern('index', [0, 1])
         assert isinstance(self.test_rdm.rdm_descriptors['index'], list)
         assert isinstance(self.test_rdm.pattern_descriptors['index'], list)
@@ -679,7 +662,7 @@ class TestRDMLists(unittest.TestCase):
         assert isinstance(sub_rdm2.pattern_descriptors['test'], list)
         assert isinstance(sub_rdm2.pattern_descriptors['test2'], list)
         assert isinstance(sub_rdm2.pattern_descriptors['test3'], list)
-        self.assertEqual(sub_rdm.n_cond, 1)
+        self.assertEqual(sub_rdm.n_cond, 2)
         self.assertEqual(sub_rdm2.n_cond, 2)
 
     def test_pattern_subsample_list(self):

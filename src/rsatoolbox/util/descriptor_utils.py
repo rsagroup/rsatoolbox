@@ -108,7 +108,8 @@ def check_descriptor_length(descriptor, n_element):
         if isinstance(v, str):
             v = [v]
         if isinstance(v, Iterable) and len(v) != n_element:
-            return False
+            if (n_element > 0) or (len(v) != 1):
+                return False
     return True
 
 
