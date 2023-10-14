@@ -1,26 +1,21 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Plot showing an RDMs object
 """
-
 from __future__ import annotations
 import collections
 from typing import TYPE_CHECKING, Union, Tuple, Optional
-import pkg_resources
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import rsatoolbox.rdm
 from rsatoolbox import vis
 from rsatoolbox.vis.colors import rdm_colormap_classic
+from rsatoolbox.resources import get_style
 if TYPE_CHECKING:
     import numpy.typing as npt
-    import pathlib
+    from pathlib import Path
     from matplotlib.axes._axes import Axes
     from matplotlib.colors import Colormap
-
-RDM_STYLE = pkg_resources.resource_filename('rsatoolbox.vis', 'rdm.mplstyle')
 
 
 def show_rdm(
@@ -35,7 +30,7 @@ def show_rdm(
     num_pattern_groups: int = None,
     figsize: Tuple[float, float] = None,
     nanmask: npt.ArrayLike | str | None = "diagonal",
-    style: Union[str, pathlib.Path] = RDM_STYLE,
+    style: Optional[Union[str, Path]] = None,
     vmin: float = None,
     vmax: float = None,
     icon_spacing: float = 1.0,
@@ -71,7 +66,7 @@ def show_rdm(
         nanmask (Union[npt.ArrayLike, str, None]): boolean mask defining RDM elements to suppress
             (by default, the diagonal).
             Use the string "diagonal" to suppress the diagonal.
-        style (Union[str, pathlib.Path]): Path to mplstyle file that controls
+        style (Union[str, Path]): Path to mplstyle file that controls
             various figure aesthetics (default rsatoolbox/vis/rdm.mplstyle).
         vmin (float): Minimum intensity for colorbar mapping. matplotlib imshow
             argument.
@@ -148,7 +143,7 @@ def show_rdm(
     # image, axis, colorbar, x_labels, y_labels
     # some are global for figure, others local. Perhaps dicts indexed by axis is easiest
     return_handles = collections.defaultdict(dict)
-    with plt.style.context(style):
+    with plt.style.context(style or get_style()):
         fig, ax_array = plt.subplots(
             nrows=int(n_row),
             ncols=int(n_column),
