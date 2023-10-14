@@ -3,19 +3,21 @@ Plot showing an RDMs object
 """
 from __future__ import annotations
 import collections
-from typing import TYPE_CHECKING, Union, Tuple, Optional
+from pathlib import Path
+from typing import TYPE_CHECKING, Union, Tuple, Optional, Literal
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import rsatoolbox.rdm
+from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox import vis
 from rsatoolbox.vis.colors import rdm_colormap_classic
 from rsatoolbox.resources import get_style
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from pathlib import Path
     from matplotlib.axes._axes import Axes
     from matplotlib.colors import Colormap
+    from numpy.typing import NDArray
 
 
 def show_rdm(
@@ -89,7 +91,7 @@ def show_rdm(
               axis and figure handles.
 
     """
-
+    #MultiRdmPlotConf.from_plot_rdm_args()
     if show_colorbar and show_colorbar not in ("panel", "figure"):
         raise ValueError(
             f"show_colorbar can be None, panel or figure, got: {show_colorbar}"
@@ -543,3 +545,115 @@ def _add_descriptor_icons(
             ]
         )
     return label_handles
+
+
+class MultiRdmPlotConf(object):
+    """Configuration for the multi-rdm plot
+    """
+
+    rdm: RDMs
+    pattern_descriptor: Optional[str]
+    cmap: Union[str, Colormap]
+    rdm_descriptor: str
+    n_column: int
+    n_row: int
+    show_colorbar: Optional[Literal["panel"] | Literal["figure"]]
+    gridlines: NDArray
+    num_pattern_groups: int
+    figsize: Tuple[float, float]
+    nanmask: NDArray
+    style: Path
+    vmin: float
+    vmax: float
+    icon_spacing: float
+    linewidth: float
+    n_panel: int
+
+    @classmethod
+    def from_plot_rdm_args(
+        cls,
+        rdm: RDMs,
+        pattern_descriptor: Optional[str] = None,
+        cmap: Union[str, Colormap] = 'bone',
+        rdm_descriptor: Optional[str] = None,
+        n_column: Optional[int] = None,
+        n_row: Optional[int] = None,
+        show_colorbar: Optional[str] = None,
+        gridlines: Optional[npt.ArrayLike] = None,
+        num_pattern_groups: Optional[int] = None,
+        figsize: Optional[Tuple[float, float]] = None,
+        nanmask: npt.ArrayLike | str | None = "diagonal",
+        style: Optional[Union[str, Path]] = None,
+        vmin: Optional[float] = None,
+        vmax: Optional[float] = None,
+        icon_spacing: float = 1.0,
+        linewidth: float = 0.5,
+    ) -> MultiRdmPlotConf:
+        conf = __class__()
+        if show_colorbar not in (None, "panel", "figure"):
+            raise ValueError(
+                f"show_colorbar can be None, panel or figure, got: {show_colorbar}"
+            )
+        conf.show_colorbar = show_colorbar
+        if nanmask is None:
+            nanmask = np.zeros((rdm.n_cond, rdm.n_cond), dtype=bool)
+        elif isinstance(nanmask, str):
+            if nanmask == "diagonal":
+                nanmask = np.eye(rdm.n_cond, dtype=bool)
+            else:
+                raise ValueError("Invalid nanmask value")
+        conf.nanmask = nanmask
+        n_panel = rdm.n_rdm
+        if show_colorbar == "figure":
+            n_panel += 1
+            # need to keep track of global CB limits
+            if any(var is None for var in [vmin, vmax]):
+                # need to load the RDMs here (expensive)
+                rdmat = rdm.get_matrices()
+                if vmin is None:
+                    vmin = rdmat[:, (nanmask == False)].min()
+                if vmax is None:
+                    vmax = rdmat[:, (nanmask == False)].max()
+        conf.n_panel = n_panel
+        conf.vmin = vmin
+        conf.vmax = vmax
+        if n_column is None and n_row is None:
+            n_column = np.ceil(np.sqrt(n_panel))
+        if n_row is None:
+            n_row = np.ceil(n_panel / n_column)
+        if n_column is None:
+            n_column = np.ceil(n_panel / n_row)
+        conf.n_column = n_column
+        conf.n_row = n_row
+        if (n_column * n_row) < rdm.n_rdm:
+            raise ValueError(
+                f"invalid n_row*n_column specification for {n_panel} rdms: {n_row}*{n_column}"
+            )
+        if figsize is None:
+            # scale with number of RDMs, up to a point (the intersection of A4 and us
+            # letter)
+            figsize = (min(2 * n_column, 8.3), min(2 * n_row, 11))
+        conf.figsize = figsize
+        if not np.any(gridlines):
+            # empty list to disable gridlines
+            gridlines = []
+            if num_pattern_groups:
+                # grid by pattern groups if they exist and explicit grid setting does not
+                gridlines = np.arange(
+                    num_pattern_groups - 0.5, rdm.n_cond + 0.5, num_pattern_groups
+                )
+        conf.gridlines = np.asarray(gridlines)
+        if num_pattern_groups is None or num_pattern_groups == 0:
+            num_pattern_groups = 1
+        conf.num_pattern_groups = num_pattern_groups
+        conf.n_panel = n_panel
+        conf.style = Path(str(style)) if style is not None else get_style()
+        conf.icon_spacing = icon_spacing
+        conf.linewidth = linewidth
+        if cmap == 'classic':
+            cmap = rdm_colormap_classic()
+        conf.cmap = cmap
+        conf.rdm = rdm
+        conf.pattern_descriptor = pattern_descriptor
+        conf.rdm_descriptor = rdm_descriptor or ''
+        return conf
