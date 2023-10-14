@@ -1,5 +1,8 @@
 from unittest import TestCase
-from importlib.resources import files, as_file
+try:
+    from importlib.resources import files, as_file
+except ImportError:
+    from importlib_resources import files, as_file
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 
