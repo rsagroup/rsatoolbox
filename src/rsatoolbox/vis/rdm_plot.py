@@ -117,6 +117,7 @@ def show_rdm(
     )
     # A dictionary of figure element handles
     handles = dict()
+    handles[-1] = dict() # fig level handles
     # create a list of (row index, column index) tuples
     rc_tuples = list(itertools.product(range(conf.n_row), range(conf.n_column)))
     # number of empty panels at the top
@@ -130,6 +131,7 @@ def show_rdm(
             squeeze=False,
             figsize=conf.figsize,
         )
+        p = 0
         for p, (r, c) in enumerate(rc_tuples):
             handles[p] = dict()
             rdm_index = p - n_empty ## rdm index
@@ -153,10 +155,9 @@ def show_rdm(
                 handles[p]["x_labels"] = _add_descriptor_labels(Axis.X, ax_array[r, c], conf)
 
         if show_colorbar == "figure":
-            # use last instance of 'image' (should all be yoked at this point)
-            cb_parent = ax_array[-1, -1]
+            cb_parent = ax_array[0, 0] ## first panel
             handles[-1]["colorbar"] = _rdm_colorbar(
-                mappable=handles[0]["image"],
+                mappable=handles[p]["image"],
                 fig=fig,
                 ax=cb_parent,
                 title=conf.dissimilarity_measure,
@@ -502,9 +503,9 @@ class MultiRdmPlot:
         conf.vmin = vmin
         conf.vmax = vmax
         if (n_column is None) and (n_row is None):
-            conf.n_column = ceil(np.sqrt(n_panel))
+            n_column = ceil(np.sqrt(n_panel))
         if n_row is None:
-            n_row = ceil(n_panel / conf.n_column)
+            n_row = ceil(n_panel / n_column)
         if n_column is None:
             n_column = ceil(n_panel / n_row)
         conf.n_column = n_column
