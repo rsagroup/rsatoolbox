@@ -55,7 +55,7 @@ def show_rdm(
     nanmask: NDArray | str | None = "diagonal",
     style: Optional[Union[str, Path]] = None,
     vmin: Optional[float] = None,
-    vmax: Optional[float]= None,
+    vmax: Optional[float] = None,
     icon_spacing: float = 1.0,
     linewidth: float = 0.5,
 ) -> Tuple[Figure, NDArray, Dict[int, Dict[str, Any]]]:
@@ -109,17 +109,17 @@ def show_rdm(
               objects (icon labels, colorbars, etc). The key at the first level is the axis index.
 
     """
-    ## create a plot "configuration" object which resolves all parameters
+    # create a plot "configuration" object which resolves all parameters
     conf = MultiRdmPlot.from_show_rdm_args(
         rdms, pattern_descriptor, cmap, rdm_descriptor, n_column, n_row,
         show_colorbar, gridlines, num_pattern_groups, figsize, nanmask,
         style, vmin, vmax, icon_spacing, linewidth,
     )
-    ## A dictionary of figure element handles
+    # A dictionary of figure element handles
     handles = dict()
-    ## create a list of (row index, column index) tuples
+    # create a list of (row index, column index) tuples
     rc_tuples = list(itertools.product(range(conf.n_row), range(conf.n_column)))
-    ## number of empty panels at the top
+    # number of empty panels at the top
     n_empty = (conf.n_row * conf.n_column) - rdms.n_rdm
     with plt.style.context(conf.style):
         fig, ax_array = plt.subplots(
@@ -130,38 +130,38 @@ def show_rdm(
             squeeze=False,
             figsize=conf.figsize,
         )
-        for panel_index, (r, c) in enumerate(rc_tuples):
-            handles[panel_index] = dict()
-            rdm_index = panel_index - n_empty ## rdm index
+        for p, (r, c) in enumerate(rc_tuples):
+            handles[p] = dict()
+            rdm_index = p - n_empty ## rdm index
             if rdm_index < 0:
                 ax_array[r, c].set_visible(False)
                 continue
 
-            handles[panel_index]["image"] = _show_rdm_panel(conf.forSingle(rdm_index), ax_array[r, c])
+            handles[p]["image"] = _show_rdm_panel(conf.for_single(rdm_index), ax_array[r, c])
 
             if show_colorbar == "panel":
                 # needs to happen before labels because it resizes the axis
-                handles[panel_index]["colorbar"] = _rdm_colorbar(
-                    mappable=handles[panel_index]["image"],
+                handles[p]["colorbar"] = _rdm_colorbar(
+                    mappable=handles[p]["image"],
                     fig=fig,
                     ax=ax_array[r, c],
                     title=conf.dissimilarity_measure
                 )
             if c == 0 and pattern_descriptor:
-                handles[panel_index]["y_labels"] = _add_descriptor_labels(Axis.Y, ax_array[r, c], conf)
+                handles[p]["y_labels"] = _add_descriptor_labels(Axis.Y, ax_array[r, c], conf)
             if r == 0 and pattern_descriptor:
-                handles[panel_index]["x_labels"] = _add_descriptor_labels(Axis.X, ax_array[r, c], conf)
+                handles[p]["x_labels"] = _add_descriptor_labels(Axis.X, ax_array[r, c], conf)
 
         if show_colorbar == "figure":
             # use last instance of 'image' (should all be yoked at this point)
             cb_parent = ax_array[-1, -1]
-            handles[fig]["colorbar"] = _rdm_colorbar(
-                mappable=handles[-1]["image"],
+            handles[-1]["colorbar"] = _rdm_colorbar(
+                mappable=handles[0]["image"],
                 fig=fig,
                 ax=cb_parent,
                 title=conf.dissimilarity_measure,
             )
-            _adjust_colorbar_pos(handles[fig]["colorbar"], cb_parent)
+            _adjust_colorbar_pos(handles[-1]["colorbar"], cb_parent)
 
     return fig, ax_array, handles
 
@@ -249,10 +249,10 @@ def show_rdm_panel(
     Returns:
         matplotlib.image.AxesImage: Matplotlib handle.
     """
-    conf = SingleRdmPlot.from_show_rdm_panel_args(rdms, cmap, nanmask, 
+    conf = SingleRdmPlot.from_show_rdm_panel_args(rdms, cmap, nanmask,
         rdm_descriptor, gridlines, vmin, vmax)
     return _show_rdm_panel(conf, ax or plt.gca())
-    
+
 
 def _show_rdm_panel(conf: SingleRdmPlot, ax: Axes) -> AxesImage:
     """Plot a single RDM based on a plot configuration object
@@ -284,7 +284,7 @@ def _show_rdm_panel(conf: SingleRdmPlot, ax: Axes) -> AxesImage:
     return image
 
 
-def _add_descriptor_labels(whichAxis: Axis, ax: Axes, conf: MultiRdmPlot) -> List:
+def _add_descriptor_labels(which_axis: Axis, ax: Axes, conf: MultiRdmPlot) -> List:
     """_add_descriptor_labels.
 
     Args:
@@ -304,7 +304,7 @@ def _add_descriptor_labels(whichAxis: Axis, ax: Axes, conf: MultiRdmPlot) -> Lis
     Returns:
         list: Tick label handles.
     """
-    if whichAxis == Axis.X:
+    if which_axis == Axis.X:
         icon_method = "x_tick_label"
         axis = ax.xaxis
         horizontalalignment="center"
@@ -543,8 +543,16 @@ class MultiRdmPlot:
         conf.rdm_descriptor = rdm_descriptor or ''
         conf.dissimilarity_measure = rdm.dissimilarity_measure or ''
         return conf
-    
-    def forSingle(self, index: int) -> SingleRdmPlot:
+
+    def for_single(self, index: int) -> SingleRdmPlot:
+        """Create a SingleRdmPlot object for the given rdm index
+
+        Args:
+            index (int): Index for the rdms
+
+        Returns:
+            SingleRdmPlot: _description_
+        """
         conf = SingleRdmPlot()
         conf.rdms = self.rdms[index]
         conf.cmap = self.cmap
@@ -558,7 +566,7 @@ class MultiRdmPlot:
         else:
             conf.title = self.rdm_descriptor
         return conf
-    
+
 class SingleRdmPlot:
     """Configuration for the single-rdm plot
     """

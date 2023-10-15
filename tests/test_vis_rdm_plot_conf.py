@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import numpy
 
 
-class Test_rdm_plot_conf(TestCase):
+class TestRdmPlot(TestCase):
     
     def test_nrow_ncolumn(self):
         from rsatoolbox.vis.rdm_plot import MultiRdmPlot
