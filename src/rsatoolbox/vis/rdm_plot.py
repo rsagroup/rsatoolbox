@@ -2,12 +2,14 @@
 Plot showing an RDMs object
 """
 from __future__ import annotations
-import collections
+import itertools
 from pathlib import Path
-from typing import TYPE_CHECKING, Union, Tuple, Optional, Literal
+from typing import TYPE_CHECKING, Union, Tuple, Optional, Literal, Dict, Any, List
+from enum import StrEnum, auto
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.ticker import LinearLocator
 import rsatoolbox.rdm
 from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox import vis
@@ -16,30 +18,36 @@ from rsatoolbox.resources import get_style
 if TYPE_CHECKING:
     import numpy.typing as npt
     from matplotlib.axes._axes import Axes
+    from matplotlib.cm import ScalarMappable
     from matplotlib.colors import Colormap
+    from matplotlib.colorbar import Colorbar
+    from matplotlib.figure import Figure
+    from matplotlib.text import Text
     from numpy.typing import NDArray
+
+class Axis(StrEnum):
+    X = auto()
+    Y = auto()
 
 
 def show_rdm(
-    rdm: rsatoolbox.rdm.RDMs,
-    pattern_descriptor: str = None,
+    rdms: rsatoolbox.rdm.RDMs,
+    pattern_descriptor: Optional[str] = None,
     cmap: Union[str, Colormap] = 'bone',
-    rdm_descriptor: str = None,
-    n_column: int = None,
-    n_row: int = None,
-    show_colorbar: str = None,
-    gridlines: npt.ArrayLike = None,
-    num_pattern_groups: int = None,
-    figsize: Tuple[float, float] = None,
+    rdm_descriptor: Optional[str] = None,
+    n_column: Optional[int] = None,
+    n_row: Optional[int] = None,
+    show_colorbar: Optional[str] = None,
+    gridlines: Optional[npt.ArrayLike] = None,
+    num_pattern_groups: Optional[int] = None,
+    figsize: Optional[Tuple[float, float]] = None,
     nanmask: npt.ArrayLike | str | None = "diagonal",
     style: Optional[Union[str, Path]] = None,
-    vmin: float = None,
-    vmax: float = None,
+    vmin: Optional[float] = None,
+    vmax: Optional[float]= None,
     icon_spacing: float = 1.0,
     linewidth: float = 0.5,
-) -> Tuple[
-    matplotlib.figure.Figure, npt.ArrayLike, collections.defaultdict
-]:
+) -> Tuple[Figure, NDArray, Dict[int, Dict[str, Any]]]:
     """show_rdm. Heatmap figure for RDMs instance, with one panel per RDM.
 
     Args:
@@ -80,162 +88,109 @@ def show_rdm(
             margin.  The default is 0.5 - set to 0. to disable the lines.
 
     Returns:
-        Tuple[matplotlib.figure.Figure, npt.ArrayLike, collections.defaultdict]:
+        Tuple[Figure, ArrayLike, Dict]:
 
         Tuple of
 
             - Handle to created figure.
             - Subplot axis handles from plt.subplots.
             - Nested dict containing handles to all other plotted
-              objects (icon labels, colorbars, etc). The keys at the first level are the
-              axis and figure handles.
+              objects (icon labels, colorbars, etc). The key at the first level is the axis index.
 
     """
-    #MultiRdmPlotConf.from_plot_rdm_args()
-    if show_colorbar and show_colorbar not in ("panel", "figure"):
-        raise ValueError(
-            f"show_colorbar can be None, panel or figure, got: {show_colorbar}"
-        )
-    if nanmask is None:
-        nanmask = np.zeros((rdm.n_cond, rdm.n_cond), dtype=bool)
-    elif isinstance(nanmask, str):
-        if nanmask == "diagonal":
-            nanmask = np.eye(rdm.n_cond, dtype=bool)
-        else:
-            raise ValueError("Invalid nanmask value")
-    n_panel = rdm.n_rdm
-    if show_colorbar == "figure":
-        n_panel += 1
-        # need to keep track of global CB limits
-        if any(var is None for var in [vmin, vmax]):
-            # need to load the RDMs here (expensive)
-            rdmat = rdm.get_matrices()
-            if vmin is None:
-                vmin = rdmat[:, (nanmask == False)].min()
-            if vmax is None:
-                vmax = rdmat[:, (nanmask == False)].max()
-    if n_column is None and n_row is None:
-        n_column = np.ceil(np.sqrt(n_panel))
-    if n_row is None:
-        n_row = np.ceil(n_panel / n_column)
-    if n_column is None:
-        n_column = np.ceil(n_panel / n_row)
-    if (n_column * n_row) < rdm.n_rdm:
-        raise ValueError(
-            f"invalid n_row*n_column specification for {n_panel} rdms: {n_row}*{n_column}"
-        )
-    if figsize is None:
-        # scale with number of RDMs, up to a point (the intersection of A4 and us
-        # letter)
-        figsize = (min(2 * n_column, 8.3), min(2 * n_row, 11))
-    if not np.any(gridlines):
-        # empty list to disable gridlines
-        gridlines = []
-        if num_pattern_groups:
-            # grid by pattern groups if they exist and explicit grid setting does not
-            gridlines = np.arange(
-                num_pattern_groups - 0.5, rdm.n_cond + 0.5, num_pattern_groups
-            )
-    if num_pattern_groups is None or num_pattern_groups == 0:
-        num_pattern_groups = 1
-    # we don't necessarily have the same number of RDMs as panels, so need to stop the
-    # loop when we've plotted all the RDMs
-    rdms_gen = (this_rdm for this_rdm in rdm)
-    # return values are
-    # image, axis, colorbar, x_labels, y_labels
-    # some are global for figure, others local. Perhaps dicts indexed by axis is easiest
-    return_handles = collections.defaultdict(dict)
-    with plt.style.context(style or get_style()):
+    ## create a plot "configuration" object which resolves all parameters
+    conf = MultiRdmPlot.from_show_rdm_args(
+        rdms, pattern_descriptor, cmap, rdm_descriptor, n_column, n_row,
+        show_colorbar, gridlines, num_pattern_groups, figsize, nanmask,
+        style, vmin, vmax, icon_spacing, linewidth,
+    )
+    ## A dictionary of figure element handles
+    handles = dict()
+    ## create a list of (row index, column index) tuples
+    rc_tuples = list(itertools.product(range(conf.n_row), range(conf.n_column)))
+    ## number of empty panels at the top
+    n_empty = (conf.n_row * conf.n_column) - rdms.n_rdm
+    with plt.style.context(conf.style):
         fig, ax_array = plt.subplots(
-            nrows=int(n_row),
-            ncols=int(n_column),
+            nrows=conf.n_row,
+            ncols=conf.n_column,
             sharex=True,
             sharey=True,
             squeeze=False,
-            figsize=figsize,
+            figsize=conf.figsize,
         )
-        # reverse panel order so unfilled rows are at top instead of bottom
-        ax_array = ax_array[::-1]
-        for row_ind, row in enumerate(ax_array):
-            for col_ind, panel in enumerate(row):
-                try:
-                    return_handles[panel]["image"] = show_rdm_panel(
-                        next(rdms_gen),
-                        ax=panel,
-                        cmap=cmap,
-                        nanmask=nanmask,
-                        rdm_descriptor=rdm_descriptor,
-                        gridlines=gridlines,
-                        vmin=vmin,
-                        vmax=vmax,
-                    )
-                except StopIteration:
-                    # hide empty panels
-                    panel.set_visible(False)
-                    continue
-                if show_colorbar == "panel":
-                    # needs to happen before labels because it resizes the axis
-                    return_handles[panel]["colorbar"] = _rdm_colorbar(
-                        mappable=return_handles[panel]["image"],
-                        fig=fig,
-                        ax=panel,
-                        title=rdm.dissimilarity_measure,
-                    )
-                if col_ind == 0 and pattern_descriptor:
-                    return_handles[panel]["y_labels"] = add_descriptor_y_labels(
-                        rdm,
-                        pattern_descriptor,
-                        ax=panel,
-                        num_pattern_groups=num_pattern_groups,
-                        icon_spacing=icon_spacing,
-                        linewidth=linewidth,
-                    )
-                if row_ind == 0 and pattern_descriptor:
-                    return_handles[panel]["x_labels"] = add_descriptor_x_labels(
-                        rdm,
-                        pattern_descriptor,
-                        ax=panel,
-                        num_pattern_groups=num_pattern_groups,
-                        icon_spacing=icon_spacing,
-                        linewidth=linewidth,
-                    )
+        for panel_index, (r, c) in enumerate(rc_tuples):
+            handles[panel_index] = dict()
+            rdm_index = panel_index - n_empty ## rdm index
+            if rdm_index < 0:
+                ax_array[r, c].set_visible(False)
+                continue
+
+            handles[panel_index]["image"] = show_rdm_panel(
+                rdms[rdm_index],
+                ax=ax_array[r, c],
+                cmap=cmap,
+                nanmask=conf.nanmask,
+                rdm_descriptor=conf.rdm_descriptor,
+                gridlines=conf.gridlines,
+                vmin=conf.vmin,
+                vmax=conf.vmax,
+            )
+            if show_colorbar == "panel":
+                # needs to happen before labels because it resizes the axis
+                handles[panel_index]["colorbar"] = _rdm_colorbar(
+                    mappable=handles[panel_index]["image"],
+                    fig=fig,
+                    ax=ax_array[r, c],
+                    title=conf.dissimilarity_measure
+                )
+            if c == 0 and pattern_descriptor:
+                handles[panel_index]["y_labels"] = _add_descriptor_labels(Axis.Y, ax_array[r, c], conf)
+            if r == 0 and pattern_descriptor:
+                handles[panel_index]["x_labels"] = _add_descriptor_labels(Axis.X, ax_array[r, c], conf)
+
         if show_colorbar == "figure":
-            # key challenge is to obtain a similarly-sized colorbar to the 'panel' case
-            # BUT positioned centered on the reserved subplot axes
-            cbax_parent = ax_array[-1, -1]
-            cbax_parent_orgpos = cbax_parent.get_position(original=True)
             # use last instance of 'image' (should all be yoked at this point)
-            return_handles[fig]["colorbar"] = _rdm_colorbar(
-                mappable=return_handles[ax_array[0][0]]["image"],
+            cb_parent = ax_array[-1, -1]
+            handles[fig]["colorbar"] = _rdm_colorbar(
+                mappable=handles[-1]["image"],
                 fig=fig,
-                ax=cbax_parent,
-                title=rdm.dissimilarity_measure,
+                ax=cb_parent,
+                title=conf.dissimilarity_measure,
             )
-            cbax_pos = return_handles[fig]["colorbar"].ax.get_position()
-            # halfway through panel, less the width/height of the colorbar itself
-            x0 = (
-                cbax_parent_orgpos.x0
-                + cbax_parent_orgpos.width / 2
-                - cbax_pos.width / 2
-            )
-            y0 = (
-                cbax_parent_orgpos.y0
-                + cbax_parent_orgpos.height / 2
-                - cbax_pos.height / 2
-            )
-            return_handles[fig]["colorbar"].ax.set_position(
-                [x0, y0, cbax_pos.width, cbax_pos.height]
-            )
+            _adjust_colorbar_pos(handles[fig]["colorbar"], cb_parent)
 
-    return fig, ax_array, return_handles
+    return fig, ax_array, handles
 
 
-def _rdm_colorbar(
-    mappable: matplotlib.cm.ScalarMappable = None,
-    fig: matplotlib.figure.Figure = None,
-    ax: Axes = None,
-    title: str = None,
-) -> matplotlib.colorbar.Colorbar:
+def _adjust_colorbar_pos(cb: Colorbar, parent: Axes) -> None:
+    """Moves figure-level colorbar to the right position
+
+    Args:
+        cb (Colorbar): The matplotlib colorbar object
+        parent (Axes): Parent object axes
+    """
+    # key challenge is to obtain a similarly-sized colorbar to the 'panel' case
+    # BUT positioned centered on the reserved subplot axes
+    #parent = ax_array[-1, -1]
+    cbax_parent_orgpos = parent.get_position(original=True)
+    # use last instance of 'image' (should all be yoked at this point)
+    cbax_pos = cb.ax.get_position()
+    # halfway through panel, less the width/height of the colorbar itself
+    x0 = (
+        cbax_parent_orgpos.x0
+        + cbax_parent_orgpos.width / 2
+        - cbax_pos.width / 2
+    )
+    y0 = (
+        cbax_parent_orgpos.y0
+        + cbax_parent_orgpos.height / 2
+        - cbax_pos.height / 2
+    )
+    cb.ax.set_position((x0, y0, cbax_pos.width, cbax_pos.height))
+
+
+def _rdm_colorbar(mappable: ScalarMappable, fig: Figure, ax: Axes, title: str) -> Colorbar:
     """_rdm_colorbar. Add vertically-oriented, small colorbar to rdm figure. Used
     internally by show_rdm.
 
@@ -253,7 +208,7 @@ def _rdm_colorbar(
         ax=ax,
         shrink=0.25,
         aspect=5,
-        ticks=matplotlib.ticker.LinearLocator(numticks=3),
+        ticks=LinearLocator(numticks=3),
     )
     cb.ax.set_title(title, loc="left", fontdict=dict(fontweight="normal"))
     return cb
@@ -325,94 +280,8 @@ def show_rdm_panel(
     return image
 
 
-def add_descriptor_x_labels(
-    rdm: rsatoolbox.rdm.RDMs,
-    pattern_descriptor: str,
-    ax: Axes = None,
-    num_pattern_groups: int = None,
-    icon_spacing: float = 1.0,
-    linewidth: float = 0.5,
-) -> list:
-    """add_descriptor_x_labels. Add labels to the X axis in ax by accessing the
-    rdm.pattern_descriptors dict with the pattern_descriptor key.
-
-    Args:
-        rdm (rsatoolbox.rdm.RDMs): RDMs instance to annotate.
-        pattern_descriptor (str): dict key for the rdm.pattern_descriptors dict.
-        ax (matplotlib.axes._axes.Axes): Matplotlib axis handle. plt.gca() by default.
-        num_pattern_groups (int): Number of rows/columns for any image labels.
-        icon_spacing (float): control spacing of image labels - 1. means no gap (the
-            default), 1.1 means pad 10%, .9 means overlap 10% etc.
-        linewidth (float): Width of connecting lines from icon labels (if used) to axis
-            margin.  The default is 0.5 - set to 0. to disable the lines.
-
-    Returns:
-        list: Tick label handles.
-    """
-    if ax is None:
-        ax = plt.gca()
-    return _add_descriptor_labels(
-        rdm,
-        pattern_descriptor,
-        "x_tick_label",
-        ax.xaxis,
-        num_pattern_groups=num_pattern_groups,
-        icon_spacing=icon_spacing,
-        linewidth=linewidth,
-        horizontalalignment="center",
-    )
-
-
-def add_descriptor_y_labels(
-    rdm: rsatoolbox.rdm.RDMs,
-    pattern_descriptor: str,
-    ax: Axes = None,
-    num_pattern_groups: int = None,
-    icon_spacing: float = 1.0,
-    linewidth: float = 0.5,
-) -> list:
-    """add_descriptor_y_labels. Add labels to the Y axis in ax by accessing the
-    rdm.pattern_descriptors dict with the pattern_descriptor key.
-
-    Args:
-        rdm (rsatoolbox.rdm.RDMs): RDMs instance to annotate.
-        pattern_descriptor (str): dict key for the rdm.pattern_descriptors dict.
-        ax (matplotlib.axes._axes.Axes): Matplotlib axis handle. plt.gca() by default.
-        num_pattern_groups (int): Number of rows/columns for any image labels.
-        icon_spacing (float): control spacing of image labels - 1. means no gap (the
-            default), 1.1 means pad 10%, .9 means overlap 10% etc.
-        linewidth (float): Width of connecting lines from icon labels (if used) to axis
-            margin.  The default is 0.5 - set to 0. to disable the lines.
-
-    Returns:
-        list: Tick label handles.
-    """
-    if ax is None:
-        ax = plt.gca()
-    return _add_descriptor_labels(
-        rdm,
-        pattern_descriptor,
-        "y_tick_label",
-        ax.yaxis,
-        num_pattern_groups=num_pattern_groups,
-        icon_spacing=icon_spacing,
-        linewidth=linewidth,
-        horizontalalignment="right",
-    )
-
-
-def _add_descriptor_labels(
-    rdm: rsatoolbox.rdm.RDMs,
-    pattern_descriptor: str,
-    icon_method: str,
-    axis: Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis],
-    num_pattern_groups: int = None,
-    icon_spacing: float = 1.0,
-    linewidth: float = 0.5,
-    horizontalalignment: str = "center",
-) -> list:
-    """_add_descriptor_labels. Used internally by add_descriptor_y_labels and
-    add_descriptor_x_labels.
+def _add_descriptor_labels(whichAxis: Axis, ax: Axes, conf: MultiRdmPlot) -> List:
+    """_add_descriptor_labels.
 
     Args:
         rdm (rsatoolbox.rdm.RDMs): RDMs instance to annotate.
@@ -431,16 +300,24 @@ def _add_descriptor_labels(
     Returns:
         list: Tick label handles.
     """
-    descriptor_arr = np.asarray(rdm.pattern_descriptors[pattern_descriptor])
+    if whichAxis == Axis.X:
+        icon_method = "x_tick_label"
+        axis = ax.xaxis
+        horizontalalignment="center"
+    else:
+        icon_method = "y_tick_label"
+        axis = ax.yaxis
+        horizontalalignment="right"
+    descriptor_arr = np.asarray(conf.rdms.pattern_descriptors[conf.pattern_descriptor])
     if isinstance(descriptor_arr[0], vis.Icon):
         return _add_descriptor_icons(
             descriptor_arr,
             icon_method,
-            n_cond=rdm.n_cond,
+            n_cond=conf.rdms.n_cond,
             ax=axis.axes,
-            icon_spacing=icon_spacing,
-            num_pattern_groups=num_pattern_groups,
-            linewidth=linewidth,
+            icon_spacing=conf.icon_spacing,
+            num_pattern_groups=conf.num_pattern_groups,
+            linewidth=conf.linewidth,
         )
     is_x_axis = "x" in icon_method
     return _add_descriptor_text(
@@ -456,7 +333,7 @@ def _add_descriptor_text(
     axis: Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis],
     horizontalalignment: str = "center",
     is_x_axis: bool = False,
-) -> list:
+) -> List[Text]:
     """_add_descriptor_text. Used internally by _add_descriptor_labels to add vanilla
     Matplotlib-based text labels to the X or Y axis.
 
@@ -547,11 +424,11 @@ def _add_descriptor_icons(
     return label_handles
 
 
-class MultiRdmPlotConf(object):
+class MultiRdmPlot(object):
     """Configuration for the multi-rdm plot
     """
 
-    rdm: RDMs
+    rdms: RDMs
     pattern_descriptor: Optional[str]
     cmap: Union[str, Colormap]
     rdm_descriptor: str
@@ -568,9 +445,10 @@ class MultiRdmPlotConf(object):
     icon_spacing: float
     linewidth: float
     n_panel: int
+    dissimilarity_measure: str
 
     @classmethod
-    def from_plot_rdm_args(
+    def from_show_rdm_args(
         cls,
         rdm: RDMs,
         pattern_descriptor: Optional[str] = None,
@@ -588,7 +466,7 @@ class MultiRdmPlotConf(object):
         vmax: Optional[float] = None,
         icon_spacing: float = 1.0,
         linewidth: float = 0.5,
-    ) -> MultiRdmPlotConf:
+    ) -> MultiRdmPlot:
         conf = __class__()
         if show_colorbar not in (None, "panel", "figure"):
             raise ValueError(
@@ -653,7 +531,8 @@ class MultiRdmPlotConf(object):
         if cmap == 'classic':
             cmap = rdm_colormap_classic()
         conf.cmap = cmap
-        conf.rdm = rdm
+        conf.rdms = rdm
         conf.pattern_descriptor = pattern_descriptor
         conf.rdm_descriptor = rdm_descriptor or ''
+        conf.dissimilarity_measure = rdm.dissimilarity_measure or ''
         return conf
