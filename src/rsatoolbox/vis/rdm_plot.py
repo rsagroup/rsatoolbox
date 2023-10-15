@@ -23,9 +23,14 @@ if TYPE_CHECKING:
     from matplotlib.colorbar import Colorbar
     from matplotlib.figure import Figure
     from matplotlib.text import Text
+    from matplotlib.image import AxesImage
+    from matplotlib.axis import XAxis, YAxis
     from numpy.typing import NDArray
 
+
 class Axis(StrEnum):
+    """X or Y axis Enum
+    """
     X = auto()
     Y = auto()
 
@@ -126,16 +131,8 @@ def show_rdm(
                 ax_array[r, c].set_visible(False)
                 continue
 
-            handles[panel_index]["image"] = show_rdm_panel(
-                rdms[rdm_index],
-                ax=ax_array[r, c],
-                cmap=cmap,
-                nanmask=conf.nanmask,
-                rdm_descriptor=conf.rdm_descriptor,
-                gridlines=conf.gridlines,
-                vmin=conf.vmin,
-                vmax=conf.vmax,
-            )
+            handles[panel_index]["image"] = _show_rdm_panel(conf.forSingle(rdm_index), ax_array[r, c])
+
             if show_colorbar == "panel":
                 # needs to happen before labels because it resizes the axis
                 handles[panel_index]["colorbar"] = _rdm_colorbar(
@@ -215,15 +212,15 @@ def _rdm_colorbar(mappable: ScalarMappable, fig: Figure, ax: Axes, title: str) -
 
 
 def show_rdm_panel(
-    rdm: rsatoolbox.rdm.RDMs,
+    rdms: rsatoolbox.rdm.RDMs,
     ax: Optional[Axes] = None,
     cmap: Union[str, Colormap] = 'bone',
-    nanmask: npt.ArrayLike = None,
-    rdm_descriptor: str = None,
-    gridlines: npt.ArrayLike = None,
-    vmin: float = None,
-    vmax: float = None,
-) -> matplotlib.image.AxesImage:
+    nanmask: Optional[NDArray] = None,
+    rdm_descriptor: Optional[str] = None,
+    gridlines: Optional[npt.ArrayLike] = None,
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
+) -> AxesImage:
     """show_rdm_panel. Add RDM heatmap to the axis ax.
 
     Args:
@@ -246,37 +243,38 @@ def show_rdm_panel(
     Returns:
         matplotlib.image.AxesImage: Matplotlib handle.
     """
-    if rdm.n_rdm > 1:
-        raise ValueError("expected single rdm - use show_rdm for multi-panel figures")
-    if ax is None:
-        ax = plt.gca()
-    if cmap == 'classic':
-        cmap = rdm_colormap_classic()
-    if nanmask is None:
-        nanmask = np.eye(rdm.n_cond, dtype=bool)
-    if not np.any(gridlines):
-        gridlines = []
-    rdmat = rdm.get_matrices()[0, :, :]
-    if np.any(nanmask):
-        rdmat[nanmask] = np.nan
-    image = ax.imshow(
-        rdmat, cmap=cmap, vmin=vmin, vmax=vmax,
+    conf = SingleRdmPlot.from_show_rdm_panel_args(rdms, cmap, nanmask, 
+        rdm_descriptor, gridlines, vmin, vmax)
+    return _show_rdm_panel(conf, ax or plt.gca())
+    
+
+def _show_rdm_panel(conf: SingleRdmPlot, ax: Axes) -> AxesImage:
+    """Plot a single RDM based on a plot configuration object
+
+    Args:
+        conf (SingleRdmPlot): _description_
+        ax (Axes): _description_
+
+    Returns:
+        AxesImage: _description_
+    """
+    rdmat = conf.rdms.get_matrices()[0, :, :]
+    if np.any(conf.nanmask):
+        rdmat[conf.nanmask] = np.nan
+    image = ax.imshow(rdmat, cmap=conf.cmap, vmin=conf.vmin, vmax=conf.vmax,
         interpolation='none')
-    ax.set_xlim(-0.5, rdm.n_cond - 0.5)
-    ax.set_ylim(rdm.n_cond - 0.5, -0.5)
-    ax.xaxis.set_ticks(gridlines)
-    ax.yaxis.set_ticks(gridlines)
+    ax.set_xlim(-0.5, conf.rdms.n_cond - 0.5)
+    ax.set_ylim(conf.rdms.n_cond - 0.5, -0.5)
+    ax.xaxis.set_ticks(conf.gridlines)
+    ax.yaxis.set_ticks(conf.gridlines)
     ax.xaxis.set_ticklabels([])
     ax.yaxis.set_ticklabels([])
-    ax.xaxis.set_ticks(np.arange(rdm.n_cond), minor=True)
-    ax.yaxis.set_ticks(np.arange(rdm.n_cond), minor=True)
+    ax.xaxis.set_ticks(np.arange(conf.rdms.n_cond), minor=True)
+    ax.yaxis.set_ticks(np.arange(conf.rdms.n_cond), minor=True)
     # hide minor ticks by default
     ax.xaxis.set_tick_params(length=0, which="minor")
     ax.yaxis.set_tick_params(length=0, which="minor")
-    if rdm_descriptor in rdm.rdm_descriptors:
-        ax.set_title(rdm.rdm_descriptors[rdm_descriptor][0])
-    else:
-        ax.set_title(rdm_descriptor)
+    ax.set_title(conf.title)
     return image
 
 
@@ -330,7 +328,7 @@ def _add_descriptor_labels(whichAxis: Axis, ax: Axes, conf: MultiRdmPlot) -> Lis
 
 def _add_descriptor_text(
     descriptor_arr: npt.ArrayLike,
-    axis: Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis],
+    axis: Union[XAxis, YAxis],
     horizontalalignment: str = "center",
     is_x_axis: bool = False,
 ) -> List[Text]:
@@ -535,4 +533,61 @@ class MultiRdmPlot(object):
         conf.pattern_descriptor = pattern_descriptor
         conf.rdm_descriptor = rdm_descriptor or ''
         conf.dissimilarity_measure = rdm.dissimilarity_measure or ''
+        return conf
+    
+    def forSingle(self, index: int) -> SingleRdmPlot:
+        conf = SingleRdmPlot()
+        conf.rdms = self.rdms[index]
+        conf.cmap = self.cmap
+        conf.rdm_descriptor = self.rdm_descriptor
+        conf.gridlines = self.gridlines
+        conf.nanmask = self.nanmask
+        conf.vmin = self.vmin
+        conf.vmax = self.vmax
+        if self.rdm_descriptor in conf.rdms.rdm_descriptors:
+            conf.title = conf.rdms.rdm_descriptors[self.rdm_descriptor][0]
+        else:
+            conf.title = self.rdm_descriptor
+        return conf
+    
+class SingleRdmPlot:
+
+    rdms: RDMs
+    cmap: Union[str, Colormap]
+    rdm_descriptor: str
+    gridlines: NDArray
+    nanmask: NDArray
+    vmin: Optional[float]
+    vmax: Optional[float]
+    title: str
+
+    @classmethod
+    def from_show_rdm_panel_args(
+        cls,
+        rdms: RDMs,
+        cmap: Union[str, Colormap] = 'bone',
+        nanmask: Optional[NDArray] = None,
+        rdm_descriptor: Optional[str] = None,
+        gridlines: Optional[npt.ArrayLike] = None,
+        vmin: Optional[float] = None,
+        vmax: Optional[float] = None,
+    ) -> SingleRdmPlot:
+        conf = __class__()
+        if rdms.n_rdm > 1:
+            raise ValueError("expected single rdm - use show_rdm for multi-panel figures")
+        if cmap == 'classic':
+            cmap = rdm_colormap_classic()
+        conf.cmap = cmap
+        if nanmask is None:
+            nanmask = np.eye(rdms.n_cond, dtype=bool)
+        conf.nanmask = nanmask
+        if not np.any(gridlines):
+            gridlines = []
+        conf.gridlines = gridlines
+        if rdm_descriptor in rdms.rdm_descriptors:
+            conf.title = rdms.rdm_descriptors[rdm_descriptor][0]
+        else:
+            conf.title = rdm_descriptor or ''
+        conf.vmin = vmin
+        conf.vmax = vmax
         return conf
