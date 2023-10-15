@@ -10,7 +10,7 @@ from __future__ import annotations
 import itertools
 from pathlib import Path
 from typing import TYPE_CHECKING, Union, Tuple, Optional, Literal, Dict, Any, List
-from enum import StrEnum, auto
+from enum import Enum
 from math import ceil
 import numpy as np
 import matplotlib
@@ -34,11 +34,11 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray, ArrayLike
 
 
-class Axis(StrEnum):
+class Axis(Enum):
     """X or Y axis Enum
     """
-    X = auto()
-    Y = auto()
+    X = 'x'
+    Y = 'y'
 
 
 def show_rdm(
@@ -428,7 +428,7 @@ def _add_descriptor_icons(
     return label_handles
 
 
-class MultiRdmPlot(object):
+class MultiRdmPlot:
     """Configuration for the multi-rdm plot
     """
 
@@ -471,6 +471,8 @@ class MultiRdmPlot(object):
         icon_spacing: float = 1.0,
         linewidth: float = 0.5,
     ) -> MultiRdmPlot:
+        """Create an object from the original arguments to show_rdm()
+        """
         conf = __class__()
         if show_colorbar not in (None, "panel", "figure"):
             raise ValueError(
@@ -558,6 +560,8 @@ class MultiRdmPlot(object):
         return conf
     
 class SingleRdmPlot:
+    """Configuration for the single-rdm plot
+    """
 
     rdms: RDMs
     cmap: Union[str, Colormap]
@@ -579,6 +583,8 @@ class SingleRdmPlot:
         vmin: Optional[float] = None,
         vmax: Optional[float] = None,
     ) -> SingleRdmPlot:
+        """Create an object from the original arguments to show_rdm_panel()
+        """
         conf = __class__()
         if rdms.n_rdm > 1:
             raise ValueError("expected single rdm - use show_rdm for multi-panel figures")
