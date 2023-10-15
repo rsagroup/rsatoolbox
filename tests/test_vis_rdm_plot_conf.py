@@ -4,7 +4,7 @@ import numpy
 
 
 class TestRdmPlot(TestCase):
-    
+
     def test_nrow_ncolumn(self):
         from rsatoolbox.vis.rdm_plot import MultiRdmPlot
         rdms = Mock()
