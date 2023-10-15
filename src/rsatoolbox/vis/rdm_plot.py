@@ -1,11 +1,17 @@
 """
 Plot showing an RDMs object
+
+public API:
+
+- show_rdm()
+- show_rdm_panel()
 """
 from __future__ import annotations
 import itertools
 from pathlib import Path
 from typing import TYPE_CHECKING, Union, Tuple, Optional, Literal, Dict, Any, List
 from enum import StrEnum, auto
+from math import ceil
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -25,7 +31,7 @@ if TYPE_CHECKING:
     from matplotlib.text import Text
     from matplotlib.image import AxesImage
     from matplotlib.axis import XAxis, YAxis
-    from numpy.typing import NDArray
+    from numpy.typing import NDArray, ArrayLike
 
 
 class Axis(StrEnum):
@@ -46,7 +52,7 @@ def show_rdm(
     gridlines: Optional[npt.ArrayLike] = None,
     num_pattern_groups: Optional[int] = None,
     figsize: Optional[Tuple[float, float]] = None,
-    nanmask: npt.ArrayLike | str | None = "diagonal",
+    nanmask: NDArray | str | None = "diagonal",
     style: Optional[Union[str, Path]] = None,
     vmin: Optional[float] = None,
     vmax: Optional[float]= None,
@@ -438,8 +444,8 @@ class MultiRdmPlot(object):
     figsize: Tuple[float, float]
     nanmask: NDArray
     style: Path
-    vmin: float
-    vmax: float
+    vmin: Optional[float]
+    vmax: Optional[float]
     icon_spacing: float
     linewidth: float
     n_panel: int
@@ -458,7 +464,7 @@ class MultiRdmPlot(object):
         gridlines: Optional[npt.ArrayLike] = None,
         num_pattern_groups: Optional[int] = None,
         figsize: Optional[Tuple[float, float]] = None,
-        nanmask: npt.ArrayLike | str | None = "diagonal",
+        nanmask: NDArray | str | None = "diagonal",
         style: Optional[Union[str, Path]] = None,
         vmin: Optional[float] = None,
         vmax: Optional[float] = None,
@@ -493,12 +499,12 @@ class MultiRdmPlot(object):
         conf.n_panel = n_panel
         conf.vmin = vmin
         conf.vmax = vmax
-        if n_column is None and n_row is None:
-            n_column = np.ceil(np.sqrt(n_panel))
+        if (n_column is None) and (n_row is None):
+            conf.n_column = ceil(np.sqrt(n_panel))
         if n_row is None:
-            n_row = np.ceil(n_panel / n_column)
+            n_row = ceil(n_panel / conf.n_column)
         if n_column is None:
-            n_column = np.ceil(n_panel / n_row)
+            n_column = ceil(n_panel / n_row)
         conf.n_column = n_column
         conf.n_row = n_row
         if (n_column * n_row) < rdm.n_rdm:
@@ -510,6 +516,7 @@ class MultiRdmPlot(object):
             # letter)
             figsize = (min(2 * n_column, 8.3), min(2 * n_row, 11))
         conf.figsize = figsize
+        gridlines = gridlines or list()
         if not np.any(gridlines):
             # empty list to disable gridlines
             gridlines = []
@@ -555,7 +562,7 @@ class SingleRdmPlot:
     rdms: RDMs
     cmap: Union[str, Colormap]
     rdm_descriptor: str
-    gridlines: NDArray
+    gridlines: ArrayLike
     nanmask: NDArray
     vmin: Optional[float]
     vmax: Optional[float]
@@ -581,6 +588,7 @@ class SingleRdmPlot:
         if nanmask is None:
             nanmask = np.eye(rdms.n_cond, dtype=bool)
         conf.nanmask = nanmask
+        gridlines = gridlines or list()
         if not np.any(gridlines):
             gridlines = []
         conf.gridlines = gridlines
