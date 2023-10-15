@@ -155,14 +155,13 @@ def show_rdm(
                 handles[p]["x_labels"] = _add_descriptor_labels(Axis.X, ax_array[r, c], conf)
 
         if show_colorbar == "figure":
-            cb_parent = ax_array[0, 0] ## first panel
             handles[-1]["colorbar"] = _rdm_colorbar(
                 mappable=handles[p]["image"],
                 fig=fig,
-                ax=cb_parent,
+                ax=ax_array[0, 0],
                 title=conf.dissimilarity_measure,
             )
-            _adjust_colorbar_pos(handles[-1]["colorbar"], cb_parent)
+            _adjust_colorbar_pos(handles[-1]["colorbar"], ax_array[0, 0])
 
     return fig, ax_array, handles
 
