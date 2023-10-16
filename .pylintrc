@@ -143,6 +143,7 @@ disable=print-statement,
         use-dict-literal,
         use-list-literal, ## can cause issues with references being reused
         too-few-public-methods ## also flagged on enum's
+        superfluous-parens ## can be good for readability
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -498,7 +499,7 @@ check-str-concat-over-line-jumps=no
 max-args=5
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=7
+max-attributes=30
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr=5
