@@ -479,59 +479,30 @@ class MultiRdmPlot:
                 f"show_colorbar can be None, panel or figure, got: {show_colorbar}"
             )
         conf.show_colorbar = show_colorbar
-        if nanmask is None:
-            nanmask = np.zeros((rdm.n_cond, rdm.n_cond), dtype=bool)
-        elif isinstance(nanmask, str):
-            if nanmask == "diagonal":
-                nanmask = np.eye(rdm.n_cond, dtype=bool)
-            else:
-                raise ValueError("Invalid nanmask value")
-        conf.nanmask = nanmask
-        n_panel = rdm.n_rdm
+        conf.nanmask = cls.init_nan_mask(nanmask, rdm)
+        conf.n_panel = rdm.n_rdm + int(show_colorbar == "figure")
         if show_colorbar == "figure":
-            n_panel += 1
-            # need to keep track of global CB limits
-            if any(var is None for var in [vmin, vmax]):
-                # need to load the RDMs here (expensive)
-                rdmat = rdm.get_matrices()
-                if vmin is None:
-                    vmin = rdmat[:, (nanmask == False)].min()
-                if vmax is None:
-                    vmax = rdmat[:, (nanmask == False)].max()
-        conf.n_panel = n_panel
+            rdmat = rdm.get_matrices()
+            vmin = vmin or rdmat[:, (nanmask == False)].min()
+            vmax = vmax or rdmat[:, (nanmask == False)].max()
         conf.vmin = vmin
         conf.vmax = vmax
-        if (n_column is None) and (n_row is None):
-            n_column = ceil(np.sqrt(n_panel))
-        if n_row is None:
-            n_row = ceil(n_panel / n_column)
-        if n_column is None:
-            n_column = ceil(n_panel / n_row)
-        conf.n_column = n_column
-        conf.n_row = n_row
-        if (n_column * n_row) < rdm.n_rdm:
-            raise ValueError(
-                f"invalid n_row*n_column specification for {n_panel} rdms: {n_row}*{n_column}"
+        conf.n_row, conf.n_column = cls.determine_rows_cols_panels(
+            n_row, n_column, conf.n_panel)
+        # scale with number of RDMs, up to (intersection of A4 and us letter)
+        conf.figsize = figsize or (
+            min(2 * conf.n_column, 8.3), min(2 * conf.n_row, 11)
+        )
+        gridlines = np.asarray(gridlines or list())
+        if num_pattern_groups and (not np.any(gridlines)):
+            # grid by pattern groups if they exist and explicit grid setting does not
+            gridlines = np.arange(
+                num_pattern_groups - 0.5, rdm.n_cond + 0.5, num_pattern_groups
             )
-        if figsize is None:
-            # scale with number of RDMs, up to a point (the intersection of A4 and us
-            # letter)
-            figsize = (min(2 * n_column, 8.3), min(2 * n_row, 11))
-        conf.figsize = figsize
-        gridlines = gridlines or list()
-        if not np.any(gridlines):
-            # empty list to disable gridlines
-            gridlines = []
-            if num_pattern_groups:
-                # grid by pattern groups if they exist and explicit grid setting does not
-                gridlines = np.arange(
-                    num_pattern_groups - 0.5, rdm.n_cond + 0.5, num_pattern_groups
-                )
         conf.gridlines = np.asarray(gridlines)
         if num_pattern_groups is None or num_pattern_groups == 0:
             num_pattern_groups = 1
         conf.num_pattern_groups = num_pattern_groups
-        conf.n_panel = n_panel
         conf.style = Path(str(style)) if style is not None else get_style()
         conf.icon_spacing = icon_spacing
         conf.linewidth = linewidth
@@ -543,6 +514,40 @@ class MultiRdmPlot:
         conf.rdm_descriptor = rdm_descriptor or ''
         conf.dissimilarity_measure = rdm.dissimilarity_measure or ''
         return conf
+
+    @classmethod
+    def determine_rows_cols_panels(
+            cls,
+            n_row: Optional[int],
+            n_column: Optional[int],
+            n_panel: int
+        ) -> Tuple[int, int]:
+        """Choose the number of rows and columns of panels
+        """
+        if (n_column is None) and (n_row is None):
+            n_column = ceil(np.sqrt(n_panel))
+        if n_row is None:
+            n_row = ceil(n_panel / n_column)
+        if n_column is None:
+            n_column = ceil(n_panel / n_row)
+        return n_row, n_column
+
+    @classmethod
+    def init_nan_mask(
+            cls,
+            nanmask: NDArray | str | None,
+            rdms: RDMs,
+        ) -> NDArray:
+        """Interpret user's choice of nanmask
+        """
+        if nanmask is None:
+            nanmask = np.zeros((rdms.n_cond, rdms.n_cond), dtype=bool)
+        elif isinstance(nanmask, str):
+            if nanmask == "diagonal":
+                nanmask = np.eye(rdms.n_cond, dtype=bool)
+            else:
+                raise ValueError("Invalid nanmask value")
+        return nanmask
 
     def for_single(self, index: int) -> SingleRdmPlot:
         """Create a SingleRdmPlot object for the given rdm index
