@@ -6,7 +6,7 @@ import numpy
 
 class TestRdmPlot(TestCase):
 
-    def test_nrow_ncolumn(self):
+    def test_from_show_rdm_args__nrow_ncolumn(self):
         from rsatoolbox.vis.rdm_plot import MultiRdmPlot
         rdms = Mock()
         rdms.n_cond = 3
@@ -37,7 +37,7 @@ class TestRdmPlot(TestCase):
         self.assertEqual(conf.n_column, 4)
         self.assertEqual(conf.n_row, 3)
 
-    def test_contour_overlay(self):
+    def test_from_show_rdm_args__multi_contour_overlay(self):
         from rsatoolbox.vis.rdm_plot import MultiRdmPlot
         rdms = Mock()
         rdms.n_cond = 3
@@ -69,6 +69,31 @@ class TestRdmPlot(TestCase):
             contour = ('name', 'foo'),
             contour_color = 'red'
         )
-        assert_array_equal(conf.overlay, numpy.array([0,0,0,1,1,1]))
+        assert_array_equal(conf.overlay, numpy.array([0, 0, 0, 1, 1, 1]))
         assert_array_equal(conf.contour, numpy.array([0, 1, 0, 1, 0, 1]))
-        
+
+    def test_single_from_show_rdm_panel_args(self):
+        from rsatoolbox.vis.rdm_plot import SingleRdmPlot
+        rdms = Mock()
+        rdms.n_cond = 3
+        rdms.n_rdm = 1
+        rdms.get_matrices.return_value = numpy.zeros([1, 3, 3])
+        rdms.rdm_descriptors = dict()
+        mask_rdm = Mock()
+        mask_rdm.dissimilarities = numpy.array([[0, 1, 0, 1, 0, 1]])
+        rdms.dissimilarities = numpy.zeros([10, 6])
+        conf = SingleRdmPlot.from_show_rdm_panel_args(
+            rdms = rdms,
+            cmap = 'bone',
+            nanmask = None,
+            rdm_descriptor = None,
+            gridlines = None,
+            vmin = None,
+            vmax = None,
+            overlay = numpy.array([0, 0, 0, 1, 1, 1]),
+            overlay_color='#00ff0050',
+            contour = numpy.array([0, 1, 0, 1, 0, 1]),
+            contour_color = 'red'
+        )
+        assert_array_equal(conf.overlay, numpy.array([0, 0, 0, 1, 1, 1]))
+        assert_array_equal(conf.contour, numpy.array([0, 1, 0, 1, 0, 1]))
