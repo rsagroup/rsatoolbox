@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from matplotlib.image import AxesImage
     from matplotlib.axis import XAxis, YAxis
     from numpy.typing import NDArray, ArrayLike
+    ArrayOrRdmDescriptor = NDArray | Tuple[str, str]
 
 
 class Axis(Enum):
@@ -58,9 +59,9 @@ def show_rdm(
     vmax: Optional[float] = None,
     icon_spacing: float = 1.0,
     linewidth: float = 0.5,
-    overlay: Optional[str | NDArray] = None,
+    overlay: Optional[ArrayOrRdmDescriptor] = None,
     overlay_color: str = '#00ff0050',
-    contour: Optional[str | NDArray] = None,
+    contour: Optional[ArrayOrRdmDescriptor] = None,
     contour_color: str = 'red'
 ) -> Tuple[Figure, NDArray, Dict[int, Dict[str, Any]]]:
     """show_rdm. Heatmap figure for RDMs instance, with one panel per RDM.
@@ -101,11 +102,11 @@ def show_rdm(
             default), 1.1 means pad 10%, .9 means overlap 10% etc.
         linewidth (float): Width of connecting lines from icon labels (if used) to axis
             margin.  The default is 0.5 - set to 0. to disable the lines.
-        overlay (str or NDArray): RDM descriptor name, or vector (one value per pair)
+        overlay ((str, str) or NDArray): RDM descriptor name-value tuple, or vector (one value per pair)
             which indicates whether to highlight the given cells
         overlay_color (str): Color to use to highlight the pairs in the overlay argument.
             Use RGBA to specify transparency. Default is 50% opaque green.
-        contour (str or NDArray): RDM descriptor name, or vector (one value per pair)
+        contour ((str, str) or NDArray): RDM descriptor name-value tuple, or vector (one value per pair)
             which indicates whether to add a border to the given cells
         contour_color (str): Color to use for a border around pairs in the contour argument.
             Use RGBA to specify transparency. Default is red.
@@ -487,9 +488,9 @@ class MultiRdmPlot:
         vmax: Optional[float],
         icon_spacing: float,
         linewidth: float,
-        overlay: Optional[str | NDArray],
+        overlay: Optional[Tuple[str, str] | NDArray],
         overlay_color: str,
-        contour: Optional[str | NDArray],
+        contour: Optional[Tuple[str, str] | NDArray],
         contour_color: str
     ) -> MultiRdmPlot:
         """Create an object from the original arguments to show_rdm()
@@ -504,8 +505,8 @@ class MultiRdmPlot:
         conf.n_panel = rdm.n_rdm + int(show_colorbar == "figure")
         if show_colorbar == "figure":
             rdmat = rdm.get_matrices()
-            vmin = vmin or rdmat[:, (nanmask == False)].min()
-            vmax = vmax or rdmat[:, (nanmask == False)].max()
+            vmin = vmin or rdmat[:, (conf.nanmask == False)].min()
+            vmax = vmax or rdmat[:, (conf.nanmask == False)].max()
         conf.vmin = vmin
         conf.vmax = vmax
         conf.n_row, conf.n_column = cls.determine_rows_cols_panels(
@@ -534,7 +535,22 @@ class MultiRdmPlot:
         conf.pattern_descriptor = pattern_descriptor
         conf.rdm_descriptor = rdm_descriptor or ''
         conf.dissimilarity_measure = rdm.dissimilarity_measure or ''
+        conf.overlay = conf.interpret_rdm_arg(overlay, rdm)
+        conf.overlay_color = overlay_color
+        conf.contour = conf.interpret_rdm_arg(contour, rdm)
+        conf.contour_color = contour_color
         return conf
+    
+    def interpret_rdm_arg(self, val: Optional[ArrayOrRdmDescriptor], rdms: RDMs) -> NDArray:
+        """Resolve argument that can be an rdm descriptor key/value pair or a utv
+        """
+        if val is  None:
+            return np.zeros(rdms.n_cond)
+        else:
+            if isinstance(val, np.ndarray):
+                return val
+            else:
+                return rdms.subset(*val).dissimilarities[0, :]
 
     @classmethod
     def determine_rows_cols_panels(
