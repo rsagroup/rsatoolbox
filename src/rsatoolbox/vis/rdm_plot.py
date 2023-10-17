@@ -58,6 +58,10 @@ def show_rdm(
     vmax: Optional[float] = None,
     icon_spacing: float = 1.0,
     linewidth: float = 0.5,
+    overlay: Optional[str | NDArray] = None,
+    overlay_color: str = '#00ff0050',
+    contour: Optional[str | NDArray] = None,
+    contour_color: str = 'red'
 ) -> Tuple[Figure, NDArray, Dict[int, Dict[str, Any]]]:
     """show_rdm. Heatmap figure for RDMs instance, with one panel per RDM.
 
@@ -97,6 +101,14 @@ def show_rdm(
             default), 1.1 means pad 10%, .9 means overlap 10% etc.
         linewidth (float): Width of connecting lines from icon labels (if used) to axis
             margin.  The default is 0.5 - set to 0. to disable the lines.
+        overlay (str or NDArray): RDM descriptor name, or vector (one value per pair)
+            which indicates whether to highlight the given cells
+        overlay_color (str): Color to use to highlight the pairs in the overlay argument.
+            Use RGBA to specify transparency. Default is 50% opaque green.
+        contour (str or NDArray): RDM descriptor name, or vector (one value per pair)
+            which indicates whether to add a border to the given cells
+        contour_color (str): Color to use for a border around pairs in the contour argument.
+            Use RGBA to specify transparency. Default is red.
 
     Returns:
         Tuple[Figure, ArrayLike, Dict]:
@@ -113,7 +125,8 @@ def show_rdm(
     conf = MultiRdmPlot.from_show_rdm_args(
         rdms, pattern_descriptor, cmap, rdm_descriptor, n_column, n_row,
         show_colorbar, gridlines, num_pattern_groups, figsize, nanmask,
-        style, vmin, vmax, icon_spacing, linewidth,
+        style, vmin, vmax, icon_spacing, linewidth, overlay, overlay_color,
+        contour, contour_color
     )
     # A dictionary of figure element handles
     handles = dict()
@@ -450,26 +463,34 @@ class MultiRdmPlot:
     linewidth: float
     n_panel: int
     dissimilarity_measure: str
+    overlay: NDArray
+    overlay_color: str
+    contour: NDArray
+    contour_color: str
 
     @classmethod
     def from_show_rdm_args(
         cls,
         rdm: RDMs,
-        pattern_descriptor: Optional[str] = None,
-        cmap: Union[str, Colormap] = 'bone',
-        rdm_descriptor: Optional[str] = None,
-        n_column: Optional[int] = None,
-        n_row: Optional[int] = None,
-        show_colorbar: Optional[str] = None,
-        gridlines: Optional[npt.ArrayLike] = None,
-        num_pattern_groups: Optional[int] = None,
-        figsize: Optional[Tuple[float, float]] = None,
-        nanmask: NDArray | str | None = "diagonal",
-        style: Optional[Union[str, Path]] = None,
-        vmin: Optional[float] = None,
-        vmax: Optional[float] = None,
-        icon_spacing: float = 1.0,
-        linewidth: float = 0.5,
+        pattern_descriptor: Optional[str],
+        cmap: Union[str, Colormap],
+        rdm_descriptor: Optional[str],
+        n_column: Optional[int],
+        n_row: Optional[int],
+        show_colorbar: Optional[str],
+        gridlines: Optional[npt.ArrayLike],
+        num_pattern_groups: Optional[int],
+        figsize: Optional[Tuple[float, float]],
+        nanmask: NDArray | str | None,
+        style: Optional[Union[str, Path]],
+        vmin: Optional[float],
+        vmax: Optional[float],
+        icon_spacing: float,
+        linewidth: float,
+        overlay: Optional[str | NDArray],
+        overlay_color: str,
+        contour: Optional[str | NDArray],
+        contour_color: str
     ) -> MultiRdmPlot:
         """Create an object from the original arguments to show_rdm()
         """
