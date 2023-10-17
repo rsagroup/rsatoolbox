@@ -13,11 +13,25 @@ class TestRdmPlot(TestCase):
         rdms.get_matrices.return_value = numpy.zeros([10, 3, 3])
         conf = MultiRdmPlot.from_show_rdm_args(
             rdms,
-            rdm_descriptor='name',
-            show_colorbar='figure',
-            pattern_descriptor='image',
-            num_pattern_groups=5,
-            icon_spacing=.9
+            pattern_descriptor = None,
+            cmap = 'bone',
+            rdm_descriptor=None,
+            n_column = None,
+            n_row = None,
+            show_colorbar = 'figure',
+            gridlines = None,
+            num_pattern_groups = None,
+            figsize = None,
+            nanmask = "diagonal",
+            style = None,
+            vmin = None,
+            vmax = None,
+            icon_spacing = 1.0,
+            linewidth = 0.5,
+            overlay = None,
+            overlay_color='#00ff0050',
+            contour = None,
+            contour_color = 'red'
         )
         self.assertEqual(conf.n_column, 4)
         self.assertEqual(conf.n_row, 3)
