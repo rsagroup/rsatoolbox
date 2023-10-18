@@ -102,12 +102,13 @@ def show_rdm(
             default), 1.1 means pad 10%, .9 means overlap 10% etc.
         linewidth (float): Width of connecting lines from icon labels (if used) to axis
             margin.  The default is 0.5 - set to 0. to disable the lines.
-        overlay ((str, str) or NDArray): RDM descriptor name-value tuple, or vector (one value per pair)
-            which indicates whether to highlight the given cells
+        overlay ((str, str) or NDArray): RDM descriptor name-value tuple, 
+            or vector (one value per pair) which indicates whether to highlight the given cells
         overlay_color (str): Color to use to highlight the pairs in the overlay argument.
             Use RGBA to specify transparency. Default is 50% opaque green.
-        contour ((str, str) or NDArray): RDM descriptor name-value tuple, or vector (one value per pair)
-            which indicates whether to add a border to the given cells
+        contour ((str, str) or NDArray): RDM descriptor name-value tuple, 
+            or vector (one value per pair) which indicates whether to add a border 
+            to the given cells
         contour_color (str): Color to use for a border around pairs in the contour argument.
             Use RGBA to specify transparency. Default is red.
 
@@ -263,12 +264,12 @@ def show_rdm_panel(
             argument.
         vmax (float): Maximum intensity for colorbar mapping. matplotlib imshow
             argument.
-        overlay ((str, str) or NDArray): RDM descriptor name-value tuple, or vector (one value per pair)
-            which indicates whether to highlight the given cells
+        overlay ((str, str) or NDArray): RDM descriptor name-value tuple, or vector 
+            (one value per pair) which indicates whether to highlight the given cells
         overlay_color (str): Color to use to highlight the pairs in the overlay argument.
             Use RGBA to specify transparency. Default is 50% opaque green.
-        contour ((str, str) or NDArray): RDM descriptor name-value tuple, or vector (one value per pair)
-            which indicates whether to add a border to the given cells
+        contour ((str, str) or NDArray): RDM descriptor name-value tuple, or vector 
+            (one value per pair) which indicates whether to add a border to the given cells
         contour_color (str): Color to use for a border around pairs in the contour argument.
             Use RGBA to specify transparency. Default is red.
 
@@ -276,7 +277,7 @@ def show_rdm_panel(
         matplotlib.image.AxesImage: Matplotlib handle.
     """
     conf = SingleRdmPlot.from_show_rdm_panel_args(rdms, cmap, nanmask,
-        rdm_descriptor, gridlines, vmin, vmax, overlay, overlay_color, 
+        rdm_descriptor, gridlines, vmin, vmax, overlay, overlay_color,
         contour, contour_color)
     return _show_rdm_panel(conf, ax or plt.gca())
 
@@ -553,17 +554,16 @@ class MultiRdmPlot:
         conf.contour = conf.interpret_rdm_arg(contour, rdm)
         conf.contour_color = contour_color
         return conf
-    
+
     def interpret_rdm_arg(self, val: Optional[ArrayOrRdmDescriptor], rdms: RDMs) -> NDArray:
         """Resolve argument that can be an rdm descriptor key/value pair or a utv
         """
         if val is  None:
             return np.zeros(rdms.n_cond)
+        if isinstance(val, np.ndarray):
+            return val
         else:
-            if isinstance(val, np.ndarray):
-                return val
-            else:
-                return rdms.subset(*val).dissimilarities[0, :]
+            return rdms.subset(*val).dissimilarities[0, :]
 
     @classmethod
     def determine_rows_cols_panels(
@@ -690,8 +690,7 @@ class SingleRdmPlot:
         """
         if val is  None:
             return np.zeros(rdms.n_cond)
+        if isinstance(val, np.ndarray):
+            return val
         else:
-            if isinstance(val, np.ndarray):
-                return val
-            else:
-                return rdms.subset(*val).dissimilarities[0, :]
+            return rdms.subset(*val).dissimilarities[0, :]
