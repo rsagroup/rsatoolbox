@@ -18,6 +18,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator
 from matplotlib.colors import ListedColormap
+from matplotlib.patches import Polygon
 import rsatoolbox.rdm
 from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox import vis
@@ -299,6 +300,7 @@ def _show_rdm_panel(conf: SingleRdmPlot, ax: Axes) -> AxesImage:
     image = ax.imshow(rdmat, cmap=conf.cmap, vmin=conf.vmin, vmax=conf.vmax,
         interpolation='none')
     _overlay(conf, ax)
+    _contour(conf, ax)
     ax.set_xlim(-0.5, conf.rdms.n_cond - 0.5)
     ax.set_ylim(conf.rdms.n_cond - 0.5, -0.5)
     ax.xaxis.set_ticks(conf.gridlines)
@@ -326,6 +328,21 @@ def _overlay(conf: SingleRdmPlot, ax: Axes) -> None:
     cmap = ListedColormap(['none', conf.overlay_color])
     mat = squareform(conf.overlay)
     ax.imshow(mat, cmap=cmap, interpolation='none')
+
+
+def _contour(conf: SingleRdmPlot, ax: Axes) -> None:
+    """Add contour outline to axes
+
+    Args:
+        conf (SingleRdmPlot): Plot configuration
+        ax (Axes): axes object for this plot
+    """
+    if not any(conf.contour):
+        return
+    line = [(2-0.5, 2-0.5), (2-0.5, 4-0.5), (4-0.5, 4-0.5), (4-0.5, 2-0.5)]
+    patch = Polygon(line, facecolor='none', edgecolor='red',
+        linewidth=3, closed=True, joinstyle='round')
+    ax.add_patch(patch)
 
 
 def _add_descriptor_labels(which_axis: Axis, ax: Axes, conf: MultiRdmPlot) -> List:
