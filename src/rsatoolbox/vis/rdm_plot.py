@@ -339,10 +339,28 @@ def _contour(conf: SingleRdmPlot, ax: Axes) -> None:
     """
     if not any(conf.contour):
         return
-    line = [(2-0.5, 2-0.5), (2-0.5, 4-0.5), (4-0.5, 4-0.5), (4-0.5, 2-0.5)]
-    patch = Polygon(line, facecolor='none', edgecolor='red',
+    with_offset = lambda x, y: (x-0.5, y-0.5)
+    line = [
+            with_offset(1, 1),
+            with_offset(2, 1),
+            with_offset(3, 1),
+            with_offset(3, 2),
+            with_offset(4, 2),
+            with_offset(4, 3),
+            with_offset(4, 4),
+            with_offset(3, 4),
+            with_offset(2, 4),
+            with_offset(2, 3),
+            with_offset(2, 2),
+            with_offset(1, 2),
+    ]
+    patch = Polygon(line, facecolor='none', edgecolor=conf.contour_color,
         linewidth=3, closed=True, joinstyle='round')
     ax.add_patch(patch)
+
+
+def _contour_coords(mat: NDArray, offset: float) -> List[Tuple[float, float]]:
+    return []
 
 
 def _add_descriptor_labels(which_axis: Axis, ax: Axes, conf: MultiRdmPlot) -> List:

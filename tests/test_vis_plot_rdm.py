@@ -1,5 +1,6 @@
 from unittest import TestCase
 from tests.test_vis import _dummy_rdm
+import numpy
 
 
 class Test_rdm_plot(TestCase):
@@ -42,3 +43,31 @@ class Test_rdm_plot(TestCase):
     def test_show_rdm_icon_string_no_error(self):
         from rsatoolbox.vis.rdm_plot import show_rdm
         show_rdm(self.rdm[0], pattern_descriptor="string")
+
+    def test_contour_coords(self):
+        """Helper function determines edge coordinates for a 2d mask
+        """
+        from rsatoolbox.vis.rdm_plot import _contour_coords
+        mask = numpy.array([
+            [0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 0],
+            [0, 0, 1, 1, 0],
+            [0, 0, 1, 1, 0],
+            [0, 0, 0, 0, 0],
+        ])
+        with_offset = lambda x, y: (x-0.4, y-0.4)
+        coords = _contour_coords(mask, offset=-0.4)
+        self.assertEqual(coords, [
+            with_offset(1, 1),
+            with_offset(2, 1),
+            with_offset(3, 1),
+            with_offset(3, 2),
+            with_offset(4, 2),
+            with_offset(4, 3),
+            with_offset(4, 4),
+            with_offset(3, 4),
+            with_offset(2, 4),
+            with_offset(2, 3),
+            with_offset(2, 2),
+            with_offset(1, 2),
+        ])
