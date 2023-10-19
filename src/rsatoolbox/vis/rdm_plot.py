@@ -13,16 +13,17 @@ from typing import TYPE_CHECKING, Union, Tuple, Optional, Literal, Dict, Any, Li
 from enum import Enum
 from math import ceil
 import numpy as np
+from scipy.spatial.distance import squareform
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator
+from matplotlib.colors import ListedColormap
 import rsatoolbox.rdm
 from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox import vis
 from rsatoolbox.vis.colors import rdm_colormap_classic
 from rsatoolbox.resources import get_style
 if TYPE_CHECKING:
-    import numpy.typing as npt
     from matplotlib.axes._axes import Axes
     from matplotlib.cm import ScalarMappable
     from matplotlib.colors import Colormap
@@ -50,7 +51,7 @@ def show_rdm(
     n_column: Optional[int] = None,
     n_row: Optional[int] = None,
     show_colorbar: Optional[str] = None,
-    gridlines: Optional[npt.ArrayLike] = None,
+    gridlines: Optional[ArrayLike] = None,
     num_pattern_groups: Optional[int] = None,
     figsize: Optional[Tuple[float, float]] = None,
     nanmask: NDArray | str | None = "diagonal",
@@ -81,7 +82,7 @@ def show_rdm(
         show_colorbar (str): Set to 'panel' or 'figure' to display a colorbar. If
             'panel' a colorbar is added next to each RDM. If 'figure' a shared colorbar
             (and scale) is used across panels.
-        gridlines (npt.ArrayLike): Set to add gridlines at these positions. If
+        gridlines (ArrayLike): Set to add gridlines at these positions. If
             num_pattern_groups is defined this is used to infer gridlines.
         num_pattern_groups (int): Number of rows/columns for any image labels. Also
             determines gridlines frequency by default (so e.g., num_pattern_groups=3
@@ -89,7 +90,7 @@ def show_rdm(
         figsize (Tuple[float, float]): mpl.Figure argument. By default we
             auto-scale to achieve a figure that fits on a standard A4 / US Letter page
             in portrait orientation.
-        nanmask (Union[npt.ArrayLike, str, None]): boolean mask defining RDM elements to suppress
+        nanmask (Union[ArrayLike, str, None]): boolean mask defining RDM elements to suppress
             (by default, the diagonal).
             Use the string "diagonal" to suppress the diagonal.
         style (Union[str, Path]): Path to mplstyle file that controls
@@ -238,7 +239,7 @@ def show_rdm_panel(
     cmap: Union[str, Colormap] = 'bone',
     nanmask: Optional[NDArray] = None,
     rdm_descriptor: Optional[str] = None,
-    gridlines: Optional[npt.ArrayLike] = None,
+    gridlines: Optional[ArrayLike] = None,
     vmin: Optional[float] = None,
     vmax: Optional[float] = None,
     overlay: Optional[NDArray] = None,
@@ -255,11 +256,11 @@ def show_rdm_panel(
             Either the name of a Matplotlib built-in colormap, a Matplotlib
             Colormap compatible object, or 'classic' for the matlab toolbox
             colormap. Defaults to 'bone'.
-        nanmask (npt.ArrayLike): boolean mask defining RDM elements to suppress
+        nanmask (ArrayLike): boolean mask defining RDM elements to suppress
             (by default, the diagonals).
         rdm_descriptor (str): Key for rdm_descriptor to use as panel title, or
             str for direct labeling.
-        gridlines (npt.ArrayLike): Set to add gridlines at these positions.
+        gridlines (ArrayLike): Set to add gridlines at these positions.
         vmin (float): Minimum intensity for colorbar mapping. matplotlib imshow
             argument.
         vmax (float): Maximum intensity for colorbar mapping. matplotlib imshow
@@ -297,6 +298,7 @@ def _show_rdm_panel(conf: SingleRdmPlot, ax: Axes) -> AxesImage:
         rdmat[conf.nanmask] = np.nan
     image = ax.imshow(rdmat, cmap=conf.cmap, vmin=conf.vmin, vmax=conf.vmax,
         interpolation='none')
+    _overlay(conf, ax)
     ax.set_xlim(-0.5, conf.rdms.n_cond - 0.5)
     ax.set_ylim(conf.rdms.n_cond - 0.5, -0.5)
     ax.xaxis.set_ticks(conf.gridlines)
@@ -310,6 +312,20 @@ def _show_rdm_panel(conf: SingleRdmPlot, ax: Axes) -> AxesImage:
     ax.yaxis.set_tick_params(length=0, which="minor")
     ax.set_title(conf.title)
     return image
+
+
+def _overlay(conf: SingleRdmPlot, ax: Axes) -> None:
+    """Add overlay image to axes
+
+    Args:
+        conf (SingleRdmPlot): Plot configuration
+        ax (Axes): axes object for this plot
+    """
+    if not any(conf.overlay):
+        return
+    cmap = ListedColormap(['none', conf.overlay_color])
+    mat = squareform(conf.overlay)
+    ax.imshow(mat, cmap=cmap, interpolation='none')
 
 
 def _add_descriptor_labels(which_axis: Axis, ax: Axes, conf: MultiRdmPlot) -> List:
@@ -361,7 +377,7 @@ def _add_descriptor_labels(which_axis: Axis, ax: Axes, conf: MultiRdmPlot) -> Li
 
 
 def _add_descriptor_text(
-    descriptor_arr: npt.ArrayLike,
+    descriptor_arr: ArrayLike,
     axis: Union[XAxis, YAxis],
     horizontalalignment: str = "center",
     is_x_axis: bool = False,
@@ -370,7 +386,7 @@ def _add_descriptor_text(
     Matplotlib-based text labels to the X or Y axis.
 
     Args:
-        descriptor_arr (npt.ArrayLike): np.Array-like version of the labels.
+        descriptor_arr (ArrayLike): np.Array-like version of the labels.
         axis (Union[matplotlib.axis.XAxis, matplotlib.axis.YAxis]): handle for
             the relevant axis (ax.xaxis or ax.yaxis).
         horizontalalignment (str): Horizontal alignment of text tick labels.
@@ -400,7 +416,7 @@ def _add_descriptor_text(
 
 
 def _add_descriptor_icons(
-    descriptor_arr: npt.ArrayLike,
+    descriptor_arr: ArrayLike,
     icon_method: str,
     n_cond: int,
     ax: Axes = None,
@@ -412,7 +428,7 @@ def _add_descriptor_icons(
     Icon-based labels to the X or Y axis.
 
     Args:
-        descriptor_arr (npt.ArrayLike): np.Array-like version of the labels.
+        descriptor_arr (ArrayLike): np.Array-like version of the labels.
         icon_method (str): method to access on Icon instances (typically y_tick_label or
             x_tick_label).
         n_cond (int): Number of conditions in the RDM (usually from RDMs.n_cond).
@@ -493,7 +509,7 @@ class MultiRdmPlot:
         n_column: Optional[int],
         n_row: Optional[int],
         show_colorbar: Optional[str],
-        gridlines: Optional[npt.ArrayLike],
+        gridlines: Optional[ArrayLike],
         num_pattern_groups: Optional[int],
         figsize: Optional[Tuple[float, float]],
         nanmask: NDArray | str | None,
@@ -650,7 +666,7 @@ class SingleRdmPlot:
         cmap: Union[str, Colormap],
         nanmask: Optional[NDArray],
         rdm_descriptor: Optional[str],
-        gridlines: Optional[npt.ArrayLike],
+        gridlines: Optional[ArrayLike],
         vmin: Optional[float],
         vmax: Optional[float],
         overlay: Optional[NDArray],
