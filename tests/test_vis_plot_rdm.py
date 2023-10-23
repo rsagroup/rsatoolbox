@@ -55,19 +55,27 @@ class Test_rdm_plot(TestCase):
             [0, 0, 1, 1, 0],
             [0, 0, 0, 0, 0],
         ])
-        with_offset = lambda x, y: (x-0.4, y-0.4)
-        coords = _contour_coords(mask, offset=-0.4)
-        self.assertEqual(coords, [
-            with_offset(1, 1),
-            with_offset(2, 1),
-            with_offset(3, 1),
-            with_offset(3, 2),
-            with_offset(4, 2),
-            with_offset(4, 3),
-            with_offset(4, 4),
-            with_offset(3, 4),
-            with_offset(2, 4),
-            with_offset(2, 3),
-            with_offset(2, 2),
-            with_offset(1, 2),
-        ])
+        OFFSET = 0
+        def with_offset(*args):
+            return tuple([v+OFFSET for v in args])
+        expected = [
+            with_offset(1, 1, 2, 1),
+            with_offset(2, 2, 1, 2),
+            with_offset(1, 2, 1, 1),
+
+            with_offset(2, 1, 3, 1),
+            with_offset(3, 1, 3, 2),
+
+            with_offset(2, 3, 2, 2), # 3rd pix, left side
+            
+            with_offset(3, 4, 2, 4), # pixel below that one, bottom
+            with_offset(2, 4, 2, 3), # left
+
+            with_offset(3, 2, 4, 2),
+            with_offset(4, 2, 4, 3),
+
+            with_offset(4, 3, 4, 4),
+            with_offset(4, 4, 3, 4),
+        ]
+        actual = list(_contour_coords(mask.T, offset=OFFSET))
+        self.assertEqual(actual, expected)

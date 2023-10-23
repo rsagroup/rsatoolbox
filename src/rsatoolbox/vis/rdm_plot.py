@@ -9,7 +9,7 @@ public API:
 from __future__ import annotations
 import itertools
 from pathlib import Path
-from typing import TYPE_CHECKING, Union, Tuple, Optional, Literal, Dict, Any, List
+from typing import TYPE_CHECKING, Union, Tuple, Optional, Literal, Dict, Any, List, Iterator
 from enum import Enum
 from math import ceil
 import numpy as np
@@ -339,29 +339,45 @@ def _contour(conf: SingleRdmPlot, ax: Axes) -> None:
     """
     if not any(conf.contour):
         return
-    with_offset = lambda x, y: (x-0.5, y-0.5)
-    line = [
-            with_offset(1, 1),
-            with_offset(2, 1),
-            with_offset(3, 1),
-            with_offset(3, 2),
-            with_offset(4, 2),
-            with_offset(4, 3),
-            with_offset(4, 4),
-            with_offset(3, 4),
-            with_offset(2, 4),
-            with_offset(2, 3),
-            with_offset(2, 2),
-            with_offset(1, 2),
+    mask = np.tril(squareform(conf.contour)) # lower
+    for (x1, y1, x2, y2) in _contour_coords(mask, -0.5):
+        ax.add_patch(
+            Polygon(
+                [(x1, y1),  (x2, y2)],
+                facecolor='none',
+                edgecolor=conf.contour_color,
+                linewidth=3,
+                closed=True,
+                joinstyle='round'
+            )
+        )
+
+
+def _contour_coords(mask: NDArray, offset: float) -> Iterator[Tuple[float, float, float, float]]:
+    """Determine filled edges for the given mask
+
+    Returns a tuple of x1, y1, x2, y2 coordinates for each line.
+
+    Args:
+        mask (NDArray): nconds x nconds mask
+        offset (float): value to add for matplotlib indexing
+
+    Yields:
+        Iterator[Tuple[float, float, float, float]]: coordinates
+    """
+    mask_idx = np.where(mask)
+    sides = [
+        (( 0, -1), (0, 0, 1, 0)), # top
+        (( 1,  0), (1, 0, 1, 1)), # right
+        (( 0,  1), (1, 1, 0, 1)), # bottom
+        ((-1,  0), (0, 1, 0, 0)), # left
     ]
-    patch = Polygon(line, facecolor='none', edgecolor=conf.contour_color,
-        linewidth=3, closed=True, joinstyle='round')
-    ax.add_patch(patch)
-
-
-def _contour_coords(mat: NDArray, offset: float) -> List[Tuple[float, float]]:
-    return []
-
+    for x, y in np.vstack(mask_idx).T:
+        for neighbor, edge in sides:
+            if not mask[(x+neighbor[0], y+neighbor[1])]:
+                x1, y1, x2, y2 = edge
+                yield (x+x1+offset, y+y1+offset, x+x2+offset, y+y2+offset)
+        
 
 def _add_descriptor_labels(which_axis: Axis, ax: Axes, conf: MultiRdmPlot) -> List:
     """_add_descriptor_labels.
