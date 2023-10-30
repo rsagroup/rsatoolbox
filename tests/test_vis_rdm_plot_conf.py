@@ -7,7 +7,7 @@ import numpy
 class TestRdmPlot(TestCase):
 
     def test_from_show_rdm_args__nrow_ncolumn(self):
-        from rsatoolbox.vis.rdm_plot import MultiRdmPlot
+        from rsatoolbox.vis.rdm_plot import MultiRdmPlot, Symmetry
         rdms = Mock()
         rdms.n_cond = 3
         rdms.n_rdm = 10
@@ -31,14 +31,16 @@ class TestRdmPlot(TestCase):
             linewidth = 0.5,
             overlay = None,
             overlay_color='#00ff0050',
+            overlay_symmetry=Symmetry.UPPER,
             contour = None,
-            contour_color = 'red'
+            contour_color = 'red',
+            contour_symmetry=Symmetry.BOTH
         )
         self.assertEqual(conf.n_column, 4)
         self.assertEqual(conf.n_row, 3)
 
     def test_from_show_rdm_args__multi_contour_overlay(self):
-        from rsatoolbox.vis.rdm_plot import MultiRdmPlot
+        from rsatoolbox.vis.rdm_plot import MultiRdmPlot, Symmetry
         rdms = Mock()
         rdms.n_cond = 3
         rdms.n_rdm = 10
@@ -66,14 +68,16 @@ class TestRdmPlot(TestCase):
             linewidth = 0.5,
             overlay = numpy.array([0,0,0,1,1,1]),
             overlay_color='#00ff0050',
+            overlay_symmetry=Symmetry.BOTH,
             contour = ('name', 'foo'),
-            contour_color = 'red'
+            contour_color = 'red',
+            contour_symmetry=Symmetry.LOWER
         )
         assert_array_equal(conf.overlay, numpy.array([0, 0, 0, 1, 1, 1]))
         assert_array_equal(conf.contour, numpy.array([0, 1, 0, 1, 0, 1]))
 
     def test_single_from_show_rdm_panel_args(self):
-        from rsatoolbox.vis.rdm_plot import SingleRdmPlot
+        from rsatoolbox.vis.rdm_plot import SingleRdmPlot, Symmetry
         rdms = Mock()
         rdms.n_cond = 3
         rdms.n_rdm = 1
@@ -92,8 +96,10 @@ class TestRdmPlot(TestCase):
             vmax = None,
             overlay = numpy.array([0, 0, 0, 1, 1, 1]),
             overlay_color='#00ff0050',
+            overlay_symmetry=Symmetry.UPPER,
             contour = numpy.array([0, 1, 0, 1, 0, 1]),
-            contour_color = 'red'
+            contour_color = 'red',
+            contour_symmetry=Symmetry.LOWER
         )
         assert_array_equal(conf.overlay, numpy.array([0, 0, 0, 1, 1, 1]))
         assert_array_equal(conf.contour, numpy.array([0, 1, 0, 1, 0, 1]))

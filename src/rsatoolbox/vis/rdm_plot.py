@@ -44,6 +44,14 @@ class Axis(Enum):
     Y = 'y'
 
 
+class Symmetry(Enum):
+    """X or Y axis Enum
+    """
+    BOTH = 'both'
+    UPPER = 'upper'
+    LOWER = 'lower'
+
+
 def show_rdm(
     rdms: rsatoolbox.rdm.RDMs,
     pattern_descriptor: Optional[str] = None,
@@ -63,8 +71,10 @@ def show_rdm(
     linewidth: float = 0.5,
     overlay: Optional[ArrayOrRdmDescriptor] = None,
     overlay_color: str = '#00ff0050',
+    overlay_symmetry: Symmetry = Symmetry.BOTH,
     contour: Optional[ArrayOrRdmDescriptor] = None,
-    contour_color: str = 'red'
+    contour_color: str = 'red',
+    contour_symmetry: Symmetry = Symmetry.BOTH,
 ) -> Tuple[Figure, NDArray, Dict[int, Dict[str, Any]]]:
     """show_rdm. Heatmap figure for RDMs instance, with one panel per RDM.
 
@@ -129,8 +139,8 @@ def show_rdm(
     conf = MultiRdmPlot.from_show_rdm_args(
         rdms, pattern_descriptor, cmap, rdm_descriptor, n_column, n_row,
         show_colorbar, gridlines, num_pattern_groups, figsize, nanmask,
-        style, vmin, vmax, icon_spacing, linewidth, overlay, overlay_color,
-        contour, contour_color
+        style, vmin, vmax, icon_spacing, linewidth, overlay, overlay_color, 
+        overlay_symmetry, contour, contour_color, contour_symmetry
     )
     # A dictionary of figure element handles
     handles = dict()
@@ -245,8 +255,10 @@ def show_rdm_panel(
     vmax: Optional[float] = None,
     overlay: Optional[NDArray] = None,
     overlay_color: str = '#00ff0050',
+    overlay_symmetry: Symmetry = Symmetry.BOTH,
     contour: Optional[NDArray] = None,
-    contour_color: str = 'red'
+    contour_color: str = 'red',
+    contour_symmetry: Symmetry = Symmetry.BOTH
 ) -> AxesImage:
     """show_rdm_panel. Add RDM heatmap to the axis ax.
 
@@ -279,8 +291,8 @@ def show_rdm_panel(
         matplotlib.image.AxesImage: Matplotlib handle.
     """
     conf = SingleRdmPlot.from_show_rdm_panel_args(rdms, cmap, nanmask,
-        rdm_descriptor, gridlines, vmin, vmax, overlay, overlay_color,
-        contour, contour_color)
+        rdm_descriptor, gridlines, vmin, vmax, overlay, overlay_color, 
+        overlay_symmetry, contour, contour_color, contour_symmetry)
     return _show_rdm_panel(conf, ax or plt.gca())
 
 
@@ -547,8 +559,10 @@ class MultiRdmPlot:
     dissimilarity_measure: str
     overlay: NDArray
     overlay_color: str
+    overlay_symmetry: Symmetry
     contour: NDArray
     contour_color: str
+    contour_symmetry: Symmetry
 
     @classmethod
     def from_show_rdm_args(
@@ -571,8 +585,10 @@ class MultiRdmPlot:
         linewidth: float,
         overlay: Optional[Tuple[str, str] | NDArray],
         overlay_color: str,
+        overlay_symmetry: Symmetry,
         contour: Optional[Tuple[str, str] | NDArray],
-        contour_color: str
+        contour_color: str,
+        contour_symmetry: Symmetry
     ) -> MultiRdmPlot:
         """Create an object from the original arguments to show_rdm()
         """
@@ -618,8 +634,10 @@ class MultiRdmPlot:
         conf.dissimilarity_measure = rdm.dissimilarity_measure or ''
         conf.overlay = conf.interpret_rdm_arg(overlay, rdm)
         conf.overlay_color = overlay_color
+        conf.overlay_symmetry = overlay_symmetry
         conf.contour = conf.interpret_rdm_arg(contour, rdm)
         conf.contour_color = contour_color
+        conf.contour_symmetry = contour_symmetry
         return conf
 
     def interpret_rdm_arg(self, val: Optional[ArrayOrRdmDescriptor], rdms: RDMs) -> NDArray:
@@ -685,8 +703,10 @@ class MultiRdmPlot:
         conf.vmax = self.vmax
         conf.overlay = self.overlay
         conf.overlay_color = self.overlay_color
+        conf.overlay_symmetry = self.overlay_symmetry
         conf.contour = self.contour
         conf.contour_color = self.contour_color
+        conf.contour_symmetry = self.contour_symmetry
         if self.rdm_descriptor in conf.rdms.rdm_descriptors:
             conf.title = conf.rdms.rdm_descriptors[self.rdm_descriptor][0]
         else:
@@ -707,8 +727,10 @@ class SingleRdmPlot:
     title: str
     overlay: NDArray
     overlay_color: str
+    overlay_symmetry: Symmetry
     contour: NDArray
     contour_color: str
+    contour_symmetry: Symmetry
 
     @classmethod
     def from_show_rdm_panel_args(
@@ -722,8 +744,10 @@ class SingleRdmPlot:
         vmax: Optional[float],
         overlay: Optional[NDArray],
         overlay_color: str,
+        overlay_symmetry: Symmetry,
         contour: Optional[NDArray],
-        contour_color: str
+        contour_color: str,
+        contour_symmetry: Symmetry
     ) -> SingleRdmPlot:
         """Create an object from the original arguments to show_rdm_panel()
         """
@@ -748,8 +772,10 @@ class SingleRdmPlot:
         conf.vmax = vmax
         conf.overlay = conf.interpret_rdm_arg(overlay, rdms)
         conf.overlay_color = overlay_color
+        conf.overlay_symmetry = overlay_symmetry
         conf.contour = conf.interpret_rdm_arg(contour, rdms)
         conf.contour_color = contour_color
+        conf.contour_symmetry = contour_symmetry
         return conf
     
     def interpret_rdm_arg(self, val: Optional[ArrayOrRdmDescriptor], rdms: RDMs) -> NDArray:
