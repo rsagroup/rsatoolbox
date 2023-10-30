@@ -77,5 +77,5 @@ class Test_rdm_plot(TestCase):
             with_offset(4, 3, 4, 4),
             with_offset(4, 4, 3, 4),
         ]
-        actual = list(_contour_coords(mask.T, offset=OFFSET))
+        actual = list(_contour_coords(mask, offset=OFFSET))
         self.assertEqual(actual, expected)

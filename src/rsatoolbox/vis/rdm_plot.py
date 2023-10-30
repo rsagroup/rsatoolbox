@@ -45,7 +45,7 @@ class Axis(Enum):
 
 
 class Symmetry(Enum):
-    """X or Y axis Enum
+    """RDM Triangle Enum: both, upper or lower
     """
     BOTH = 'both'
     UPPER = 'upper'
@@ -335,11 +335,10 @@ def _overlay(conf: SingleRdmPlot, ax: Axes) -> None:
         conf (SingleRdmPlot): Plot configuration
         ax (Axes): axes object for this plot
     """
-    if not any(conf.overlay):
+    if not np.any(conf.overlay_mask):
         return
     cmap = ListedColormap(['none', conf.overlay_color])
-    mat = squareform(conf.overlay)
-    ax.imshow(mat, cmap=cmap, interpolation='none')
+    ax.imshow(conf.overlay_mask, cmap=cmap, interpolation='none')
 
 
 def _contour(conf: SingleRdmPlot, ax: Axes) -> None:
@@ -349,10 +348,9 @@ def _contour(conf: SingleRdmPlot, ax: Axes) -> None:
         conf (SingleRdmPlot): Plot configuration
         ax (Axes): axes object for this plot
     """
-    if not any(conf.contour):
+    if not np.any(conf.contour_mask):
         return
-    mask = np.tril(squareform(conf.contour)) # lower
-    for (x1, y1, x2, y2) in _contour_coords(mask, -0.5):
+    for (x1, y1, x2, y2) in _contour_coords(conf.contour_mask, -0.5):
         ax.add_patch(
             Polygon(
                 [(x1, y1),  (x2, y2)],
@@ -363,6 +361,21 @@ def _contour(conf: SingleRdmPlot, ax: Axes) -> None:
                 joinstyle='round'
             )
         )
+
+
+def _mask_from_vector(vector: NDArray, triangles: Symmetry) -> NDArray:
+    """Turn a triangular vector into a matrix mask, with given symmetry
+
+    Returns:
+        NDArray: 2-D boolean matrix
+    """
+    mask = squareform(vector)
+    if triangles == Symmetry.BOTH:
+        return mask
+    elif triangles == Symmetry.LOWER:
+        return np.tril(mask)
+    elif triangles == Symmetry.UPPER:
+        return np.triu(mask)
 
 
 def _contour_coords(mask: NDArray, offset: float) -> Iterator[Tuple[float, float, float, float]]:
@@ -377,7 +390,8 @@ def _contour_coords(mask: NDArray, offset: float) -> Iterator[Tuple[float, float
     Yields:
         Iterator[Tuple[float, float, float, float]]: coordinates
     """
-    mask_idx = np.where(mask)
+    mask_t = mask.T
+    mask_idx = np.where(mask_t)
     sides = [
         (( 0, -1), (0, 0, 1, 0)), # top
         (( 1,  0), (1, 0, 1, 1)), # right
@@ -386,7 +400,7 @@ def _contour_coords(mask: NDArray, offset: float) -> Iterator[Tuple[float, float
     ]
     for x, y in np.vstack(mask_idx).T:
         for neighbor, edge in sides:
-            if not mask[(x+neighbor[0], y+neighbor[1])]:
+            if not mask_t[(x+neighbor[0], y+neighbor[1])]:
                 x1, y1, x2, y2 = edge
                 yield (x+x1+offset, y+y1+offset, x+x2+offset, y+y2+offset)
         
@@ -563,6 +577,8 @@ class MultiRdmPlot:
     contour: NDArray
     contour_color: str
     contour_symmetry: Symmetry
+    overlay_mask: NDArray
+    contour_mask: NDArray
 
     @classmethod
     def from_show_rdm_args(
@@ -635,16 +651,19 @@ class MultiRdmPlot:
         conf.overlay = conf.interpret_rdm_arg(overlay, rdm)
         conf.overlay_color = overlay_color
         conf.overlay_symmetry = overlay_symmetry
+        conf.overlay_mask = _mask_from_vector(conf.overlay, conf.overlay_symmetry)
         conf.contour = conf.interpret_rdm_arg(contour, rdm)
         conf.contour_color = contour_color
         conf.contour_symmetry = contour_symmetry
+        conf.contour_mask = _mask_from_vector(conf.contour, conf.contour_symmetry)
         return conf
 
     def interpret_rdm_arg(self, val: Optional[ArrayOrRdmDescriptor], rdms: RDMs) -> NDArray:
         """Resolve argument that can be an rdm descriptor key/value pair or a utv
         """
-        if val is  None:
-            return np.zeros(rdms.n_cond)
+        if val is None:
+            n_pairs = rdms.dissimilarities.shape[1]
+            return np.zeros(n_pairs)
         if isinstance(val, np.ndarray):
             return val
         else:
@@ -702,9 +721,11 @@ class MultiRdmPlot:
         conf.vmin = self.vmin
         conf.vmax = self.vmax
         conf.overlay = self.overlay
+        conf.overlay_mask = self.overlay_mask
         conf.overlay_color = self.overlay_color
         conf.overlay_symmetry = self.overlay_symmetry
         conf.contour = self.contour
+        conf.contour_mask = self.contour_mask
         conf.contour_color = self.contour_color
         conf.contour_symmetry = self.contour_symmetry
         if self.rdm_descriptor in conf.rdms.rdm_descriptors:
@@ -731,6 +752,8 @@ class SingleRdmPlot:
     contour: NDArray
     contour_color: str
     contour_symmetry: Symmetry
+    overlay_mask: NDArray
+    contour_mask: NDArray
 
     @classmethod
     def from_show_rdm_panel_args(
@@ -773,16 +796,19 @@ class SingleRdmPlot:
         conf.overlay = conf.interpret_rdm_arg(overlay, rdms)
         conf.overlay_color = overlay_color
         conf.overlay_symmetry = overlay_symmetry
+        conf.overlay_mask = _mask_from_vector(conf.overlay, conf.overlay_symmetry)
         conf.contour = conf.interpret_rdm_arg(contour, rdms)
         conf.contour_color = contour_color
         conf.contour_symmetry = contour_symmetry
+        conf.contour_mask = _mask_from_vector(conf.contour, conf.contour_symmetry)
         return conf
     
     def interpret_rdm_arg(self, val: Optional[ArrayOrRdmDescriptor], rdms: RDMs) -> NDArray:
         """Resolve argument that can be an rdm descriptor key/value pair or a utv
         """
-        if val is  None:
-            return np.zeros(rdms.n_cond)
+        if val is None:
+            n_pairs = rdms.dissimilarities.shape[1]
+            return np.zeros(n_pairs)
         if isinstance(val, np.ndarray):
             return val
         else:
