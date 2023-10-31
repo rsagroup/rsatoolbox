@@ -67,7 +67,7 @@ class Test_rdm_plot(TestCase):
             with_offset(3, 1, 3, 2),
 
             with_offset(2, 3, 2, 2), # 3rd pix, left side
-            
+
             with_offset(3, 4, 2, 4), # pixel below that one, bottom
             with_offset(2, 4, 2, 3), # left
 

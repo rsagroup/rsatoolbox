@@ -631,7 +631,7 @@ class MultiRdmPlot:
         conf.vmax = vmax
         conf.n_row, conf.n_column = cls.determine_rows_cols_panels(
             n_row, n_column, conf.n_panel)
-        
+
         conf.figsize = figsize or cls.calc_figsize(conf.n_column, conf.n_row)
         gridlines = np.asarray(gridlines or list())
         if num_pattern_groups and (not np.any(gridlines)):
