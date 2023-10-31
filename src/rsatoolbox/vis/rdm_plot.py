@@ -139,7 +139,7 @@ def show_rdm(
     conf = MultiRdmPlot.from_show_rdm_args(
         rdms, pattern_descriptor, cmap, rdm_descriptor, n_column, n_row,
         show_colorbar, gridlines, num_pattern_groups, figsize, nanmask,
-        style, vmin, vmax, icon_spacing, linewidth, overlay, overlay_color, 
+        style, vmin, vmax, icon_spacing, linewidth, overlay, overlay_color,
         overlay_symmetry, contour, contour_color, contour_symmetry
     )
     return _plot_multi_rdm(conf)
@@ -294,7 +294,7 @@ def show_rdm_panel(
         matplotlib.image.AxesImage: Matplotlib handle.
     """
     conf = SingleRdmPlot.from_show_rdm_panel_args(rdms, cmap, nanmask,
-        rdm_descriptor, gridlines, vmin, vmax, overlay, overlay_color, 
+        rdm_descriptor, gridlines, vmin, vmax, overlay, overlay_color,
         overlay_symmetry, contour, contour_color, contour_symmetry)
     return _show_rdm_panel(conf, ax or plt.gca())
 
@@ -406,7 +406,7 @@ def _contour_coords(mask: NDArray, offset: float) -> Iterator[Tuple[float, float
             if not mask_t[(x+neighbor[0], y+neighbor[1])]:
                 x1, y1, x2, y2 = edge
                 yield (x+x1+offset, y+y1+offset, x+x2+offset, y+y2+offset)
-        
+
 
 def _add_descriptor_labels(which_axis: Axis, ax: Axes, conf: MultiRdmPlot) -> List:
     """_add_descriptor_labels.
@@ -747,7 +747,7 @@ class MultiRdmPlot:
         else:
             conf.title = self.rdm_descriptor
         return conf
-    
+
     def __init__(self, rdms: RDMs):
         self.rdms = rdms
         self.pattern_descriptor = None
@@ -862,7 +862,7 @@ class SingleRdmPlot:
         conf.contour_symmetry = contour_symmetry
         conf.contour_mask = _mask_from_vector(conf.contour, conf.contour_symmetry)
         return conf
-    
+
     def interpret_rdm_arg(self, val: Optional[ArrayOrRdmDescriptor], rdms: RDMs) -> NDArray:
         """Resolve argument that can be an rdm descriptor key/value pair or a utv
         """
