@@ -55,7 +55,7 @@ class Symmetry(Enum):
 def show_rdm(
     rdms: rsatoolbox.rdm.RDMs,
     pattern_descriptor: Optional[str] = None,
-    cmap: Union[str, Colormap] = 'bone',
+    cmap: Union[str, Colormap] = 'bone_r',
     rdm_descriptor: Optional[str] = None,
     n_column: Optional[int] = None,
     n_row: Optional[int] = None,
@@ -85,7 +85,7 @@ def show_rdm(
         cmap (str or Colormap): Colormap to be used.
             Either the name of a Matplotlib built-in colormap, a Matplotlib
             Colormap compatible object, or 'classic' for the matlab toolbox
-            colormap. Defaults to 'bone'.
+            colormap. Defaults to 'bone_r'.
         rdm_descriptor (str): Key for rdm_descriptor to use as panel title, or
             str for direct labeling.
         n_column (int): Number of columns in subplot arrangement.
@@ -250,7 +250,7 @@ def _rdm_colorbar(mappable: ScalarMappable, fig: Figure, ax: Axes, title: str) -
 def show_rdm_panel(
     rdms: rsatoolbox.rdm.RDMs,
     ax: Optional[Axes] = None,
-    cmap: Union[str, Colormap] = 'bone',
+    cmap: Union[str, Colormap] = 'bone_r',
     nanmask: Optional[NDArray] = None,
     rdm_descriptor: Optional[str] = None,
     gridlines: Optional[ArrayLike] = None,
@@ -271,7 +271,7 @@ def show_rdm_panel(
         cmap (str or Colormap): Colormap to be used.
             Either the name of a Matplotlib built-in colormap, a Matplotlib
             Colormap compatible object, or 'classic' for the matlab toolbox
-            colormap. Defaults to 'bone'.
+            colormap. Defaults to 'bone_r'.
         nanmask (ArrayLike): boolean mask defining RDM elements to suppress
             (by default, the diagonals).
         rdm_descriptor (str): Key for rdm_descriptor to use as panel title, or
@@ -751,7 +751,7 @@ class MultiRdmPlot:
     def __init__(self, rdms: RDMs):
         self.rdms = rdms
         self.pattern_descriptor = None
-        self.cmap = 'bone'
+        self.cmap = 'bone_r'
         self.rdm_descriptor = ''
         self.gridlines = np.array([])
         self.num_pattern_groups = 1
