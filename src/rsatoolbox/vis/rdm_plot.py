@@ -142,13 +142,16 @@ def show_rdm(
         style, vmin, vmax, icon_spacing, linewidth, overlay, overlay_color, 
         overlay_symmetry, contour, contour_color, contour_symmetry
     )
+    return _plot_multi_rdm(conf)
+
+def _plot_multi_rdm(conf: MultiRdmPlot) -> Tuple[Figure, NDArray, Dict[int, Dict[str, Any]]]:
     # A dictionary of figure element handles
     handles = dict()
     handles[-1] = dict() # fig level handles
     # create a list of (row index, column index) tuples
     rc_tuples = list(itertools.product(range(conf.n_row), range(conf.n_column)))
     # number of empty panels at the top
-    n_empty = (conf.n_row * conf.n_column) - rdms.n_rdm
+    n_empty = (conf.n_row * conf.n_column) - conf.rdms.n_rdm
     with plt.style.context(conf.style):
         fig, ax_array = plt.subplots(
             nrows=conf.n_row,
@@ -168,7 +171,7 @@ def show_rdm(
 
             handles[p]["image"] = _show_rdm_panel(conf.for_single(rdm_index), ax_array[r, c])
 
-            if show_colorbar == "panel":
+            if conf.show_colorbar == "panel":
                 # needs to happen before labels because it resizes the axis
                 handles[p]["colorbar"] = _rdm_colorbar(
                     mappable=handles[p]["image"],
@@ -176,12 +179,12 @@ def show_rdm(
                     ax=ax_array[r, c],
                     title=conf.dissimilarity_measure
                 )
-            if c == 0 and pattern_descriptor:
+            if c == 0 and conf.pattern_descriptor:
                 handles[p]["y_labels"] = _add_descriptor_labels(Axis.Y, ax_array[r, c], conf)
-            if r == 0 and pattern_descriptor:
+            if r == 0 and conf.pattern_descriptor:
                 handles[p]["x_labels"] = _add_descriptor_labels(Axis.X, ax_array[r, c], conf)
 
-        if show_colorbar == "figure":
+        if conf.show_colorbar == "figure":
             handles[-1]["colorbar"] = _rdm_colorbar(
                 mappable=handles[p]["image"],
                 fig=fig,
@@ -580,6 +583,10 @@ class MultiRdmPlot:
     overlay_mask: NDArray
     contour_mask: NDArray
 
+    fig: Optional[Figure]
+    ax: Optional[NDArray]
+    handles: Optional[Dict[int, Dict[str, Any]]]
+
     @classmethod
     def from_show_rdm_args(
         cls,
@@ -608,7 +615,7 @@ class MultiRdmPlot:
     ) -> MultiRdmPlot:
         """Create an object from the original arguments to show_rdm()
         """
-        conf = __class__()
+        conf = __class__(rdm)
         if show_colorbar not in (None, "panel", "figure"):
             raise ValueError(
                 f"show_colorbar can be None, panel or figure, got: {show_colorbar}"
@@ -624,10 +631,8 @@ class MultiRdmPlot:
         conf.vmax = vmax
         conf.n_row, conf.n_column = cls.determine_rows_cols_panels(
             n_row, n_column, conf.n_panel)
-        # scale with number of RDMs, up to (intersection of A4 and us letter)
-        conf.figsize = figsize or (
-            min(2 * conf.n_column, 8.3), min(2 * conf.n_row, 11)
-        )
+        
+        conf.figsize = figsize or cls.calc_figsize(conf.n_column, conf.n_row)
         gridlines = np.asarray(gridlines or list())
         if num_pattern_groups and (not np.any(gridlines)):
             # grid by pattern groups if they exist and explicit grid setting does not
@@ -703,6 +708,15 @@ class MultiRdmPlot:
                 raise ValueError("Invalid nanmask value")
         return nanmask
 
+    @classmethod
+    def calc_figsize(cls, n_column: int, n_row: int) -> Tuple[float, float]:
+        """"
+         scale with number of RDMs, up to (intersection of A4 and us letter)
+        """
+        return (
+            min(2 * n_column, 8.3), min(2 * n_row, 11)
+        )
+
     def for_single(self, index: int) -> SingleRdmPlot:
         """Create a SingleRdmPlot object for the given rdm index
 
@@ -733,6 +747,48 @@ class MultiRdmPlot:
         else:
             conf.title = self.rdm_descriptor
         return conf
+    
+    def __init__(self, rdms: RDMs):
+        self.rdms = rdms
+        self.pattern_descriptor = None
+        self.cmap = 'bone'
+        self.rdm_descriptor = ''
+        self.gridlines = np.array([])
+        self.num_pattern_groups = 1
+        self.show_colorbar = None
+        self.n_row, self.n_column = self.determine_rows_cols_panels(
+            None, None, self.rdms.n_rdm)
+        self.figsize = self.calc_figsize(self.n_column, self.n_row)
+        self.nanmask = self.init_nan_mask('diagonal', self.rdms)
+        self.style = get_style()
+        self.vmin = None
+        self.vmax = None
+        self.icon_spacing = 1.0
+        self.linewidth = 0.5
+        n_pairs = rdms.dissimilarities.shape[1]
+        self.overlay = np.zeros(n_pairs)
+        self.overlay_color = '#00ff0050'
+        self.overlay_symmetry = Symmetry.BOTH
+        self.contour = np.zeros(n_pairs)
+        self.contour_color = 'red'
+        self.contour_symmetry= Symmetry.BOTH
+
+    def addOverlay(self, mask: ArrayOrRdmDescriptor, color: str, triangles: Symmetry):
+        self.overlay = self.interpret_rdm_arg(mask, self.rdms)
+        self.overlay_color = color
+        self.overlay_symmetry = triangles
+        self.overlay_mask = _mask_from_vector(self.overlay, triangles)
+
+    def addContour(self, mask: ArrayOrRdmDescriptor, color: str, triangles: Symmetry):
+        self.contour = self.interpret_rdm_arg(mask, self.rdms)
+        self.contour_color = color
+        self.contour_symmetry = triangles
+        self.contour_mask = _mask_from_vector(self.contour, triangles)
+
+    def plot(self):
+        self.fig, self.ax, self.handles = _plot_multi_rdm(self)
+        return self.fig
+
 
 class SingleRdmPlot:
     """Configuration for the single-rdm plot
@@ -754,6 +810,10 @@ class SingleRdmPlot:
     contour_symmetry: Symmetry
     overlay_mask: NDArray
     contour_mask: NDArray
+
+    fig: Optional[Figure]
+    ax: Optional[NDArray]
+    handles: Optional[Dict[int, Dict[str, Any]]]
 
     @classmethod
     def from_show_rdm_panel_args(
