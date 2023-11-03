@@ -1,5 +1,8 @@
 from unittest import TestCase
-import pkg_resources
+try:
+    from importlib.resources import files, as_file
+except ImportError:
+    from importlib_resources import files, as_file
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 
@@ -15,7 +18,7 @@ class MeadowsIOTests(TestCase):
         """
         import rsatoolbox.io.meadows
         fname = 'Meadows_myExp_v_v1_cuddly-bunny_3_1D.mat'
-        fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
+        fpath = self.get_test_data_fpath(fname)
         rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=False)
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
         self.assertEqual(rdms.rdm_descriptors.get('task_index'), [3])
@@ -33,7 +36,7 @@ class MeadowsIOTests(TestCase):
         """
         import rsatoolbox.io.meadows
         fname = 'Meadows_myExp_v_v1_cuddly-bunny_3_1D.mat'
-        fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
+        fpath = self.get_test_data_fpath(fname)
         rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=True)
         conds = rdms.pattern_descriptors.get('conds')
         assert_array_equal(conds[:2], ['stim001', 'stim002'])
@@ -51,7 +54,7 @@ class MeadowsIOTests(TestCase):
         """
         import rsatoolbox.io.meadows
         fname = 'Meadows_myExp_v_v1_arrangement_1D.mat'
-        fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
+        fpath = self.get_test_data_fpath(fname)
         rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=False)
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'myExp')
         self.assertEqual(
@@ -82,7 +85,7 @@ class MeadowsIOTests(TestCase):
         """
         import rsatoolbox.io.meadows
         fname = 'Meadows_twoMaTasks_v_v1_informed-mole_tree.json'
-        fpath = pkg_resources.resource_filename('tests', 'data/' + fname)
+        fpath = self.get_test_data_fpath(fname)
         rdms = rsatoolbox.io.meadows.load_rdms(fpath, sort=False)
         self.assertEqual(rdms.descriptors.get('experiment_name'), 'twoMaTasks')
         self.assertEqual(
@@ -160,3 +163,8 @@ class MeadowsIOTests(TestCase):
         self.assertEqual(info.get('structure'), 'tree')
         self.assertEqual(info.get('filetype'), 'json')
         self.assertIsNone(info.get('task_name'))
+
+    def get_test_data_fpath(self, fname: str) -> str:
+        ref = files('tests') / f'data/{fname}'
+        with as_file(ref) as fpath:
+            return str(fpath)
