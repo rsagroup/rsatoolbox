@@ -1,19 +1,19 @@
 [build-system]
 requires = [
-    "setuptools~=65.3",
-    "setuptools-scm[toml]~=7.0.0",
+    "setuptools>=68.0",
+    "setuptools-scm[toml]>=8.0",
     "wheel",
     "numpy>=1.21.2",
     "scipy",
-    "cython~=3.0.0a11",
-    "twine~=4.0.1"
+    "cython~=3.0",
+    "twine>=4.0.1"
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "rsatoolbox"
 description = "Representational Similarity Analysis (RSA) in Python"
-requires-python = ">=3.8,<3.12"
+requires-python = ">=3.8"
 authors = [
     {name="rsatoolbox authors"},
 ]
@@ -30,6 +30,7 @@ classifiers = [
       'Programming Language :: Python :: 3.9',
       'Programming Language :: Python :: 3.10',
       'Programming Language :: Python :: 3.11',
+      'Programming Language :: Python :: 3.12',
 ]
 dynamic = ["readme", "dependencies", "version"]
 
