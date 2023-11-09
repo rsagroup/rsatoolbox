@@ -429,7 +429,7 @@ class TestsExtractVar(unittest.TestCase):
         from rsatoolbox.rdm import RDMs
         from rsatoolbox.model import ModelFixed
         from rsatoolbox.inference import bootstrap_crossval
-        model = ModelFixed('m', np.random.rand(10))
-        data = RDMs(np.random.rand(10))
-        result = bootstrap_crossval(model, data, boot_type="pattern")
+        model = ModelFixed('m', np.random.rand(190))
+        data = RDMs(np.random.rand(190))
+        result = bootstrap_crossval(model, data, boot_type="pattern", N=100)
         assert np.isfinite(result.model_var[0])
