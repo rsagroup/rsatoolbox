@@ -21,8 +21,15 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 
-def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
-             cv_descriptor=None, prior_lambda=1, prior_weight=0.1):
+def calc_rdm(
+        dataset: DatasetBase,
+        method: str = 'euclidean',
+        descriptor: Optional[str] = None,
+        noise: Optional[NDArray] = None,
+        cv_descriptor: Optional[str] = None,
+        prior_lambda: float = 1,
+        prior_weight: float = 0.1,
+        remove_mean: bool = False):
     """
     calculates an RDM from an input dataset
 
@@ -42,6 +49,9 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             precision matrix used to calculate the RDM
             used only for Mahalanobis and Crossnobis estimators
             defaults to an identity matrix, i.e. euclidean distance
+        remove_mean (bool):
+            whether the mean of each pattern shall be removed before distance calculation.
+            This has no effect on poisson based and correlation distances.
 
     Returns:
         rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
@@ -76,14 +86,14 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             rdm = from_partials(rdms, descriptor=descriptor)
     else:
         if method == 'euclidean':
-            rdm = calc_rdm_euclidean(dataset, descriptor)
+            rdm = calc_rdm_euclidean(dataset, descriptor, remove_mean)
         elif method == 'correlation':
             rdm = calc_rdm_correlation(dataset, descriptor)
         elif method == 'mahalanobis':
-            rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
+            rdm = calc_rdm_mahalanobis(dataset, descriptor, noise, remove_mean)
         elif method == 'crossnobis':
             rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                      cv_descriptor)
+                                      cv_descriptor, remove_mean)
         elif method == 'poisson':
             rdm = calc_rdm_poisson(dataset, descriptor,
                                    prior_lambda=prior_lambda,
