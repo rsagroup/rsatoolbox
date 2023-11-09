@@ -423,3 +423,13 @@ class TestsExtractVar(unittest.TestCase):
         self.assertEqual(diff_variances.shape[0], 45)
         self.assertEqual(nc_variances.shape[0], 10)
         self.assertEqual(nc_variances.shape[1], 2)
+
+    def test_zero_div(self):
+        """This integration test makes sure things work when only 1 RDM is passed"""
+        from rsatoolbox.rdm import RDMs
+        from rsatoolbox.model import ModelFixed
+        from rsatoolbox.inference import bootstrap_crossval
+        model = ModelFixed('m', np.random.rand(10))
+        data = RDMs(np.random.rand(10))
+        result = bootstrap_crossval(model, data, boot_type="pattern")
+        assert np.isfinite(result.model_var[0])
