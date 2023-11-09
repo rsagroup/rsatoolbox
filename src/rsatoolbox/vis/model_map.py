@@ -242,7 +242,7 @@ def map_model_comparison(result, rdms_data=None,
 
     eb_low_high = np.array((errbar_dist_low, errbar_dist_high))
 
-    # %% Compute intermodel distances
+    # Compute intermodel distances
     n_dissim = int(models[0].n_cond * (models[0].n_cond - 1) / 2)
     modelRDMs = np.empty((n_models, n_dissim))
     for idx, model_i in enumerate(models):
@@ -263,15 +263,12 @@ def map_model_comparison(result, rdms_data=None,
     # intermodelDists2 = np.sqrt(2*(1 - np.einsum('ik,jk', modelRDMs, modelRDMs)))
     # intermodelDists3 = ssd.squareform(np.sqrt(2*ssd.pdist(modelRDMs, metric='correlation')))
 
-    # %% Assemble second-order distance matrix (distances among RDMs)
+    # Assemble second-order distance matrix (distances among RDMs)
     rdm_dists = np.zeros((n_models + 1, n_models + 1))
     rdm_dists[1:, 0] = data_model_dists
     rdm_dists[0, 1:] = data_model_dists
     rdm_dists[1:, 1:] = intermodelDists
     rdm_dists[np.eye(n_models + 1) == 1] = 0
-
-    # optionally use squared distances (e.g. correlation distances, rather than their square roots)
-    # rdm_dists = rdm_dists**2
 
     plt.figure(figsize=(fig_width, fig_width), dpi=dpi)
     plt.imshow(rdm_dists, cmap='Greys')
@@ -282,7 +279,7 @@ def map_model_comparison(result, rdms_data=None,
     plt.yticks(fontsize=fs_small)
     plt.show()
 
-    # %% Perform MDS to map model RDMs around the data RDM
+    # Perform MDS to map model RDMs around the data RDM
     if verbose > 0:
         print('\nPerforming MDS to map model RDMs around the data RDM, using ' +
               'custom MDS...', flush=True)
@@ -525,7 +522,7 @@ def _get_description(test_pair_comparisons, multiple_pair_testing, error_bars,
         inference_descr = inference_descr + \
             'subjects and experimental conditions. '
 
-    # %% Print description of inferential methods
+    # Print description of inferential methods
     inference_descr += '\nError bars indicate the'
     if error_bars[0:2].lower() == 'ci':
         if len(error_bars) == 2:
