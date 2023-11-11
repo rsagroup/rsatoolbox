@@ -2,6 +2,7 @@
 
 See demo_meg_mne for an example.
 """
+# pylint: disable=too-many-statements,unused-argument
 from __future__ import annotations
 from typing import TYPE_CHECKING, Tuple, List, Optional
 import matplotlib.pyplot as plt
