@@ -2,9 +2,9 @@
 
 See demo_meg_mne for an example.
 """
-# pylint: disable=too-many-statements,unused-argument
+# pylint: disable=too-many-statements,unused-argument,too-many-locals
 from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple, List, Optional
+from typing import TYPE_CHECKING, Tuple, List, Optional, Dict
 import matplotlib.pyplot as plt
 import numpy as np
 if TYPE_CHECKING:
@@ -57,22 +57,8 @@ def plot_timecourse(
     n_dissimilarity_elements = rdms_data.dissimilarities.shape[1]
 
     # color mapping from colored conditions
-    if colored_conditions is not None:
-        if plot_individual_dissimilarities is None:
-            plot_individual_dissimilarities = False
-        sf_conds = [[{c1, c2} for c1 in colored_conditions] for c2 in colored_conditions]
-        pairwise_conds = unsquareform(np.array(sf_conds))
-        pairwise_conds_unique = np.unique(pairwise_conds)
-        color_index = {}
-        for x in pairwise_conds_unique:
-            if len(list(x))==2:
-                key = f'{list(x)[0]} vs {list(x)[1]}'
-            else:
-                key = f'{list(x)[0]} vs {list(x)[0]}'
-            color_index[key] = pairwise_conds==x
-    else:
-        color_index = {'': np.array([True]*n_dissimilarity_elements)}
-        plot_individual_dissimilarities = True
+    plot_individual_dissimilarities, color_index = _map_colors(
+        colored_conditions, plot_individual_dissimilarities, rdms_data)
 
     colors = plt.get_cmap('turbo')(np.linspace(0, 1, len(color_index)+1))
 
@@ -158,3 +144,29 @@ def unsquareform(a: NDArray) -> NDArray:
     """Helper function; convert squareform to vector
     """
     return a[np.nonzero(np.triu(a, k=1))]
+
+
+def _map_colors(
+        colored_conditions: Optional[list],
+        plot_individual_dissimilarities: Optional[bool],
+        rdms: RDMs
+    ) -> Tuple[bool, Dict[str, NDArray]]:
+    n_dissimilarity_elements = rdms.dissimilarities.shape[1]
+    # color mapping from colored conditions
+    if colored_conditions is not None:
+        if plot_individual_dissimilarities is None:
+            plot_individual_dissimilarities = False
+        sf_conds = [[{c1, c2} for c1 in colored_conditions] for c2 in colored_conditions]
+        pairwise_conds = unsquareform(np.array(sf_conds))
+        pairwise_conds_unique = np.unique(pairwise_conds)
+        color_index = {}
+        for x in pairwise_conds_unique:
+            if len(list(x))==2:
+                key = f'{list(x)[0]} vs {list(x)[1]}'
+            else:
+                key = f'{list(x)[0]} vs {list(x)[0]}'
+            color_index[key] = pairwise_conds==x
+    else:
+        color_index = {'': np.array([True]*n_dissimilarity_elements)}
+        plot_individual_dissimilarities = True
+    return plot_individual_dissimilarities, color_index
