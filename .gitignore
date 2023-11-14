@@ -145,3 +145,5 @@ Icon[
 # nbsphinx_link copies
 docs/source/92imageData/
 docs/source/rdms_inferring/
+docs/source/rdms_inferring/
+docs/source/demo_*
