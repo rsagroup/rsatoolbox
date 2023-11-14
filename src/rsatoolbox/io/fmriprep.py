@@ -49,7 +49,7 @@ class FmriprepRun:
 
     def get_events(self):
         return self.boldFile.get_events()
-    
+
     def get_meta(self):
         return self.boldFile.get_meta()
     

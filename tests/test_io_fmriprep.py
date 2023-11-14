@@ -83,7 +83,7 @@ class TestFmriprepRun(TestCase):
         descs = run.get_obs_descriptors(collapse_by_trial_type=True)
         self.assertIn('trial_type', descs)
         self.assertEqual(
-            list(descs['trial_type']), 
+            list(descs['trial_type']),
             ['s1', 's2', 's3']
         )
 

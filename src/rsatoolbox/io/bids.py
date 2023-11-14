@@ -69,7 +69,7 @@ class BidsFile:
         if self._meta is None:
             self._meta = self.layout.find_meta_for(self)
         return self._meta.get_data()
-    
+
     def get_table_sibling(self, desc: str, suffix: str) -> BidsTableFile:
         return self.layout.find_table_sibling_of(self, desc, suffix)
 

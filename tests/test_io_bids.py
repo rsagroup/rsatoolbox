@@ -104,7 +104,7 @@ class TestBidsLayout(TestCase):
 
     def os_path_like(self, nix_path: str) -> str:
         return nix_path.replace('/', os.sep)
-    
+
     def os_paths_like(self, nix_paths: List[str]) -> List[str]:
         return [self.os_path_like(p) for p in nix_paths]
 
