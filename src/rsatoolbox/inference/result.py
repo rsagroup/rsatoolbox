@@ -173,6 +173,8 @@ class Result:
         result_dict['noise_ceiling'] = self.noise_ceiling
         result_dict['method'] = self.method
         result_dict['cv_method'] = self.cv_method
+        result_dict['n_rdm'] = self.n_rdm
+        result_dict['n_pattern'] = self.n_pattern
         result_dict['models'] = {}
         for i_model in range(len(self.models)):
             key = 'model_%d' % i_model
@@ -329,5 +331,7 @@ def result_from_dict(result_dict):
         key = 'model_%d' % i_model
         models[i_model] = rsatoolbox.model.model_from_dict(
             result_dict['models'][key])
+    n_rdm = result_dict['n_rdm']
+    n_pattern = result_dict['n_pattern']
     return Result(models, evaluations, method, cv_method, noise_ceiling,
-                  variances=variances, dof=dof)
+                  variances=variances, dof=dof, n_rdm=n_rdm, n_pattern=n_pattern)
