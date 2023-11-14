@@ -172,21 +172,6 @@ def check_descriptor_length_error(descriptor, name, n_element):
                 name + " have mismatched dimension with measurements.")
 
 
-def append_obs_descriptors(dict_orig, dict_addit):
-    """
-    Merge two dictionaries of observation descriptors with matching keys and
-    numpy arrays as values.
-    """
-    assert list(dict_orig.keys()) == list(dict_addit.keys()), \
-        "Provided observation descriptors have different keys."
-    dict_merged = {}
-    keys = list(dict_orig.keys())
-    for k in keys:
-        values = list(np.append(dict_orig[k], dict_addit[k]))
-        dict_merged.update({k: values})
-    return dict_merged
-
-
 def dict_to_list(d_dict):
     """
     converts a dictionary from a hdf5 file to a list

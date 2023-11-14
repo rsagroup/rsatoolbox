@@ -91,6 +91,17 @@ class TestCalcRDM(unittest.TestCase):
         self.assertIsNone(desc)
         self.assertTrue(np.all(data.measurements == measurements))
 
+    def test_parse_input_remove_mean(self):
+        from rsatoolbox.rdm.calc import _parse_input
+        data = Mock()
+        data.descriptors = {'session': 0, 'subj': 0}
+        data.measurements = self.rng.random((6, 5))
+        measurements, desc = _parse_input(data, None, remove_mean=True)
+        self.assertIsNone(desc)
+        assert_array_almost_equal(
+            data.measurements - np.mean(data.measurements, axis=1, keepdims=True),
+            measurements)
+
     @patch('rsatoolbox.rdm.calc._parse_input')
     def test_calc_euclidean_as_scipy(self, _parse_input):
         from rsatoolbox.rdm import calc_rdm
@@ -115,7 +126,9 @@ class TestCalcRDM(unittest.TestCase):
         data.channel_descriptors = dict()
         data.measurements = self.rng.random((6, 5))
         desc = [0, 1, 2, 3, 4, 5]
-        _parse_input.return_value = (data.measurements, desc)
+        _parse_input.return_value = (
+            data.measurements-np.mean(data.measurements, axis=1, keepdims=True),
+            desc)
         rdm_expected = 1 - np.corrcoef(data.measurements)
         rdme = rsr.RDMs(
             dissimilarities=np.array([rdm_expected]),
@@ -428,6 +441,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert len([r for r in rdm]) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
         assert len(rdm.rdm_descriptors['time']) == 15
+        assert rdm.dissimilarity_measure == "mahalanobis"
 
     def test_calc_rdm_movie_euclidean(self):
         rdm = rsr.calc_rdm_movie(
@@ -439,6 +453,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.n_cond == 6
         assert len([r for r in rdm]) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
+        assert rdm.dissimilarity_measure == "euclidean"
 
     def test_calc_rdm_movie_correlation(self):
         rdm = rsr.calc_rdm_movie(
@@ -450,6 +465,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.n_cond == 6
         assert len([r for r in rdm]) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
+        assert rdm.dissimilarity_measure == "correlation"
 
     def test_calc_rdm_movie_crossnobis(self):
         rdm = rsr.calc_rdm_movie(
@@ -462,6 +478,7 @@ class TestCalcRDMMovie(unittest.TestCase):
         assert rdm.n_cond == 6
         assert len([r for r in rdm]) == 15
         assert rdm.rdm_descriptors['time'][0] == 0.0
+        assert rdm.dissimilarity_measure == "crossnobis"
 
     def test_calc_rdm_movie_crossnobis_no_descriptors(self):
         rdm = rsr.calc_rdm_movie(

@@ -10,7 +10,8 @@ Plotting RDMs
 The main function for showing RDMs is :func:`rsatoolbox.vis.rdm_plot.show_rdm`.
 It is illustrated in :doc:`demo_rdm_vis`. It allows relatively detailed 
 plotting of both individual RDMs, as well as combined figures with
-multiple RDMs.
+multiple RDMs. For examples on adding overlays or contours to the plot, 
+see :doc:`demo_annotated_rdm_plot`.
 
 
 Scatter plots

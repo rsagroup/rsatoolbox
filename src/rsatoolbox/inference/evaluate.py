@@ -525,7 +525,10 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
     if k_rdm is None:
         n_rdm = len(np.unique(data.rdm_descriptors[
             rdm_descriptor]))
-        k_rdm = default_k_rdm((1 - 1 / np.exp(1)) * n_rdm)
+        if n_rdm == 1:
+            k_rdm = 1
+        else:
+            k_rdm = default_k_rdm((1 - 1 / np.exp(1)) * n_rdm)
     if isinstance(models, Model):
         models = [models]
     evaluations = np.empty((N, len(models), k_pattern * k_rdm, n_cv))
@@ -565,12 +568,18 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
     if boot_type == 'both':
         cv_method = 'bootstrap_crossval'
         dof = min(data.n_rdm, data.n_cond) - 1
+        n_rdm = data.n_rdm
+        n_cond = data.n_cond
     elif boot_type == 'pattern':
         cv_method = 'bootstrap_crossval_pattern'
         dof = data.n_cond - 1
+        n_rdm = None
+        n_cond = data.n_cond
     elif boot_type == 'rdm':
         cv_method = 'bootstrap_crossval_rdm'
         dof = data.n_rdm - 1
+        n_rdm = data.n_rdm
+        n_cond = None
     eval_ok = ~np.isnan(evaluations[:, 0, 0, 0])
     if use_correction and n_cv > 1:
         # we essentially project from the two points for 1 repetition and
@@ -598,8 +607,8 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof, n_rdm=data.n_rdm,
-                    n_pattern=data.n_cond)
+                    variances=variances, dof=dof, n_rdm=n_rdm,
+                    n_pattern=n_cond)
     return result
 
 

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
 
 
-def batch_to_vectors(x):
+def batch_to_vectors(x) -> Tuple[NDArray, int, int]:
     """converts a *stack* of RDMs in vector or matrix form into vector form
 
     Args:
@@ -41,6 +41,8 @@ def batch_to_vectors(x):
         v = np.array([x])
         n_rdm = 1
         n_cond = _get_n_from_reduced_vectors(v)
+    else:
+        raise ValueError(f'Invalid number of dimensions on rdm stack: [{x.ndim}]')
     return v, n_rdm, n_cond
 
 

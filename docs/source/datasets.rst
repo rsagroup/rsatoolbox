@@ -97,4 +97,3 @@ Spiking Data
 Import of spiking data into rsatoolbox tends to be relatively easy, because the data often comes in the form of numpy arrays already.
 You can find an example in :ref:`demo_spikes<demo_spikes.nblink>` .
 
-TODO: TIPS TO IMPORT FMRI / EEG ETC DATA
