@@ -521,12 +521,12 @@ def _check_noise(noise, n_channel):
         pass
     elif isinstance(noise, np.ndarray) and noise.ndim == 2:
         assert np.all(noise.shape == (n_channel, n_channel))
-    elif isinstance(noise, Iterable):
-        for idx, noise_i in enumerate(noise):
-            noise[idx] = _check_noise(noise_i, n_channel)
     elif isinstance(noise, dict):
         for key in noise.keys():
             noise[key] = _check_noise(noise[key], n_channel)
+    elif isinstance(noise, Iterable):
+        for idx, noise_i in enumerate(noise):
+            noise[idx] = _check_noise(noise_i, n_channel)
     else:
         raise ValueError('noise(s) must have shape n_channel x n_channel')
     return noise
