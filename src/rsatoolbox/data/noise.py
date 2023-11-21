@@ -389,7 +389,7 @@ def cov_from_unbalanced(dataset, obs_desc, dof=None, method='shrinkage_diag'):
         assert "Dataset" in str(type(dataset)), "Provided object is not a dataset"
         assert obs_desc in dataset.obs_descriptors.keys(), \
             "obs_desc not contained in the dataset's obs_descriptors"
-        matrix = dataset.measurements
+        matrix = dataset.measurements.copy()
         means, values, _ = average_dataset_by(dataset, obs_desc)
         values, inverse = get_unique_inverse(dataset.obs_descriptors[obs_desc])
         matrix -= means[inverse]
