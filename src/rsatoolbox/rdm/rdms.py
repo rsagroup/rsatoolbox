@@ -422,8 +422,12 @@ class RDMs:
         for dname, descriptors in self.pattern_descriptors.items():
             self.pattern_descriptors[dname] = [descriptors[idx] for idx in new_order]
 
-    def sort_by(self, **kwargs):
+    def sort_by(self, reindex: bool = True, **kwargs):
         """Reorder the patterns by sorting a descriptor
+
+        Args:
+            reindex (bool): whether to reset the 'index' descriptor 
+                following sorting
 
         Pass keyword arguments that correspond to descriptors,
         with value indicating the sort type. Supported methods:
@@ -466,6 +470,8 @@ class RDMs:
                 self.reorder([list(descriptor).index(x) for x in new_order])
             else:
                 raise ValueError(f'Unknown sorting method: {method}')
+        if reindex:
+            self.pattern_descriptors[INDEX] = list(range(self.n_cond))
 
     def mean(self, weights=None):
         """Average rdm of all rdms contained
