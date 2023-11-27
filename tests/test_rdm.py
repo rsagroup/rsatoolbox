@@ -324,6 +324,7 @@ class TestRDM(unittest.TestCase):
         rdms = concat((rdms1, rdms2))
         self.assertEqual(rdms.n_rdm, 16)
         assert len(rdms.rdm_descriptors['session']) == 16
+        self.assertEqual(rdms.dissimilarity_measure, mes)
 
     def test_concat_varargs_multiple_rdms(self):
         from rsatoolbox.rdm import concat
