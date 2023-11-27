@@ -471,7 +471,7 @@ class RDMs:
             else:
                 raise ValueError(f'Unknown sorting method: {method}')
         if reindex:
-            self.pattern_descriptors[INDEX] = list(range(self.n_cond))
+            self.pattern_descriptors['index'] = list(range(self.n_cond))
 
     def mean(self, weights=None):
         """Average rdm of all rdms contained
