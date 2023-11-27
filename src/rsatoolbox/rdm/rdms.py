@@ -454,7 +454,7 @@ class RDMs:
         for dname, method in kwargs.items():
             if method == 'alpha':
                 descriptor = self.pattern_descriptors[dname]
-                self.reorder(np.argsort(descriptor))
+                self.reorder(np.argsort(descriptor, kind='stable'))
             elif isinstance(method, (list, np.ndarray)):
                 # in this case, `method` is the desired descriptor order
                 new_order = method
