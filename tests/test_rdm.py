@@ -429,6 +429,44 @@ class TestRDM(unittest.TestCase):
             )
         )
 
+    def test_sort_by_reindex_resets_index(self):
+        from rsatoolbox.rdm import RDMs
+        rdm = np.array([
+            [0., 1., 2., 3.],
+            [1., 0., 1., 2.],
+            [2., 1., 0., 1.],
+            [3., 2., 1., 0.]]
+        )
+        conds = ['b', 'a', 'c', 'd']
+        rdms = RDMs(
+            np.atleast_2d(squareform(rdm)),
+            pattern_descriptors=dict(conds=conds)
+        )
+        rdms.sort_by(conds='alpha', reindex=True)
+        self.assertEqual(
+            rdms.pattern_descriptors['index'],
+            list(range(rdms.n_cond))
+        )
+
+    def test_sort_by_not_reindex_does_not_reset_index(self):
+        from rsatoolbox.rdm import RDMs
+        rdm = np.array([
+            [0., 1., 2., 3.],
+            [1., 0., 1., 2.],
+            [2., 1., 0., 1.],
+            [3., 2., 1., 0.]]
+        )
+        conds = ['b', 'a', 'c', 'd']
+        rdms = RDMs(
+            np.atleast_2d(squareform(rdm)),
+            pattern_descriptors=dict(conds=conds)
+        )
+        rdms.sort_by(conds='alpha', reindex=False)
+        self.assertNotEqual(
+            rdms.pattern_descriptors['index'],
+            list(range(rdms.n_cond))
+        )
+
     def test_sort_by_list(self):
         from rsatoolbox.rdm import RDMs
         rdm = np.array([
