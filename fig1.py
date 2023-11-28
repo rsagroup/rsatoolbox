@@ -74,7 +74,9 @@ def neuron_2008_rdms_fmri(**kwarg):
     )
 
 rdms = neuron_2008_rdms_fmri()
+rdms.dissimilarity_measure = '1-rho'
 rdms_subset = rdms.subset_pattern('index', np.arange(1, 92, 4))
+rdms_subset[0].rdm_descriptors['name']
 #rdms_subset = rdm.rank_transform(rdms_subset)
 
 # font.size: 9
@@ -91,12 +93,10 @@ rdms_subset = rdms.subset_pattern('index', np.arange(1, 92, 4))
 # ytick.major.size: 0
 
 fig, ax, ret_val = vis.show_rdm(rdms_subset[0],
-    rdm_descriptor='name',
     pattern_descriptor='image',
-    num_pattern_groups=2,
-    icon_spacing=1.1,
+    num_pattern_groups=3,
+    icon_spacing=1.8, #1.1,
     show_colorbar='panel',
-    n_column=1,
     figsize=(10, 10)
 )
 #fig.tight_layout()
