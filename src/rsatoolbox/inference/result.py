@@ -10,8 +10,10 @@ import rsatoolbox.model
 from rsatoolbox.io.hdf5 import read_dict_hdf5, write_dict_hdf5
 from rsatoolbox.io.pkl import read_dict_pkl, write_dict_pkl
 from rsatoolbox.util.file_io import remove_file
-from rsatoolbox.util.inference_util import extract_variances
+from rsatoolbox.util.inference_util import extract_variances, compute_variances
 from rsatoolbox.util.inference_util import all_tests, pair_tests, nc_tests, zero_tests
+from collections.abc import Callable
+from numpy import ndarray
 
 
 class Result:
@@ -40,7 +42,8 @@ class Result:
     """
 
     def __init__(self, models, evaluations, method, cv_method, noise_ceiling,
-                 variances=None, dof=1, fitter=None, n_rdm=None, n_pattern=None):
+                 dof=1, fitter=None, n_rdm=None, n_pattern=None,
+                 use_correction=None):
         if isinstance(models, rsatoolbox.model.Model):
             models = [models]
         assert len(models) == evaluations.shape[1], 'evaluations shape does' \
@@ -51,12 +54,18 @@ class Result:
         self.method = method
         self.cv_method = cv_method
         self.noise_ceiling = np.array(noise_ceiling)
-        self.variances = variances
         self.dof = dof
         self.fitter = fitter
         self.n_bootstraps = evaluations.shape[0]
         self.n_rdm = n_rdm
         self.n_pattern = n_pattern
+        self.use_correction = use_correction
+
+        self.variances = compute_variances(
+            evaluations,
+            noise_ceiling,
+            cv_method,
+            use_correction)
         if variances is not None:
             # if the variances only refer to the models this should have the
             # same number of entries as the models list.
@@ -169,13 +178,13 @@ class Result:
         result_dict = {}
         result_dict['evaluations'] = self.evaluations
         result_dict['dof'] = self.dof
-        result_dict['variances'] = self.variances
         result_dict['noise_ceiling'] = self.noise_ceiling
         result_dict['method'] = self.method
         result_dict['cv_method'] = self.cv_method
         result_dict['n_rdm'] = self.n_rdm
         result_dict['n_pattern'] = self.n_pattern
         result_dict['models'] = {}
+        result_dict['use_correction'] = self.use_correction
         for i_model in range(len(self.models)):
             key = 'model_%d' % i_model
             result_dict['models'][key] = self.models[i_model].to_dict()
@@ -314,10 +323,6 @@ def result_from_dict(result_dict):
         result(Result): the recreated object
 
     """
-    if 'variances' in result_dict.keys():
-        variances = result_dict['variances']
-    else:
-        variances = None
     if 'dof' in result_dict.keys():
         dof = result_dict['dof']
     else:
@@ -333,5 +338,58 @@ def result_from_dict(result_dict):
             result_dict['models'][key])
     n_rdm = result_dict['n_rdm']
     n_pattern = result_dict['n_pattern']
+    use_correction = result_dict['use_correction']
     return Result(models, evaluations, method, cv_method, noise_ceiling,
-                  variances=variances, dof=dof, n_rdm=n_rdm, n_pattern=n_pattern)
+                  dof=dof, n_rdm=n_rdm, n_pattern=n_pattern,
+                  use_correction=use_correction)
+
+
+def transform_results(
+        result: Result,
+        f: Callable[[ndarray], ndarray]) -> Result:
+
+    """
+    Transforms a results object by applying the function f to the measurements.
+    This allows applying any transformation to the model evaluation result.
+
+    The most important step is to recompute the variance estimates.
+
+    Args:
+
+    result: Result
+        the result object to be transformed
+
+    f: Callable
+        the transformation to apply to the similarity measures
+
+    use_correction: bool, default = True
+        whether to use the correction for crossvalidation in recalculating variances
+
+    """
+
+    evals = f(result.evaluations)
+    noise_ceil = f(result.noise_ceiling)
+
+    result_out = Result(
+        result.models,
+        evals,
+        method=result.method + "transformed",
+        cv_method=result.cv_method,
+        noise_ceiling=noise_ceil,
+        dof=result.dof,
+        n_rdm=result.n_rdm,
+        n_pattern=result.n_cond,
+        use_correction=result.use_correction)
+    return result_out
+
+
+def _z_tranform(corrs: ndarray) -> ndarray:
+    # check for values of -1 or 1 - these will generate +/-np.inf after transformation
+    # replace with +/-0.9999
+    corrs = np.copy(corrs)
+    corrs[corrs <= -0.9999] = -0.9999
+    corrs[corrs >= 0.9999] = 0.9999
+
+    # fisher transform using arctanh
+    z_vals = np.arctanh(corrs)
+    return z_vals

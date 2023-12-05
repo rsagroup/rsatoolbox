@@ -140,40 +140,9 @@ def eval_dual_bootstrap(
             noise_ceil[:, i_sample, :, :] = np.nan
     cv_method = 'dual_bootstrap'
     dof = min(data.n_rdm, data.n_cond) - 1
-    eval_ok = ~np.isnan(evaluations[:, 0, 0, 0, 0])
-    if use_correction and n_cv > 1:
-        # we essentially project from the two points for 1 repetition and
-        # for n_cv repetitions to infinitely many cv repetitions
-        evals_nonan = np.mean(np.mean(evaluations[eval_ok], -2), -2)
-        evals_1 = np.mean(evaluations[eval_ok], -3)
-        noise_ceil_nonan = np.mean(
-            noise_ceil[:, eval_ok], -2).transpose([1, 0, 2])
-        noise_ceil_1 = noise_ceil[:, eval_ok].transpose([1, 0, 2, 3])
-        matrix = np.concatenate([evals_nonan, noise_ceil_nonan], 1)
-        matrix -= np.mean(matrix, 0, keepdims=True)
-        var_mean = np.einsum('ijk,ilk->kjl', matrix, matrix) \
-            / (matrix.shape[0] - 1)
-        matrix_1 = np.concatenate([evals_1, noise_ceil_1], 1)
-        matrix_1 -= np.mean(matrix_1, 0, keepdims=True)
-        var_1 = np.einsum('ijmk,ilmk->kjl', matrix_1, matrix_1) \
-            / (matrix_1.shape[0] - 1) / matrix_1.shape[2]
-        # this is the main formula for the correction:
-        variances = (n_cv * var_mean - var_1) / (n_cv - 1)
-    else:
-        if use_correction:
-            raise Warning('correction requested, but only one cv run'
-                          + ' per sample requested. This is invalid!'
-                          + ' We do not use the correction for now.')
-        evals_nonan = np.mean(np.mean(evaluations[eval_ok], -2), -2)
-        noise_ceil_nonan = np.mean(
-            noise_ceil[:, eval_ok], -2).transpose([1, 0, 2])
-        matrix = np.concatenate([evals_nonan, noise_ceil_nonan], 1)
-        matrix -= np.mean(matrix, 0, keepdims=True)
-        variances = np.einsum('ijk,ilk->kjl', matrix, matrix) \
-            / (matrix.shape[0] - 1)
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    dof=dof, n_rdm=data.n_rdm,
                     n_pattern=data.n_cond)
     return result
 
@@ -202,15 +171,12 @@ def eval_fixed(models, data, theta=None, method='cosine'):
     noise_ceil = boot_noise_ceiling(
         data, method=method, rdm_descriptor='index')
     if data.n_rdm > 1:
-        variances = np.cov(evaluations[0], ddof=0) \
-            / evaluations.shape[-1]
         dof = evaluations.shape[-1] - 1
     else:
-        variances = None
         dof = 0
     result = Result(models, evaluations, method=method,
                     cv_method='fixed', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    dof=dof, n_rdm=data.n_rdm,
                     n_pattern=None)
     result.n_pattern = data.n_cond
     return result
@@ -259,20 +225,15 @@ def eval_bootstrap(models, data, theta=None, method='cosine', N=1000,
             evaluations[i, :] = np.nan
             noise_min.append(np.nan)
             noise_max.append(np.nan)
+    dof = min(data.n_rdm, data.n_cond) - 1
     if boot_noise_ceil:
-        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array([noise_min, noise_max])
-        variances = np.cov(np.concatenate([evaluations[eval_ok, :].T,
-                                           noise_ceil[:, eval_ok]]))
     else:
-        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
-        variances = np.cov(evaluations[eval_ok, :].T)
-    dof = min(data.n_rdm, data.n_cond) - 1
     result = Result(models, evaluations, method=method,
                     cv_method='bootstrap', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    dof=dof, n_rdm=data.n_rdm,
                     n_pattern=data.n_cond)
     return result
 
@@ -321,19 +282,14 @@ def eval_bootstrap_pattern(models, data, theta=None, method='cosine', N=1000,
             noise_min.append(np.nan)
             noise_max.append(np.nan)
     if boot_noise_ceil:
-        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array([noise_min, noise_max])
-        variances = np.cov(np.concatenate([evaluations[eval_ok, :].T,
-                                           noise_ceil[:, eval_ok]]))
     else:
-        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
-        variances = np.cov(evaluations[eval_ok, :].T)
     dof = data.n_cond - 1
     result = Result(models, evaluations, method=method,
                     cv_method='bootstrap_pattern', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof, n_rdm=None,
+                    dof=dof, n_rdm=None,
                     n_pattern=data.n_cond)
     result.n_rdm = data.n_rdm
     return result
@@ -371,20 +327,14 @@ def eval_bootstrap_rdm(models, data, theta=None, method='cosine', N=1000,
             noise_min.append(noise_min_sample)
             noise_max.append(noise_max_sample)
     if boot_noise_ceil:
-        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array([noise_min, noise_max])
-        variances = np.cov(np.concatenate([evaluations[eval_ok, :].T,
-                                           noise_ceil[:, eval_ok]]))
     else:
-        eval_ok = np.isfinite(evaluations[:, 0])
         noise_ceil = np.array(boot_noise_ceiling(
             data, method=method, rdm_descriptor=rdm_descriptor))
-        variances = np.cov(evaluations[eval_ok, :].T)
     dof = data.n_rdm - 1
-    variances = np.cov(evaluations.T)
     result = Result(models, evaluations, method=method,
                     cv_method='bootstrap_rdm', noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    dof=dof, n_rdm=data.n_rdm,
                     n_pattern=None)
     result.n_pattern = data.n_cond
     return result
@@ -580,34 +530,9 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
         dof = data.n_rdm - 1
         n_rdm = data.n_rdm
         n_cond = None
-    eval_ok = ~np.isnan(evaluations[:, 0, 0, 0])
-    if use_correction and n_cv > 1:
-        # we essentially project from the two points for 1 repetition and
-        # for n_cv repetitions to infinitely many cv repetitions
-        evals_mean = np.mean(np.mean(evaluations[eval_ok], -1), -1)
-        evals_1 = np.mean(evaluations[eval_ok], -2)
-        noise_ceil_mean = np.mean(noise_ceil[:, eval_ok], -1)
-        noise_ceil_1 = noise_ceil[:, eval_ok]
-        var_mean = np.cov(
-            np.concatenate([evals_mean.T, noise_ceil_mean]))
-        var_1 = []
-        for i in range(n_cv):
-            var_1.append(np.cov(np.concatenate([
-                evals_1[:, :, i].T, noise_ceil_1[:, :, i]])))
-        var_1 = np.mean(np.array(var_1), axis=0)
-        # this is the main formula for the correction:
-        variances = (n_cv * var_mean - var_1) / (n_cv - 1)
-    else:
-        if use_correction:
-            raise Warning('correction requested, but only one cv run'
-                          + ' per sample requested. This is invalid!'
-                          + ' We do not use the correction for now.')
-        evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
-        noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
-        variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof, n_rdm=n_rdm,
+                    dof=dof, n_rdm=n_rdm,
                     n_pattern=n_cond)
     return result
 
@@ -718,42 +643,17 @@ def eval_dual_bootstrap_random(
             evaluations[i_sample, :, :] = np.nan
             noise_ceil[:, i_sample] = np.nan
     if boot_type == 'both':
-        cv_method = 'bootstrap_crossval'
+        cv_method = 'bootstrap_crossval_rand'
         dof = min(data.n_rdm, data.n_cond) - 1
     elif boot_type == 'pattern':
-        cv_method = 'bootstrap_crossval_pattern'
+        cv_method = 'bootstrap_crossval_pattern_rand'
         dof = data.n_cond - 1
     elif boot_type == 'rdm':
-        cv_method = 'bootstrap_crossval_rdm'
+        cv_method = 'bootstrap_crossval_rdm_rand'
         dof = data.n_rdm - 1
-    eval_ok = ~np.isnan(evaluations[:, 0, 0])
-    if use_correction and n_cv > 1:
-        # we essentially project from the two points for 1 repetition and
-        # for n_cv repetitions to infinitely many cv repetitions
-        evals_mean = np.mean(evaluations[eval_ok], -1)
-        evals_1 = evaluations[eval_ok]
-        noise_ceil_mean = np.mean(noise_ceil[:, eval_ok], -1)
-        noise_ceil_1 = noise_ceil[:, eval_ok]
-        var_mean = np.cov(
-            np.concatenate([evals_mean.T, noise_ceil_mean]))
-        var_1 = []
-        for i in range(n_cv):
-            var_1.append(np.cov(np.concatenate([
-                evals_1[:, :, i].T, noise_ceil_1[:, :, i]])))
-        var_1 = np.mean(np.array(var_1), axis=0)
-        # this is the main formula for the correction:
-        variances = (n_cv * var_mean - var_1) / (n_cv - 1)
-    else:
-        if use_correction:
-            raise Warning('correction requested, but only one cv run'
-                          + ' per sample requested. This is invalid!'
-                          + ' We do not use the correction for now.')
-        evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
-        noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
-        variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
-                    variances=variances, dof=dof, n_rdm=data.n_rdm,
+                    dof=dof, n_rdm=data.n_rdm,
                     n_pattern=data.n_cond)
     return result
 
