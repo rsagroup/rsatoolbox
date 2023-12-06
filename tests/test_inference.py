@@ -220,9 +220,8 @@ class TestResult(unittest.TestCase):
         evaluations = np.array([[[0.9, 0.85, 0.87], [0.12, 0.11, 0.13]]])
         cv_method = 'fixed'
         noise_ceiling = [0.99, 0.99, 0.98]
-        variances = np.diag([0.01, 0.02, 0.01, 0.01])
         self.res = Result(models, evaluations, method, cv_method,
-                          noise_ceiling, variances, dof=2)
+                          noise_ceiling, dof=2)
 
     def test_result_dict(self):
         from rsatoolbox.inference import Result

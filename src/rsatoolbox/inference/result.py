@@ -43,7 +43,7 @@ class Result:
 
     def __init__(self, models, evaluations, method, cv_method, noise_ceiling,
                  dof=1, fitter=None, n_rdm=None, n_pattern=None,
-                 use_correction=None):
+                 use_correction=True):
         if isinstance(models, rsatoolbox.model.Model):
             models = [models]
         assert len(models) == evaluations.shape[1], 'evaluations shape does' \
@@ -66,15 +66,15 @@ class Result:
             noise_ceiling,
             cv_method,
             use_correction)
-        if variances is not None:
+        if self.variances is not None:
             # if the variances only refer to the models this should have the
             # same number of entries as the models list.
-            if variances.ndim == 0:
+            if self.variances.ndim == 0:
                 nc_included = False
             else:
-                nc_included = variances.shape[-1] != len(models)
+                nc_included = self.variances.shape[-1] != len(models)
             self.model_var, self.diff_var, self.noise_ceil_var = \
-                extract_variances(variances, nc_included, n_rdm, n_pattern)
+                extract_variances(self.variances, nc_included, n_rdm, n_pattern)
         else:
             self.model_var = None
             self.diff_var = None

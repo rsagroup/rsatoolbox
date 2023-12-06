@@ -143,7 +143,7 @@ def eval_dual_bootstrap(
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
                     dof=dof, n_rdm=data.n_rdm,
-                    n_pattern=data.n_cond)
+                    n_pattern=data.n_cond, use_correction=use_correction)
     return result
 
 
@@ -533,7 +533,7 @@ def bootstrap_crossval(models, data, method='cosine', fitter=None,
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
                     dof=dof, n_rdm=n_rdm,
-                    n_pattern=n_cond)
+                    n_pattern=n_cond, use_correction=use_correction)
     return result
 
 
@@ -654,7 +654,7 @@ def eval_dual_bootstrap_random(
     result = Result(models, evaluations, method=method,
                     cv_method=cv_method, noise_ceiling=noise_ceil,
                     dof=dof, n_rdm=data.n_rdm,
-                    n_pattern=data.n_cond)
+                    n_pattern=data.n_cond, use_correction=use_correction)
     return result
 
 

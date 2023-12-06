@@ -824,6 +824,8 @@ def compute_variances(
         'bootstrap_crossval_rand',
         'bootstrap_crossval_pattern_rand',
         'bootstrap_crossval_rdm_rand']:
+        eval_ok = np.isfinite(evaluations[:, 0, 0])
+        n_cv = evaluations.shape[2]
         if use_correction and n_cv > 1:
             # we essentially project from the two points for 1 repetition and
             # for n_cv repetitions to infinitely many cv repetitions
@@ -845,7 +847,7 @@ def compute_variances(
                 raise Warning('correction requested, but only one cv run'
                               + ' per sample requested. This is invalid!'
                               + ' We do not use the correction for now.')
-            evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
+            evals_nonan = np.mean(evaluations[eval_ok], -1)
             noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
             variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
     elif cv_method == "fixed":
