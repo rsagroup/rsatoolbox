@@ -796,6 +796,7 @@ def compute_variances(
         'bootstrap_crossval_pattern',
         'bootstrap_crossval_rdm']:
         eval_ok = ~np.isnan(evaluations[:, 0, 0, 0])
+        n_cv = evaluations.shape[3]
         if use_correction and n_cv > 1:
             # we essentially project from the two points for 1 repetition and
             # for n_cv repetitions to infinitely many cv repetitions

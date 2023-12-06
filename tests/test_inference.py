@@ -274,8 +274,8 @@ class TestResult(unittest.TestCase):
             'Results for running fixed evaluation for corr on 2 models:\n\n'
             + 'Model |   Eval ± SEM   | p (against 0) | p (against NC) |\n'
             + '---------------------------------------------------------\n'
-            + 't1    |  0.873 ± 0.100 |        0.006  |         0.496  |\n'
-            + 't2    |  0.120 ± 0.141 |        0.243  |         0.037  |\n\n'
+            + 't1    |  0.873 ± 0.012 |      < 0.001  |         0.010  |\n'
+            + 't2    |  0.120 ± 0.005 |      < 0.001  |       < 0.001  |\n\n'
             + 'p-values are based on uncorrected t-tests')
 
 
