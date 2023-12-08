@@ -23,3 +23,5 @@ from .noise_ceiling import boot_noise_ceiling
 from .result import load_results
 from .result import Result
 from .result import result_from_dict
+from .result import z_transform
+from .result import transform_results

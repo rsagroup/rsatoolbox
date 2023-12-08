@@ -4,6 +4,7 @@
 Result object definition
 """
 
+from copy import deepcopy
 import numpy as np
 import scipy.stats
 import rsatoolbox.model
@@ -371,16 +372,20 @@ def transform_results(
     noise_ceil = f(result.noise_ceiling)
 
     result_out = Result(
-        result.models,
+        deepcopy(result.models),
         evals,
         method=result.method + "transformed",
-        cv_method=result.cv_method,
+        cv_method=deepcopy(result.cv_method),
         noise_ceiling=noise_ceil,
-        dof=result.dof,
-        n_rdm=result.n_rdm,
-        n_pattern=result.n_cond,
-        use_correction=result.use_correction)
+        dof=deepcopy(result.dof),
+        n_rdm=deepcopy(result.n_rdm),
+        n_pattern=deepcopy(result.n_cond),
+        use_correction=deepcopy(result.use_correction))
     return result_out
+
+
+def z_transform(result: Result) -> Result:
+    return transform_results(result, _z_tranform)
 
 
 def _z_tranform(corrs: ndarray) -> ndarray:
