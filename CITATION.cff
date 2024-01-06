@@ -1,0 +1,50 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Representational Similarity Analysis 3.0
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - {}
+  - given-names: Alexander
+    family-names: Kipnis
+    email: adkipnis@mailbox.org
+  - given-names: Baihan
+    family-names: Lin
+    email: doerlbh@gmail.com
+  - given-names: Cai
+    family-names: Wingfield
+    email: cai@caiwingfield.net
+  - given-names: Heiko
+    family-names: Schütt
+    email: heiko.schuett@nyu.edu
+  - given-names: Ian
+    family-names: Charest
+    email: i.charest@bham.ac.uk
+  - given-names: Jasper
+    family-names: van den Bosch
+    email: japsai@gmail.com
+  - given-names: Johan
+    family-names: Carlin
+    email: johan.carlin@gmail.com
+  - given-names: Jörn
+    family-names: Diedrichsen
+    email: joern.diedrichsen@googlemail.com
+  - given-names: Nikolaus
+    family-names: Kriegeskorte
+    email: nk2765@adcu.columbia.edu
+  - given-names: Eva
+    family-names: Berlot
+    email: eberlot@uwo.ca
+  - given-names: Giacomo
+    family-names: Ariani
+    email: giacomo.ariani@gmail.com
+  - given-names: Marieke
+    family-names: Mur
+    email: mmur@uwo.ca
+  - name: RSA Toolbox Development Group
+repository-code: 'https://github.com/rsagroup/rsatoolbox'
+license: MIT
