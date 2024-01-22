@@ -569,8 +569,14 @@ def concat(*rdms):
         rdm.dissimilarities
         for rdm in rdms_list
         ], axis=0)
+    # Set dissimilarity measure if it's the same for all rdms in list
+    if len(set(r.dissimilarity_measure for r in rdms_list)) == 1:
+        dissimilarity_measure = rdms_list[0].dissimilarity_measure
+    else:
+        dissimilarity_measure = None
     rdm = RDMs(
         dissimilarities=dissimilarities,
+        dissimilarity_measure=dissimilarity_measure,
         rdm_descriptors=rdm_descriptors,
         descriptors=rdms_list[0].descriptors,
         pattern_descriptors=rdms_list[0].pattern_descriptors
