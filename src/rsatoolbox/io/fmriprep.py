@@ -44,8 +44,12 @@ class FmriprepRun:
     def __init__(self, boldFile: BidsMriFile) -> None:
         self.boldFile = boldFile
 
-    def get_data(self):
-        return self.boldFile.get_data()
+    def get_data(self, masked: bool=False):
+        data = self.boldFile.get_data()
+        if masked:
+            return data[self.get_mask(), :]
+        else: 
+            return data.reshape([-1, data.shape[-1]])
 
     def get_events(self):
         return self.boldFile.get_events()
@@ -77,7 +81,7 @@ class FmriprepRun:
         parc_file = self.boldFile.get_mri_sibling(desc='aparcaseg', suffix='dseg')
         return parc_file.get_key().get_frame().set_index('index')
     
-    def to_descriptors(self, collapse_by_trial_type: bool=False) -> Dict:
+    def to_descriptors(self, collapse_by_trial_type: bool=False, masked: bool=False) -> Dict:
         """Get dictionary of dataset, observation and channel- level descriptors
 
         Returns:
@@ -89,7 +93,7 @@ class FmriprepRun:
         return dict(
             descriptors=self.get_dataset_descriptors(),
             obs_descriptors=self.get_obs_descriptors(collapse_by_trial_type),
-            channel_descriptors=self.get_channel_descriptors()
+            channel_descriptors=self.get_channel_descriptors(masked)
         )
 
     def get_dataset_descriptors(self) -> Dict:
@@ -111,10 +115,14 @@ class FmriprepRun:
             obs_descs['trial_type'] = self.boldFile.get_events()['trial_type'].values
         return obs_descs
     
-    def get_channel_descriptors(self) -> Dict:
+    def get_channel_descriptors(self, masked: bool=False) -> Dict:
         parc_ix_3d = self.get_parcellation()
+        if masked:
+            parc_ix = parc_ix_3d[self.get_mask()]
+        else:
+            parc_ix = parc_ix_3d.ravel()
         labels_df = self.get_parcellation_labels()
-        labels = labels_df.loc[parc_ix_3d.ravel()]['name'].values
+        labels = labels_df.loc[parc_ix]['name'].values
         return dict(aparcaseg=labels)
     
     def __repr__(self) -> str:
