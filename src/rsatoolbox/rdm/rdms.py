@@ -422,8 +422,12 @@ class RDMs:
         for dname, descriptors in self.pattern_descriptors.items():
             self.pattern_descriptors[dname] = [descriptors[idx] for idx in new_order]
 
-    def sort_by(self, **kwargs):
+    def sort_by(self, reindex: bool = True, **kwargs):
         """Reorder the patterns by sorting a descriptor
+
+        Args:
+            reindex (bool): whether to reset the 'index' descriptor 
+                following sorting
 
         Pass keyword arguments that correspond to descriptors,
         with value indicating the sort type. Supported methods:
@@ -454,7 +458,7 @@ class RDMs:
         for dname, method in kwargs.items():
             if method == 'alpha':
                 descriptor = self.pattern_descriptors[dname]
-                self.reorder(np.argsort(descriptor))
+                self.reorder(np.argsort(descriptor, kind='stable'))
             elif isinstance(method, (list, np.ndarray)):
                 # in this case, `method` is the desired descriptor order
                 new_order = method
@@ -466,6 +470,8 @@ class RDMs:
                 self.reorder([list(descriptor).index(x) for x in new_order])
             else:
                 raise ValueError(f'Unknown sorting method: {method}')
+        if reindex:
+            self.pattern_descriptors['index'] = list(range(self.n_cond))
 
     def mean(self, weights=None):
         """Average rdm of all rdms contained
@@ -569,8 +575,14 @@ def concat(*rdms):
         rdm.dissimilarities
         for rdm in rdms_list
         ], axis=0)
+    # Set dissimilarity measure if it's the same for all rdms in list
+    if len(set(r.dissimilarity_measure for r in rdms_list)) == 1:
+        dissimilarity_measure = rdms_list[0].dissimilarity_measure
+    else:
+        dissimilarity_measure = None
     rdm = RDMs(
         dissimilarities=dissimilarities,
+        dissimilarity_measure=dissimilarity_measure,
         rdm_descriptors=rdm_descriptors,
         descriptors=rdms_list[0].descriptors,
         pattern_descriptors=rdms_list[0].pattern_descriptors

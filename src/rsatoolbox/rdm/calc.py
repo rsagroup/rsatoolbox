@@ -21,8 +21,15 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 
-def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
-             cv_descriptor=None, prior_lambda=1, prior_weight=0.1):
+def calc_rdm(
+        dataset: DatasetBase,
+        method: str = 'euclidean',
+        descriptor: Optional[str] = None,
+        noise: Optional[NDArray] = None,
+        cv_descriptor: Optional[str] = None,
+        prior_lambda: float = 1,
+        prior_weight: float = 0.1,
+        remove_mean: bool = False):
     """
     calculates an RDM from an input dataset
 
@@ -42,6 +49,9 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             precision matrix used to calculate the RDM
             used only for Mahalanobis and Crossnobis estimators
             defaults to an identity matrix, i.e. euclidean distance
+        remove_mean (bool):
+            whether the mean of each pattern shall be removed before distance calculation.
+            This has no effect on poisson based and correlation distances.
 
     Returns:
         rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
@@ -76,14 +86,14 @@ def calc_rdm(dataset, method='euclidean', descriptor=None, noise=None,
             rdm = from_partials(rdms, descriptor=descriptor)
     else:
         if method == 'euclidean':
-            rdm = calc_rdm_euclidean(dataset, descriptor)
+            rdm = calc_rdm_euclidean(dataset, descriptor, remove_mean)
         elif method == 'correlation':
             rdm = calc_rdm_correlation(dataset, descriptor)
         elif method == 'mahalanobis':
-            rdm = calc_rdm_mahalanobis(dataset, descriptor, noise)
+            rdm = calc_rdm_mahalanobis(dataset, descriptor, noise, remove_mean)
         elif method == 'crossnobis':
             rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                      cv_descriptor)
+                                      cv_descriptor, remove_mean)
         elif method == 'poisson':
             rdm = calc_rdm_poisson(dataset, descriptor,
                                    prior_lambda=prior_lambda,
@@ -181,7 +191,10 @@ def calc_rdm_movie(
     return rdm
 
 
-def calc_rdm_euclidean(dataset, descriptor=None):
+def calc_rdm_euclidean(
+        dataset: DatasetBase,
+        descriptor: Optional[str] = None,
+        remove_mean: bool = False):
     """
     Args:
         dataset (rsatoolbox.data.DatasetBase):
@@ -189,11 +202,13 @@ def calc_rdm_euclidean(dataset, descriptor=None):
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
             defaults to one row/column per row in the dataset
+        remove_mean (bool):
+            whether the mean of each pattern shall be removed
+            before calculating distances.
     Returns:
         rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
     """
-
-    measurements, desc = _parse_input(dataset, descriptor)
+    measurements, desc = _parse_input(dataset, descriptor, remove_mean)
     sum_sq_measurements = np.sum(measurements**2, axis=1, keepdims=True)
     rdm = sum_sq_measurements + sum_sq_measurements.T \
         - 2 * np.dot(measurements, measurements.T)
@@ -218,14 +233,13 @@ def calc_rdm_correlation(dataset, descriptor=None):
         rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
-    ma, desc = _parse_input(dataset, descriptor)
-    ma = ma - ma.mean(axis=1, keepdims=True)
+    ma, desc = _parse_input(dataset, descriptor, remove_mean=True)
     ma /= np.sqrt(np.einsum('ij,ij->i', ma, ma))[:, None]
     rdm = 1 - np.einsum('ik,jk', ma, ma)
     return _build_rdms(rdm, dataset, 'correlation', descriptor, desc)
 
 
-def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
+def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None, remove_mean: bool = False):
     """
     calculates an RDM from an input dataset using mahalanobis distance
     If multiple instances of the same condition are found in the dataset
@@ -241,14 +255,17 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
             dataset.n_channel x dataset.n_channel
             precision matrix used to calculate the RDM
             default: identity matrix, i.e. euclidean distance
+        remove_mean (bool):
+            whether the mean of each pattern shall be removed
+            before calculating distances.
 
     Returns:
         rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
 
     """
     if noise is None:
-        return calc_rdm_euclidean(dataset, descriptor)
-    measurements, desc = _parse_input(dataset, descriptor)
+        return calc_rdm_euclidean(dataset, descriptor, remove_mean)
+    measurements, desc = _parse_input(dataset, descriptor, remove_mean)
     noise = _check_noise(noise, dataset.n_channel)
     kernel = measurements @ noise @ measurements.T
     rdm = np.expand_dims(np.diag(kernel), 0) + \
@@ -265,7 +282,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None):
 
 
 def calc_rdm_crossnobis(dataset, descriptor, noise=None,
-                        cv_descriptor=None):
+                        cv_descriptor=None, remove_mean: bool = False):
     """
     calculates an RDM from an input dataset using Cross-nobis distance
     This performs leave one out crossvalidation over the cv_descriptor.
@@ -298,6 +315,9 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
             default: identity matrix, i.e. euclidean distance
         cv_descriptor (String):
             obs_descriptor which determines the cross-validation folds
+        remove_mean (bool):
+            whether the mean of each pattern shall be removed
+            before calculating distances.
 
     Returns:
         rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
@@ -328,6 +348,9 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
                 average_dataset_by(data_train, descriptor)
             measurements_test, _, _ = \
                 average_dataset_by(data_test, descriptor)
+            if remove_mean:
+                measurements_train -= measurements_train.mean(axis=1, keepdims=True)
+                measurements_test -= measurements_test.mean(axis=1, keepdims=True)
             rdm = _calc_rdm_crossnobis_single(
                 measurements_train, measurements_test, noise)
             rdms.append(rdm)
@@ -336,7 +359,10 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
         variances = []
         for i, i_fold in enumerate(cv_folds):
             data = datasetCopy.subset_obs(cv_descriptor, i_fold)
-            measurements.append(average_dataset_by(data, descriptor)[0])
+            ma = average_dataset_by(data, descriptor)[0]
+            if remove_mean:
+                ma -= ma.mean(axis=1, keepdims=True)
+            measurements.append(ma)
             variances.append(np.linalg.inv(noise[i]))
         for i_fold in range(len(cv_folds)):
             for j_fold in range(i_fold + 1, len(cv_folds)):
@@ -466,13 +492,16 @@ def _gen_default_cv_descriptor(dataset, descriptor) -> np.ndarray:
 
 def _parse_input(
             dataset: DatasetBase,
-            descriptor: Optional[str]
+            descriptor: Optional[str],
+            remove_mean: bool = False
         ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     if descriptor is None:
         measurements = dataset.measurements
         desc = None
     else:
         measurements, desc, _ = average_dataset_by(dataset, descriptor)
+    if remove_mean:
+        measurements = measurements - measurements.mean(axis=1, keepdims=True)
     return measurements, desc
 
 
@@ -492,12 +521,12 @@ def _check_noise(noise, n_channel):
         pass
     elif isinstance(noise, np.ndarray) and noise.ndim == 2:
         assert np.all(noise.shape == (n_channel, n_channel))
-    elif isinstance(noise, Iterable):
-        for idx, noise_i in enumerate(noise):
-            noise[idx] = _check_noise(noise_i, n_channel)
     elif isinstance(noise, dict):
         for key in noise.keys():
             noise[key] = _check_noise(noise[key], n_channel)
+    elif isinstance(noise, Iterable):
+        for idx, noise_i in enumerate(noise):
+            noise[idx] = _check_noise(noise_i, n_channel)
     else:
         raise ValueError('noise(s) must have shape n_channel x n_channel')
     return noise

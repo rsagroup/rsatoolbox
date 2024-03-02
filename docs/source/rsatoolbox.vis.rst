@@ -12,6 +12,7 @@ Submodules
    rsatoolbox.vis.model_plot
    rsatoolbox.vis.rdm_plot
    rsatoolbox.vis.scatter_plot
+   rsatoolbox.vis.timecourse
 
 Module contents
 ---------------

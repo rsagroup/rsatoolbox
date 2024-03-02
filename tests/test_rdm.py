@@ -324,6 +324,7 @@ class TestRDM(unittest.TestCase):
         rdms = concat((rdms1, rdms2))
         self.assertEqual(rdms.n_rdm, 16)
         assert len(rdms.rdm_descriptors['session']) == 16
+        self.assertEqual(rdms.dissimilarity_measure, mes)
 
     def test_concat_varargs_multiple_rdms(self):
         from rsatoolbox.rdm import concat
@@ -429,6 +430,44 @@ class TestRDM(unittest.TestCase):
             )
         )
 
+    def test_sort_by_reindex_resets_index(self):
+        from rsatoolbox.rdm import RDMs
+        rdm = np.array([
+            [0., 1., 2., 3.],
+            [1., 0., 1., 2.],
+            [2., 1., 0., 1.],
+            [3., 2., 1., 0.]]
+        )
+        conds = ['b', 'a', 'c', 'd']
+        rdms = RDMs(
+            np.atleast_2d(squareform(rdm)),
+            pattern_descriptors=dict(conds=conds)
+        )
+        rdms.sort_by(conds='alpha', reindex=True)
+        self.assertEqual(
+            rdms.pattern_descriptors['index'],
+            list(range(rdms.n_cond))
+        )
+
+    def test_sort_by_not_reindex_does_not_reset_index(self):
+        from rsatoolbox.rdm import RDMs
+        rdm = np.array([
+            [0., 1., 2., 3.],
+            [1., 0., 1., 2.],
+            [2., 1., 0., 1.],
+            [3., 2., 1., 0.]]
+        )
+        conds = ['b', 'a', 'c', 'd']
+        rdms = RDMs(
+            np.atleast_2d(squareform(rdm)),
+            pattern_descriptors=dict(conds=conds)
+        )
+        rdms.sort_by(conds='alpha', reindex=False)
+        self.assertNotEqual(
+            rdms.pattern_descriptors['index'],
+            list(range(rdms.n_cond))
+        )
+
     def test_sort_by_list(self):
         from rsatoolbox.rdm import RDMs
         rdm = np.array([
@@ -458,6 +497,35 @@ class TestRDM(unittest.TestCase):
                 conds_new_order,
                 rdms.pattern_descriptors.get('conds')
             )
+        )
+
+    def test_sort_stable(self):
+        from rsatoolbox.rdm import RDMs
+        rdm = np.array([
+            [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.],
+            [1., 0., 1., 2., 3., 4., 5., 6., 7., 8.],
+            [2., 1., 0., 1., 2., 3., 4., 5., 6., 7.],
+            [3., 2., 1., 0., 1., 2., 3., 4., 5., 6.],
+            [4., 3., 2., 1., 0., 1., 2., 3., 4., 5.],
+            [5., 4., 3., 2., 1., 0., 1., 2., 3., 4.],
+            [6., 5., 4., 3., 2., 1., 0., 1., 2., 3.],
+            [7., 6., 5., 4., 3., 2., 1., 0., 1., 2.],
+            [8., 7., 6., 5., 4., 3., 2., 1., 0., 1.],
+            [9., 8., 7., 6., 5., 4., 3., 2., 1., 0.],
+        ]
+        )
+        conds = list(reversed("abcdefghij"))
+        cats  = list("ababababab")
+        rdms = RDMs(
+            np.atleast_2d(squareform(rdm)),
+            pattern_descriptors=dict(conds=conds, cats=cats)
+        )
+        rdms.sort_by(index=np.random.permutation(rdms.n_cond).tolist())  # Randomise the condition labels first
+        rdms.sort_by(conds='alpha')
+        rdms.sort_by(cats="alpha")
+        self.assertListEqual(
+            list(rdms.pattern_descriptors["conds"]),
+            list("bdfhj") + list("acegi"),
         )
 
     def test_copy(self):
