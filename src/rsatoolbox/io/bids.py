@@ -189,7 +189,7 @@ class BidsLayout:
         if not isdir(deriv_dir):
             raise ValueError(f'Derivative directory not found: {deriv_dir}')
         
-        fpaths = glob(join(deriv_dir, '**', 'sub-*'), recursive=True)
+        fpaths = sorted(glob(join(deriv_dir, '**', 'sub-*'), recursive=True))
         ## filter by DESC
         fpaths = [f for f in fpaths if f'desc-{desc}' in f]
         ## filter out meta files
