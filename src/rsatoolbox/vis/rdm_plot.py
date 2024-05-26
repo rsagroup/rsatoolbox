@@ -523,6 +523,8 @@ def _add_descriptor_icons(
         list: Tick label handles.
     """
     # annotated labels with Icon
+    #import pdb
+    #pdb.set_trace()
     n_to_fit = np.ceil(n_cond / num_pattern_groups)
     # work out sizing of icons
     im_max_pix = 20.
@@ -536,9 +538,9 @@ def _add_descriptor_icons(
     ax_size_pix = max((extent.width, extent.height))
     size = (ax_size_pix / n_to_fit) / im_max_pix
     # from proportion of original size to figure pixels
-    offset = im_max_pix * size
+    offset = (im_max_pix / icon_spacing) * size
     label_handles = []
-    for group_ind in range(num_pattern_groups - 1, -1, -1):
+    for group_ind in range(num_pattern_groups - 1, -1, -1): ## e.g. 2->1->0 for npg = 3
         position = offset * 0.2 + offset * group_ind
         ticks = np.arange(group_ind, n_cond, num_pattern_groups)
         label_handles.append(
