@@ -289,6 +289,54 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(pos_rdm.n_cond, rdms.n_cond)
         assert np.all(pos_rdm.dissimilarities >= 0)
 
+    def test_minmax_transform(self):
+        from rsatoolbox.rdm import minmax_transform
+        dis = np.zeros((8, 10))
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        mm_rdm = minmax_transform(rdms)
+        self.assertEqual(mm_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(mm_rdm.n_cond, rdms.n_cond)
+
+    def test_geotopological_transform(self):
+        from rsatoolbox.rdm import geotopological_transform
+        dis = np.zeros((8, 10))
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        gt_rdm = geotopological_transform(rdms,l=0.2,u=0.8)
+        self.assertEqual(gt_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(gt_rdm.n_cond, rdms.n_cond)
+
+    def test_geodesic_transform(self):
+        from rsatoolbox.rdm import minmax_transform
+        dis = np.zeros((8, 10))
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        gd_rdm = geodesic_transform(rdms)
+        self.assertEqual(gd_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(gd_rdm.n_cond, rdms.n_cond)
+
     def test_rdm_append(self):
         dis = np.zeros((8, 10))
         mes = "Euclidean"

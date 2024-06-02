@@ -5,7 +5,9 @@
 from __future__ import annotations
 from copy import deepcopy
 import numpy as np
+import networkx as nx
 from scipy.stats import rankdata
+from scipy.spatial.distance import squareform
 from .rdms import RDMs
 
 
@@ -104,6 +106,81 @@ def transform(rdms, fun):
     dissimilarities = rdms.get_vectors()
     dissimilarities = fun(dissimilarities)
     meas = 'transformed ' + rdms.dissimilarity_measure
+    rdms_new = RDMs(dissimilarities,
+                    dissimilarity_measure=meas,
+                    descriptors=deepcopy(rdms.descriptors),
+                    rdm_descriptors=deepcopy(rdms.rdm_descriptors),
+                    pattern_descriptors=deepcopy(rdms.pattern_descriptors))
+    return rdms_new
+
+
+def minmax_transform(rdms):
+    '''applies a minmax transform to the dissimilarities and returns a new RDMs object.
+    
+    Args:
+        rdms(RDMs): RDMs object
+    
+    Returns:    
+        rdms_new(RDMs): RDMs object with minmax transformed dissimilarities
+    '''
+    dissimilarities = rdms.get_vectors()
+    dissimilarities = (dissimilarities - dissimilarities.min()) / (dissimilarities.max() - dissimilarities.min())
+    meas = 'minmax transformed ' + rdms.dissimilarity_measure
+    rdms_new = RDMs(dissimilarities,
+                    dissimilarity_measure=meas,
+                    descriptors=deepcopy(rdms.descriptors),
+                    rdm_descriptors=deepcopy(rdms.rdm_descriptors),
+                    pattern_descriptors=deepcopy(rdms.pattern_descriptors))
+    return rdms_new
+
+
+def geotopological_transform(rdms, l, u):
+    '''applies a geo-topological transform to the dissimilarities and returns a new RDMs object. Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry of Neural Representations. arXiv preprint arXiv:2309.11028.
+    
+    Args:
+        rdms(RDMs): RDMs object
+        l(float): lower quantile
+        u(float): upper quantile
+    
+    Returns:    
+        rdms_new(RDMs): RDMs object with geotopological transformed dissimilarities
+    '''
+    dissimilarities = rdms.get_vectors()
+    gt_min = np.quantile(dissimilarities, l)
+    gt_max = np.quantile(dissimilarities, u)
+    dissimilarities[dissimilarities < gt_min] = 0
+    dissimilarities[(dissimilarities >= gt_min) & (dissimilarities <= gt_max)] = (
+        dissimilarities[(dissimilarities >= gt_min) & (dissimilarities <= gt_max)] - gt_min
+    ) / (gt_max - gt_min)
+    dissimilarities[dissimilarities > gt_max] = 1
+    meas = 'geo-topological transformed ' + rdms.dissimilarity_measure
+    rdms_new = RDMs(dissimilarities,
+                    dissimilarity_measure=meas,
+                    descriptors=deepcopy(rdms.descriptors),
+                    rdm_descriptors=deepcopy(rdms.rdm_descriptors),
+                    pattern_descriptors=deepcopy(rdms.pattern_descriptors))
+    return rdms_new
+
+
+def geodesic_transform(rdms):
+    '''applies a geodesic transform to the dissimilarities and returns a new RDMs object. Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry of Neural Representations. arXiv preprint arXiv:2309.11028.
+    
+    Args:
+        rdms(RDMs): RDMs object
+    
+    Returns:    
+        rdms_new(RDMs): RDMs object with geodesic transformed dissimilarities
+    '''
+    dissimilarities = minmax_transform(rdms).get_vectors()
+    G = nx.from_numpy_array(squareform(dissimilarities))
+    long_edges = []
+    gtx = dissimilarities.copy()
+    long_edges = list(
+            filter(lambda e: e[2] == 1, (e for e in G.edges.data("weight"))))
+    le_ids = list(e[:2] for e in long_edges)
+    G.remove_edges_from(le_ids)
+    dissimilarities = squareform(np.array(nx.floyd_warshall_numpy(G)))
+    meas = 'geodesic transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
                     descriptors=deepcopy(rdms.descriptors),
