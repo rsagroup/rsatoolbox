@@ -114,7 +114,7 @@ def transform(rdms, fun):
     return rdms_new
 
 
-def minmax_transform(rdms):
+def minmax_transform(rdms: RDMs) -> RDMs:
     '''applies a minmax transform to the dissimilarities and returns a new 
     RDMs object.
     
@@ -137,7 +137,7 @@ def minmax_transform(rdms):
     return rdms_new
 
 
-def geotopological_transform(rdms, l, u):
+def geotopological_transform(rdms: RDMs, l: float, u: float) -> RDMs:
     '''applies a geo-topological transform to the dissimilarities and returns 
     a new RDMs object. 
     
@@ -169,7 +169,7 @@ def geotopological_transform(rdms, l, u):
     return rdms_new
 
 
-def geodesic_transform(rdms):
+def geodesic_transform(rdms: RDMs) -> RDMs:
     '''applies a geodesic transform to the dissimilarities and returns a 
     new RDMs object. 
     
