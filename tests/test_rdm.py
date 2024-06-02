@@ -323,7 +323,7 @@ class TestRDM(unittest.TestCase):
 
     def test_geodesic_transform(self):
         from rsatoolbox.rdm import geodesic_transform
-        dis = np.zeros((8, 10))
+        dis = np.random.rand(8, 10)
         mes = "Euclidean"
         des = {'subj': 0}
         pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
