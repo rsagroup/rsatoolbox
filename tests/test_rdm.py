@@ -322,7 +322,7 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(gt_rdm.n_cond, rdms.n_cond)
 
     def test_geodesic_transform(self):
-        from rsatoolbox.rdm import minmax_transform
+        from rsatoolbox.rdm import geodesic_transform
         dis = np.zeros((8, 10))
         mes = "Euclidean"
         des = {'subj': 0}
