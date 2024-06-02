@@ -183,13 +183,14 @@ def geodesic_transform(rdms):
         rdms_new(RDMs): RDMs object with geodesic transformed dissimilarities
     '''
     dissimilarities = minmax_transform(rdms).get_vectors()
-    G = nx.from_numpy_array(squareform(dissimilarities))
-    long_edges = []
-    long_edges = list(
+    for i in range(rdms.n_rdm):
+        G = nx.from_numpy_array(squareform(dissimilarities[i]))
+        long_edges = []
+        long_edges = list(
             filter(lambda e: e[2] == 1, (e for e in G.edges.data("weight"))))
-    le_ids = list(e[:2] for e in long_edges)
-    G.remove_edges_from(le_ids)
-    dissimilarities = squareform(np.array(nx.floyd_warshall_numpy(G)))
+        le_ids = list(e[:2] for e in long_edges)
+        G.remove_edges_from(le_ids)
+        dissimilarities[i] = squareform(np.array(nx.floyd_warshall_numpy(G)))
     meas = 'geodesic transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
