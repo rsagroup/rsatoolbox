@@ -115,7 +115,8 @@ def transform(rdms, fun):
 
 
 def minmax_transform(rdms):
-    '''applies a minmax transform to the dissimilarities and returns a new RDMs object.
+    '''applies a minmax transform to the dissimilarities and returns a new 
+    RDMs object.
     
     Args:
         rdms(RDMs): RDMs object
@@ -124,7 +125,9 @@ def minmax_transform(rdms):
         rdms_new(RDMs): RDMs object with minmax transformed dissimilarities
     '''
     dissimilarities = rdms.get_vectors()
-    dissimilarities = (dissimilarities - dissimilarities.min()) / (dissimilarities.max() - dissimilarities.min())
+    d_max = dissimilarities.max()
+    d_min = dissimilarities.min()
+    dissimilarities = (dissimilarities - d_min) / (d_max - d_min)
     meas = 'minmax transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
@@ -135,7 +138,11 @@ def minmax_transform(rdms):
 
 
 def geotopological_transform(rdms, l, u):
-    '''applies a geo-topological transform to the dissimilarities and returns a new RDMs object. Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry of Neural Representations. arXiv preprint arXiv:2309.11028.
+    '''applies a geo-topological transform to the dissimilarities and returns 
+    a new RDMs object. 
+    
+    Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry 
+    of Neural Representations. arXiv preprint arXiv:2309.11028.
     
     Args:
         rdms(RDMs): RDMs object
@@ -163,7 +170,11 @@ def geotopological_transform(rdms, l, u):
 
 
 def geodesic_transform(rdms):
-    '''applies a geodesic transform to the dissimilarities and returns a new RDMs object. Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry of Neural Representations. arXiv preprint arXiv:2309.11028.
+    '''applies a geodesic transform to the dissimilarities and returns a 
+    new RDMs object. 
+    
+    Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry 
+    of Neural Representations. arXiv preprint arXiv:2309.11028.
     
     Args:
         rdms(RDMs): RDMs object
@@ -174,7 +185,6 @@ def geodesic_transform(rdms):
     dissimilarities = minmax_transform(rdms).get_vectors()
     G = nx.from_numpy_array(squareform(dissimilarities))
     long_edges = []
-    gtx = dissimilarities.copy()
     long_edges = list(
             filter(lambda e: e[2] == 1, (e for e in G.edges.data("weight"))))
     le_ids = list(e[:2] for e in long_edges)
