@@ -83,8 +83,10 @@ To transform all RDM entries by a function ``rsatoolbox`` offers specific functi
 for the most common transformations and a general ``transform`` function, which takes the
 function to be applied as input. These functions are available in ``rsatoolbox.rdm``
 
-The specific transformations are: ``rank_transform``, ``positive_transform``, and ``sqrt_transform``.
-They take only a RDMs object as input and compute a rank transform, set all negative values to 0, or compute a square root of each value respectively.
+The specific transformations are: ``rank_transform``, ``positive_transform``, ``sqrt_transform`` and ``minmax_transform``.
+They take only a RDMs object as input and compute a rank transform, set all negative values to 0, compute a square root of each value respectively, or normalize them into a range of 0 to 1.
+
+There are also and two important transformations as part of the Topological RSA framework, ``geotopological_transform`` and ``geodesic_transform``. They perform a transformations that emphasize both the geometric and topological properties of dissimilarity distribution, in terms of neighborhood information, global structure, as well as graph theoretical measures. For more information regarding the Topological RSA framework, please refer to "The Topology and Geometry of Neural Representations" by Lin, B., & Kriegeskorte, N. (2023, arXiv:2309.11028).
 
 For example:
 
