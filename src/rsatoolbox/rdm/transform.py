@@ -125,9 +125,10 @@ def minmax_transform(rdms: RDMs) -> RDMs:
         rdms_new(RDMs): RDMs object with minmax transformed dissimilarities
     '''
     dissimilarities = rdms.get_vectors()
-    d_max = dissimilarities.max()
-    d_min = dissimilarities.min()
-    dissimilarities = (dissimilarities - d_min) / (d_max - d_min)
+    for i in range(rdms.n_rdm):
+        d_max = dissimilarities[i].max()
+        d_min = dissimilarities[i].min()
+        dissimilarities[i] = (dissimilarities[i] - d_min) / (d_max - d_min)
     meas = 'minmax transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
