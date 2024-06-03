@@ -6,8 +6,7 @@ requires = [
     "numpy>=1.21.2",
     "scipy",
     "cython~=3.0",
-    "twine>=4.0.1",
-    "networkx>=3.0"
+    "twine>=4.0.1"
 ]
 build-backend = "setuptools.build_meta"
 
