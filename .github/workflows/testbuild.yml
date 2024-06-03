@@ -60,7 +60,7 @@ jobs:
     - name: Install dependencies
       run: pip install mypy
     - name: Type check
-      run: mypy src
+      run: mypy --install-types --non-interactive src
 
   source:
     needs: tests
