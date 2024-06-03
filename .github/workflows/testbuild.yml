@@ -58,9 +58,9 @@ jobs:
       with:
         python-version: '3.11'
     - name: Install dependencies
-      run: pip install mypy
+      run: pip install mypy pandas-stubs types-tqdm
     - name: Type check
-      run: mypy --install-types --non-interactive src
+      run: mypy src
 
   source:
     needs: tests
