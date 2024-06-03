@@ -34,6 +34,34 @@ jobs:
     - name: Unit tests
       run: pytest
 
+  style:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: pip install ruff
+    - name: Style check
+      run: ruff check
+
+  typing:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: pip install mypy
+    - name: Type check
+      run: mypy src
+
   source:
     needs: tests
     runs-on: ${{ matrix.os }}
