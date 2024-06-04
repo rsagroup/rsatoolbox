@@ -68,8 +68,10 @@ jobs:
     - name: Install rsatoolbox 
       run: pip install dist/*
     - name: Install type dependencies
-      run: pip install mypy pandas-stubs types-tqdm
-    - name: Type check
+      run: pip install mypy pandas-stubs types-tqdm pyright
+    - name: Type check (pyright)
+      run: pyright src
+    - name: Type check (mypy)
       run: mypy -p rsatoolbox
 
   source:
