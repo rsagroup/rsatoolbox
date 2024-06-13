@@ -114,7 +114,7 @@ def calc_rdm(
         if (descriptor is not None) and (method not in ['mean_profile', 'norm_profile']):
             rdm.sort_by(**{descriptor: 'alpha'})
         else:
-            desc = np.array(rdm.pattern_descriptors[descriptor])
+            desc = np.unique(np.array(dataset.obs_descriptors[descriptor]))
             inds = desc.argsort()
             rdm = rdm[inds]
     return rdm
