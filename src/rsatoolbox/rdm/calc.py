@@ -96,6 +96,10 @@ def calc_rdm(
                                       cv_descriptor, remove_mean)
         elif method == 'dotproduct':
             rdm = calc_rdm_dotproduct(dataset, descriptor)
+        elif method == 'mean_profile':
+            rdm = calc_rdm_mean_profile(dataset, descriptor)
+        elif method == 'norm_profile':
+            rdm = calc_rdm_norm_profile(dataset, descriptor)
         elif method == 'poisson':
             rdm = calc_rdm_poisson(dataset, descriptor,
                                    prior_lambda=prior_lambda,
@@ -304,6 +308,48 @@ def calc_rdm_dotproduct(
     rdm = measurements @ measurements.T
     rdm = _extract_triu_(rdm)
     return _build_rdms(rdm, dataset, 'dotproduct', descriptor, desc)
+
+
+def calc_rdm_mean_profile(
+        dataset: DatasetBase,
+        descriptor: Optional[str] = None):
+    """
+    Args:
+        dataset (rsatoolbox.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+        remove_mean (bool):
+            whether the mean of each pattern shall be removed
+            before calculating dotproducts.
+    Returns:
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
+    """
+    measurements, desc = _parse_input(dataset, descriptor, remove_mean=False)
+    measurements = measurements.mean(axis=1)
+    return measurements
+
+
+def calc_rdm_norm_profile(
+        dataset: DatasetBase,
+        descriptor: Optional[str] = None):
+    """
+    Args:
+        dataset (rsatoolbox.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+        remove_mean (bool):
+            whether the mean of each pattern shall be removed
+            before calculating dotproducts.
+    Returns:
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
+    """
+    measurements, desc = _parse_input(dataset, descriptor, remove_mean=False)
+    measurements = np.linalg.norm(measurements, axis=1)
+    return measurements
 
 
 def calc_rdm_crossnobis(dataset, descriptor, noise=None,
