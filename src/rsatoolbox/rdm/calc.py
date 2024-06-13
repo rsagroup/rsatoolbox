@@ -111,8 +111,12 @@ def calc_rdm(
                                       prior_weight=prior_weight)
         else:
             raise NotImplementedError
-        if descriptor is not None:
+        if (descriptor is not None) and (method not in ['mean_profile', 'norm_profile']):
             rdm.sort_by(**{descriptor: 'alpha'})
+        else:
+            desc = np.array(rdm.pattern_descriptors[descriptor])
+            inds = desc.argsort()
+            rdm = rdm[inds]
     return rdm
 
 
