@@ -12,10 +12,8 @@ spm.get_info_from_spm_mat()
 from __future__ import annotations
 from typing import TYPE_CHECKING, List, Optional, Callable
 from os.path import join, normpath
-import nibabel as nb
 import numpy as np
 import nitools as nt
-from pandas import DataFrame
 from numpy import stack
 from scipy.io import loadmat
 
