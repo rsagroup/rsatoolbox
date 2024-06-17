@@ -7,10 +7,11 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   rsatoolbox.data.base
    rsatoolbox.data.computations
    rsatoolbox.data.dataset
-   rsatoolbox.data.neurodataset
    rsatoolbox.data.noise
+   rsatoolbox.data.ops
 
 Module contents
 ---------------

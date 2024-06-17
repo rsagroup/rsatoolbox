@@ -82,6 +82,7 @@ class Dataset(DatasetBase):
             selection = np.where(inverse == i_v)[0]
             measurements = self.measurements[selection, :]
             descriptors = self.descriptors.copy()
+            descriptors[by] = unique_values[i_v]
             obs_descriptors = subset_descriptor(
                 self.obs_descriptors, selection)
             channel_descriptors = self.channel_descriptors

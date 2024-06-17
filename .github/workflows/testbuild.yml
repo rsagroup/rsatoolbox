@@ -100,7 +100,7 @@ jobs:
     - name: Update Pip
       run: python -m pip install --upgrade pip
     - name: Build package
-      uses: pypa/cibuildwheel@v2.16.2
+      uses: pypa/cibuildwheel@v2.16.5
       with:
         output-dir: dist
     - name: Check package compliance
