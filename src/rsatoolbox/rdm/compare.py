@@ -622,3 +622,49 @@ def _parse_input_rdms(rdm1, rdm2):
     if not vector1_no_nan.shape[1] == vector2_no_nan.shape[1]:
         raise ValueError('rdm1 and rdm2 have different nan positions')
     return vector1_no_nan, vector2_no_nan, nan_idx[0]
+
+
+def sq_bures_metric_first_way(A, B):
+    va, ua = np.linalg.eigh(A)
+    Asq = ua @ (np.sqrt(np.maximum(va[:, None], 0.0)) * ua.T)
+    return (
+        np.trace(A) + np.trace(B) - 2 * np.sum(np.sqrt(np.linalg.eigvalsh(Asq @ B @ Asq)))
+    )
+
+
+def sq_bures_metric_second_way(A, B):
+    va, ua = np.linalg.eigh(A)
+    vb, ub = np.linalg.eigh(B)
+    sva = np.sqrt(np.maximum(va, 0.0))
+    svb = np.sqrt(np.maximum(vb, 0.0))
+    return (
+        np.sum(va) + np.sum(vb) - 2 * np.sum(
+            np.linalg.svd(
+                (sva[:, None] * ua.T) @ (ub * svb[None, :]),
+                compute_uv=False
+            )
+        )
+    )
+
+
+def bures_similarity_first_way(A, B):
+    va, ua = np.linalg.eigh(A)
+    Asq = ua @ (np.sqrt(np.maximum(va[:, None], 0.0)) * ua.T)
+    num = np.sum(np.sqrt(np.linalg.eigvalsh(Asq @ B @ Asq)))
+    denom = np.sqrt(np.trace(A) * np.trace(B))
+    return num / denom
+
+
+def bures_similarity_second_way(A, B):
+    va, ua = np.linalg.eigh(A)
+    vb, ub = np.linalg.eigh(B)
+    sva = np.sqrt(np.maximum(va, 0.0))
+    svb = np.sqrt(np.maximum(vb, 0.0))
+    num = np.sum(
+        np.linalg.svd(
+            (sva[:, None] * ua.T) @ (ub * svb[None, :]),
+            compute_uv=False
+        )
+    )
+    denom = np.sqrt(np.sum(va) * np.sum(vb))
+    return num / denom
