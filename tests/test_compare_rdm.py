@@ -196,6 +196,13 @@ class TestCompareRDM(unittest.TestCase):
         result = compare_kendall_tau_a(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
 
+    def test_compare_bures_similarity(self):
+        from rsatoolbox.rdm.compare import compare_bures_similarity
+        result = compare_bures_similarity(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 1)
+        result = compare_bures_similarity(self.test_rdm1, self.test_rdm2)
+        assert np.all(result < 1)
+
     def test_compare(self):
         from rsatoolbox.rdm.compare import compare
         result = compare(self.test_rdm1, self.test_rdm1)

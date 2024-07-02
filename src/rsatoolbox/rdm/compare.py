@@ -274,6 +274,23 @@ def compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=None):
     return sim
 
 
+def compare_bures_similarity(rdm1, rdm2):
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
+    n_cond = _get_n_from_length(vector1.shape[1])
+
+    # construct RDM to 2nd-moment (G) transformation
+    pairs = pairwise_contrast(np.arange(n_cond-1))
+    pairs[pairs == -1] = 1
+    T = np.block([
+        [np.eye(n_cond - 1), np.zeros((n_cond-1, vector1.shape[1] - n_cond + 1))],
+        [0.5 * pairs, np.diag(-0.5 * np.ones(vector1.shape[1] - n_cond + 1))]])
+    vec_G1 = vector1@np.transpose(T)
+    vec_G2 = vector2@np.transpose(T)
+
+    sim = _all_combinations(vec_G1, vec_G2, _bures_similarity_first_way)
+    return sim
+
+
 def _all_combinations(vectors1, vectors2, func, *args, **kwargs):
     """runs a function func on all combinations of v1 in vectors1
     and v2 in vectors2 and puts the results into an array
@@ -624,7 +641,7 @@ def _parse_input_rdms(rdm1, rdm2):
     return vector1_no_nan, vector2_no_nan, nan_idx[0]
 
 
-def sq_bures_metric_first_way(A, B):
+def _sq_bures_metric_first_way(A, B):
     va, ua = np.linalg.eigh(A)
     Asq = ua @ (np.sqrt(np.maximum(va[:, None], 0.0)) * ua.T)
     return (
@@ -632,7 +649,7 @@ def sq_bures_metric_first_way(A, B):
     )
 
 
-def sq_bures_metric_second_way(A, B):
+def _sq_bures_metric_second_way(A, B):
     va, ua = np.linalg.eigh(A)
     vb, ub = np.linalg.eigh(B)
     sva = np.sqrt(np.maximum(va, 0.0))
@@ -647,7 +664,7 @@ def sq_bures_metric_second_way(A, B):
     )
 
 
-def bures_similarity_first_way(A, B):
+def _bures_similarity_first_way(A, B):
     va, ua = np.linalg.eigh(A)
     Asq = ua @ (np.sqrt(np.maximum(va[:, None], 0.0)) * ua.T)
     num = np.sum(np.sqrt(np.linalg.eigvalsh(Asq @ B @ Asq)))
@@ -655,7 +672,7 @@ def bures_similarity_first_way(A, B):
     return num / denom
 
 
-def bures_similarity_second_way(A, B):
+def _bures_similarity_second_way(A, B):
     va, ua = np.linalg.eigh(A)
     vb, ub = np.linalg.eigh(B)
     sva = np.sqrt(np.maximum(va, 0.0))
