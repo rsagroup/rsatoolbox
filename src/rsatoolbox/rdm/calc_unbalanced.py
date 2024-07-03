@@ -91,14 +91,14 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
             dataset.obs_descriptors[descriptor])
         # unique_cond = set(dataset.obs_descriptors[descriptor])
         if cv_descriptor is None:
-            cv_desc_int = np.arange(dataset.n_obs, dtype=int)
+            cv_desc_int = np.arange(dataset.n_obs, dtype=np.int64)
             crossval = 0
         else:
             _, indices = np.unique(
                 dataset.obs_descriptors[cv_descriptor],
                 return_inverse=True
             )
-            cv_desc_int = indices.astype(int)
+            cv_desc_int = indices.astype(np.int64)
             crossval = 1
         if method == 'euclidean':
             method_idx = 1
@@ -114,7 +114,7 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
             weight_idx = 0
         else:
             weight_idx = 1
-        cond_indices_int = cond_indices.astype(int)
+        cond_indices_int = cond_indices.astype(np.int64)
         rdm = calc(
             ensure_double(dataset.measurements),
             cond_indices_int,
