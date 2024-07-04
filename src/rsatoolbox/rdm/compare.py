@@ -14,6 +14,7 @@ from rsatoolbox.util.matrix import pairwise_contrast
 from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
 from rsatoolbox.util.rdm_utils import _get_n_from_length
 from rsatoolbox.util.matrix import row_col_indicator_g
+from rsatoolbox.util.rdm_utils import batch_to_matrices
 
 
 def compare(rdm1, rdm2, method='cosine', sigma_k=None):
@@ -275,19 +276,14 @@ def compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=None):
 
 
 def compare_bures_similarity(rdm1, rdm2):
-    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
-    n_cond = _get_n_from_length(vector1.shape[1])
-
-    # construct RDM to 2nd-moment (G) transformation
-    pairs = pairwise_contrast(np.arange(n_cond-1))
-    pairs[pairs == -1] = 1
-    T = np.block([
-        [np.eye(n_cond - 1), np.zeros((n_cond-1, vector1.shape[1] - n_cond + 1))],
-        [0.5 * pairs, np.diag(-0.5 * np.ones(vector1.shape[1] - n_cond + 1))]])
-    vec_G1 = vector1@np.transpose(T)
-    vec_G2 = vector2@np.transpose(T)
-
-    sim = _all_combinations(vec_G1, vec_G2, _bures_similarity_first_way)
+    vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
+    G1, n_rdm1, n_cond = batch_to_matrices(-vector1 / 2)
+    G2, n_rdm2, _ = batch_to_matrices(-vector2 / 2)
+    s1 = np.mean(G1, 1, keepdims=True)
+    G1 = G1 - s1 - np.transpose(s1, (0, 2, 1)) + np.mean(s1, 2, keepdims=True)
+    s2 = np.mean(G2, 1, keepdims=True)
+    G2 = G2 - s2 - np.transpose(s2, (0, 2, 1)) + np.mean(s2, 2, keepdims=True)
+    sim = _all_combinations(G1, G2, _bures_similarity_first_way)
     return sim
 
 
@@ -308,13 +304,9 @@ def _all_combinations(vectors1, vectors2, func, *args, **kwargs):
 
     """
     value = np.empty((len(vectors1), len(vectors2)))
-    k1 = 0
-    for v1 in vectors1:
-        k2 = 0
-        for v2 in vectors2:
+    for k1, v1 in enumerate(vectors1):
+        for k2, v2 in enumerate(vectors2):
             value[k1, k2] = func(v1, v2, *args, **kwargs)
-            k2 += 1
-        k1 += 1
     return value
 
 
@@ -667,7 +659,7 @@ def _sq_bures_metric_second_way(A, B):
 def _bures_similarity_first_way(A, B):
     va, ua = np.linalg.eigh(A)
     Asq = ua @ (np.sqrt(np.maximum(va[:, None], 0.0)) * ua.T)
-    num = np.sum(np.sqrt(np.linalg.eigvalsh(Asq @ B @ Asq)))
+    num = np.sum(np.sqrt(np.maximum(np.linalg.eigvalsh(Asq @ B @ Asq), 0.0)))
     denom = np.sqrt(np.trace(A) * np.trace(B))
     return num / denom
 

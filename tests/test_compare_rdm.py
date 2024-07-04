@@ -8,6 +8,7 @@
 import unittest
 import numpy as np
 from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_almost_equal
 import rsatoolbox as rsa
 
 
@@ -15,13 +16,32 @@ class TestCompareRDM(unittest.TestCase):
 
     def setUp(self):
         self.rng = np.random.default_rng(0)
-        dissimilarities1 = self.rng.random((1, 15))
+        x = self.rng.random((20, 6))
+        x -= np.mean(x, 1, keepdims=True)
+        self.k1 = x.T @ x
+        diag = np.diag(self.k1)
+        dist = (
+            np.expand_dims(diag, 0)
+            + np.expand_dims(diag, 1)
+            - 2 * self.k1)
+        dissimilarities1 = dist[np.triu_indices(6, 1)]
         des1 = {'session': 0, 'subj': 0}
         self.test_rdm1 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities1,
             dissimilarity_measure='test',
             descriptors=des1)
-        dissimilarities2 = self.rng.random((3, 15))
+        x = self.rng.random((3, 20, 6))
+        x -= np.mean(x, 2, keepdims=True)
+        self.k2 = np.zeros((3, 6, 6))
+        dissimilarities2 = np.zeros((3, 15))
+        for i in range(3):
+            self.k2[i] = x[i].T @ x[i]
+            diag = np.diag(self.k2[i])
+            dist = (
+                np.expand_dims(diag, 0)
+                + np.expand_dims(diag, 1)
+                - 2 * self.k2[i])
+            dissimilarities2[i] = dist[np.triu_indices(6, 1)]
         des2 = {'session': 0, 'subj': 0}
         self.test_rdm2 = rsa.rdm.RDMs(
             dissimilarities=dissimilarities2,
@@ -202,6 +222,14 @@ class TestCompareRDM(unittest.TestCase):
         assert_array_almost_equal(result, 1)
         result = compare_bures_similarity(self.test_rdm1, self.test_rdm2)
         assert np.all(result < 1)
+        # check that Kernel transform is ok
+        from rsatoolbox.rdm.compare import _bures_similarity_first_way
+        from rsatoolbox.rdm.compare import _bures_similarity_second_way
+        d_right1 = _bures_similarity_first_way(self.k1, self.k2[0])
+        d_right2 = _bures_similarity_second_way(self.k1, self.k2[0])
+        assert_almost_equal(d_right1, d_right2)
+        assert_almost_equal(d_right1, result[0, 0])
+        assert_almost_equal(d_right2, result[0, 0])
 
     def test_compare(self):
         from rsatoolbox.rdm.compare import compare
