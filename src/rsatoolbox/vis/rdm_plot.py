@@ -627,8 +627,8 @@ class MultiRdmPlot:
         conf.n_panel = rdm.n_rdm + int(show_colorbar == "figure")
         if show_colorbar == "figure":
             rdmat = rdm.get_matrices()
-            vmin = vmin or rdmat[:, (conf.nanmask == False)].min()
-            vmax = vmax or rdmat[:, (conf.nanmask == False)].max()
+            vmin = vmin or rdmat[:, ~conf.nanmask].min()
+            vmax = vmax or rdmat[:, ~conf.nanmask].max()
         conf.vmin = vmin
         conf.vmax = vmax
         conf.n_row, conf.n_column = cls.determine_rows_cols_panels(

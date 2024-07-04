@@ -115,13 +115,13 @@ def transform(rdms, fun):
 
 
 def minmax_transform(rdms: RDMs) -> RDMs:
-    '''applies a minmax transform to the dissimilarities and returns a new 
+    '''applies a minmax transform to the dissimilarities and returns a new
     RDMs object.
-    
+
     Args:
         rdms(RDMs): RDMs object
-    
-    Returns:    
+
+    Returns:
         rdms_new(RDMs): RDMs object with minmax transformed dissimilarities
     '''
     dissimilarities = rdms.get_vectors()
@@ -138,24 +138,24 @@ def minmax_transform(rdms: RDMs) -> RDMs:
     return rdms_new
 
 
-def geotopological_transform(rdms: RDMs, l: float, u: float) -> RDMs:
-    '''applies a geo-topological transform to the dissimilarities and returns 
-    a new RDMs object. 
-    
-    Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry 
+def geotopological_transform(rdms: RDMs, low: float, up: float) -> RDMs:
+    '''applies a geo-topological transform to the dissimilarities and returns
+    a new RDMs object.
+
+    Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry
     of Neural Representations. arXiv preprint arXiv:2309.11028.
-    
+
     Args:
         rdms(RDMs): RDMs object
-        l(float): lower quantile
-        u(float): upper quantile
-    
-    Returns:    
+        low(float): lower quantile
+        up(float): upper quantile
+
+    Returns:
         rdms_new(RDMs): RDMs object with geotopological transformed dissimilarities
     '''
     dissimilarities = rdms.get_vectors()
-    gt_min = np.quantile(dissimilarities, l)
-    gt_max = np.quantile(dissimilarities, u)
+    gt_min = np.quantile(dissimilarities, low)
+    gt_max = np.quantile(dissimilarities, up)
     dissimilarities[dissimilarities < gt_min] = 0
     dissimilarities[(dissimilarities >= gt_min) & (dissimilarities <= gt_max)] = (
         dissimilarities[(dissimilarities >= gt_min) & (dissimilarities <= gt_max)] - gt_min
