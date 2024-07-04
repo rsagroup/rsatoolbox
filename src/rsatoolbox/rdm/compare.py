@@ -280,6 +280,17 @@ def compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=None):
 
 
 def compare_bures_similarity(rdm1, rdm2):
+    """calculates the Bures similarity between two RDMs objects.
+
+    Args:
+        rdm1 (rsatoolbox.rdm.RDMs):
+            first set of RDMs
+        rdm2 (rsatoolbox.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            Bures similarity between the two RDMs
+    """
     vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
     G1, _, _ = batch_to_matrices(-vector1 / 2)
     G2, _, _ = batch_to_matrices(-vector2 / 2)
@@ -292,6 +303,17 @@ def compare_bures_similarity(rdm1, rdm2):
 
 
 def compare_bures_metric(rdm1, rdm2):
+    """calculates the squared Bures metric between two RDMs objects.
+
+    Args:
+        rdm1 (rsatoolbox.rdm.RDMs):
+            first set of RDMs
+        rdm2 (rsatoolbox.rdm.RDMs):
+            second set of RDMs
+    Returns:
+        numpy.ndarray: dist:
+            squared Bures metric between the two RDMs
+    """
     vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
     G1, _, _ = batch_to_matrices(-vector1 / 2)
     G2, _, _ = batch_to_matrices(-vector2 / 2)
