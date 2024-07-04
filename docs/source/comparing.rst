@@ -107,4 +107,24 @@ Thus, we generally recommend using this :math:`\rho_a` measure now.
 
 This comparison measure can be accessed using ``method='rho-a'`` or using ``rsatoolbox.rdm.compare_rho_a``.
 
+Bures's rho
+--------------
+These are a realted similarity measure and distance introduced by harvey_2024_ , based on double centered kernel matrices :math:`K_1` and :math:`K_2`.
+The normalized Bures similarity (NBS) is defined as:
+
+.. math::
+
+    NBS(K_1, K_2) = \frac{\mathcal{F}(K_1, K_2)}{\sqrt{\operatorname{Tr}\[K_1\] \operatorname{Tr}\[K_2\]}}
+    \mathcal{F}(K_1, K_2) = \operatorname{Tr}\[(K_1^{1/2}K_2K_1^{1/2})^{1/2}\]
+
+and :math:`\mathcal{F}` is known as the fidelity.
+
+and relatedly the Bures distance :math:`\mathcal{B}`, a proper metric is defined as:
+
+.. math::
+    \mathcal{B}^2(K_1, K_2) = \operatorname{Tr}\[K_1\] \operatorname{Tr}\[K_2\] - 2 \operatorname{Tr}\[(K_1^{1/2}K_2K_1^{1/2})^{1/2}\]
+
+
+
 .. _Diedrichsen_2021: https://arxiv.org/abs/2007.02789
+.. _harvey_2024: https://proceedings.mlr.press/v243/harvey24a
