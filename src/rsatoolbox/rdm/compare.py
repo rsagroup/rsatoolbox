@@ -280,9 +280,9 @@ def compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=None):
 
 
 def compare_bures_similarity(rdm1, rdm2):
-    vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
-    G1, n_rdm1, n_cond = batch_to_matrices(-vector1 / 2)
-    G2, n_rdm2, _ = batch_to_matrices(-vector2 / 2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
+    G1, _, _ = batch_to_matrices(-vector1 / 2)
+    G2, _, _ = batch_to_matrices(-vector2 / 2)
     s1 = np.mean(G1, 1, keepdims=True)
     G1 = G1 - s1 - np.transpose(s1, (0, 2, 1)) + np.mean(s1, 2, keepdims=True)
     s2 = np.mean(G2, 1, keepdims=True)
@@ -292,9 +292,9 @@ def compare_bures_similarity(rdm1, rdm2):
 
 
 def compare_bures_metric(rdm1, rdm2):
-    vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
-    G1, n_rdm1, n_cond = batch_to_matrices(-vector1 / 2)
-    G2, n_rdm2, _ = batch_to_matrices(-vector2 / 2)
+    vector1, vector2, _ = _parse_input_rdms(rdm1, rdm2)
+    G1, _, _ = batch_to_matrices(-vector1 / 2)
+    G2, _, _ = batch_to_matrices(-vector2 / 2)
     s1 = np.mean(G1, 1, keepdims=True)
     G1 = G1 - s1 - np.transpose(s1, (0, 2, 1)) + np.mean(s1, 2, keepdims=True)
     s2 = np.mean(G2, 1, keepdims=True)
