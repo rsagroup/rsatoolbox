@@ -630,7 +630,7 @@ class TestOESplit(unittest.TestCase):
     def test_oe_split(self):
         measurements = self.rng.random((4, 10))
         des = {'session': 0, 'subj': 0}
-        chn_des = {'rois': np.array([chr(l) for l in range(65, 75)])}
+        chn_des = {'rois': np.array([chr(i) for i in range(65, 75)])}
 
         self.full_data = rsd.Dataset(
             measurements=measurements,
@@ -681,7 +681,7 @@ class TestOESplit(unittest.TestCase):
     def test_odd_even_split_nested(self):
         measurements = self.rng.random((16, 10))
         des = {'session': 0, 'subj': 0}
-        chn_des = {'rois': np.array([chr(l) for l in range(65, 75)])}
+        chn_des = {'rois': np.array([chr(i) for i in range(65, 75)])}
         conds = np.array([str(i) for i in range(1, 5)])
         runs = np.array([i for i in range(1, 5)])
         self.full_data = rsd.Dataset(
