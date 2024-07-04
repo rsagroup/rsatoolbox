@@ -75,6 +75,10 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
         sim = compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
     elif method == 'neg_riem_dist':
         sim = compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=sigma_k)
+    elif method == 'bures':
+        sim = compare_bures_similarity(rdm1, rdm2)
+    elif method == 'bures_metric':
+        sim = compare_bures_metric(rdm1, rdm2)
     else:
         raise ValueError('Unknown RDM comparison method requested!')
     return sim
@@ -284,6 +288,18 @@ def compare_bures_similarity(rdm1, rdm2):
     s2 = np.mean(G2, 1, keepdims=True)
     G2 = G2 - s2 - np.transpose(s2, (0, 2, 1)) + np.mean(s2, 2, keepdims=True)
     sim = _all_combinations(G1, G2, _bures_similarity_first_way)
+    return sim
+
+
+def compare_bures_metric(rdm1, rdm2):
+    vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
+    G1, n_rdm1, n_cond = batch_to_matrices(-vector1 / 2)
+    G2, n_rdm2, _ = batch_to_matrices(-vector2 / 2)
+    s1 = np.mean(G1, 1, keepdims=True)
+    G1 = G1 - s1 - np.transpose(s1, (0, 2, 1)) + np.mean(s1, 2, keepdims=True)
+    s2 = np.mean(G2, 1, keepdims=True)
+    G2 = G2 - s2 - np.transpose(s2, (0, 2, 1)) + np.mean(s2, 2, keepdims=True)
+    sim = _all_combinations(G1, G2, _sq_bures_metric_first_way)
     return sim
 
 

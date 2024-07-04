@@ -231,6 +231,20 @@ class TestCompareRDM(unittest.TestCase):
         assert_almost_equal(d_right1, result[0, 0])
         assert_almost_equal(d_right2, result[0, 0])
 
+    def test_compare_bures_metric(self):
+        from rsatoolbox.rdm.compare import compare_bures_metric
+        result = compare_bures_metric(self.test_rdm1, self.test_rdm1)
+        assert_array_almost_equal(result, 0)
+        result = compare_bures_metric(self.test_rdm1, self.test_rdm2)
+        # check that Kernel transform is ok
+        from rsatoolbox.rdm.compare import _sq_bures_metric_first_way
+        from rsatoolbox.rdm.compare import _sq_bures_metric_second_way
+        d_right1 = _sq_bures_metric_first_way(self.k1, self.k2[0])
+        d_right2 = _sq_bures_metric_second_way(self.k1, self.k2[0])
+        assert_almost_equal(d_right1, d_right2)
+        assert_almost_equal(d_right1, result[0, 0])
+        assert_almost_equal(d_right2, result[0, 0])
+
     def test_compare(self):
         from rsatoolbox.rdm.compare import compare
         result = compare(self.test_rdm1, self.test_rdm1)
@@ -241,6 +255,8 @@ class TestCompareRDM(unittest.TestCase):
         result = compare(self.test_rdm1, self.test_rdm2, method='cosine')
         result = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov')
         result = compare(self.test_rdm1, self.test_rdm2, method='kendall')
+        result = compare(self.test_rdm1, self.test_rdm2, method='bures')
+        result = compare(self.test_rdm1, self.test_rdm2, method='bures_metric')
 
 
 class TestCompareRDMNaN(unittest.TestCase):
