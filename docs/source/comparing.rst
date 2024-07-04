@@ -109,7 +109,7 @@ This comparison measure can be accessed using ``method='rho-a'`` or using ``rsat
 
 Bures's similarity
 --------------
-These are a realted similarity measure and distance introduced by harvey_2024_ , based on double centered kernel matrices :math:`K_1` and :math:`K_2`.
+These are a related similarity measure and distance introduced by harvey_2024_ , based on double centered kernel matrices :math:`K_1` and :math:`K_2`.
 The normalized Bures similarity (NBS) is defined as:
 
 .. math::
