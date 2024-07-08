@@ -28,7 +28,7 @@ class SpmGlm:
             paths to directory containing SPM files
     """
 
-    def __init__(self, path: str, nitoolsMock=None, globMock=None):
+    def __init__(self, path: str, nitoolsMock=None):
         self.path = normpath(path)
         self.nt = import_nitools(nitoolsMock)
 
@@ -63,7 +63,7 @@ class SpmGlm:
         self.weight = SPM['xX']['W'] # Weight matrix for whitening
         self.pinvX = SPM['xX']['pKX'] # Pseudo-inverse of (filtered and weighted) design matrix
 
-    def get_betas(self, mask: Nifti1Image | NDArray) -> Tuple[NDArray, NDArray, Dict]:
+    def get_betas(self, mask: Nifti1Image | NDArray | str) -> Tuple[NDArray, NDArray, Dict]:
         """
         Samples the beta images of an estimated SPM GLM at the mask locations
         also returns the ResMS values, and the obseration descriptors (run and condition) name
@@ -91,7 +91,7 @@ class SpmGlm:
         info = {'reg_name': self.beta_names[indx], 'run_number': self.run_number[indx]}
         return data[:-1,:], data[-1,:], info
 
-    def get_residuals(self,mask: Nifti1Image | NDArray) -> Tuple[NDArray, NDArray, Dict]:
+    def get_residuals(self,mask: Nifti1Image | NDArray | str) -> Tuple[NDArray, NDArray, Dict]:
         """
         Collects 3d images of a range of GLM residuals
         (typical SPM GLM results) and corresponding metadata

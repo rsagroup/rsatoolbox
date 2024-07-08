@@ -1,55 +1,46 @@
 """Tests for SPM I/O functions
 """
+from __future__ import annotations
+from typing import Dict
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import numpy as np
 
 
 class TestIoSPM(TestCase):
 
     def setUp(self) -> None:
-        self.nibabel = Mock()
-        img = Mock()
-        img.get_fdata.return_value = np.zeros([3, 4, 5])
-        self.nibabel.nifti1.load.return_value = img
-        self.glob = Mock()
-        self.glob.return_value = ['a', 'b']
+        self.nitools = Mock()
 
-    def test_beta_pooling(self):
-        from rsatoolbox.io.spm import SpmGlm
-        glm = SpmGlm('/path', self.nibabel, self.glob)
-        glm.load_betas()
-        np.testing.assert_array_equal(
-            glm.pooled_data_array.shape, (3, 4, 5, 2))
-        np.testing.assert_array_equal(
-            glm.pooled_data_array.shape[3], len(glm.dim4_descriptors))
-        glm.dim4_descriptors.sort()
-        np.testing.assert_array_equal(
-            np.unique(glm.dim4_descriptors),
-            glm.dim4_descriptors)
+    def stub_spm_mat(self) -> Dict:
+        return {'SPM':
+            {
+                'nscan': [1, 2, 3],
+                'Vbeta': [dict(fname='a')],
+                'xY': {
+                    'P': [],
+                },
+                'xX': {
+                    'name': ['00012 b'],
+                    'K': [dict(X0=None)],
+                    'iC': np.array([1]),
+                    'xKXs': dict(X=None),
+                    'erdf': None,
+                    'W': None,
+                    'pKX': None
+                }
+            }
+        }
 
-    def test_beta_pooling_w_dict(self):
+    @patch('rsatoolbox.io.spm.loadmat')
+    def test_basic_spmglm_usage(self, loadmat):
+        loadmat.return_value = self.stub_spm_mat()
+        self.nitools.sample_images.return_value = np.array([[4, 5, 6]])
         from rsatoolbox.io.spm import SpmGlm
-        glm = SpmGlm('/path', self.nibabel, self.glob)
-        glm.load_betas()
-        np.testing.assert_array_equal(
-            glm.pooled_data_array.shape, (3, 4, 5, 2))
-        np.testing.assert_array_equal(
-            glm.pooled_data_array.shape[3], len(glm.dim4_descriptors))
-        glm.dim4_descriptors.sort()
-        np.testing.assert_array_equal(
-            np.unique(glm.dim4_descriptors),
-            glm.dim4_descriptors)
+        spm = SpmGlm('/path', self.nitools)
+        spm.get_info_from_spm_mat()
 
-    def test_res_pooling(self):
-        from rsatoolbox.io.spm import SpmGlm
-        glm = SpmGlm('/path', self.nibabel, self.glob)
-        glm.load_residuals()
-        np.testing.assert_array_equal(
-            glm.pooled_data_array.shape, (3, 4, 5, 2))
-        np.testing.assert_array_equal(
-            glm.pooled_data_array.shape[3], len(glm.dim4_descriptors))
-        glm.dim4_descriptors.sort()
-        np.testing.assert_array_equal(
-            np.unique(glm.dim4_descriptors),
-            glm.dim4_descriptors)
+        [beta, _, info] = spm.get_betas('/pth/anat/M1_L.nii')
+        self.assertEqual(beta.shape, (0, 3))
+        self.assertEqual(info['reg_name'][0], 'b')
+        self.assertEqual(info['run_number'][0], 1)
