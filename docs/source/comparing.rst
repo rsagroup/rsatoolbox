@@ -108,7 +108,7 @@ Thus, we generally recommend using this :math:`\rho_a` measure now.
 This comparison measure can be accessed using ``method='rho-a'`` or using ``rsatoolbox.rdm.compare_rho_a``.
 
 Bures's similarity
---------------
+------------------
 These are a related similarity measure and distance introduced by harvey_2024_ , based on double centered kernel matrices :math:`K_1` and :math:`K_2`.
 The normalized Bures similarity (NBS) is defined as:
 

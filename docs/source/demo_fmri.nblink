@@ -1,5 +1,5 @@
 {
-    "path": "../../demos/demo_fmri.ipynb",
+    "path": "../../demos/demo_fmri_spm.ipynb",
     "extra-media": [
         "../../demos/demo_fmri_files"
     ]
