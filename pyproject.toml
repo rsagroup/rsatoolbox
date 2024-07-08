@@ -33,6 +33,12 @@ classifiers = [
       'Programming Language :: Python :: 3.12',
 ]
 dynamic = ["readme", "dependencies", "version"]
+[project.optional-dependencies]
+imaging = [
+    "mne~=1.5.1",
+    "nibabel~=5.1.0",
+    "neuroimagingtools~=1.1.4",
+]
 
 [project.urls]
 homepage = "https://github.com/rsagroup/rsatoolbox"
