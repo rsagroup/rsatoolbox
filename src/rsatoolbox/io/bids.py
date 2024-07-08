@@ -78,7 +78,8 @@ class BidsTableFile(BidsFile):
 
     def get_frame(self) -> DataFrame:
         return pandas.read_csv(self.fpath, sep='\t')
-    
+
+
 class BidsJsonFile(BidsFile):
 
     _data: Optional[Dict]

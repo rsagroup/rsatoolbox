@@ -48,7 +48,7 @@ class FmriprepRun:
         data = self.boldFile.get_data()
         if masked:
             return data[self.get_mask(), :]
-        else: 
+        else:
             return data.reshape([-1, data.shape[-1]])
 
     def get_events(self):
@@ -56,7 +56,7 @@ class FmriprepRun:
 
     def get_meta(self):
         return self.boldFile.get_meta()
-    
+
     def get_mask(self) -> NDArray:
         mask_file = self.boldFile.get_mri_sibling(desc='brain', suffix='mask')
         return mask_file.get_data().astype(bool)
