@@ -10,13 +10,14 @@ spm.get_info_from_spm_mat()
 ```
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Optional, Callable
+from typing import TYPE_CHECKING, Tuple, Dict
 from os.path import normpath
 import numpy as np
 from scipy.io import loadmat
 from rsatoolbox.io.optional import import_nitools
 if TYPE_CHECKING:
     from numpy.typing import NDArray
+    from nibabel.nifti1 import Nifti1Image
 
 
 class SpmGlm:
@@ -62,7 +63,7 @@ class SpmGlm:
         self.weight = SPM['xX']['W'] # Weight matrix for whitening
         self.pinvX = SPM['xX']['pKX'] # Pseudo-inverse of (filtered and weighted) design matrix
 
-    def get_betas(self,mask):
+    def get_betas(self, mask: Nifti1Image | NDArray) -> Tuple[NDArray, NDArray, Dict]:
         """
         Samples the beta images of an estimated SPM GLM at the mask locations
         also returns the ResMS values, and the obseration descriptors (run and condition) name
@@ -90,7 +91,7 @@ class SpmGlm:
         info = {'reg_name': self.beta_names[indx], 'run_number': self.run_number[indx]}
         return data[:-1,:], data[-1,:], info
 
-    def get_residuals(self,mask):
+    def get_residuals(self,mask: Nifti1Image | NDArray) -> Tuple[NDArray, NDArray, Dict]:
         """
         Collects 3d images of a range of GLM residuals
         (typical SPM GLM results) and corresponding metadata
@@ -115,7 +116,7 @@ class SpmGlm:
         info = {'reg_name': self.beta_names[indx], 'run_number': self.run_number[indx]}
         return residuals, beta[indx,:], info
 
-    def spm_filter(self,data):
+    def spm_filter(self, data: NDArray) -> NDArray:
         """
         Does high pass-filtering and temporal weighting of the data (indentical to spm_filter)
 
