@@ -11,14 +11,13 @@ spm.get_info_from_spm_mat()
 """
 from __future__ import annotations
 from typing import TYPE_CHECKING, List, Optional, Callable
-from os.path import join, normpath
+from os.path import normpath
 import numpy as np
-import nitools as nt
-from numpy import stack
 from scipy.io import loadmat
-
+from rsatoolbox.io.optional import import_nitools
 if TYPE_CHECKING:
     from numpy.typing import NDArray
+
 
 class SpmGlm:
     """class for handling first-levels GLMs estimated in SPM
@@ -28,12 +27,11 @@ class SpmGlm:
             paths to directory containing SPM files
     """
 
-    def __init__(self, path: str, nibabelMock=None, globMock=None):
+    def __init__(self, path: str, nitoolsMock=None, globMock=None):
         self.path = normpath(path)
-        # self.nibabel = import_nibabel(nibabelMock)
-        # self.glob = globMock or glob.glob
+        self.nt = import_nitools(nitoolsMock)
 
-    def get_info_from_spm_mat(self):
+    def get_info_from_spm_mat(self) -> None:
         """Initializes information for SPM.mat file
 
         Args:
@@ -80,14 +78,14 @@ class SpmGlm:
             obs_descriptors (dict): with lists reg_name and run_number (N long)
         """
 
-        coords = nt.get_mask_coords(mask)
+        coords = self.nt.get_mask_coords(mask)
 
         # Generate the list of relevant beta images:
         indx = self.reg_of_interest-1
         beta_files = [f'{self.path}/{self.beta_files[i]}' for i in indx]
         # Get the data from beta and ResMS files
         rms_file = [f'{self.path}/ResMS.nii']
-        data = nt.sample_images(beta_files + rms_file,coords,use_dataobj=False)
+        data = self.nt.sample_images(beta_files + rms_file,coords,use_dataobj=False)
         # Return the data and the observation descriptors
         info = {'reg_name': self.beta_names[indx], 'run_number': self.run_number[indx]}
         return data[:-1,:], data[-1,:], info
@@ -102,8 +100,8 @@ class SpmGlm:
             res_range (range): range of to be saved residual images per run
         """
         # Sample the relevant time series data
-        coords = nt.get_mask_coords(mask)
-        data = nt.sample_images(self.rawdata_files,coords,use_dataobj=True)
+        coords = self.nt.get_mask_coords(mask)
+        data = self.nt.sample_images(self.rawdata_files,coords,use_dataobj=True)
 
         # Filter and temporal pre-whiten the data
         fdata= self.spm_filter(self.weight @ data) # spm_filter
@@ -131,7 +129,6 @@ class SpmGlm:
 
         fdata = data.copy()
         for i in range(self.nruns):
-            Y = fdata[scan_bounds[i]:scan_bounds[i+1],:];
+            Y = fdata[scan_bounds[i]:scan_bounds[i+1],:]
             Y = Y - self.filter_matrices[i] @ (self.filter_matrices[i].T @ Y)
         return fdata
-
