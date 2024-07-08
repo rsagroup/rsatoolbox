@@ -2,7 +2,8 @@
 """
 from __future__ import annotations
 from glob import glob
-import json, os
+import json
+import os
 from os.path import join, isdir, relpath, normpath, basename
 from typing import TYPE_CHECKING, List, Optional, Dict, Any
 from rsatoolbox.io.optional import import_nibabel
@@ -103,13 +104,13 @@ class BidsMriFile(BidsFile):
 
     def get_data(self) -> NDArray:
         return self.nibabel.load(self.fpath).get_fdata()
-    
+
     def get_events(self) -> DataFrame:
         return self.layout.find_events_for(self).get_frame()
-    
+
     def get_mri_sibling(self, desc: str, suffix: str) -> BidsMriFile:
         return self.layout.find_mri_sibling_of(self, desc, suffix)
-    
+
     def get_key(self) -> BidsTableFile:
         return self.layout.find_table_key_for(self)
 
@@ -119,13 +120,13 @@ class BidsLayout:
     _path: str
     _nibabel: Optional[Any]
 
-    def __init__(self, path: str, nibabel: Optional[Any]=None):
+    def __init__(self, path: str, nibabel: Optional[Any] = None):
         self._path = path
         self._nibabel = nibabel
 
     def abs_path(self, file: BidsFile) -> str:
         return join(self._path, file.relpath)
-    
+
     def _replace(self, base: BidsFile, replace_entities: Dict) -> str:
 
         def replace_or_inherit(base: BidsFile, entity: str) -> Optional[str]:
@@ -158,48 +159,68 @@ class BidsLayout:
         fname_segs += [f'{suffix}.{ext}']
         path_segs += ['_'.join(fname_segs)]
         return join(*path_segs)
-    
+
     def find_meta_for(self, base: BidsFile) -> BidsJsonFile:
         fpath = self._replace(base, dict(ext='json'))
         return BidsJsonFile(fpath, self)
 
     def find_events_for(self, base: BidsFile) -> BidsTableFile:
-        fpath = self._replace(base, dict(derivative=None, space=None,
-            desc=None, suffix='events', ext='tsv'))
+        fpath = self._replace(
+            base,
+            dict(
+                derivative=None,
+                space=None,
+                desc=None,
+                suffix='events',
+                ext='tsv'
+            )
+        )
         return BidsTableFile(fpath, self)
-    
+
     def find_table_key_for(self, base: BidsFile) -> BidsTableFile:
         path_segs = ['derivatives', base.derivative] if base.derivative else []
         path_segs += [f'desc-{base.desc}_{base.suffix}.tsv']
         return BidsTableFile(join(*path_segs), self)
-    
-    def find_table_sibling_of(self, base: BidsFile, desc: str, suffix: str) -> BidsTableFile:
-        fpath = self._replace(base, dict(desc=desc, suffix=suffix, ext='tsv', space=None))
+
+    def find_table_sibling_of(self, base: BidsFile, desc: str, suffix: str
+                              ) -> BidsTableFile:
+        fpath = self._replace(
+            base,
+            dict(
+                desc=desc,
+                suffix=suffix,
+                ext='tsv',
+                space=None
+            )
+        )
         return BidsTableFile(fpath, self)
 
-    def find_mri_sibling_of(self, base: BidsMriFile, desc: str, suffix: str) -> BidsMriFile:
+    def find_mri_sibling_of(self, base: BidsMriFile, desc: str, suffix: str
+                            ) -> BidsMriFile:
         fpath = self._replace(base, dict(desc=desc, suffix=suffix))
         return BidsMriFile(fpath, self, self._nibabel)
 
-    def find_mri_derivative_files(self,
-            derivative: str,
-            desc: str,
-            tasks: Optional[List[str]]=None
+    def find_mri_derivative_files(
+                self,
+                derivative: str,
+                desc: str,
+                tasks: Optional[List[str]] = None
             ) -> List[BidsMriFile]:
         deriv_dir = join(self._path, 'derivatives', derivative)
         if not isdir(deriv_dir):
             raise ValueError(f'Derivative directory not found: {deriv_dir}')
-        
+
         fpaths = sorted(glob(join(deriv_dir, '**', 'sub-*'), recursive=True))
-        ## filter by DESC
+        # filter by DESC
         fpaths = [f for f in fpaths if f'desc-{desc}' in f]
-        ## filter out meta files
+        # filter out meta files
         fpaths = [f for f in fpaths if not f.endswith('.json')]
-        ## filter by TASK
+        # filter by TASK
         if tasks is not None:
             subset = []
             for task in tasks:
                 subset += [f for f in fpaths if f'task-{task}' in f]
             fpaths = subset
         self._nibabel = import_nibabel(self._nibabel)
-        return [BidsMriFile(relpath(f, self._path), self, self._nibabel) for f in fpaths]
+        return [BidsMriFile(relpath(f, self._path), self, self._nibabel)
+                for f in fpaths]
