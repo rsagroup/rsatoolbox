@@ -5,6 +5,7 @@ from typing import Dict
 from unittest import TestCase
 from unittest.mock import Mock, patch
 import numpy as np
+from os.path import join
 
 
 class TestIoSPM(TestCase):
@@ -55,3 +56,15 @@ class TestIoSPM(TestCase):
         self.assertEqual(spm.rawdata_files, [
             '/path/func/uas01_run01.nii,1  ',
         ])
+
+    def test_relocate_file(self):
+        from rsatoolbox.io.spm import SpmGlm
+        spm = SpmGlm(join('path', 'leaf'), self.nitools)
+        self.assertEqual(
+            spm.relocate_file('/bla/dip/func/abc.nii,1  '),
+            join('path', 'func', 'abc.nii,1  ')
+        )
+        self.assertEqual(
+            spm.relocate_file('\\bla\\dip\\func\\abc.nii,2  '),
+            join('path', 'func', 'abc.nii,2  ')
+        )
