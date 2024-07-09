@@ -79,8 +79,8 @@ class SpmGlm:
         Returns:
             str: SPM-style file path
         """
-        norm_fpath = fpath.replace('\\', os.sep)
-        base_path = dirname(self.path).replace('\\', os.sep)
+        norm_fpath = fpath.replace('\\', '/')
+        base_path = dirname(self.path).replace('\\', '/')
         c = norm_fpath.find('func')
         return base_path + '/' + norm_fpath[c:]
 
