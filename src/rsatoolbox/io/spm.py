@@ -11,7 +11,7 @@ spm.get_info_from_spm_mat()
 """
 from __future__ import annotations
 from typing import TYPE_CHECKING, Tuple, Dict
-from os.path import normpath
+from os.path import normpath, dirname, join
 import numpy as np
 from scipy.io import loadmat
 from rsatoolbox.io.optional import import_nitools
@@ -54,7 +54,12 @@ class SpmGlm:
         self.run_number = np.array(self.run_number)
         self.beta_names = np.array(self.beta_names)
         # Get the raw data file name
-        self.rawdata_files = SPM['xY']['P']
+        self.rawdata_files = []
+        # SPM stores full absolute paths in the file, so since the data may
+        # have moved we should re-attach it to our know path
+        for fpath in SPM['xY']['P']:
+            c = fpath.find('func')
+            self.rawdata_files.append(join(dirname(self.path), fpath[c:]))
         # Get the necesssary matrices to reestimate the GLM for getting the residuals
         self.filter_matrices = [k['X0'] for k in SPM['xX']['K']]
         self.reg_of_interest = SPM['xX']['iC']
