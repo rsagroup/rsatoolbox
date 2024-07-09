@@ -59,12 +59,12 @@ class TestIoSPM(TestCase):
 
     def test_relocate_file(self):
         from rsatoolbox.io.spm import SpmGlm
-        spm = SpmGlm(join('path', 'leaf'), self.nitools)
+        spm = SpmGlm(join('/path', 'leaf'), self.nitools)
         self.assertEqual(
             spm.relocate_file('/bla/dip/func/abc.nii,1  '),
-            join('path', 'func', 'abc.nii,1  ')
+            '/path/func/abc.nii,1  '
         )
         self.assertEqual(
-            spm.relocate_file('\\bla\\dip\\func\\abc.nii,2  '),
-            join('path', 'func', 'abc.nii,2  ')
+            spm.relocate_file('c:\\bla\\dip\\func\\abc.nii,2  '),
+            '/path/func/abc.nii,2  '
         )

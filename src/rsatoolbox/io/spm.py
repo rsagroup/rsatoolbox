@@ -80,8 +80,9 @@ class SpmGlm:
             str: SPM-style file path
         """
         norm_fpath = fpath.replace('\\', os.sep)
+        base_path = dirname(self.path).replace('\\', os.sep)
         c = norm_fpath.find('func')
-        return join(dirname(self.path), norm_fpath[c:])
+        return base_path + '/' + norm_fpath[c:]
 
     def get_betas(self, mask: Nifti1Image | NDArray | str) -> Tuple[NDArray, NDArray, Dict]:
         """
