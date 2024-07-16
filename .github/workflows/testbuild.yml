@@ -77,7 +77,7 @@ jobs:
     - name: Store artifact
       uses: actions/upload-artifact@v4
       with:
-        name: source
+        name: source-${{ matrix.os }}-${{ matrix.python-version }}
         path: dist/*
         if-no-files-found: error
         retention-days: 1
@@ -110,7 +110,7 @@ jobs:
     - name: Store artifact
       uses: actions/upload-artifact@v4
       with:
-        name: cibw-wheels-${{ matrix.os }}
+        name: wheels-${{ matrix.os }}
         path: dist/*.whl
         if-no-files-found: error
         retention-days: 1
