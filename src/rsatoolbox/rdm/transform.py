@@ -30,7 +30,7 @@ def rank_transform(rdms: RDMs, method='average'):
 
     """
     dissimilarities = rdms.get_vectors()
-    dissimilarities = np.array([rankdata(dissimilarities[i], method=method)
+    dissimilarities = np.array([rankdata(dissimilarities[i], method=method, nan_policy='omit')
                                 for i in range(rdms.n_rdm)])
     measure = rdms.dissimilarity_measure or ''
     if '(ranks)' not in measure:
