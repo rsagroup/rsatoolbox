@@ -234,21 +234,15 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(transformed_rdm.n_cond, rdms.n_cond)
 
     def test_rank_transform(self):
-        from rsatoolbox.rdm import rank_transform
-        dis = np.zeros((8, 10))
-        mes = "Euclidean"
-        des = {'subj': 0}
-        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
-        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
-        rdms = rsr.RDMs(dissimilarities=dis,
-                        rdm_descriptors=rdm_des,
-                        pattern_descriptors=pattern_des,
-                        dissimilarity_measure=mes,
-                        descriptors=des)
+        from rsatoolbox.rdm.transform import rank_transform
+        from rsatoolbox.rdm.rdms import RDMs
+        rdms = RDMs(
+            dissimilarities=np.array([[8, 6, 10, np.nan]]),
+            dissimilarity_measure="Euclidean",
+        )
         rank_rdm = rank_transform(rdms)
-        self.assertEqual(rank_rdm.n_rdm, rdms.n_rdm)
-        self.assertEqual(rank_rdm.n_cond, rdms.n_cond)
         self.assertEqual(rank_rdm.dissimilarity_measure, 'Euclidean (ranks)')
+        assert_array_equal(rank_rdm.dissimilarities, [[2, 1, 3, np.nan]])
 
     def test_rank_transform_unknown_measure(self):
         from rsatoolbox.rdm import rank_transform

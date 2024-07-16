@@ -11,7 +11,7 @@ from scipy.spatial.distance import squareform
 from .rdms import RDMs
 
 
-def rank_transform(rdms: RDMs, method='average'):
+def rank_transform(rdms: RDMs, method='average') -> RDMs:
     """ applies a rank_transform and generates a new RDMs object
     This assigns a rank to each dissimilarity estimate in the RDM,
     deals with rank ties and saves ranks as new dissimilarity estimates.
@@ -30,17 +30,20 @@ def rank_transform(rdms: RDMs, method='average'):
 
     """
     dissimilarities = rdms.get_vectors()
-    dissimilarities = np.array([rankdata(dissimilarities[i], method=method)
-                                for i in range(rdms.n_rdm)])
+    cfg = dict(method=method, nan_policy='omit')
+    dissimilarities = np.array(
+        [rankdata(dissimilarities[i], **cfg) for i in range(rdms.n_rdm)]
+    )
     measure = rdms.dissimilarity_measure or ''
     if '(ranks)' not in measure:
         measure = (measure + ' (ranks)').strip()
-    rdms_new = RDMs(dissimilarities,
-                    dissimilarity_measure=measure,
-                    descriptors=deepcopy(rdms.descriptors),
-                    rdm_descriptors=deepcopy(rdms.rdm_descriptors),
-                    pattern_descriptors=deepcopy(rdms.pattern_descriptors))
-    return rdms_new
+    return RDMs(
+        dissimilarities,
+        dissimilarity_measure=measure,
+        descriptors=deepcopy(rdms.descriptors),
+        rdm_descriptors=deepcopy(rdms.rdm_descriptors),
+        pattern_descriptors=deepcopy(rdms.pattern_descriptors)
+    )
 
 
 def sqrt_transform(rdms):
