@@ -75,7 +75,7 @@ jobs:
         pip install -q twine
         twine check dist/*
     - name: Store artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: source
         path: dist/*
@@ -110,7 +110,7 @@ jobs:
     - name: Store artifact
       uses: actions/upload-artifact@v4
       with:
-        name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+        name: cibw-wheels-${{ matrix.os }}
         path: dist/*.whl
         if-no-files-found: error
         retention-days: 1
