@@ -334,7 +334,7 @@ def _cosine_cov_weighted_slow(vector1, vector2, frozen_inds=[], sigma_k=None, na
     # Now adjust v to account for any frozen patterns.
     v = _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds)
     # Omit any all-zero rows and columns.
-    nonzero_rows = np.where(~np.all(v == 0, axis=1))[0]
+    nonzero_rows = np.where(~np.all(v.toarray() == 0, axis=1))[0]
     v = v[nonzero_rows][:, nonzero_rows]
     vector1 = vector1[:, nonzero_rows]
     vector2 = vector2[:, nonzero_rows]
