@@ -32,7 +32,7 @@ class Dataset(DatasetBase):
     It contains one data set - or multiple data sets with the same structure
     """
 
-    def __eq__(self, other: Dataset) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Test for equality
         This magic method gets called when you compare two
         Datasets objects: `ds1 == ds2`.
@@ -45,13 +45,15 @@ class Dataset(DatasetBase):
         Returns:
             bool: True if the objects' properties are equal
         """
-        return all([
-            isinstance(other, Dataset),
-            np.all(self.measurements == other.measurements),
-            self.descriptors == other.descriptors,
-            desc_eq(self.obs_descriptors, other.obs_descriptors),
-            desc_eq(self.channel_descriptors, other.channel_descriptors),
-        ])
+        if isinstance(other, Dataset):
+            return all([
+                np.all(self.measurements == other.measurements),
+                self.descriptors == other.descriptors,
+                desc_eq(self.obs_descriptors, other.obs_descriptors),
+                desc_eq(self.channel_descriptors, other.channel_descriptors),
+            ])
+        else:
+            return False
 
     def copy(self) -> Dataset:
         """Return a copy of this object, with all properties
@@ -413,15 +415,17 @@ class TemporalDataset(Dataset):
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
         self.time_descriptors = parse_input_descriptor(time_descriptors)
 
-    def __eq__(self, other: TemporalDataset) -> bool:
-        return all([
-            isinstance(other, TemporalDataset),
-            np.all(self.measurements == other.measurements),
-            self.descriptors == other.descriptors,
-            desc_eq(self.obs_descriptors, other.obs_descriptors),
-            desc_eq(self.channel_descriptors, other.channel_descriptors),
-            desc_eq(self.time_descriptors, other.time_descriptors)
-        ])
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TemporalDataset):
+            return all([
+                np.all(self.measurements == other.measurements),
+                self.descriptors == other.descriptors,
+                desc_eq(self.obs_descriptors, other.obs_descriptors),
+                desc_eq(self.channel_descriptors, other.channel_descriptors),
+                desc_eq(self.time_descriptors, other.time_descriptors)
+            ])
+        else:
+            return False
 
     def __str__(self):
         """
