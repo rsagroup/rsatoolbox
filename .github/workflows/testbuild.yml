@@ -70,7 +70,7 @@ jobs:
     - name: Install type dependencies
       run: pip install mypy pandas-stubs types-tqdm pyright
     - name: Type check (pyright)
-      run: pyright src
+      run: pyright
     - name: Type check (mypy)
       run: mypy -p rsatoolbox
 
