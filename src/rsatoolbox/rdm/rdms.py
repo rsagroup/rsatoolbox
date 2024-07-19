@@ -103,7 +103,7 @@ class RDMs:
                 f'pattern_descriptors = \n{self.pattern_descriptors}\n'
                 )
 
-    def __eq__(self, other: RDMs) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Test for equality
         This magic method gets called when you compare two
         RDMs objects: `rdms1 == rdms2`.
@@ -117,13 +117,15 @@ class RDMs:
         Returns:
             bool: True if equal
         """
-        return all([
-            isinstance(other, RDMs),
-            np.all(self.dissimilarities == other.dissimilarities),
-            self.descriptors == other.descriptors,
-            desc_eq(self.rdm_descriptors, other.rdm_descriptors),
-            desc_eq(self.pattern_descriptors, other.pattern_descriptors),
-        ])
+        if isinstance(other, RDMs):
+            return all([
+                np.all(self.dissimilarities == other.dissimilarities),
+                self.descriptors == other.descriptors,
+                desc_eq(self.rdm_descriptors, other.rdm_descriptors),
+                desc_eq(self.pattern_descriptors, other.pattern_descriptors),
+            ])
+        else:
+            return False
 
     def __str__(self):
         """
@@ -426,7 +428,7 @@ class RDMs:
         """Reorder the patterns by sorting a descriptor
 
         Args:
-            reindex (bool): whether to reset the 'index' descriptor 
+            reindex (bool): whether to reset the 'index' descriptor
                 following sorting
 
         Pass keyword arguments that correspond to descriptors,

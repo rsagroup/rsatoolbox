@@ -503,8 +503,8 @@ def _add_descriptor_icons(
     descriptor_arr: ArrayLike,
     icon_method: str,
     n_cond: int,
-    ax: Axes = None,
-    num_pattern_groups: int = None,
+    ax: Optional[Axes] = None,
+    num_pattern_groups: Optional[int] = None,
     icon_spacing: float = 1.0,
     linewidth: float = 0.5,
 ) -> list:

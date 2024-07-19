@@ -105,7 +105,7 @@ def rescale(rdms, method: str = 'evidence', threshold=1e-8):
     Args:
         method (str, optional): One of 'evidence', 'setsize' or
             'simple'. Defaults to 'evidence'.
-        threshold (float): Stop iterating when the sum of squares 
+        threshold (float): Stop iterating when the sum of squares
             difference between iterations is smaller than this value.
             A smaller value means more iterations, but the algorithm
             may not always converge.
@@ -126,7 +126,7 @@ def rescale(rdms, method: str = 'evidence', threshold=1e-8):
     )
 
 
-def _mean(vectors: ndarray, weights: ndarray = None) -> ndarray:
+def _mean(vectors: ndarray, weights: Optional[ndarray] = None) -> ndarray:
     """Weighted mean of RDM vectors, ignores nans
 
     See :meth:`rsatoolbox.rdm.rdms.RDMs.mean`

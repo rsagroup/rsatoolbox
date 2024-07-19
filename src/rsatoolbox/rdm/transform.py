@@ -11,7 +11,7 @@ from scipy.spatial.distance import squareform
 from .rdms import RDMs
 
 
-def rank_transform(rdms: RDMs, method='average'):
+def rank_transform(rdms: RDMs, method: str = 'average'):
     """ applies a rank_transform and generates a new RDMs object
     This assigns a rank to each dissimilarity estimate in the RDM,
     deals with rank ties and saves ranks as new dissimilarity estimates.
@@ -43,7 +43,7 @@ def rank_transform(rdms: RDMs, method='average'):
     return rdms_new
 
 
-def sqrt_transform(rdms):
+def sqrt_transform(rdms: RDMs, fun) -> RDMs:
     """ applies a square root transform and generates a new RDMs object
     This sets values blow 0 to 0 and takes a square root of each entry.
     It also adds a sqrt to the dissimilarity_measure entry.
@@ -58,7 +58,9 @@ def sqrt_transform(rdms):
     dissimilarities = rdms.get_vectors()
     dissimilarities[dissimilarities < 0] = 0
     dissimilarities = np.sqrt(dissimilarities)
-    if rdms.dissimilarity_measure == 'squared euclidean':
+    if rdms.dissimilarity_measure is None:
+        dissimilarity_measure = 'sqrt of unknown measure'
+    elif rdms.dissimilarity_measure == 'squared euclidean':
         dissimilarity_measure = 'euclidean'
     elif rdms.dissimilarity_measure == 'squared mahalanobis':
         dissimilarity_measure = 'mahalanobis'
@@ -72,7 +74,7 @@ def sqrt_transform(rdms):
     return rdms_new
 
 
-def positive_transform(rdms):
+def positive_transform(rdms: RDMs, fun) -> RDMs:
     """ sets all negative entries in an RDM to zero and returns a new RDMs
 
     Args:
@@ -92,7 +94,7 @@ def positive_transform(rdms):
     return rdms_new
 
 
-def transform(rdms, fun):
+def transform(rdms: RDMs, fun) -> RDMs:
     """ applies an arbitray function ``fun`` to the dissimilarities and
     returns a new RDMs object.
 
@@ -105,7 +107,10 @@ def transform(rdms, fun):
     """
     dissimilarities = rdms.get_vectors()
     dissimilarities = fun(dissimilarities)
-    meas = 'transformed ' + rdms.dissimilarity_measure
+    if rdms.dissimilarity_measure is None:
+        meas = 'transformed unknown measure'
+    else:
+        meas = 'transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
                     descriptors=deepcopy(rdms.descriptors),
@@ -129,7 +134,10 @@ def minmax_transform(rdms: RDMs) -> RDMs:
         d_max = dissimilarities[i].max()
         d_min = dissimilarities[i].min()
         dissimilarities[i] = (dissimilarities[i] - d_min) / (d_max - d_min)
-    meas = 'minmax transformed ' + rdms.dissimilarity_measure
+    if rdms.dissimilarity_measure is None:
+        meas = 'minmax transformed unknown measure'
+    else:
+        meas = 'minmax transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
                     descriptors=deepcopy(rdms.descriptors),
@@ -161,7 +169,10 @@ def geotopological_transform(rdms: RDMs, low: float, up: float) -> RDMs:
         dissimilarities[(dissimilarities >= gt_min) & (dissimilarities <= gt_max)] - gt_min
     ) / (gt_max - gt_min)
     dissimilarities[dissimilarities > gt_max] = 1
-    meas = 'geo-topological transformed ' + rdms.dissimilarity_measure
+    if rdms.dissimilarity_measure is None:
+        meas = 'geo-topological transformed unknown measure'
+    else:
+        meas = 'geo-topological transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
                     descriptors=deepcopy(rdms.descriptors),
@@ -192,7 +203,10 @@ def geodesic_transform(rdms: RDMs) -> RDMs:
         le_ids = list(e[:2] for e in long_edges)
         G.remove_edges_from(le_ids)
         dissimilarities[i] = squareform(np.array(nx.floyd_warshall_numpy(G)))
-    meas = 'geodesic transformed ' + rdms.dissimilarity_measure
+    if rdms.dissimilarity_measure is None:
+        meas = 'geodesic transformed unknown measure'
+    else:
+        meas = 'geodesic transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
                     descriptors=deepcopy(rdms.descriptors),
