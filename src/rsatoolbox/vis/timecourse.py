@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 def plot_timecourse(
         rdms_data: RDMs,
         descriptor: str,
-        n_t_display:int = 20,
+        n_t_display: int = 20,
         fig_width: Optional[int] = None,
         timecourse_plot_rel_height: Optional[int] = None,
         time_formatted: Optional[List[str]] = None,
@@ -130,7 +130,7 @@ def plot_timecourse(
     vmax = np.std(rdms_data.dissimilarities) * 2
     for i, (tidx, a) in enumerate(zip(t_display_idx, rdm_axes)):
         mean_dissim = np.mean(rdms_data.subset('time', unique_time[tidx]).get_matrices(),axis=0)
-        a.imshow(mean_dissim, vmin=0, vmax=vmax)
+        a.imshow(mean_dissim, vmin=0, vmax=vmax)  # pyright: ignore reportArgumentType
         a.set_title(f'{np.round(unique_time[tidx]*1000,2):0.0f} ms')
         a.set_yticklabels([])
         a.set_yticks([])
