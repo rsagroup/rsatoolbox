@@ -171,16 +171,16 @@ def geotopological_transform(rdms: RDMs, low: float, up: float) -> RDMs:
 
 
 def geodesic_transform(rdms: RDMs) -> RDMs:
-    '''applies a geodesic transform to the dissimilarities and returns a 
-    new RDMs object. 
-    
-    Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry 
+    '''applies a geodesic transform to the dissimilarities and returns a
+    new RDMs object.
+
+    Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry
     of Neural Representations. arXiv preprint arXiv:2309.11028.
-    
+
     Args:
         rdms(RDMs): RDMs object
-    
-    Returns:    
+
+    Returns:
         rdms_new(RDMs): RDMs object with geodesic transformed dissimilarities
     '''
     dissimilarities = minmax_transform(rdms).get_vectors()

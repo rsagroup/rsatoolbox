@@ -23,7 +23,7 @@ def plot_timecourse(
         time_formatted: Optional[List[str]] = None,
         colored_conditions: Optional[list] = None,
         plot_individual_dissimilarities: Optional[bool] = None,
-    ) -> Tuple[Figure, List[Axes]]:
+) -> Tuple[Figure, List[Axes]]:
     """ plots the RDM movie for a given descriptor
 
     Args:
@@ -75,11 +75,11 @@ def plot_timecourse(
     # figure layout
     fig = plt.figure(
         constrained_layout=True,
-        figsize=(base_size*n_t_display,base_size*timecourse_plot_rel_height)
+        figsize=(base_size * n_t_display, base_size * timecourse_plot_rel_height)
     )
     gs = fig.add_gridspec(timecourse_plot_rel_height+1, n_t_display)
-    tc_ax = fig.add_subplot(gs[:-1,:])
-    rdm_axes = [fig.add_subplot(gs[-1,i]) for i in range(n_t_display)]
+    tc_ax = fig.add_subplot(gs[:-1, :])
+    rdm_axes = [fig.add_subplot(gs[-1, i]) for i in range(n_t_display)]
 
     # plot dissimilarity timecourses
     dissimilarities_mean = np.zeros((rdms_data.dissimilarities.shape[1], len(unique_time)))
@@ -88,10 +88,10 @@ def plot_timecourse(
 
     def _plot_mean_dissimilarities(labels=False):
         for i, (pairwise_name, idx) in enumerate(color_index.items()):
-            mn = np.mean(dissimilarities_mean[idx, :],axis=0)
+            mn = np.mean(dissimilarities_mean[idx, :], axis=0)
             n = np.sqrt(dissimilarities_mean.shape[0])
             # se is over dissimilarities, not over subjects
-            se = np.std(dissimilarities_mean[idx, :],axis=0)/n
+            se = np.std(dissimilarities_mean[idx, :], axis=0)/n
             tc_ax.fill_between(unique_time, mn-se, mn+se, color=colors[i], alpha=.3)
             label = pairwise_name if labels else None
             tc_ax.plot(unique_time, mn, color=colors[i], linewidth=2, label=label)
@@ -115,21 +115,21 @@ def plot_timecourse(
 
     yl = tc_ax.get_ylim()
     for t in unique_time[t_display_idx]:
-        tc_ax.plot([t,t], yl, linestyle=':', color='b', alpha=0.3)
+        tc_ax.plot([t, t], yl, linestyle=':', color='b', alpha=0.3)
     tc_ax.set_ylabel(f'Dissimilarity\n({rdms_data.dissimilarity_measure})')
     tc_ax.set_xticks(unique_time)
     tc_ax.set_xticklabels([
-        time_formatted[idx]  if idx in t_display_idx else '' for idx in range(len(unique_time))
+        time_formatted[idx] if idx in t_display_idx else '' for idx in range(len(unique_time))
     ])
     dt = np.diff(unique_time[t_display_idx])[0]
-    tc_ax.set_xlim(unique_time[t_display_idx[0]]-dt/2, unique_time[t_display_idx[-1]]+dt/2)
+    tc_ax.set_xlim(unique_time[t_display_idx[0]] - dt / 2, unique_time[t_display_idx[-1]]+dt/2)
 
     tc_ax.legend()
 
     # display (selected) rdms
     vmax = np.std(rdms_data.dissimilarities) * 2
     for i, (tidx, a) in enumerate(zip(t_display_idx, rdm_axes)):
-        mean_dissim = np.mean(rdms_data.subset('time', unique_time[tidx]).get_matrices(),axis=0)
+        mean_dissim = np.mean(rdms_data.subset('time', unique_time[tidx]).get_matrices(), axis=0)
         a.imshow(mean_dissim, vmin=0, vmax=vmax)  # pyright: ignore reportArgumentType
         a.set_title(f'{np.round(unique_time[tidx]*1000,2):0.0f} ms')
         a.set_yticklabels([])
@@ -150,7 +150,7 @@ def _map_colors(
         colored_conditions: Optional[list],
         plot_individual_dissimilarities: Optional[bool],
         rdms: RDMs
-    ) -> Tuple[bool, Dict[str, NDArray]]:
+) -> Tuple[bool, Dict[str, NDArray]]:
     n_dissimilarity_elements = rdms.dissimilarities.shape[1]
     # color mapping from colored conditions
     if colored_conditions is not None:
@@ -161,11 +161,11 @@ def _map_colors(
         pairwise_conds_unique = np.unique(pairwise_conds)
         color_index = {}
         for x in pairwise_conds_unique:
-            if len(list(x))==2:
+            if len(list(x)) == 2:
                 key = f'{list(x)[0]} vs {list(x)[1]}'
             else:
                 key = f'{list(x)[0]} vs {list(x)[0]}'
-            color_index[key] = pairwise_conds==x
+            color_index[key] = pairwise_conds == x
     else:
         color_index = {'': np.array([True]*n_dissimilarity_elements)}
         plot_individual_dissimilarities = True

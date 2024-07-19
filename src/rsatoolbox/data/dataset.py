@@ -792,7 +792,7 @@ class TemporalDataset(Dataset):
 
         """
         warn('Deprecated: [TemporalDataset.convert_to_dataset()]. Replace by '
-            '[TemporalDataset.time_as_observations()]', DeprecationWarning)
+             '[TemporalDataset.time_as_observations()]', DeprecationWarning)
         return self.time_as_observations(by)
 
     def to_dict(self):

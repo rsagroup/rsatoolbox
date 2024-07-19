@@ -114,12 +114,12 @@ def show_rdm(
             default), 1.1 means pad 10%, .9 means overlap 10% etc.
         linewidth (float): Width of connecting lines from icon labels (if used) to axis
             margin.  The default is 0.5 - set to 0. to disable the lines.
-        overlay ((str, str) or NDArray): RDM descriptor name-value tuple, 
+        overlay ((str, str) or NDArray): RDM descriptor name-value tuple,
             or vector (one value per pair) which indicates whether to highlight the given cells
         overlay_color (str): Color to use to highlight the pairs in the overlay argument.
             Use RGBA to specify transparency. Default is 50% opaque green.
-        contour ((str, str) or NDArray): RDM descriptor name-value tuple, 
-            or vector (one value per pair) which indicates whether to add a border 
+        contour ((str, str) or NDArray): RDM descriptor name-value tuple,
+            or vector (one value per pair) which indicates whether to add a border
             to the given cells
         contour_color (str): Color to use for a border around pairs in the contour argument.
             Use RGBA to specify transparency. Default is red.
@@ -144,10 +144,11 @@ def show_rdm(
     )
     return _plot_multi_rdm(conf)
 
+
 def _plot_multi_rdm(conf: MultiRdmPlot) -> Tuple[Figure, NDArray, Dict[int, Dict[str, Any]]]:
     # A dictionary of figure element handles
     handles = dict()
-    handles[-1] = dict() # fig level handles
+    handles[-1] = dict()  # fig level handles
     # create a list of (row index, column index) tuples
     rc_tuples = list(itertools.product(range(conf.n_row), range(conf.n_column)))
     # number of empty panels at the top
@@ -164,7 +165,7 @@ def _plot_multi_rdm(conf: MultiRdmPlot) -> Tuple[Figure, NDArray, Dict[int, Dict
         p = 0
         for p, (r, c) in enumerate(rc_tuples):
             handles[p] = dict()
-            rdm_index = p - n_empty ## rdm index
+            rdm_index = p - n_empty  # rdm index
             if rdm_index < 0:
                 ax_array[r, c].set_visible(False)
                 continue
@@ -205,7 +206,7 @@ def _adjust_colorbar_pos(cb: Colorbar, parent: Axes) -> None:
     """
     # key challenge is to obtain a similarly-sized colorbar to the 'panel' case
     # BUT positioned centered on the reserved subplot axes
-    #parent = ax_array[-1, -1]
+    # parent = ax_array[-1, -1]
     cbax_parent_orgpos = parent.get_position(original=True)
     # use last instance of 'image' (should all be yoked at this point)
     cbax_pos = cb.ax.get_position()
@@ -281,11 +282,11 @@ def show_rdm_panel(
             argument.
         vmax (float): Maximum intensity for colorbar mapping. matplotlib imshow
             argument.
-        overlay ((str, str) or NDArray): RDM descriptor name-value tuple, or vector 
+        overlay ((str, str) or NDArray): RDM descriptor name-value tuple, or vector
             (one value per pair) which indicates whether to highlight the given cells
         overlay_color (str): Color to use to highlight the pairs in the overlay argument.
             Use RGBA to specify transparency. Default is 50% opaque green.
-        contour ((str, str) or NDArray): RDM descriptor name-value tuple, or vector 
+        contour ((str, str) or NDArray): RDM descriptor name-value tuple, or vector
             (one value per pair) which indicates whether to add a border to the given cells
         contour_color (str): Color to use for a border around pairs in the contour argument.
             Use RGBA to specify transparency. Default is red.
@@ -293,9 +294,11 @@ def show_rdm_panel(
     Returns:
         matplotlib.image.AxesImage: Matplotlib handle.
     """
-    conf = SingleRdmPlot.from_show_rdm_panel_args(rdms, cmap, nanmask,
+    conf = SingleRdmPlot.from_show_rdm_panel_args(
+        rdms, cmap, nanmask,
         rdm_descriptor, gridlines, vmin, vmax, overlay, overlay_color,
-        overlay_symmetry, contour, contour_color, contour_symmetry)
+        overlay_symmetry, contour, contour_color, contour_symmetry
+    )
     return _show_rdm_panel(conf, ax or plt.gca())
 
 
@@ -312,7 +315,8 @@ def _show_rdm_panel(conf: SingleRdmPlot, ax: Axes) -> AxesImage:
     rdmat = conf.rdms.get_matrices()[0, :, :]
     if np.any(conf.nanmask):
         rdmat[conf.nanmask] = np.nan
-    image = ax.imshow(rdmat, cmap=conf.cmap, vmin=conf.vmin, vmax=conf.vmax,
+    image = ax.imshow(
+        rdmat, cmap=conf.cmap, vmin=conf.vmin, vmax=conf.vmax,
         interpolation='none')
     _overlay(conf, ax)
     _contour(conf, ax)
@@ -396,10 +400,10 @@ def _contour_coords(mask: NDArray, offset: float) -> Iterator[Tuple[float, float
     mask_t = mask.T
     mask_idx = np.where(mask_t)
     sides = [
-        (( 0, -1), (0, 0, 1, 0)), # top
-        (( 1,  0), (1, 0, 1, 1)), # right
-        (( 0,  1), (1, 1, 0, 1)), # bottom
-        ((-1,  0), (0, 1, 0, 0)), # left
+        ((0, -1), (0, 0, 1, 0)),  # top
+        ((1,  0), (1, 0, 1, 1)),  # right
+        ((0,  1), (1, 1, 0, 1)),  # bottom
+        ((-1,  0), (0, 1, 0, 0)),  # left
     ]
     for x, y in np.vstack(mask_idx).T:
         for neighbor, edge in sides:
@@ -431,11 +435,11 @@ def _add_descriptor_labels(which_axis: Axis, ax: Axes, conf: MultiRdmPlot) -> Li
     if which_axis == Axis.X:
         icon_method = "x_tick_label"
         axis = ax.xaxis
-        horizontalalignment="center"
+        horizontalalignment = "center"
     else:
         icon_method = "y_tick_label"
         axis = ax.yaxis
-        horizontalalignment="right"
+        horizontalalignment = "right"
     descriptor_arr = np.asarray(conf.rdms.pattern_descriptors[conf.pattern_descriptor])
     if isinstance(descriptor_arr[0], vis.Icon):
         return _add_descriptor_icons(
@@ -523,8 +527,6 @@ def _add_descriptor_icons(
         list: Tick label handles.
     """
     # annotated labels with Icon
-    #import pdb
-    #pdb.set_trace()
     n_to_fit = np.ceil(n_cond / num_pattern_groups)
     # work out sizing of icons
     im_max_pix = 20.
@@ -540,7 +542,7 @@ def _add_descriptor_icons(
     # from proportion of original size to figure pixels
     offset = (im_max_pix / icon_spacing) * size
     label_handles = []
-    for group_ind in range(num_pattern_groups - 1, -1, -1): ## e.g. 2->1->0 for npg = 3
+    for group_ind in range(num_pattern_groups - 1, -1, -1):  # e.g. 2->1->0 for npg = 3
         position = offset * 0.2 + offset * group_ind
         ticks = np.arange(group_ind, n_cond, num_pattern_groups)
         label_handles.append(
@@ -682,7 +684,7 @@ class MultiRdmPlot:
             n_row: Optional[int],
             n_column: Optional[int],
             n_panel: int
-        ) -> Tuple[int, int]:
+    ) -> Tuple[int, int]:
         """Choose the number of rows and columns of panels
         """
         if (n_column is None) and (n_row is None):
@@ -698,7 +700,7 @@ class MultiRdmPlot:
             cls,
             nanmask: NDArray | str | None,
             rdms: RDMs,
-        ) -> NDArray:
+    ) -> NDArray:
         """Interpret user's choice of nanmask
         """
         if nanmask is None:
@@ -773,7 +775,7 @@ class MultiRdmPlot:
         self.overlay_symmetry = Symmetry.BOTH
         self.contour = np.zeros(n_pairs)
         self.contour_color = 'red'
-        self.contour_symmetry= Symmetry.BOTH
+        self.contour_symmetry = Symmetry.BOTH
 
     def addOverlay(self, mask: ArrayOrRdmDescriptor, color: str, triangles: Symmetry):
         self.overlay = self.interpret_rdm_arg(mask, self.rdms)
