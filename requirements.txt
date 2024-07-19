@@ -1,5 +1,5 @@
 numpy>=1.21.2
-scipy
+scipy>=1.10.1
 scikit-learn
 scikit-image
 pandas
