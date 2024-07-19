@@ -52,8 +52,7 @@ class Dataset(DatasetBase):
                 desc_eq(self.obs_descriptors, other.obs_descriptors),
                 desc_eq(self.channel_descriptors, other.channel_descriptors),
             ])
-        else:
-            return False
+        return False
 
     def copy(self) -> Dataset:
         """Return a copy of this object, with all properties
@@ -424,8 +423,7 @@ class TemporalDataset(Dataset):
                 desc_eq(self.channel_descriptors, other.channel_descriptors),
                 desc_eq(self.time_descriptors, other.time_descriptors)
             ])
-        else:
-            return False
+        return False
 
     def __str__(self):
         """

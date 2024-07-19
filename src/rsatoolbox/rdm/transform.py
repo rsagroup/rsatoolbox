@@ -46,7 +46,7 @@ def rank_transform(rdms: RDMs, method: str = 'average') -> RDMs:
     )
 
 
-def sqrt_transform(rdms: RDMs, fun) -> RDMs:
+def sqrt_transform(rdms: RDMs) -> RDMs:
     """ applies a square root transform and generates a new RDMs object
     This sets values blow 0 to 0 and takes a square root of each entry.
     It also adds a sqrt to the dissimilarity_measure entry.
@@ -77,7 +77,7 @@ def sqrt_transform(rdms: RDMs, fun) -> RDMs:
     return rdms_new
 
 
-def positive_transform(rdms: RDMs, fun) -> RDMs:
+def positive_transform(rdms: RDMs) -> RDMs:
     """ sets all negative entries in an RDM to zero and returns a new RDMs
 
     Args:

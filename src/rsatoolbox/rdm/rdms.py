@@ -124,8 +124,7 @@ class RDMs:
                 desc_eq(self.rdm_descriptors, other.rdm_descriptors),
                 desc_eq(self.pattern_descriptors, other.pattern_descriptors),
             ])
-        else:
-            return False
+        return False
 
     def __str__(self):
         """
