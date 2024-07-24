@@ -1,4 +1,5 @@
-
+"""Here we try to create group ROIs by finding the overlap across subjects
+"""
 from os.path import expanduser
 from rsatoolbox.io.fmriprep import find_fmriprep_runs
 import numpy, pandas, nibabel
@@ -10,9 +11,11 @@ from nilearn.plotting import plot_stat_map
 THRESHOLD = 20 ## hopw many runs need to overlap for a voxel to be selected
 
 data_dir = expanduser('~/data/rsatoolbox/mur32')
+out_dir = 'fmri_data'
 
 runs = find_fmriprep_runs(data_dir, tasks=['main'])
 runs = [run for run in runs if run.boldFile.sub != '02']
+#runs = [run for run in runs if run.boldFile.sub == '03']
 
 ## basic metadata
 run = runs[0]
@@ -57,10 +60,10 @@ for r, region_name in enumerate(region_names):
     img = nibabel.nifti1.Nifti1Image(vol, affine)
     fig = plt.figure()
     plot_stat_map(img, cmap='viridis', title=region_name)
-    plt.savefig(f'{region_name}_overlap.png')
+    plt.savefig(join(out_dir, f'{region_name}_n{len(runs)}_overlap.png'))
     plt.close(fig)
 
-with open('rois_names.txt', 'w') as fhandle:
+with open(join(out_dir, 'rois_names.txt'), 'w') as fhandle:
     fhandle.writelines([n+'\n' for n in region_names])      
-numpy.save('rois.npy', counts)
+numpy.save(join(out_dir, 'rois.npy'), counts)
 
