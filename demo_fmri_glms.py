@@ -36,6 +36,7 @@ runs = find_fmriprep_runs(data_dir, tasks=['main'])
 ## remove subject 2
 runs = [run for run in runs if run.boldFile.sub != '02']
 subjects = sorted(set([run.sub for run in runs]))
+N_RUNS = 6
 
 ## take a single run to get some basic metadata
 run = runs[0]
@@ -66,9 +67,11 @@ region_names = [
     'inferiorparietal'
 ]
 rois = numpy.zeros((len(subjects), len(region_names), n_voxels), dtype=bool)
+data = dict()
 for s, sub in enumerate(subjects):
     for roi, region_name in enumerate(region_names):
         print(f'for subject {sub} mapping {region_name} ..')
+
 
         subject_run = [run for run in runs if run.sub == sub][0]
         aparc = subject_run.boldFile.get_mri_sibling(desc='aparcaseg', suffix='dseg')
@@ -82,10 +85,12 @@ for s, sub in enumerate(subjects):
             roi_mask = (aparc_data == float(region_id)).ravel()
             rois[s, roi, :][roi_mask] = True
 
-## Loop subjects
-print('Reserving memory..')
-betas = numpy.full([len(runs), len(conditions), n_voxels], numpy.nan)
-resids = numpy.full([len(runs), n_vols, n_voxels], numpy.nan)
+        roi_size = rois[s, roi, :].sum()
+
+        data[f'betas_{sub}_{region_name}'] = numpy.full([N_RUNS, len(conditions), roi_size], numpy.nan)
+        data[f'resids_{sub}_{region_name}'] = numpy.full([N_RUNS, n_vols, roi_size], numpy.nan)
+
+
 for r, run in enumerate(runs):
     urun = calc_urun(run.boldFile.ses, run.run)
     print(f'Fitting GLM for sub {run.sub} urun {urun} ses {run.boldFile.ses} run {run.run}..')
@@ -109,19 +114,26 @@ for r, run in enumerate(runs):
     )
     glm.fit([run.boldFile.fpath], design_matrices=design_matrix)
     
+    resid_img = glm.residuals[0]
+    run_resids = resid_img.get_fdata().reshape(n_voxels, n_vols)
+
+    for roi, region_name in enumerate(region_names):
+        tag = f'resids_{run.sub}_{region_name}'
+        data[tag][r, :, :] = run_resids[roi_mask, :]
+
     for c, condition in enumerate(conditions):
         beta_img = glm.compute_contrast(condition, output_type='effect_size')
         betas[r, c, :] = beta_img.get_fdata().ravel()
 
-    resid_img = glm.residuals[0]
-    resids[r, :, :] = resid_img.get_fdata().reshape(n_voxels, n_vols).T
+        for roi, region_name in enumerate(region_names):
+            tag = f'betas_{run.sub}_{region_name}'
+            data[tag][r, :, :] = run_resids[roi_mask, :]        
 
 print('Compressing..')
 numpy.savez_compressed(
     join(out_dir, 'data.npz'),
     rois=rois,
-    betas=betas,
-    resids=resids,
+    **data,
 )
 with open(join(out_dir, 'meta.json'), 'w') as fhandle:
     json.dump(
