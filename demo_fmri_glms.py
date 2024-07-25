@@ -12,7 +12,6 @@ import numpy, pandas
 import nibabel
 from nibabel.nifti1 import Nifti1Image
 from nilearn.glm.first_level import make_first_level_design_matrix
-#from nilearn.plotting import plot_design_matrix, plot_stat_map, plot_glass_brain
 from nilearn.glm.first_level import FirstLevelModel
 
 
@@ -117,6 +116,7 @@ for r, run in enumerate(runs):
     resid_img = glm.residuals[0]
     resids[r, :, :] = resid_img.get_fdata().reshape(n_voxels, n_vols).T
 
+print('Compressing..')
 numpy.savez_compressed(
     join(out_dir, 'data.npz'),
     rois=rois,
