@@ -1,16 +1,16 @@
 """Analysis script for mur32 to prepare data for fmri demo
+
+
+Two ways to store this data
+1) complete statmaps; approx 2.3GB (I'll do this for now as it seems more intuitive for students)
+2) only roi voxels; (concatenate rois) 1/10 the size but need separate file/subject
+
 """
 from os.path import expanduser, join
-from rsatoolbox.io.fmriprep import find_fmriprep_runs, make_design_matrix
-from rsatoolbox.data.dataset import Dataset, merge_datasets
-from rsatoolbox.rdm.rdms import concat
-from rsatoolbox.vis import show_rdm
-from rsatoolbox.rdm.calc import calc_rdm
-from rsatoolbox.data.noise import prec_from_residuals
+from rsatoolbox.io.fmriprep import find_fmriprep_runs
 import numpy, pandas, matplotlib.pyplot
 import nilearn, nibabel
 import matplotlib.pyplot as plt
-
 from nilearn.glm.first_level import make_first_level_design_matrix
 from nilearn.plotting import plot_design_matrix, plot_stat_map, plot_glass_brain
 from nilearn.glm.first_level import FirstLevelModel
@@ -22,7 +22,7 @@ print('indexing fmriprep bold runs..')
 runs = find_fmriprep_runs(data_dir, tasks=['main'])
 
 runs = [run for run in runs if run.boldFile.sub != '02']
-subjects = set([run.sub for run in runs])
+subjects = sorted(set([run.sub for run in runs]))
 
 run = runs[0]
 tr = run.get_meta()['RepetitionTime'] ## TR in seconds
@@ -48,10 +48,10 @@ region_names = [
 rois = numpy.zeros((len(subjects), len(region_names), n_voxels), dtype=bool)
 for s, sub in enumerate(subjects):
     for r, region_name in enumerate(region_names):
-        print(f'mapping {region_name} for {sub}..')
+        print(f'for subject {sub} mapping {region_name} ..')
 
         subject_run = [run for run in runs if run.sub == sub][0]
-        aparc = run.boldFile.get_mri_sibling(desc='aparcaseg', suffix='dseg')
+        aparc = subject_run.boldFile.get_mri_sibling(desc='aparcaseg', suffix='dseg')
         aparc_data = aparc.get_data()
 
         for hemi in ('r', 'l'):
@@ -60,13 +60,24 @@ for s, sub in enumerate(subjects):
             assert len(matches) == 1, f'None or multiple matches for {full_name}'
             region_id = matches['index'].values[0]
             mask = (aparc_data == float(region_id)).ravel()
-            rois[s, r, :] = mask
+            rois[s, r, :][mask] = True
 
 
+raise ValueError
 
 frame_times = numpy.linspace(0, tr*(n_vols-1), n_vols) ## [0, 2, 4] onsets of scans in seconds
 design_matrix = make_first_level_design_matrix(frame_times, run.get_events(),
     drift_model='polynomial', drift_order=3)
+
+## Loop subjects
+# for s, sub in enumerate(subjects):
+## make all-roi mask
+## run glm
+## apply contrasts?
+## select roi data
+
+
+
 
 
 ## unpack a roi
