@@ -3,9 +3,10 @@
 Two ways to store this data
 1) complete statmaps; approx 2.3GB (I'll do this for now as it seems more intuitive for students)
 2) only roi voxels; (concatenate rois) 1/10 the size but need separate file/subject
+
 """
 from os.path import expanduser, join
-import json
+import json, warnings
 from rsatoolbox.io.fmriprep import find_fmriprep_runs
 import numpy, pandas
 import nibabel
@@ -14,6 +15,18 @@ from nilearn.glm.first_level import make_first_level_design_matrix
 #from nilearn.plotting import plot_design_matrix, plot_stat_map, plot_glass_brain
 from nilearn.glm.first_level import FirstLevelModel
 
+
+def calc_urun(ses: str, run: str) -> int:
+    """Generate unique run index, disregarding sessions
+
+    Args:
+        run (str): run name, e.g. "02"
+        ses (str): ses name, e.g. "02"
+
+    Returns:
+        int: unique number for run
+    """
+    return int(run) + ((int(ses) - 1) * 3)
 
 data_dir = expanduser('~/data/rsatoolbox/mur32')
 out_dir = 'fmri_data'
@@ -71,17 +84,20 @@ for s, sub in enumerate(subjects):
             rois[s, roi, :][roi_mask] = True
 
 ## Loop subjects
+print('Reserving memory..')
 betas = numpy.full([len(runs), len(conditions), n_voxels], numpy.nan)
 resids = numpy.full([len(runs), n_vols, n_voxels], numpy.nan)
 for r, run in enumerate(runs):
-    print(f'Fitting GLM for sub {run.sub} run {run.run}..')
+    urun = calc_urun(run.boldFile.ses, run.run)
+    print(f'Fitting GLM for sub {run.sub} urun {urun} ses {run.boldFile.ses} run {run.run}..')
 
-    design_matrix = make_first_level_design_matrix(
-        frame_times,
-        run.get_events(),
-        drift_model='polynomial',
-        drift_order=3
-    )
+    with warnings.catch_warnings(action='ignore'):
+        design_matrix = make_first_level_design_matrix(
+            frame_times,
+            run.get_events(),
+            drift_model='polynomial',
+            drift_order=3
+        )
 
     sub_mask = numpy.any(rois[s, :, :], axis=0).reshape(x,y,z)
     glm = FirstLevelModel(
@@ -99,8 +115,7 @@ for r, run in enumerate(runs):
         betas[r, c, :] = beta_img.get_fdata().ravel()
 
     resid_img = glm.residuals[0]
-    resids[r, :, :] = resid_img.get_fdata().reshape(n_voxels, n_vols).T,
-    raise ValueError
+    resids[r, :, :] = resid_img.get_fdata().reshape(n_voxels, n_vols).T
 
 numpy.savez_compressed(
     join(out_dir, 'data.npz'),
@@ -114,7 +129,9 @@ with open(join(out_dir, 'meta.json'), 'w') as fhandle:
             region_names=region_names,
             conditions=conditions,
             subjects=[run.sub for run in runs],
+            uruns = [calc_urun(run.boldFile.ses, run.run) for run in runs],
             runs=[run.run for run in runs],
+            sessions=[run.boldFile.ses for run in runs],
         ),
         fhandle
     )
