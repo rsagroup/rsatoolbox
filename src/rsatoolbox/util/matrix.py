@@ -169,7 +169,7 @@ def run() -> spmatrix:
     return c
 
 
-def get_v(n_cond: int, sigma_k: Optional[spmatrix | NDArray[np.float64]]) -> spmatrix:
+def get_v(n_cond: int, sigma_k: Optional[spmatrix]) -> spmatrix:
     """ get the rdm covariance from sigma_k """
     # calculate Xi
     c_mat = pairwise_contrast_sparse(np.arange(n_cond))
