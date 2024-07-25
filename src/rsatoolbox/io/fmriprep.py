@@ -40,6 +40,10 @@ class FmriprepRun:
     @property
     def sub(self):
         return self.boldFile.sub
+    
+    @property
+    def ses(self):
+        return self.boldFile.ses
 
     def __init__(self, boldFile: BidsMriFile) -> None:
         self.boldFile = boldFile
