@@ -22,6 +22,7 @@ from rsatoolbox.util.descriptor_utils import append_descriptor
 from rsatoolbox.util.descriptor_utils import dict_to_list
 from rsatoolbox.util.descriptor_utils import desc_eq
 from rsatoolbox.util.data_utils import extract_dict
+from rsatoolbox.rdm.combine import _merged_rdm_descriptors
 from rsatoolbox.io.hdf5 import read_dict_hdf5, write_dict_hdf5
 from rsatoolbox.io.pkl import read_dict_pkl, write_dict_pkl
 from rsatoolbox.util.file_io import remove_file
@@ -540,37 +541,40 @@ def load_rdm(filename, file_type=None):
     return rdms_from_dict(rdm_dict)
 
 
-def concat(*rdms):
-    """ concatenates rdm objects
+def concat(*rdms: RDMs) -> RDMs:
+    """Merge into single RDMs object
     requires that the rdms have the same shape
     descriptor and pattern descriptors are taken from the first rdms object
     for rdm_descriptors concatenation is tried
     the rdm index is reinitialized
 
     Args:
-        rdms(iterable of pyrsa.rdm.RDMs): RDMs objects to be concatenated
-        or multiple RDMs as separate arguments
+        rdms(iterable of rsatoolbox.rdm.RDMs): RDMs objects to be concatenated
+            or multiple RDMs as separate arguments
 
     Returns:
         rsatoolbox.rdm.RDMs: concatenated rdms object
 
     """
-    if len(rdms) == 1:
+    if len(rdms) == 1: ## single argument
         if isinstance(rdms[0], RDMs):
             rdms_list = [rdms[0]]
         else:
             rdms_list = list(rdms[0])
-    else:
+    else: ## multiple arguments
         rdms_list = list(rdms)
     assert isinstance(rdms_list[0], RDMs), \
         'Supply list of RDMs objects, or RDMs objects as separate arguments'
-    rdm_descriptors = deepcopy(rdms_list[0].rdm_descriptors)
+
+    descriptors, rdm_descriptors = _merged_rdm_descriptors(rdms_list)
+
     for rdm_new in rdms_list[1:]:
         assert isinstance(rdm_new, RDMs), 'rdm for concat should be an RDMs'
         assert rdm_new.n_cond == rdms_list[0].n_cond, 'rdm for concat had wrong shape'
         assert rdm_new.dissimilarity_measure == rdms_list[0].dissimilarity_measure, \
             'appended rdm had wrong dissimilarity measure'
-        rdm_descriptors = append_descriptor(rdm_descriptors, rdm_new.rdm_descriptors)
+        #rdm_descriptors = append_descriptor(rdm_descriptors, rdm_new.rdm_descriptors)
+
     dissimilarities = np.concatenate([
         rdm.dissimilarities
         for rdm in rdms_list
@@ -584,7 +588,7 @@ def concat(*rdms):
         dissimilarities=dissimilarities,
         dissimilarity_measure=dissimilarity_measure,
         rdm_descriptors=rdm_descriptors,
-        descriptors=rdms_list[0].descriptors,
+        descriptors=descriptors,
         pattern_descriptors=rdms_list[0].pattern_descriptors
     )
     return rdm
