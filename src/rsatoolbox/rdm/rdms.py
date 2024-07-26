@@ -7,6 +7,7 @@ Definition of RSA RDMs class and subclasses
 """
 from __future__ import annotations
 from typing import Dict, Optional
+import warnings
 from copy import deepcopy
 from collections.abc import Iterable
 import numpy as np
@@ -568,12 +569,28 @@ def concat(*rdms: RDMs) -> RDMs:
 
     descriptors, rdm_descriptors = _merged_rdm_descriptors(rdms_list)
 
+    ## see if we can find an authoritative descriptor for pattern order
+    pdescs = rdms_list[0].pattern_descriptors.keys()
+    pdesc_candidates = list(filter(lambda n: n!='index', pdescs))
+    target_pdesc = None
+    if len(pdesc_candidates) > 0:
+        target_pdesc = pdesc_candidates[0]
+    if len(pdesc_candidates) > 1:
+        warnings.warn(f'[concat] Multiple pattern descriptors found, using "{target_pdesc}"')
+
     for rdm_new in rdms_list[1:]:
         assert isinstance(rdm_new, RDMs), 'rdm for concat should be an RDMs'
         assert rdm_new.n_cond == rdms_list[0].n_cond, 'rdm for concat had wrong shape'
         assert rdm_new.dissimilarity_measure == rdms_list[0].dissimilarity_measure, \
             'appended rdm had wrong dissimilarity measure'
-        #rdm_descriptors = append_descriptor(rdm_descriptors, rdm_new.rdm_descriptors)
+        if target_pdesc:
+            ## if we have a target descriptor, check if the order is the same
+            auth_order = rdms_list[0].pattern_descriptors[target_pdesc]
+            other_order = rdm_new.pattern_descriptors[target_pdesc]
+            if not np.all(other_order == auth_order):
+                ## order varies; reorder this rdms object
+                _, new_order = np.where(auth_order[:,None] == other_order)
+                rdm_new.reorder(new_order)
 
     dissimilarities = np.concatenate([
         rdm.dissimilarities
