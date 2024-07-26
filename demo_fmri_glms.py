@@ -26,10 +26,10 @@ def calc_urun(ses: str, run: str) -> int:
     Returns:
         int: unique number for run
     """
-    return int(run) + ((int(ses) - 1) * 3)
+    return int(run) + ((int(ses) - 1) * 3) - 1
 
 data_dir = expanduser('~/data/rsatoolbox/mur32')
-out_dir = 'fmri_data'
+out_dir = join(data_dir, 'derivatives', 'nilearn')
 
 print('indexing fmriprep bold runs..')
 runs = find_fmriprep_runs(data_dir, tasks=['main'])
@@ -47,6 +47,7 @@ n_voxels = x*y*z
 affine = an_img.affine
 
 ## prepare basics for design matrix
+degrees_of_freedom = 0 ## to be assigned later
 tr = run.get_meta()['RepetitionTime'] ## TR in seconds
 frame_times = numpy.linspace(0, tr*(n_vols-1), n_vols) ## [0, 2, 4] onsets of scans in seconds
 trial_types = run.get_events().trial_type.unique()
@@ -92,9 +93,9 @@ for s, sub in enumerate(subjects):
         data[f'resids_sub-{sub}_{region_name}'] = numpy.full([N_RUNS, n_vols, roi_size], numpy.nan)
 
 
-for r, run in enumerate(runs):
-    urun = calc_urun(run.boldFile.ses, run.run)
-    print(f'Fitting GLM for sub {run.sub} urun {urun} ses {run.boldFile.ses} run {run.run}..')
+for run in runs:
+    r = calc_urun(run.boldFile.ses, run.run)
+    print(f'Fitting GLM for sub {run.sub} urun {r} ses {run.boldFile.ses} run {run.run}..')
 
     with warnings.catch_warnings(action='ignore'):
         design_matrix = make_first_level_design_matrix(
