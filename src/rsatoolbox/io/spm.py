@@ -11,9 +11,7 @@ spm.get_info_from_spm_mat()
 """
 from __future__ import annotations
 from typing import TYPE_CHECKING, Tuple, Dict
-from os.path import normpath, dirname, join
-import os
-from pathlib import PurePath, PureWindowsPath
+from os.path import normpath, dirname
 import numpy as np
 from scipy.io import loadmat
 from rsatoolbox.io.optional import import_nitools
@@ -50,7 +48,7 @@ class SpmGlm:
         self.run_number = []
         # Extract run number and condition name from SPM names
         for reg_name in SPM['xX']['name']:
-            s=reg_name.split(' ')
+            s = reg_name.split(' ')
             self.run_number.append(int(s[0][3:-1]))
             self.beta_names.append(s[1])
         self.run_number = np.array(self.run_number)
@@ -60,10 +58,10 @@ class SpmGlm:
         # Get the necesssary matrices to reestimate the GLM for getting the residuals
         self.filter_matrices = [k['X0'] for k in SPM['xX']['K']]
         self.reg_of_interest = SPM['xX']['iC']
-        self.design_matrix = SPM['xX']['xKXs']['X'] # Filtered and whitened design matrix
-        self.eff_df = SPM['xX']['erdf'] # Effective degrees of freedom
-        self.weight = SPM['xX']['W'] # Weight matrix for whitening
-        self.pinvX = SPM['xX']['pKX'] # Pseudo-inverse of (filtered and weighted) design matrix
+        self.design_matrix = SPM['xX']['xKXs']['X']  # Filtered and whitened design matrix
+        self.eff_df = SPM['xX']['erdf']  # Effective degrees of freedom
+        self.weight = SPM['xX']['W']  # Weight matrix for whitening
+        self.pinvX = SPM['xX']['pKX']  # Pseudo-inverse of (filtered and weighted) design matrix
 
     def relocate_file(self, fpath: str) -> str:
         """SPM file entries to current project directory and OS.
@@ -107,12 +105,12 @@ class SpmGlm:
         beta_files = [f'{self.path}/{self.beta_files[i]}' for i in indx]
         # Get the data from beta and ResMS files
         rms_file = [f'{self.path}/ResMS.nii']
-        data = self.nt.sample_images(beta_files + rms_file,coords,use_dataobj=False)
+        data = self.nt.sample_images(beta_files + rms_file, coords, use_dataobj=False)
         # Return the data and the observation descriptors
         info = {'reg_name': self.beta_names[indx], 'run_number': self.run_number[indx]}
-        return data[:-1,:], data[-1,:], info
+        return data[:-1, :], data[-1, :], info
 
-    def get_residuals(self,mask: Nifti1Image | NDArray | str) -> Tuple[NDArray, NDArray, Dict]:
+    def get_residuals(self, mask: Nifti1Image | NDArray | str) -> Tuple[NDArray, NDArray, Dict]:
         """
         Collects 3d images of a range of GLM residuals
         (typical SPM GLM results) and corresponding metadata
@@ -123,10 +121,10 @@ class SpmGlm:
         """
         # Sample the relevant time series data
         coords = self.nt.get_mask_coords(mask)
-        data = self.nt.sample_images(self.rawdata_files,coords,use_dataobj=True)
+        data = self.nt.sample_images(self.rawdata_files, coords, use_dataobj=True)
 
         # Filter and temporal pre-whiten the data
-        fdata= self.spm_filter(self.weight @ data) # spm_filter
+        fdata = self.spm_filter(self.weight @ data)  # spm_filter
 
         # Estimate the beta coefficients abd residuals
         beta = self.pinvX @ fdata
@@ -135,7 +133,7 @@ class SpmGlm:
         # Return the regressors of interest
         indx = self.reg_of_interest-1
         info = {'reg_name': self.beta_names[indx], 'run_number': self.run_number[indx]}
-        return residuals, beta[indx,:], info
+        return residuals, beta[indx, :], info
 
     def spm_filter(self, data: NDArray) -> NDArray:
         """
@@ -147,10 +145,10 @@ class SpmGlm:
             data (ndarray): 2d array of time series data (TxP)
         """
         scan_bounds = self.nscans.cumsum()
-        scan_bounds = np.insert(scan_bounds,0,0)
+        scan_bounds = np.insert(scan_bounds, 0, 0)
 
         fdata = data.copy()
         for i in range(self.nruns):
-            Y = fdata[scan_bounds[i]:scan_bounds[i+1],:]
+            Y = fdata[scan_bounds[i]:scan_bounds[i+1], :]
             Y = Y - self.filter_matrices[i] @ (self.filter_matrices[i].T @ Y)
         return fdata
