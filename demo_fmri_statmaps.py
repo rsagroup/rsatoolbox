@@ -20,22 +20,24 @@ print('Loading..')
 with open(join(data_dir, 'meta.json')) as fhandle:
     metadata = json.load(fhandle)
 data = numpy.load(join(data_dir, 'data.npz'))
-rois, betas, resids = data['rois'], data['betas'], data['resids']
-subjects = sorted(set(metadata['subjects']))
+
+
+subjects = metadata['subjects']
 conditions = metadata['conditions']
+dof = metadata['degrees_of_freedom']
 N_RUNS = 6
-DOF = 38
+
 
 rdm_list = []
 for roi, region_name in enumerate(metadata['region_names']):
     for s, sub in enumerate(subjects):
         print(f'roi {region_name} sub {sub}')
 
-        subject_runs = [r==sub for r in metadata['subjects']]
-        roi_mask = rois[s, roi, :]
-        patterns = betas[subject_runs][:, :, roi_mask]
+        tag = f'betas_sub-{sub}_{region_name}'
+        betas = data[tag]
+        patterns = betas.reshape(-1, betas.shape[-1])
         ds = Dataset(
-            measurements=patterns.reshape(-1, roi_mask.sum()),
+            measurements=patterns,
             descriptors=dict(sub=sub, roi=region_name),
             obs_descriptors=dict(
                 run=numpy.repeat(numpy.arange(N_RUNS), len(conditions)),
@@ -44,11 +46,13 @@ for roi, region_name in enumerate(metadata['region_names']):
         )
 
         runwise_prec_matrix = []
-        for r in numpy.where(subject_runs)[0]:
+        tag = f'resids_sub-{sub}_{region_name}'
+        resids = data[tag]
+        for r in range(N_RUNS):
             runwise_prec_matrix.append(
                 prec_from_residuals(
-                    resids[r, :, roi_mask].T,
-                    dof=DOF,
+                    resids[r, :, :],
+                    dof=metadata['degrees_of_freedom'],
                     method='shrinkage_diag'
                 )
             )
@@ -63,5 +67,4 @@ for roi, region_name in enumerate(metadata['region_names']):
             )
         )
 data_rdms = concat(rdm_list)
-del resids
-del betas
+
