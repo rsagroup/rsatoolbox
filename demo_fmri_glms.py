@@ -1,9 +1,10 @@
 """Analysis script for mur32 to prepare data for fmri demo
 
 Two ways to store this data
-1) complete statmaps; approx 2.3GB (I'll do this for now as it seems more intuitive for students)
+1) complete statmaps; approx 2.3GB 
 2) only roi voxels; (concatenate rois) 1/10 the size but need separate file/subject
 
+Option 1) is more intuitive but leads to prohibitive use of memory. Will go for 2) now.
 """
 from os.path import expanduser, join
 import json, warnings
@@ -87,8 +88,8 @@ for s, sub in enumerate(subjects):
 
         roi_size = rois[s, roi, :].sum()
 
-        data[f'betas_{sub}_{region_name}'] = numpy.full([N_RUNS, len(conditions), roi_size], numpy.nan)
-        data[f'resids_{sub}_{region_name}'] = numpy.full([N_RUNS, n_vols, roi_size], numpy.nan)
+        data[f'betas_sub-{sub}_{region_name}'] = numpy.full([N_RUNS, len(conditions), roi_size], numpy.nan)
+        data[f'resids_sub-{sub}_{region_name}'] = numpy.full([N_RUNS, n_vols, roi_size], numpy.nan)
 
 
 for r, run in enumerate(runs):
@@ -102,6 +103,11 @@ for r, run in enumerate(runs):
             drift_model='polynomial',
             drift_order=3
         )
+    if degrees_of_freedom == 0:
+        degrees_of_freedom = design_matrix.shape[1]
+    else:
+        ## make sure dof is the same throughout
+        assert design_matrix.shape[1] == degrees_of_freedom
 
     sub_mask = numpy.any(rois[s, :, :], axis=0).reshape(x,y,z)
     glm = FirstLevelModel(
@@ -118,16 +124,18 @@ for r, run in enumerate(runs):
     run_resids = resid_img.get_fdata().reshape(n_voxels, n_vols)
 
     for roi, region_name in enumerate(region_names):
-        tag = f'resids_{run.sub}_{region_name}'
-        data[tag][r, :, :] = run_resids[roi_mask, :]
+        tag = f'resids_sub-{run.sub}_{region_name}'
+        roi_mask = rois[subjects.index(run.sub), roi, :]
+        data[tag][r, :, :] = run_resids[roi_mask, :].T
 
     for c, condition in enumerate(conditions):
         beta_img = glm.compute_contrast(condition, output_type='effect_size')
-        betas[r, c, :] = beta_img.get_fdata().ravel()
+        betas = beta_img.get_fdata().ravel()
 
         for roi, region_name in enumerate(region_names):
-            tag = f'betas_{run.sub}_{region_name}'
-            data[tag][r, :, :] = run_resids[roi_mask, :]        
+            tag = f'betas_sub-{run.sub}_{region_name}'
+            roi_mask = rois[subjects.index(run.sub), roi, :]
+            data[tag][r, c, :] = betas[roi_mask]
 
 print('Compressing..')
 numpy.savez_compressed(
@@ -140,10 +148,8 @@ with open(join(out_dir, 'meta.json'), 'w') as fhandle:
         dict(
             region_names=region_names,
             conditions=conditions,
-            subjects=[run.sub for run in runs],
-            uruns = [calc_urun(run.boldFile.ses, run.run) for run in runs],
-            runs=[run.run for run in runs],
-            sessions=[run.boldFile.ses for run in runs],
+            subjects=subjects,
+            degrees_of_freedom=degrees_of_freedom
         ),
         fhandle
     )
