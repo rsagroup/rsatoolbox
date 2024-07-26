@@ -7,11 +7,12 @@ Other approach: store only masked roi patterns
 from os.path import expanduser, join
 import json, warnings
 import numpy
-from nibabel.nifti1 import Nifti1Image
 from rsatoolbox.data.dataset import Dataset
 from rsatoolbox.data.noise import prec_from_residuals
 from rsatoolbox.rdm.calc import calc_rdm
 from rsatoolbox.rdm.rdms import concat
+from rsatoolbox.vis.rdm_plot import show_rdm
+import matplotlib.pyplot as plt
 
 
 data_dir = expanduser('~/data/rsatoolbox/mur32/derivatives/nilearn')
@@ -33,8 +34,7 @@ for roi, region_name in enumerate(metadata['region_names']):
     for s, sub in enumerate(subjects):
         print(f'roi {region_name} sub {sub}')
 
-        tag = f'betas_sub-{sub}_{region_name}'
-        betas = data[tag]
+        betas = data[f'betas_sub-{sub}_{region_name}']
         patterns = betas.reshape(-1, betas.shape[-1])
         ds = Dataset(
             measurements=patterns,
@@ -46,13 +46,12 @@ for roi, region_name in enumerate(metadata['region_names']):
         )
 
         runwise_prec_matrix = []
-        tag = f'resids_sub-{sub}_{region_name}'
-        resids = data[tag]
+        resids = data[f'resids_sub-{sub}_{region_name}']
         for r in range(N_RUNS):
             runwise_prec_matrix.append(
                 prec_from_residuals(
                     resids[r, :, :],
-                    dof=metadata['degrees_of_freedom'],
+                    dof=dof,
                     method='shrinkage_diag'
                 )
             )
@@ -66,5 +65,11 @@ for roi, region_name in enumerate(metadata['region_names']):
                 cv_descriptor='run',
             )
         )
+        del rdm_list[-1].descriptors['noise']
 data_rdms = concat(rdm_list)
 
+for region_name in metadata['region_names']:
+    roi_rdms = data_rdms.subset('roi', region_name)
+    fig, _, _ = show_rdm(roi_rdms, show_colorbar='panel')
+    plt.savefig(f'fmri_data/rdms_{region_name}.png')
+    plt.close('all')
