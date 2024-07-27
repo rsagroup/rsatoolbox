@@ -311,7 +311,7 @@ class TestRDM(unittest.TestCase):
                         pattern_descriptors=pattern_des,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        gt_rdm = geotopological_transform(rdms,l=0.2,u=0.8)
+        gt_rdm = geotopological_transform(rdms, l=0.2, u=0.8)
         self.assertEqual(gt_rdm.n_rdm, rdms.n_rdm)
         self.assertEqual(gt_rdm.n_cond, rdms.n_cond)
 
@@ -354,7 +354,7 @@ class TestRDM(unittest.TestCase):
             descriptors=dict(subject='zoe', exp='foo'),
             rdm_descriptors=dict(session=[1])
         )
-        rdms2 = rsr.RDMs( 
+        rdms2 = rsr.RDMs(
             dissimilarities=np.array([[2, 4, 6, 2, 4, 2]]),
             pattern_descriptors=dict(cond=np.array(['a', 'b', 'c', 'd'])),
             dissimilarity_measure='euclidean',
@@ -390,10 +390,10 @@ class TestRDM(unittest.TestCase):
         assert_array_equal(
             rdms.dissimilarities,
             [
-                [ 2,  1,  3,  1,  1,  2],
-                [ 4,  2,  6,  2,  2,  4],
-                [ 6,  3,  9,  3,  3,  6],
-                [16, 13, 19, 13, 13, 16]
+                [ 2,  1,  3,  1,  1,  2],  # noqa: E201
+                [ 4,  2,  6,  2,  2,  4],  # noqa: E201
+                [ 6,  3,  9,  3,  3,  6],  # noqa: E201
+                [16, 13, 19, 13, 13, 16]   # noqa: E201
             ]
         )
 
@@ -586,12 +586,13 @@ class TestRDM(unittest.TestCase):
         ]
         )
         conds = list(reversed("abcdefghij"))
-        cats  = list("ababababab")
+        cats = list("ababababab")
         rdms = RDMs(
             np.atleast_2d(squareform(rdm)),
             pattern_descriptors=dict(conds=conds, cats=cats)
         )
-        rdms.sort_by(index=np.random.permutation(rdms.n_cond).tolist())  # Randomise the condition labels first
+        # Randomise the condition labels first
+        rdms.sort_by(index=np.random.permutation(rdms.n_cond).tolist())
         rdms.sort_by(conds='alpha')
         rdms.sort_by(cats="alpha")
         self.assertListEqual(
