@@ -19,7 +19,9 @@ By Neuroimaging Modality
 * :doc:`/demo_temporal`
 * :doc:`/demo_meg_mne`
 * :doc:`/demo_eeg`
-* :doc:`/demo_fmri`
+* :doc:`/demo_fmri_spm`
+* :doc:`/demo_fmri_nilearn`
+* :doc:`/demo_fmri_patterns`
 * :doc:`/demo_searchlight`
 * :doc:`/demo_spikes`
 
