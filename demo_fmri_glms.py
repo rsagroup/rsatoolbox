@@ -110,7 +110,8 @@ for run in runs:
         ## make sure dof is the same throughout
         assert design_matrix.shape[1] == degrees_of_freedom
 
-    sub_mask = numpy.any(rois[s, :, :], axis=0).reshape(x,y,z)
+    subject_rois = rois[subjects.index(run.sub), :, :]
+    sub_mask = numpy.any(subject_rois, axis=0).reshape(x,y,z)
     glm = FirstLevelModel(
         t_r=tr,
         ## no speedup from masking but smaller filesize probs
