@@ -103,7 +103,7 @@ for s, sub in enumerate(subjects):
 for run in runs:
     r = calc_urun(run.boldFile.ses, run.run)
     print(f'Fitting GLM for sub {run.sub} urun {r} '
-          'ses {run.boldFile.ses} run {run.run}..')
+          f'ses {run.boldFile.ses} run {run.run}..')
 
     with warnings.catch_warnings(action='ignore'):
         design_matrix = make_first_level_design_matrix(
