@@ -1,19 +1,22 @@
 """Analysis script for mur32 to prepare data for 'demo_fmri_patterns.ipynb'
 
 Two ways to store this data
-1) complete statmaps; approx 2.3GB 
-2) only roi voxels; (concatenate rois) 1/10 the size but need separate file/subject
+1) complete statmaps; approx 2.3GB
+2) only roi voxels; 1/10 the size but need separate file/subject
 
-Option 1) is more intuitive but leads to prohibitive use of memory. Will go for 2) now.
+Option 1) is more intuitive but leads to prohibitive use of memory.
+Will go for 2) now.
 """
 from os.path import expanduser, join
-import json, warnings
-from rsatoolbox.io.fmriprep import find_fmriprep_runs
-import numpy, pandas
+import json
+import warnings
+import numpy
+import pandas
 import nibabel
 from nibabel.nifti1 import Nifti1Image
 from nilearn.glm.first_level import make_first_level_design_matrix
 from nilearn.glm.first_level import FirstLevelModel
+from rsatoolbox.io.fmriprep import find_fmriprep_runs
 
 
 def calc_urun(ses: str, run: str) -> int:
@@ -28,35 +31,37 @@ def calc_urun(ses: str, run: str) -> int:
     """
     return int(run) + ((int(ses) - 1) * 3) - 1
 
+
 data_dir = expanduser('~/data/rsatoolbox/mur32')
 out_dir = join(data_dir, 'derivatives', 'nilearn')
 
 print('indexing fmriprep bold runs..')
 runs = find_fmriprep_runs(data_dir, tasks=['main'])
 
-## remove subject 2
+# remove subject 2
 runs = [run for run in runs if run.boldFile.sub != '02']
 subjects = sorted(set([run.sub for run in runs]))
 N_RUNS = 6
 
-## take a single run to get some basic metadata
+# take a single run to get some basic metadata
 run = runs[0]
 an_img = nibabel.load(run.boldFile.fpath)
 x, y, z, n_vols = an_img.shape
 n_voxels = x*y*z
 affine = an_img.affine
 
-## prepare basics for design matrix
-degrees_of_freedom = 0 ## to be assigned later
-tr = run.get_meta()['RepetitionTime'] ## TR in seconds
-frame_times = numpy.linspace(0, tr*(n_vols-1), n_vols) ## [0, 2, 4] onsets of scans in seconds
+# prepare basics for design matrix
+degrees_of_freedom = 0  # to be assigned later
+tr = run.get_meta()['RepetitionTime']  # TR in seconds
+# [0, 2, 4] onsets of scans in seconds
+frame_times = numpy.linspace(0, tr*(n_vols-1), n_vols)
 trial_types = run.get_events().trial_type.unique()
 conditions = sorted(filter(lambda t: '_' in t, trial_types))
 
 
-## access the fmriprep look-up-table for aparc 
+# access the fmriprep look-up-table for aparc
 lut_fpath = join(data_dir, 'derivatives', 'fmriprep',
-    'desc-aparcaseg_dseg.tsv')
+                 'desc-aparcaseg_dseg.tsv')
 lut_df = pandas.read_csv(lut_fpath, sep='\t')
 
 region_names = [
@@ -74,28 +79,31 @@ for s, sub in enumerate(subjects):
     for roi, region_name in enumerate(region_names):
         print(f'for subject {sub} mapping {region_name} ..')
 
-
         subject_run = [run for run in runs if run.sub == sub][0]
-        aparc = subject_run.boldFile.get_mri_sibling(desc='aparcaseg', suffix='dseg')
+        aparc = subject_run.boldFile.get_mri_sibling(
+            desc='aparcaseg', suffix='dseg')
         aparc_data = aparc.get_data()
 
         for hemi in ('r', 'l'):
             full_name = f'ctx-{hemi}h-{region_name}'
-            matches = lut_df[lut_df['name']==full_name]
-            assert len(matches) == 1, f'None or multiple matches for {full_name}'
+            matches = lut_df[lut_df['name'] == full_name]
+            msg = f'None or multiple matches for {full_name}'
+            assert len(matches) == 1, msg
             region_id = matches['index'].values[0]
             roi_mask = (aparc_data == float(region_id)).ravel()
             rois[s, roi, :][roi_mask] = True
 
         roi_size = rois[s, roi, :].sum()
 
-        data[f'betas_sub-{sub}_{region_name}'] = numpy.full([N_RUNS, len(conditions), roi_size], numpy.nan)
-        data[f'resids_sub-{sub}_{region_name}'] = numpy.full([N_RUNS, n_vols, roi_size], numpy.nan)
-
+        data[f'betas_sub-{sub}_{region_name}'] = numpy.full(
+            [N_RUNS, len(conditions), roi_size], numpy.nan)
+        data[f'resids_sub-{sub}_{region_name}'] = numpy.full(
+            [N_RUNS, n_vols, roi_size], numpy.nan)
 
 for run in runs:
     r = calc_urun(run.boldFile.ses, run.run)
-    print(f'Fitting GLM for sub {run.sub} urun {r} ses {run.boldFile.ses} run {run.run}..')
+    print(f'Fitting GLM for sub {run.sub} urun {r} '
+          'ses {run.boldFile.ses} run {run.run}..')
 
     with warnings.catch_warnings(action='ignore'):
         design_matrix = make_first_level_design_matrix(
@@ -107,21 +115,21 @@ for run in runs:
     if degrees_of_freedom == 0:
         degrees_of_freedom = design_matrix.shape[1]
     else:
-        ## make sure dof is the same throughout
+        # make sure dof is the same throughout
         assert design_matrix.shape[1] == degrees_of_freedom
 
     subject_rois = rois[subjects.index(run.sub), :, :]
-    sub_mask = numpy.any(subject_rois, axis=0).reshape(x,y,z)
+    sub_mask = numpy.any(subject_rois, axis=0).reshape(x, y, z)
     glm = FirstLevelModel(
         t_r=tr,
-        ## no speedup from masking but smaller filesize probs
+        # no speedup from masking but smaller filesize probs
         mask_img=Nifti1Image(sub_mask.astype(float), affine=affine),
-        minimize_memory=False,  ## to enable residuals
-        signal_scaling=0,       ## 0 = psc, False = off
-        n_jobs=-3               ## all but two
+        minimize_memory=False,  # to enable residuals
+        signal_scaling=0,       # 0 = psc, False = off
+        n_jobs=-3               # all but two
     )
     glm.fit([run.boldFile.fpath], design_matrices=design_matrix)
-    
+
     resid_img = glm.residuals[0]
     run_resids = resid_img.get_fdata().reshape(n_voxels, n_vols)
 
