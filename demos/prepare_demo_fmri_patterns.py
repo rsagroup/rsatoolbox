@@ -1,4 +1,4 @@
-"""Analysis script for mur32 to prepare data for fmri demo
+"""Analysis script for mur32 to prepare data for 'demo_fmri_patterns.ipynb'
 
 Two ways to store this data
 1) complete statmaps; approx 2.3GB 
