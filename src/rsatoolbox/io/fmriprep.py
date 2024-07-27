@@ -40,7 +40,7 @@ class FmriprepRun:
     @property
     def sub(self):
         return self.boldFile.sub
-    
+
     @property
     def ses(self):
         return self.boldFile.ses
