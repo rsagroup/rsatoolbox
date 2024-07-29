@@ -478,7 +478,7 @@ def _gen_default_cv_descriptor(dataset, descriptor) -> np.ndarray:
     This assumes that the first occurence each descriptor value forms the
     first group, the second occurence forms the second group, etc.
     """
-    desc = dataset.obs_descriptors[descriptor]
+    desc = np.asarray(dataset.obs_descriptors[descriptor])
     values, counts = np.unique(desc, return_counts=True)
     assert np.all(counts == counts[0]), (
         'cv_descriptor generation failed:\n'
