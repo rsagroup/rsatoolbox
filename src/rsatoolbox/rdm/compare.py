@@ -136,6 +136,8 @@ def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
     vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
     stim_nums = np.array(rdm1.pattern_descriptors['stimulus'])
     frozen_inds = list(np.where(stim_nums == -1)[0]) + list(np.where(stim_nums == -2)[0])
+    sigma_k[frozen_inds, :] = 0
+    sigma_k[:, frozen_inds] = 0
     sim = _cosine_cov_weighted(vector1, vector2, frozen_inds, sigma_k, nan_idx)
     return sim
 
@@ -156,10 +158,14 @@ def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
 
     """
     vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
+    stim_nums = np.array(rdm1.pattern_descriptors['stimulus'])
+    frozen_inds = list(np.where(stim_nums == -1)[0]) + list(np.where(stim_nums == -2)[0])
+    sigma_k[frozen_inds, :] = 0
+    sigma_k[:, frozen_inds] = 0
     # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
-    sim = _cosine_cov_weighted(vector1, vector2, sigma_k, nan_idx)
+    sim = _cosine_cov_weighted(vector1, vector2, frozen_inds, sigma_k, nan_idx)
     return sim
 
 
