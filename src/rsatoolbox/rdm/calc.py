@@ -169,7 +169,7 @@ def calc_rdm_movie(
 
         rdms = []
         for dat in splited_data:
-            dat_single = dat.convert_to_dataset(time_descriptor)
+            dat_single = dat.time_as_observations(time_descriptor)
             if unbalanced:
                 rdms.append(calc_rdm_unbalanced(
                     dat_single, method=method,

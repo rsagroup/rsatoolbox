@@ -376,7 +376,7 @@ class TestTemporalDataset(unittest.TestCase):
         self.assertEqual(
             subset.time_descriptors['time'][-1], tim_des['time'][5])
 
-    def test_temporaldataset_convert_to_dataset(self):
+    def test_temporaldataset_time_as_observations(self):
         measurements = np.zeros((10, 5, 15))
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 0, 1, 1, 2, 2, 2, 3, 4, 5])}
@@ -390,7 +390,7 @@ class TestTemporalDataset(unittest.TestCase):
                                             channel_descriptors=chn_des,
                                             time_descriptors=tim_des
                                             )
-        data = data_temporal.convert_to_dataset('time')
+        data = data_temporal.time_as_observations('time')
         self.assertEqual(data.n_obs, 150)
         self.assertEqual(data.n_channel, 5)
         self.assertEqual(len(data.obs_descriptors['time']), 150)
