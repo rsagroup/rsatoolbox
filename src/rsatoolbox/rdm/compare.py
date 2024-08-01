@@ -48,6 +48,10 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
 
             'neg_riem_dist' = negative riemannian distance
 
+            'bures' = bures similarity of equivalend cented kernel matrices
+
+            'bures_metric' = distances based on bures similarity, which is a metric
+
         sigma_k (numpy.ndarray):
             covariance matrix of the pattern estimates.
             Used only for methods 'corr_cov' and 'cosine_cov'.
