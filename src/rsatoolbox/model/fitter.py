@@ -105,7 +105,8 @@ def fit_select(model, data, method='cosine', pattern_idx=None,
 
 
 def fit_optimize(model, data, method='cosine', pattern_idx=None,
-                 pattern_descriptor=None, sigma_k=None, ridge_weight=0):
+                 pattern_descriptor=None, sigma_k=None, ridge_weight=0,
+                 normalize=True):
     """
     fitting theta using optimization
     currently allowed for ModelWeighted only
@@ -121,6 +122,11 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
         sigma_k(matrix): pattern-covariance matrix
             used only for whitened distances (ending in _cov)
             to compute the covariance matrix for rdms
+        normalize(bool): whether to normalize the theta vector
+            default = True
+            If true, theta is normalized to norm 1.
+            This is sensible for many models where the norm
+            of theta does not vary the loss.
 
     Returns:
         numpy.ndarray: theta, parameter vector for the model
@@ -145,6 +151,8 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
         losses.append(theta.fun)
     id = np.argmin(losses)
     theta = thetas[id]
+    if not normalize:
+        return theta.flatten()
     norm = np.sum(theta ** 2)
     if norm == 0:
         return theta.flatten()
@@ -153,7 +161,8 @@ def fit_optimize(model, data, method='cosine', pattern_idx=None,
 
 def fit_optimize_positive(
         model, data, method='cosine', pattern_idx=None,
-        pattern_descriptor=None, sigma_k=None, ridge_weight=0):
+        pattern_descriptor=None, sigma_k=None, ridge_weight=0,
+        normalize=True):
     """
     fitting theta using optimization enforcing positive weights
     currently allowed for ModelWeighted only
@@ -169,6 +178,11 @@ def fit_optimize_positive(
         sigma_k(matrix): pattern-covariance matrix
             used only for whitened distances (ending in _cov)
             to compute the covariance matrix for rdms
+        normalize(bool): whether to normalize the theta vector
+            default = True
+            If true, theta is normalized to norm 1.
+            This is sensible for many models where the norm
+            of theta does not vary the loss.
 
     Returns:
         numpy.ndarray: theta, parameter vector for the model
@@ -204,6 +218,8 @@ def fit_optimize_positive(
         losses.append(theta.fun)
     id = np.argmin(losses)
     theta = thetas[id] ** 2
+    if not normalize:
+        return theta.flatten()
     norm = np.sum(theta ** 2)
     if norm == 0:
         return theta.flatten()
@@ -255,7 +271,8 @@ def fit_interpolate(model, data, method='cosine', pattern_idx=None,
 
 
 def fit_regress(model, data, method='cosine', pattern_idx=None,
-                pattern_descriptor=None, ridge_weight=0, sigma_k=None):
+                pattern_descriptor=None, ridge_weight=0, sigma_k=None,
+                normalize=True):
     """
     fitting theta using linear algebra solutions to the OLS problem
     allowed for ModelWeighted only
@@ -280,6 +297,11 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
         sigma_k(matrix): pattern-covariance matrix
             used only for whitened distances (ending in _cov)
             to compute the covariance matrix for rdms
+        normalize(bool): whether to normalize the theta vector
+            default = True
+            If true, theta is normalized to norm 1.
+            This is sensible for many models where the norm
+            of theta does not vary the loss.
 
     Returns:
         numpy.ndarray: theta, parameter vector for the model
@@ -319,6 +341,8 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
         y = v_inv_x @ y.T
         X = vectors @ v_inv_x.T + ridge_weight * np.eye(vectors.shape[0])
     theta = np.linalg.solve(X, y)
+    if not normalize:
+        return theta.flatten()
     norm = np.sum(theta ** 2)
     if norm == 0:
         return theta.flatten()
@@ -326,7 +350,8 @@ def fit_regress(model, data, method='cosine', pattern_idx=None,
 
 
 def fit_regress_nn(model, data, method='cosine', pattern_idx=None,
-                   pattern_descriptor=None, ridge_weight=0, sigma_k=None):
+                   pattern_descriptor=None, ridge_weight=0, sigma_k=None,
+                   normalize=True):
     """
     fitting theta using linear algebra solutions to the OLS problem
     allowed for ModelWeighted only
@@ -351,6 +376,11 @@ def fit_regress_nn(model, data, method='cosine', pattern_idx=None,
         sigma_k(matrix): pattern-covariance matrix
             used only for whitened distances (ending in _cov)
             to compute the covariance matrix for rdms
+        normalize(bool): whether to normalize the theta vector
+            default = True
+            If true, theta is normalized to norm 1.
+            This is sensible for many models where the norm
+            of theta does not vary the loss.
 
     Returns:
         numpy.ndarray: theta, parameter vector for the model
@@ -381,6 +411,8 @@ def fit_regress_nn(model, data, method='cosine', pattern_idx=None,
     else:
         raise ValueError('method argument invalid')
     theta, _ = _nn_least_squares(vectors.T, y[0], ridge_weight=ridge_weight, V=v)
+    if not normalize:
+        return theta.flatten()
     norm = np.sum(theta ** 2)
     if norm == 0:
         return theta.flatten()
