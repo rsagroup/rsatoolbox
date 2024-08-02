@@ -152,7 +152,7 @@ def rescale(rdms, method: str = 'evidence', threshold=1e-8):
     )
 
 
-def _mean(vectors: ndarray, weights: ndarray = None) -> ndarray:
+def _mean(vectors: ndarray, weights: Optional[ndarray] = None) -> ndarray:
     """Weighted mean of RDM vectors, ignores nans
 
     See :meth:`rsatoolbox.rdm.rdms.RDMs.mean`

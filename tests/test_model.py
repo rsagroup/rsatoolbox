@@ -242,6 +242,25 @@ class TestConsistency(unittest.TestCase):
                 np.nanmean(np.abs(rdiff_reg_opt)), 0.001,
                 msg_tem.format('regression', 'optimization', i_method))
 
+    def test_normalize_flag(self):
+        from rsatoolbox.model import ModelWeighted
+        from rsatoolbox.model.fitter import fit_regress
+        from rsatoolbox.rdm import concat, compare
+        self.sample_data()
+        model_rdms = concat([self.rdms[0], self.rdms[1]])
+        model_weighted = ModelWeighted(
+            'm_weighted',
+            model_rdms)
+        for i_method in ['cosine', 'corr', 'cosine_cov', 'corr_cov']:
+            theta = fit_regress(
+                model_weighted, self.rdms, method=i_method)
+            theta_no_normalized = fit_regress(
+                model_weighted, self.rdms, method=i_method, normalize=False)
+            rdm = model_weighted.predict(theta)
+            rdm_no_normalized = model_weighted.predict(theta_no_normalized)
+            assert compare(rdm, rdm_no_normalized) > 0.999
+
+
     def test_two_rdms_nn(self):
         from rsatoolbox.model import ModelInterpolate, ModelWeighted
         from rsatoolbox.model.fitter import fit_regress_nn, fit_optimize_positive
