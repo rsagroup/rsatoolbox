@@ -72,11 +72,8 @@ exclude = []
 ignore = []
 defineConstant = { DEBUG = true }
 stubPath = ""
-
 reportMissingImports = false
-
 pythonVersion = "3.11"
-
 executionEnvironments = [
   { root = "src" }
 ]
