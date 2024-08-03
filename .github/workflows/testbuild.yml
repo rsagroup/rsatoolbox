@@ -52,7 +52,10 @@ jobs:
     - name: Ruff output as job summary
       run: |
         echo "## Ruff Output" >> $GITHUB_STEP_SUMMARY
-        echo "```$(ruff check -e --output-format concise)```" >> $GITHUB_STEP_SUMMARY
+        echo "> $(ruff check -e --output-format concise)" >> $GITHUB_STEP_SUMMARY
+    - name: Create status
+      run: gh api --method POST /repos/rsagroup/rsatoolbox/statuses/${{ github.sha }} -f "state=pending" -f "target_url=https://example.com/build/status" -f "description=Style check 67%" -f "context=Ruff"
+
 
   typing:
     runs-on: ubuntu-22.04
