@@ -6,6 +6,7 @@ Comparison methods for comparing two RDMs objects
 import itertools as it
 import numpy as np
 import os
+import pickle
 import scipy.stats
 from scipy import linalg
 from scipy.optimize import minimize
@@ -373,9 +374,10 @@ def _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds):
         return v
 
     # Fetch cached value if it exists.
-    fname = "_".join(str(num) for num in sorted(frozen_inds)) + f"_{n_cond}conds" + "_cov_matrix.npz"
+    fname = "_".join(str(num) for num in sorted(frozen_inds)) + f"_{n_cond}conds" + "_cov_matrix.pkl"
     if os.path.exists(fname):
-        v = scipy.sparse.load_npz(fname)
+        with open(fname, 'rb') as f:
+            v = pickle.load(f)
         return v
 
     for (i, (x1, y1)), (j, (x2, y2)) in it.product(enumerate(it.combinations(range(n_cond), 2)),
@@ -395,7 +397,8 @@ def _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds):
             rep_ind = mode([x1, y1, x2, y2])
             if rep_ind in frozen_inds:
                 v[i, j] = 0
-    scipy.sparse.save_npz(fname, v)
+    with open(fname, 'wb') as f:
+        pickle.dump(v, f, pickle.HIGHEST_PROTOCOL)
     return v
 
 
