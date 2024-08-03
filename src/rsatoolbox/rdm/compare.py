@@ -338,12 +338,12 @@ def _cosine_cov_weighted_slow(vector1, vector2, frozen_inds=[], sigma_k=None, na
         n_cond = _get_n_from_reduced_vectors(vector1)
         v = _get_v(n_cond, sigma_k)
     # Now adjust v to account for any frozen patterns.
-    # v = _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds)
-    # Omit any all-zero rows and columns.
-    # nonzero_rows = np.where(~np.all(v.toarray() == 0, axis=1))[0]
-    # v = v[nonzero_rows][:, nonzero_rows]
-    # vector1 = vector1[:, nonzero_rows]
-    # vector2 = vector2[:, nonzero_rows]
+    v = _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds)
+    # Omit any all-zero rows and columns, keeping as a sparse matrix.
+    nonzero_rows = np.where(v.sum(axis=1) != 0)[0]
+    v = v[nonzero_rows][:, nonzero_rows]
+    vector1 = vector1[:, nonzero_rows]
+    vector2 = vector2[:, nonzero_rows]
 
     # compute V^-1 vector1/2 for all vectors by solving Vx = vector1/2
     vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
