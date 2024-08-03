@@ -373,7 +373,7 @@ def _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds):
         return v
 
     # Fetch cached value if it exists.
-    fname = "_".join(sorted(frozen_inds)) + f"_{n_cond}conds" + "_cov_matrix.npz"
+    fname = "_".join(str(num) for num in sorted(frozen_inds)) + f"_{n_cond}conds" + "_cov_matrix.npz"
     if os.path.exists(fname):
         v = scipy.sparse.load_npz(fname)
         return v
