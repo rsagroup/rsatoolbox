@@ -48,9 +48,13 @@ jobs:
     - name: Ruff output to file
       run: ruff check -ne -o ruff.log --output-format concise
     - name: Ruff output as annotations
-      run: echo ruff check -e --output-format github
+      run: echo $(ruff check -e --output-format github)
     - name: Ruff output as job summary
-      run: echo ruff check -e --output-format concise >> $GITHUB_STEP_SUMMARY
+      run: echo $(ruff check -e --output-format concise) >> $GITHUB_STEP_SUMMARY
+    #   run: |
+    #   echo "This is the lead in sentence for the list" >> $GITHUB_STEP_SUMMARY
+    #   echo "" >> $GITHUB_STEP_SUMMARY # this is a blank line
+
 
   typing:
     runs-on: ubuntu-22.04
