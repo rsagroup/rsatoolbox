@@ -58,7 +58,7 @@ jobs:
         echo "## Ruff Output" >> $GITHUB_STEP_SUMMARY
         echo "> $(ruff check -e --output-format concise)" >> $GITHUB_STEP_SUMMARY
     - name: Create status
-      run: gh api --method POST /repos/rsagroup/rsatoolbox/statuses/${{ github.event.pull_request.head.sha }} -f "state=pending" -f "target_url=https://example.com/build/status" -f "description=Style check 67%" -f "context=Ruff"
+      run: gh api --method POST /repos/rsagroup/rsatoolbox/statuses/${{ github.event.pull_request.head.sha }} -f "state=pending" -f "target_url=https://github.com/rsagroup/rsatoolbox/actions/runs/${{ github.run_id }}/attempts/1#summary-{{ github.job }}" -f "description=Style check 67%" -f "context=Ruff"
 
 
   typing:
