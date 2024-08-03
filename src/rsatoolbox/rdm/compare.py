@@ -5,6 +5,7 @@ Comparison methods for comparing two RDMs objects
 """
 import itertools as it
 import numpy as np
+import os
 import scipy.stats
 from scipy import linalg
 from scipy.optimize import minimize
@@ -338,12 +339,12 @@ def _cosine_cov_weighted_slow(vector1, vector2, frozen_inds=[], sigma_k=None, na
         n_cond = _get_n_from_reduced_vectors(vector1)
         v = _get_v(n_cond, sigma_k)
     # Now adjust v to account for any frozen patterns.
-    # v = _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds)
+    v = _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds)
     # Omit any all-zero rows and columns, keeping as a sparse matrix.
-    # nonzero_rows = np.where(v.sum(axis=1) != 0)[0]
-    # v = v[nonzero_rows][:, nonzero_rows]
-    # vector1 = vector1[:, nonzero_rows]
-    # vector2 = vector2[:, nonzero_rows]
+    nonzero_rows = np.where(v.sum(axis=1) != 0)[0]
+    v = v[nonzero_rows][:, nonzero_rows]
+    vector1 = vector1[:, nonzero_rows]
+    vector2 = vector2[:, nonzero_rows]
 
     # compute V^-1 vector1/2 for all vectors by solving Vx = vector1/2
     vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
@@ -370,6 +371,13 @@ def _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds):
     frozen_inds = set(frozen_inds)
     if len(frozen_inds) == 0:
         return v
+
+    # Fetch cached value if it exists.
+    fname = "_".join(sorted(frozen_inds)) + f"_{n_cond}conds" + "_cov_matrix.npz"
+    if os.path.exists(fname):
+        v = scipy.sparse.load_npz(fname)
+        return v
+
     for (i, (x1, y1)), (j, (x2, y2)) in it.product(enumerate(it.combinations(range(n_cond), 2)),
                                                    enumerate(it.combinations(range(n_cond), 2))):
         if len(np.unique([x1, y1, x2, y2])) == 4:  # if no shared patterns, skip
@@ -387,7 +395,7 @@ def _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds):
             rep_ind = mode([x1, y1, x2, y2])
             if rep_ind in frozen_inds:
                 v[i, j] = 0
-
+    scipy.sparse.save_npz(fname, v)
     return v
 
 
