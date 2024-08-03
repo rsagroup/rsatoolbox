@@ -36,6 +36,8 @@ jobs:
 
   style:
     runs-on: ubuntu-22.04
+    env:
+        GH_TOKEN: ${{ github.token }}
     steps:
     - uses: actions/checkout@v4
       with:
