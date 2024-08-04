@@ -4,10 +4,9 @@
 Collection of different utility Matrices
 """
 
-from typing import List
-
+from typing import List, Optional
 import numpy as np
-from scipy.sparse import coo_matrix, csr_matrix
+from scipy.sparse import coo_matrix, csr_matrix, spmatrix
 
 
 def indicator(index_vector, positive=False):
@@ -67,7 +66,7 @@ def pairwise_contrast(index_vector):
     return indicator_matrix
 
 
-def pairwise_contrast_sparse(index_vector):
+def pairwise_contrast_sparse(index_vector) -> csr_matrix:
     """ Contrast matrix with one row per unqiue pairwise contrast
 
     Args:
@@ -105,7 +104,7 @@ def pairwise_contrast_sparse(index_vector):
             n_row = n_row + 1
     indicator_matrix = coo_matrix((dat, (idx_i, idx_j)),
                                   shape=(cols, rows))
-    return indicator_matrix.asformat("csr")
+    return indicator_matrix.asformat("csr")  # pyright: ignore reportReturnType
 
 
 def centering(size):
@@ -152,7 +151,7 @@ def row_col_indicator_g(n_cond):
         row_indicator (numpy.ndarray): n_cond (n_cond-1)/2+n_cond * n_cond
         col_indicator (numpy.ndarray): n_cond (n_cond-1)/2+n_cond * n_cond
     """
-    n_elem = int(n_cond * (n_cond - 1) / 2)+n_cond  # Number of elements in G
+    n_elem = int(n_cond * (n_cond - 1) / 2) + n_cond  # Number of elements in G
     row_i = np.zeros((n_elem, n_cond))
     col_i = np.zeros((n_elem, n_cond))
     _row_col_indicator(row_i, col_i, n_cond)
@@ -161,7 +160,15 @@ def row_col_indicator_g(n_cond):
     return (row_i, col_i)
 
 
-def get_v(n_cond, sigma_k):
+def run() -> spmatrix:
+    a = csr_matrix(np.eye(3))
+    b = csr_matrix(np.eye(3))
+    c = a @ b
+    c = c.multiply(3.0)
+    return c
+
+
+def get_v(n_cond: int, sigma_k: Optional[spmatrix]) -> spmatrix:
     """ get the rdm covariance from sigma_k """
     # calculate Xi
     c_mat = pairwise_contrast_sparse(np.arange(n_cond))

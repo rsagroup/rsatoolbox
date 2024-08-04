@@ -311,7 +311,7 @@ class TestRDM(unittest.TestCase):
                         pattern_descriptors=pattern_des,
                         dissimilarity_measure=mes,
                         descriptors=des)
-        gt_rdm = geotopological_transform(rdms, l=0.2, u=0.8)
+        gt_rdm = geotopological_transform(rdms, low=0.2, up=0.8)
         self.assertEqual(gt_rdm.n_rdm, rdms.n_rdm)
         self.assertEqual(gt_rdm.n_cond, rdms.n_cond)
 

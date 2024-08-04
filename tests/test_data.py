@@ -596,7 +596,7 @@ class TestSave(unittest.TestCase):
                            )
         data_dict = data.to_dict()
         data_loaded = rsd.dataset_from_dict(data_dict)
-        assert type(data_loaded) == type(data)
+        assert type(data_loaded) is type(data)
         assert data_loaded.n_channel == data.n_channel
         assert np.all(data_loaded.obs_descriptors['conds'] == obs_des['conds'])
         assert np.all(data_loaded.channel_descriptors['rois']
@@ -633,7 +633,7 @@ class TestOESplit(unittest.TestCase):
     def test_oe_split(self):
         measurements = self.rng.random((4, 10))
         des = {'session': 0, 'subj': 0}
-        chn_des = {'rois': np.array([chr(l) for l in range(65, 75)])}
+        chn_des = {'rois': np.array([chr(i) for i in range(65, 75)])}
 
         self.full_data = rsd.Dataset(
             measurements=measurements,
@@ -684,7 +684,7 @@ class TestOESplit(unittest.TestCase):
     def test_odd_even_split_nested(self):
         measurements = self.rng.random((16, 10))
         des = {'session': 0, 'subj': 0}
-        chn_des = {'rois': np.array([chr(l) for l in range(65, 75)])}
+        chn_des = {'rois': np.array([chr(i) for i in range(65, 75)])}
         conds = np.array([str(i) for i in range(1, 5)])
         runs = np.array([i for i in range(1, 5)])
         self.full_data = rsd.Dataset(

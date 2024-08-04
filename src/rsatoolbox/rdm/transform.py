@@ -11,7 +11,7 @@ from scipy.spatial.distance import squareform
 from .rdms import RDMs
 
 
-def rank_transform(rdms: RDMs, method='average') -> RDMs:
+def rank_transform(rdms: RDMs, method: str = 'average') -> RDMs:
     """ applies a rank_transform and generates a new RDMs object
     This assigns a rank to each dissimilarity estimate in the RDM,
     deals with rank ties and saves ranks as new dissimilarity estimates.
@@ -46,7 +46,7 @@ def rank_transform(rdms: RDMs, method='average') -> RDMs:
     )
 
 
-def sqrt_transform(rdms):
+def sqrt_transform(rdms: RDMs) -> RDMs:
     """ applies a square root transform and generates a new RDMs object
     This sets values blow 0 to 0 and takes a square root of each entry.
     It also adds a sqrt to the dissimilarity_measure entry.
@@ -61,7 +61,9 @@ def sqrt_transform(rdms):
     dissimilarities = rdms.get_vectors()
     dissimilarities[dissimilarities < 0] = 0
     dissimilarities = np.sqrt(dissimilarities)
-    if rdms.dissimilarity_measure == 'squared euclidean':
+    if rdms.dissimilarity_measure is None:
+        dissimilarity_measure = 'sqrt of unknown measure'
+    elif rdms.dissimilarity_measure == 'squared euclidean':
         dissimilarity_measure = 'euclidean'
     elif rdms.dissimilarity_measure == 'squared mahalanobis':
         dissimilarity_measure = 'mahalanobis'
@@ -75,7 +77,7 @@ def sqrt_transform(rdms):
     return rdms_new
 
 
-def positive_transform(rdms):
+def positive_transform(rdms: RDMs) -> RDMs:
     """ sets all negative entries in an RDM to zero and returns a new RDMs
 
     Args:
@@ -95,7 +97,7 @@ def positive_transform(rdms):
     return rdms_new
 
 
-def transform(rdms, fun):
+def transform(rdms: RDMs, fun) -> RDMs:
     """ applies an arbitray function ``fun`` to the dissimilarities and
     returns a new RDMs object.
 
@@ -108,7 +110,10 @@ def transform(rdms, fun):
     """
     dissimilarities = rdms.get_vectors()
     dissimilarities = fun(dissimilarities)
-    meas = 'transformed ' + rdms.dissimilarity_measure
+    if rdms.dissimilarity_measure is None:
+        meas = 'transformed unknown measure'
+    else:
+        meas = 'transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
                     descriptors=deepcopy(rdms.descriptors),
@@ -118,13 +123,13 @@ def transform(rdms, fun):
 
 
 def minmax_transform(rdms: RDMs) -> RDMs:
-    '''applies a minmax transform to the dissimilarities and returns a new 
+    '''applies a minmax transform to the dissimilarities and returns a new
     RDMs object.
-    
+
     Args:
         rdms(RDMs): RDMs object
-    
-    Returns:    
+
+    Returns:
         rdms_new(RDMs): RDMs object with minmax transformed dissimilarities
     '''
     dissimilarities = rdms.get_vectors()
@@ -132,7 +137,10 @@ def minmax_transform(rdms: RDMs) -> RDMs:
         d_max = dissimilarities[i].max()
         d_min = dissimilarities[i].min()
         dissimilarities[i] = (dissimilarities[i] - d_min) / (d_max - d_min)
-    meas = 'minmax transformed ' + rdms.dissimilarity_measure
+    if rdms.dissimilarity_measure is None:
+        meas = 'minmax transformed unknown measure'
+    else:
+        meas = 'minmax transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
                     descriptors=deepcopy(rdms.descriptors),
@@ -141,30 +149,33 @@ def minmax_transform(rdms: RDMs) -> RDMs:
     return rdms_new
 
 
-def geotopological_transform(rdms: RDMs, l: float, u: float) -> RDMs:
-    '''applies a geo-topological transform to the dissimilarities and returns 
-    a new RDMs object. 
-    
-    Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry 
+def geotopological_transform(rdms: RDMs, low: float, up: float) -> RDMs:
+    '''applies a geo-topological transform to the dissimilarities and returns
+    a new RDMs object.
+
+    Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry
     of Neural Representations. arXiv preprint arXiv:2309.11028.
-    
+
     Args:
         rdms(RDMs): RDMs object
-        l(float): lower quantile
-        u(float): upper quantile
-    
-    Returns:    
+        low(float): lower quantile
+        up(float): upper quantile
+
+    Returns:
         rdms_new(RDMs): RDMs object with geotopological transformed dissimilarities
     '''
     dissimilarities = rdms.get_vectors()
-    gt_min = np.quantile(dissimilarities, l)
-    gt_max = np.quantile(dissimilarities, u)
+    gt_min = np.quantile(dissimilarities, low)
+    gt_max = np.quantile(dissimilarities, up)
     dissimilarities[dissimilarities < gt_min] = 0
     dissimilarities[(dissimilarities >= gt_min) & (dissimilarities <= gt_max)] = (
         dissimilarities[(dissimilarities >= gt_min) & (dissimilarities <= gt_max)] - gt_min
     ) / (gt_max - gt_min)
     dissimilarities[dissimilarities > gt_max] = 1
-    meas = 'geo-topological transformed ' + rdms.dissimilarity_measure
+    if rdms.dissimilarity_measure is None:
+        meas = 'geo-topological transformed unknown measure'
+    else:
+        meas = 'geo-topological transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
                     descriptors=deepcopy(rdms.descriptors),
@@ -174,16 +185,16 @@ def geotopological_transform(rdms: RDMs, l: float, u: float) -> RDMs:
 
 
 def geodesic_transform(rdms: RDMs) -> RDMs:
-    '''applies a geodesic transform to the dissimilarities and returns a 
-    new RDMs object. 
-    
-    Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry 
+    '''applies a geodesic transform to the dissimilarities and returns a
+    new RDMs object.
+
+    Reference: Lin, B., & Kriegeskorte, N. (2023). The Topology and Geometry
     of Neural Representations. arXiv preprint arXiv:2309.11028.
-    
+
     Args:
         rdms(RDMs): RDMs object
-    
-    Returns:    
+
+    Returns:
         rdms_new(RDMs): RDMs object with geodesic transformed dissimilarities
     '''
     dissimilarities = minmax_transform(rdms).get_vectors()
@@ -195,7 +206,10 @@ def geodesic_transform(rdms: RDMs) -> RDMs:
         le_ids = list(e[:2] for e in long_edges)
         G.remove_edges_from(le_ids)
         dissimilarities[i] = squareform(np.array(nx.floyd_warshall_numpy(G)))
-    meas = 'geodesic transformed ' + rdms.dissimilarity_measure
+    if rdms.dissimilarity_measure is None:
+        meas = 'geodesic transformed unknown measure'
+    else:
+        meas = 'geodesic transformed ' + rdms.dissimilarity_measure
     rdms_new = RDMs(dissimilarities,
                     dissimilarity_measure=meas,
                     descriptors=deepcopy(rdms.descriptors),
