@@ -21,12 +21,14 @@ on your machine and then run `pyright` locally.
 """
 
 summary_ok = """
-### Pyright: No new issues found :sparkles:
+### Pyright: No new issues found :fireworks:
 
 {} fewer issues compared to the main branch!
 """
 
 summary = summary_ok.format(diff_n) if accept else summary_issues.format(diff_n)
-description = f'Found {diff_n} issues compared to main'
+description = f'Found {abs(diff_n)} fewer issues compared to main'
+if diff_n > 0:
+    description = f'Found {diff_n} more issues compared to main'
 set_github_summary_api_envs(accept, description, summary, CONTEXT)
 
