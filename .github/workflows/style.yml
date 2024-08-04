@@ -4,15 +4,16 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+  statuses: write
+
 jobs:
 
   style:
     runs-on: ubuntu-22.04
-    permissions:
-      contents: read
-      statuses: write
     env:
-      GH_TOKEN: ${{ secrets.token }}
+      GH_TOKEN: ${{ github.token }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -34,11 +35,8 @@ jobs:
 
   typing:
     runs-on: ubuntu-22.04
-    permissions:
-      contents: read
-      statuses: write
     env:
-      GH_TOKEN: ${{ secrets.token }}
+      GH_TOKEN: ${{ github.token }}
     steps:
     - uses: actions/setup-python@v5
       with:
