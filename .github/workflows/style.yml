@@ -12,7 +12,7 @@ jobs:
       contents: read
       statuses: write
     env:
-      GH_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ secrets.token }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -38,7 +38,7 @@ jobs:
       contents: read
       statuses: write
     env:
-      GH_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ secrets.token }}
     steps:
     - uses: actions/setup-python@v5
       with:
