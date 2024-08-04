@@ -83,7 +83,7 @@ jobs:
       continue-on-error: true
       run: pyright > pyright_main.log
     - name: Uninstall rsatoolbox 
-      run: pip uninstall rsatoolbox
+      run: pip uninstall -y rsatoolbox
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
@@ -94,6 +94,10 @@ jobs:
     - name: Type check (pyright)
       continue-on-error: true
       run: pyright > pyright_pr.log
+    - name: Check file 1
+      run: tail pyright_main.log
+    - name: Check file 2
+      run: tail pyright_pr.log
 
 
   source:
