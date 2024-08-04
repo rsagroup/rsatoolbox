@@ -61,6 +61,10 @@ jobs:
 
   typing:
     runs-on: ubuntu-22.04
+    permissions:
+        statuses: write
+    env:
+        GH_TOKEN: ${{ github.token }}
     steps:
     - uses: actions/setup-python@v5
       with:
@@ -97,7 +101,7 @@ jobs:
     - name: Pyright (on PR)
       continue-on-error: true
       run: pyright > pyright_pr.log
-    - name: Process Ruff output
+    - name: Process Pyright output
       run: python devops/typing_assistant.py ${{ github.run_id }} ${{ github.job }} ${{ github.event.pull_request.head.sha }}
     - name: Report status
       run: gh api ${{ env.DEVOPS_ASST_API_ARGS }}
