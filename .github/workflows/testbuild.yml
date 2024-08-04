@@ -54,7 +54,7 @@ jobs:
     - name: Ruff output as annotations
       run: echo "$(ruff check -e --output-format github)"
     - name: Analyze
-      run: python devops/assistant.py
+      run: python devops/assistant.py ${{ github.run_id }} ${{ github.job }} ${{ github.event.pull_request.head.sha }}
     - name: Create status
       run: gh api ${{ env.DEVOPS_ASST_API_ARGS }}
 
