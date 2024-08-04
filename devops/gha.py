@@ -18,6 +18,8 @@ def parse_github_args() -> Tuple[str, str, str]:
 def count_log_issues(fpath: str) -> int:
     with open(fpath) as fhandle:
         lines = fhandle.readlines()
+    if len(lines) < 2:
+        return 0
     lines.reverse()
     for line in lines:
         if line.startswith('Found '):
