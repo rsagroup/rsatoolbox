@@ -56,7 +56,7 @@ jobs:
     - name: Analyze
       run: python devops/assistant.py
     - name: Create status
-      run: gh api --method POST /repos/rsagroup/rsatoolbox/statuses/${{ github.event.pull_request.head.sha }} -f "state=pending" -f "target_url=https://github.com/rsagroup/rsatoolbox/actions/runs/${{ github.run_id }}/attempts/1#summary-${{ github.job }}" -f "description=Style check 67%" -f "context=Ruff"
+      run: gh api ${{ env.DEVOPS_ASST_API_ARGS }}
 
 
   typing:
