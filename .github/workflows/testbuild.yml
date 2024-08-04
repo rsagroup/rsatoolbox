@@ -79,19 +79,22 @@ jobs:
       run: python -m build --sdist
     - name: Install rsatoolbox 
       run: pip install dist/*
-    - name: Type check (pyright)
+    - name: Pyright (on main)
       continue-on-error: true
       run: pyright > pyright_main.log
     - name: Uninstall rsatoolbox 
       run: pip uninstall -y rsatoolbox
+    - name: Remove builds
+      run: rm dist/*
     - uses: actions/checkout@v4
       with:
+        clean: false
         fetch-depth: 0
     - name: Build package
       run: python -m build --sdist
     - name: Install rsatoolbox 
       run: pip install dist/*
-    - name: Type check (pyright)
+    - name: Pyright (on PR)
       continue-on-error: true
       run: pyright > pyright_pr.log
     - name: Check file 1
