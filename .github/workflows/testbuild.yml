@@ -54,7 +54,7 @@ jobs:
     - name: Ruff output as annotations
       run: echo "$(ruff check -e --output-format github)"
     - name: Process Ruff output
-      run: python devops/assistant.py ${{ github.run_id }} ${{ github.job }} ${{ github.event.pull_request.head.sha }}
+      run: python devops/style_assistant.py ${{ github.run_id }} ${{ github.job }} ${{ github.event.pull_request.head.sha }}
     - name: Report status
       run: gh api ${{ env.DEVOPS_ASST_API_ARGS }}
 
@@ -97,10 +97,10 @@ jobs:
     - name: Pyright (on PR)
       continue-on-error: true
       run: pyright > pyright_pr.log
-    - name: Check file 1
-      run: tail pyright_main.log
-    - name: Check file 2
-      run: tail pyright_pr.log
+    - name: Process Ruff output
+      run: python devops/typing_assistant.py ${{ github.run_id }} ${{ github.job }} ${{ github.event.pull_request.head.sha }}
+    - name: Report status
+      run: gh api ${{ env.DEVOPS_ASST_API_ARGS }}
 
 
   source:
