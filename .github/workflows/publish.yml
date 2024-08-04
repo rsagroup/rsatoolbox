@@ -11,11 +11,10 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   call-test-build:
-    permissions:
-        statuses: write
     uses: ./.github/workflows/testbuild.yml
 
   publish-artifacts:

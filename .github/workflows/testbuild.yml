@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
 
@@ -36,8 +37,6 @@ jobs:
 
   style:
     runs-on: ubuntu-22.04
-    permissions:
-        statuses: write
     env:
         GH_TOKEN: ${{ github.token }}
     steps:
@@ -61,8 +60,6 @@ jobs:
 
   typing:
     runs-on: ubuntu-22.04
-    permissions:
-        statuses: write
     env:
         GH_TOKEN: ${{ github.token }}
     steps:
