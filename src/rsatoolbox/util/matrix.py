@@ -6,7 +6,6 @@ Collection of different utility Matrices
 
 from typing import List, Optional
 import numpy as np
-from numpy.typing import NDArray
 from scipy.sparse import coo_matrix, csr_matrix, spmatrix
 
 

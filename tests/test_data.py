@@ -596,7 +596,7 @@ class TestSave(unittest.TestCase):
                            )
         data_dict = data.to_dict()
         data_loaded = rsd.dataset_from_dict(data_dict)
-        assert type(data_loaded) == type(data)
+        assert type(data_loaded) is type(data)
         assert data_loaded.n_channel == data.n_channel
         assert np.all(data_loaded.obs_descriptors['conds'] == obs_des['conds'])
         assert np.all(data_loaded.channel_descriptors['rois']

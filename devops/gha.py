@@ -2,7 +2,8 @@
 """Helper functions for Github Actions
 """
 from typing import Tuple
-import os, sys
+import sys
+import os
 ENV_VAR_NAME = 'DEVOPS_ASST_API_ARGS'
 
 

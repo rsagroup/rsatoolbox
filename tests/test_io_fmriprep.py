@@ -3,7 +3,8 @@
 from unittest import TestCase
 from unittest.mock import patch, Mock
 from numpy.testing import assert_array_equal
-import pandas, numpy
+import pandas
+import numpy
 
 
 class TestFindFmriprepRuns(TestCase):
