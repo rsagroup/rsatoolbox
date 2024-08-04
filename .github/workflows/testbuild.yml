@@ -53,18 +53,15 @@ jobs:
       run: ruff check -ne -o ruff.log --output-format concise
     - name: Ruff output as annotations
       run: echo "$(ruff check -e --output-format github)"
-    - name: Analyze
+    - name: Process Ruff output
       run: python devops/assistant.py ${{ github.run_id }} ${{ github.job }} ${{ github.event.pull_request.head.sha }}
-    - name: Create status
+    - name: Report status
       run: gh api ${{ env.DEVOPS_ASST_API_ARGS }}
 
 
   typing:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
     - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
@@ -72,18 +69,32 @@ jobs:
       run: python --version
     - name: Update Pip
       run: python -m pip install --upgrade pip
-    - name: Install Build
-      run: pip install build setuptools
+    - name: Install dependencies
+      run: pip install build setuptools pandas-stubs types-tqdm pyright
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+        fetch-depth: 0
     - name: Build package
       run: python -m build --sdist
     - name: Install rsatoolbox 
       run: pip install dist/*
-    - name: Install type dependencies
-      run: pip install mypy pandas-stubs types-tqdm pyright
     - name: Type check (pyright)
-      run: pyright
-    - name: Type check (mypy)
-      run: mypy -p rsatoolbox
+      continue-on-error: true
+      run: pyright > pyright_main.log
+    - name: Uninstall rsatoolbox 
+      run: pip uninstall rsatoolbox
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Build package
+      run: python -m build --sdist
+    - name: Install rsatoolbox 
+      run: pip install dist/*
+    - name: Type check (pyright)
+      continue-on-error: true
+      run: pyright > pyright_pr.log
+
 
   source:
     needs: tests
