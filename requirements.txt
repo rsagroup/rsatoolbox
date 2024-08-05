@@ -3,7 +3,7 @@ scipy>=1.10.1
 scikit-learn
 scikit-image
 pandas
-matplotlib!=3.9.1
+matplotlib
 h5py
 tqdm
 joblib
