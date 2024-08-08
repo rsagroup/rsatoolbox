@@ -8,10 +8,10 @@ Created on Fri Sep 18 2020
 
 import unittest
 import numpy as np
-from pyrsa.data.components import Components
+from rsatoolbox.data.components import Components
+
 
 class TestComponents(unittest.TestCase):
-
     def test_pca_reconstruction(self):
         X = np.random.randn(10, 100)
         components = Components()
