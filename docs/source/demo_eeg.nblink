@@ -1,0 +1,6 @@
+{
+    "path": "../../demos/demo_eeg.ipynb",
+    "extra-media": [
+        "../../demos/demo_eeg_data"
+    ]
+}

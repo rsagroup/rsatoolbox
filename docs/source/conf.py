@@ -14,19 +14,21 @@
 #
 import os
 import sys
+from pkg_resources import get_distribution
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'pyrsa'
-copyright = '2019, pyrsa authors'
-author = 'pyrsa authors'
+project = 'rsatoolbox'
+copyright = '2023, rsatoolbox authors'
+author = 'rsatoolbox authors'
+
+# The full version
+release = get_distribution('rsatoolbox').version
 
 # The short X.Y version
-version = '3.0.0'
-# The full version, including alpha/beta/rc tags
-release = version
+version = '.'.join(release.split('.')[:2])
 
 
 # -- General configuration ---------------------------------------------------
@@ -70,7 +72,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -92,7 +94,9 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = dict(
+    extra_nav_links={f'version: {release}': ''}
+)
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -113,7 +117,7 @@ html_theme = 'alabaster'
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pyrsadoc'
+htmlhelp_basename = 'rsatoolboxdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -140,8 +144,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'pyrsa.tex', 'pyrsa Documentation',
-     'pyrsa authors', 'manual'),
+    (master_doc, 'rsatoolbox.tex', 'rsatoolbox Documentation',
+     'rsatoolbox authors', 'manual'),
 ]
 
 
@@ -150,7 +154,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pyrsa', 'pyrsa Documentation',
+    (master_doc, 'rsatoolbox', 'rsatoolbox Documentation',
      [author], 1)
 ]
 
@@ -161,8 +165,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'pyrsa', 'pyrsa Documentation',
-     author, 'pyrsa', 'One line description of project.',
+    (master_doc, 'rsatoolbox', 'rsatoolbox Documentation',
+     author, 'rsatoolbox', 'One line description of project.',
      'Miscellaneous'),
 ]
 

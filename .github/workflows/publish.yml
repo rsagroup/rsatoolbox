@@ -1,0 +1,33 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+  release:
+     types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  call-test-build:
+    uses: ./.github/workflows/testbuild.yml
+
+  publish-artifacts:
+    environment: production
+    needs: call-test-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all  artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: List files
+        run: ls -R dist
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@v1.5.1
+        with:
+          verbose: true
+          password: ${{ secrets.API_TOKEN_PYPI }}

@@ -1,0 +1,10 @@
+recursive-include src/rsatoolbox *.mplstyle
+include src/rsatoolbox/py.typed
+include requirements.txt
+include tests/requirements.txt
+recursive-exclude *.yml
+prune .github
+prune demos
+prune docs
+prune tests
+prune wiki

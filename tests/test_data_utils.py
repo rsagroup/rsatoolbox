@@ -8,8 +8,8 @@ Test for Dataset utils
 
 import unittest
 import numpy as np
-from pyrsa.util import data_utils as du
-import pyrsa.data as rsd
+from rsatoolbox.util import data_utils as du
+import rsatoolbox.data as rsd
 
 
 class TestGetUniqueUnsorted(unittest.TestCase):

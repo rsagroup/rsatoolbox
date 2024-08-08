@@ -1,12 +1,6 @@
-coverage
-numpy
-scipy
-scikit-learn
-scikit-image
+## additional dependencies not listed in root requirements.txt
+pytest
 tqdm
-h5py
-matplotlib
 joblib
 parameterized
-nbsphinx
-nbsphinx-link
+mne

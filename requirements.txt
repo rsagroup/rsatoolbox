@@ -1,9 +1,11 @@
-coverage
-numpy
-scipy
+numpy>=1.21.2
+scipy>=1.10.1
 scikit-learn
 scikit-image
-tqdm
+pandas
+matplotlib!=3.9.1
 h5py
-matplotlib
+tqdm
 joblib
+importlib_resources>=5.12; python_version < "3.9"
+networkx>=3.0

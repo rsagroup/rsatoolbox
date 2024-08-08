@@ -1,0 +1,12 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Representational Similarity Analysis 3.0
+message: >-
+  This is a temporary citation suggestion; a manuscript is being prepared which will supersede this eventually.
+type: software
+authors:
+  - name: RSAtoolbox Development Group
+repository-code: 'https://github.com/rsagroup/rsatoolbox'
+license: MIT
