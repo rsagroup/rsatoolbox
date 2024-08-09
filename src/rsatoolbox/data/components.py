@@ -10,7 +10,9 @@ See demo_component_projection.ipynb
 """
 
 import numpy as np
-import sklearn
+import sklearn.decomposition
+from numpy.typing import NDArray
+from typing import Optional
 
 
 class Components:
@@ -27,7 +29,7 @@ class Components:
         W: [component x channel]
     '''
 
-    def __init__(self, R=None, W=None):
+    def __init__(self, R: Optional[NDArray] = None, W: Optional[NDArray] = None):
         '''Constructs the core component object.
 
         When called with no arguments, R and W are simply set to None.
@@ -43,10 +45,10 @@ class Components:
 
         self.R = R
         self.W = W
-        if self.R is not None:
+        if (self.R is not None) and (self.W is not None):
             if self.R.shape[1] != self.W.shape[0]:
                 raise NameError('Columns of R must match rows of W')
-            self.n_components = R.shape[1]
+            self.n_components = self.R.shape[1]
         else:
             self.n_components = None
 
@@ -60,7 +62,8 @@ class Components:
         Returns:
             A [stimuli x channel] reconstruction of your data.
         '''
-
+        if self.R is None or self.W is None:
+            raise ValueError("Decomposition not yet computed, cannot reconstruct")
         if subset is not None:
             measurements = np.matmul(self.R[:, subset], self.W[subset, :])
         else:
@@ -132,6 +135,8 @@ class Components:
         self.W = np.matmul(np.linalg.pinv(self.R), measurements)
 
     def _select_top_components(self, n_components=None):
+        if self.R is None or self.W is None:
+            return
         if n_components is not None:
             self.R = self.R[:, :n_components]
             self.W = self.W[:n_components, :]
@@ -139,5 +144,7 @@ class Components:
 
     def order_components(self, order):
         '''Re-order components'''
-        self.R = self.R[:, order]
-        self.W = self.W[order, :]
+        if self.R is not None:
+            self.R = self.R[:, order]
+        if self.W is not None:
+            self.W = self.W[order, :]
