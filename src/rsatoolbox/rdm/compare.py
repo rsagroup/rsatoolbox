@@ -334,13 +334,13 @@ def _cosine_cov_weighted_slow(vector1, vector2, frozen_inds=[], sigma_k=None, na
     """
     if nan_idx is not None:
         n_cond = _get_n_from_reduced_vectors(nan_idx.reshape(1, -1))
-        v = _get_v(n_cond, sigma_k, frozen_inds)
+        v = _get_v(n_cond, sigma_k)
         v = v[nan_idx][:, nan_idx]
     else:
         n_cond = _get_n_from_reduced_vectors(vector1)
-        v = _get_v(n_cond, sigma_k, frozen_inds)
+        v = _get_v(n_cond, sigma_k)
     # Now adjust v to account for any frozen patterns.
-    # v = _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds)
+    v = _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds)
     # Omit any all-zero rows and columns, keeping as a sparse matrix.
     nonzero_rows = np.where(v.sum(axis=1) != 0)[0]
     v = v[nonzero_rows][:, nonzero_rows]
@@ -632,11 +632,10 @@ def _count_rank_tie(ranks):
             (cnt * (cnt - 1.) * (2 * cnt + 5)).sum())
 
 
-def _get_v(n_cond, sigma_k, frozen_inds=[]):
+def _get_v(n_cond, sigma_k):
     """ get the rdm covariance from sigma_k """
     # calculate Xi
     c_mat = pairwise_contrast_sparse(np.arange(n_cond))
-    c_mat[:, frozen_inds] = 0  # Testing whether this is the right way to treat the frozen indices.
     if sigma_k is None:
         xi = c_mat @ c_mat.transpose()
     elif sigma_k.ndim == 1:
