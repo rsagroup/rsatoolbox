@@ -4,7 +4,7 @@ Estimating dissimilarities
 ==========================
 The second step in RSA is to calculate a dissimilarity of distance measure from the data.
 
-To calculate all pairwise distance, one needs to define the appropriate dataset (see :ref:`datasets`) and use ``rdm.calc.calc_rdm`` to caluclate the appropriate rdm.
+To calculate all pairwise distance, one needs to define the appropriate dataset (see :ref:`datasets`) and use ``rdm.calc.calc_rdm`` to calculate the appropriate rdm.
 
 .. sourcecode:: python
 
