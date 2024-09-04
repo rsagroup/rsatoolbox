@@ -33,7 +33,8 @@ def _check_demean(matrix):
         dof = matrix.shape[0] - 1
     elif matrix.ndim == 3:
         matrix -= np.mean(matrix, axis=2, keepdims=True)
-        dof = (matrix.shape[0] - 1) * matrix.shape[2]
+        # dof = (matrix.shape[0] - 1) * matrix.shape[2] JohnMark checking
+        dof = matrix.shape[0] * (matrix.shape[2] - 1)
         matrix = matrix.transpose(0, 2, 1).reshape(
             matrix.shape[0] * matrix.shape[2], matrix.shape[1])
     else:
@@ -147,13 +148,13 @@ def _covariance_eye(matrix, dof):
     b2 = min(d2, b2)
     # shrink covariance matrix
     s_shrink = b2 / d2 * m * np.eye(s.shape[0]) \
-        + (d2-b2) / d2 * s
+               + (d2 - b2) / d2 * s
     # correction for degrees of freedom
     s_shrink = s_shrink * matrix.shape[0] / dof
     return s_shrink
 
 
-def _covariance_diag(matrix, dof, mem_threshold=(10**9)/8):
+def _covariance_diag(matrix, dof, mem_threshold=(10 ** 9) / 8):
     """
     computes the sample covariance matrix from a 2d-array.
     matrix should be demeaned before!
@@ -189,11 +190,11 @@ def _covariance_diag(matrix, dof, mem_threshold=(10**9)/8):
     s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / (matrix.shape[0] - 1)
     s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / (matrix.shape[0] - 1)
     var_hat = matrix.shape[0] / dof ** 2 \
-        * (s2_mean - s_mean ** 2)
+              * (s2_mean - s_mean ** 2)
     mask = ~np.eye(s.shape[0], dtype=bool)
     lamb = np.sum(var_hat[mask]) / np.sum(s_mean[mask] ** 2)
     lamb = max(min(lamb, 1), 0)
-    scaling = np.eye(s.shape[0]) + (1-lamb) * mask
+    scaling = np.eye(s.shape[0]) + (1 - lamb) * mask
     s_shrink = s * scaling
     return s_shrink
 
