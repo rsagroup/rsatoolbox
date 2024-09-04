@@ -187,8 +187,10 @@ def _covariance_diag(matrix, dof, mem_threshold=(10 ** 9) / 8):
     s = s_sum / dof
     var = np.diag(s)
     std = np.sqrt(var)
-    s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / (matrix.shape[0] - 1)
-    s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / (matrix.shape[0] - 1)
+    # s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / (matrix.shape[0] - 1) JohnMark check
+    # s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / (matrix.shape[0] - 1)
+    s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / dof
+    s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / dof
     var_hat = matrix.shape[0] / dof ** 2 \
               * (s2_mean - s_mean ** 2)
     mask = ~np.eye(s.shape[0], dtype=bool)
@@ -196,6 +198,13 @@ def _covariance_diag(matrix, dof, mem_threshold=(10 ** 9) / 8):
     lamb = max(min(lamb, 1), 0)
     scaling = np.eye(s.shape[0]) + (1 - lamb) * mask
     s_shrink = s * scaling
+
+    mean_eigenvalue = np.mean(np.linalg.eigvals(s_shrink))
+    print(f"data shape: {matrix.shape}")
+    print(f"dof: {dof}")
+    print(f"lambda: {lamb}")
+    print(f"mean var: {np.mean(var)}")
+    print(f"mean eigenvalue: {mean_eigenvalue}")
     return s_shrink
 
 
