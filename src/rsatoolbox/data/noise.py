@@ -185,10 +185,10 @@ def _covariance_diag(matrix, dof, lamb_opt=None, mem_threshold=(10 ** 9) / 8):
         s_sum += xt_x
         s2_sum += xt_x ** 2
     s = s_sum / dof
+    var = np.diag(s)
+    std = np.sqrt(var)
     mask = ~np.eye(s.shape[0], dtype=bool)
     if lamb_opt is None:
-        var = np.diag(s)
-        std = np.sqrt(var)
         # s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / (matrix.shape[0] - 1) JohnMark check
         # s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / (matrix.shape[0] - 1)
         s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / dof
