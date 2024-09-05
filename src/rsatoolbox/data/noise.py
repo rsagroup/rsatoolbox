@@ -42,7 +42,7 @@ def _check_demean(matrix):
     return matrix, dof
 
 
-def _estimate_covariance(matrix, dof, method):
+def _estimate_covariance(matrix, dof, method, lamb_opt=None):
     """ calls the right covariance estimation function based on the ""method" argument
 
     Args:
@@ -67,7 +67,7 @@ def _estimate_covariance(matrix, dof, method):
     if method == 'shrinkage_eye':
         cov_mat = _covariance_eye(matrix, dof)
     elif method == 'shrinkage_diag':
-        cov_mat = _covariance_diag(matrix, dof)
+        cov_mat = _covariance_diag(matrix, dof, lamb_opt)
     elif method == 'diag':
         cov_mat = _variance(matrix, dof)
     elif method == 'full':
@@ -154,7 +154,7 @@ def _covariance_eye(matrix, dof):
     return s_shrink
 
 
-def _covariance_diag(matrix, dof, mem_threshold=(10 ** 9) / 8):
+def _covariance_diag(matrix, dof, lamb_opt=None, mem_threshold=(10 ** 9) / 8):
     """
     computes the sample covariance matrix from a 2d-array.
     matrix should be demeaned before!
@@ -185,26 +185,31 @@ def _covariance_diag(matrix, dof, mem_threshold=(10 ** 9) / 8):
         s_sum += xt_x
         s2_sum += xt_x ** 2
     s = s_sum / dof
-    var = np.diag(s)
-    std = np.sqrt(var)
-    # s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / (matrix.shape[0] - 1) JohnMark check
-    # s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / (matrix.shape[0] - 1)
-    s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / dof
-    s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / dof
-    var_hat = matrix.shape[0] / dof ** 2 \
-              * (s2_mean - s_mean ** 2)
     mask = ~np.eye(s.shape[0], dtype=bool)
-    lamb = np.sum(var_hat[mask]) / np.sum(s_mean[mask] ** 2)
-    lamb = max(min(lamb, 1), 0)
+    if lamb_opt is None:
+        var = np.diag(s)
+        std = np.sqrt(var)
+        # s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / (matrix.shape[0] - 1) JohnMark check
+        # s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / (matrix.shape[0] - 1)
+        s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / dof
+        s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / dof
+        var_hat = matrix.shape[0] / dof ** 2 \
+                  * (s2_mean - s_mean ** 2)
+        lamb = np.sum(var_hat[mask]) / np.sum(s_mean[mask] ** 2)
+        lamb = max(min(lamb, 1), 0)
+    else:
+        lamb = lamb_opt
     scaling = np.eye(s.shape[0]) + (1 - lamb) * mask
     s_shrink = s * scaling
 
-    mean_eigenvalue = np.mean(np.linalg.eigvals(s_shrink))
+    mean_shrunk_eigenvalue = np.mean(np.linalg.eigvals(s_shrink))
+    mean_full_eigenvalue = np.mean(np.linalg.eigvals(s))
     print(f"data shape: {matrix.shape}")
     print(f"dof: {dof}")
     print(f"lambda: {lamb}")
     print(f"mean var: {np.mean(var)}")
-    print(f"mean eigenvalue: {mean_eigenvalue}")
+    print(f"mean full eigenvalue: {mean_full_eigenvalue}")
+    print(f"mean shrunk eigenvalue: {mean_shrunk_eigenvalue}")
     return s_shrink
 
 
@@ -282,7 +287,7 @@ def prec_from_residuals(residuals, dof=None, method='shrinkage_diag'):
     return prec
 
 
-def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
+def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag', lamb_opt=None):
     """
     Estimates a covariance matrix from measurements. Allows for shrinkage estimates.
     Use 'method' to choose which estimation method is used.
@@ -321,11 +326,11 @@ def cov_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
             "obs_desc not contained in the dataset's obs_descriptors"
         tensor, _ = dataset.get_measurements_tensor(obs_desc)
         # calculate sample covariance matrix s
-        cov_mat = _estimate_covariance(tensor, dof, method)
+        cov_mat = _estimate_covariance(tensor, dof, method, lamb_opt)
     return cov_mat
 
 
-def prec_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag'):
+def prec_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag', lamb_opt=None):
     """
     Estimates the covariance matrix from measurements and finds its multiplicative
     inverse (= the precision matrix)
@@ -347,7 +352,7 @@ def prec_from_measurements(dataset, obs_desc, dof=None, method='shrinkage_diag')
         numpy.ndarray (or list): sigma_p: precision matrix over channels
 
     """
-    cov = cov_from_measurements(dataset, obs_desc, dof=dof, method=method)
+    cov = cov_from_measurements(dataset, obs_desc, dof=dof, method=method, lamb_opt=lamb_opt)
     if not isinstance(cov, np.ndarray):
         prec = [None] * len(cov)
         for i, cov_i in enumerate(cov):
