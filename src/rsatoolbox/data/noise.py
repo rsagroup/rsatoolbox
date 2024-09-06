@@ -33,7 +33,7 @@ def _check_demean(matrix):
         dof = matrix.shape[0] - 1
     elif matrix.ndim == 3:
         matrix -= np.mean(matrix, axis=2, keepdims=True)
-        dof = (matrix.shape[0] - 1) * matrix.shape[2]
+        dof = matrix.shape[0] * (matrix.shape[2] - 1)
         matrix = matrix.transpose(0, 2, 1).reshape(
             matrix.shape[0] * matrix.shape[2], matrix.shape[1])
     else:
@@ -71,6 +71,8 @@ def _estimate_covariance(matrix, dof, method):
         cov_mat = _variance(matrix, dof)
     elif method == 'full':
         cov_mat = _covariance_full(matrix, dof)
+    else:
+        raise ValueError("Unknown type of covariance estimate requested!")
     return cov_mat
 
 
@@ -219,7 +221,7 @@ def cov_from_residuals(residuals, dof=None, method='shrinkage_diag'):
         numpy.ndarray (or list): sigma_p: covariance matrix over channels
 
     """
-    if not isinstance(residuals, np.ndarray) or len(residuals.shape) > 2:
+    if not isinstance(residuals, np.ndarray):
         cov_mat = []
         for i, residual in enumerate(residuals):
             if dof is None:
