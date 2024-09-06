@@ -24,6 +24,8 @@ class TestNoise(unittest.TestCase):
         np.testing.assert_allclose(true_cov, rsa_cov)
         rsa_cov_diag = cov_from_residuals(self.mat2d, method="diag")
         np.testing.assert_allclose(np.diag(true_cov), np.diag(rsa_cov_diag))
+        rsa_cov_shrink_diag = cov_from_residuals(self.mat2d, method="shrinkage_diag")
+        np.testing.assert_allclose(np.diag(true_cov), np.diag(rsa_cov_shrink_diag))
 
     def test_3d(self):
         from rsatoolbox.data.noise import cov_from_residuals
@@ -35,3 +37,5 @@ class TestNoise(unittest.TestCase):
         np.testing.assert_allclose(true_cov, rsa_cov)
         rsa_cov_diag = cov_from_residuals(self.mat3d, method="diag")
         np.testing.assert_allclose(np.diag(true_cov), np.diag(rsa_cov_diag))
+        rsa_cov_shrink_diag = cov_from_residuals(self.mat3d, method="shrinkage_diag")
+        np.testing.assert_allclose(np.diag(true_cov), np.diag(rsa_cov_shrink_diag))

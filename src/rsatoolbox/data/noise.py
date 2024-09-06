@@ -72,6 +72,7 @@ def _estimate_covariance(matrix, dof, method):
     elif method == 'full':
         cov_mat = _covariance_full(matrix, dof)
     else:
+        cov_mat = None
         raise ValueError("Unknown type of covariance estimate requested!")
     return cov_mat
 
@@ -188,8 +189,8 @@ def _covariance_diag(matrix, dof):
     s = s_sum / dof
     var = np.diag(s)
     std = np.sqrt(var)
-    s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / (matrix.shape[0] - 1)
-    s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / (matrix.shape[0] - 1)
+    s_mean = s_sum / np.expand_dims(std, 0) / np.expand_dims(std, 1) / dof
+    s2_mean = s2_sum / np.expand_dims(var, 0) / np.expand_dims(var, 1) / dof
     var_hat = matrix.shape[0] / dof ** 2 \
         * (s2_mean - s_mean ** 2)
     mask = ~np.eye(s.shape[0], dtype=bool)
