@@ -32,11 +32,12 @@ def _check_demean(matrix):
         matrix = matrix - np.mean(matrix, axis=0, keepdims=True)
         dof = matrix.shape[0] - 1
     elif matrix.ndim == 3:
-        matrix -= np.mean(matrix, axis=2, keepdims=True)
+        matrix -= np.nanmean(matrix, axis=2, keepdims=True)
         # dof = (matrix.shape[0] - 1) * matrix.shape[2] JohnMark checking
         dof = matrix.shape[0] * (matrix.shape[2] - 1)
         matrix = matrix.transpose(0, 2, 1).reshape(
             matrix.shape[0] * matrix.shape[2], matrix.shape[1])
+        matrix = matrix[~np.isnan(matrix).any(axis=1)]
     else:
         raise ValueError('Matrix for covariance estimation has wrong # of dimensions!')
     return matrix, dof
