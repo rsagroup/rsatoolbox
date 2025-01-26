@@ -559,12 +559,12 @@ def concat(*rdms: RDMs, target_pdesc: Optional[str] = None) -> RDMs:
         rsatoolbox.rdm.RDMs: concatenated rdms object
 
     """
-    if len(rdms) == 1: ## single argument
+    if len(rdms) == 1:  # single argument
         if isinstance(rdms[0], RDMs):
             rdms_list = [rdms[0]]
         else:
             rdms_list = list(rdms[0])
-    else: ## multiple arguments
+    else:  # multiple arguments
         rdms_list = list(rdms)
     assert isinstance(rdms_list[0], RDMs), \
         'Supply list of RDMs objects, or RDMs objects as separate arguments'
@@ -578,7 +578,7 @@ def concat(*rdms: RDMs, target_pdesc: Optional[str] = None) -> RDMs:
             lambda n: n != 'index' and (
                 len(rdms_list[0].pattern_descriptors[n])
                 == len(set(rdms_list[0].pattern_descriptors[n]))),
-                pdescs))
+            pdescs))
         target_pdesc = None
         if len(pdesc_candidates) > 0:
             target_pdesc = pdesc_candidates[0]
