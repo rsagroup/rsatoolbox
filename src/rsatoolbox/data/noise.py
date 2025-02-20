@@ -203,14 +203,14 @@ def _covariance_diag(matrix, dof, lamb_opt=None, mem_threshold=(10 ** 9) / 8):
     scaling = np.eye(s.shape[0]) + (1 - lamb) * mask
     s_shrink = s * scaling
 
-    mean_shrunk_eigenvalue = np.mean(np.linalg.eigvals(s_shrink))
-    mean_full_eigenvalue = np.mean(np.linalg.eigvals(s))
-    print(f"data shape: {matrix.shape}")
-    print(f"dof: {dof}")
-    print(f"lambda: {lamb}")
-    print(f"mean var: {np.mean(var)}")
-    print(f"mean full eigenvalue: {mean_full_eigenvalue}")
-    print(f"mean shrunk eigenvalue: {mean_shrunk_eigenvalue}")
+    # mean_shrunk_eigenvalue = np.mean(np.linalg.eigvals(s_shrink))
+    # mean_full_eigenvalue = np.mean(np.linalg.eigvals(s))
+    # print(f"data shape: {matrix.shape}")
+    # print(f"dof: {dof}")
+    # print(f"lambda: {lamb}")
+    # print(f"mean var: {np.mean(var)}")
+    # print(f"mean full eigenvalue: {mean_full_eigenvalue}")
+    # print(f"mean shrunk eigenvalue: {mean_shrunk_eigenvalue}")
     return s_shrink
 
 
