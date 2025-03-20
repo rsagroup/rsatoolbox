@@ -15,7 +15,7 @@ def crossval_sim(n_part=2,n_cond=4,n_sim=10,n_channel=200,sigma='iid'):
     Low numbers of partitions to emphasize increase in variance.
     """
 
-    cond_vec,part_vec = rsa.simulation.make_design(n_cond,n_part)
+    cond_vec,part_vec = pcm.sim.make_design(n_cond,n_part)
     true_dist = np.array([2,1,0,3,2,1])
     dist_type = np.array([1,2,3,4,5,6])
     D = sd.squareform(true_dist)
