@@ -59,6 +59,7 @@ testpaths = [
     "tests"
 ]
 python_files = "*.py"
+addopts = "--assert=plain"
 
 [tool.cibuildwheel]
 test-requires = "pytest"
