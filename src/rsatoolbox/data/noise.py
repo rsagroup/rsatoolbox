@@ -66,7 +66,7 @@ def _estimate_covariance(matrix, dof, method, lamb_opt=None):
         dof = dof_nat
     # calculate sample covariance matrix s
     if method == 'shrinkage_eye':
-        cov_mat = _covariance_eye(matrix, dof)
+        cov_mat = _covariance_eye(matrix, dof, lamb_opt)
     elif method == 'shrinkage_diag':
         cov_mat = _covariance_diag(matrix, dof, lamb_opt)
     elif method == 'diag':
@@ -110,7 +110,7 @@ def _covariance_full(matrix, dof):
     return np.einsum('ij, ik-> jk', matrix, matrix, optimize=True) / dof
 
 
-def _covariance_eye(matrix, dof):
+def _covariance_eye(matrix, dof, lamb_opt):
     """
     computes the sample covariance matrix from a 2d-array.
     matrix should be demeaned before!
@@ -145,11 +145,15 @@ def _covariance_eye(matrix, dof):
     # calculate the scalar estimators to find the optimal shrinkage:
     # m, d^2, b^2 as in Ledoit & Wolfe paper
     m = np.sum(np.diag(s)) / s.shape[0]
-    d2 = np.sum((s - m * np.eye(s.shape[0])) ** 2)
-    b2 = min(d2, b2)
-    # shrink covariance matrix
-    s_shrink = b2 / d2 * m * np.eye(s.shape[0]) \
-               + (d2 - b2) / d2 * s
+    if lamb_opt is None:
+        d2 = np.sum((s - m * np.eye(s.shape[0])) ** 2)
+        b2 = min(d2, b2)
+        # shrink covariance matrix
+        s_shrink = b2 / d2 * m * np.eye(s.shape[0]) \
+                   + (d2 - b2) / d2 * s
+    else:
+        s_shrink = lamb_opt * m * np.eye(s.shape[0]) \
+                   + (1 - lamb_opt) * s
     # correction for degrees of freedom
     s_shrink = s_shrink * matrix.shape[0] / dof
     return s_shrink
