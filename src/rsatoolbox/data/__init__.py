@@ -6,6 +6,7 @@ from .computations import average_dataset
 from .computations import average_dataset_by
 from .noise import cov_from_residuals
 from .noise import prec_from_residuals
+from .components import Components
 from .noise import cov_from_measurements
 from .noise import prec_from_measurements
 from .noise import cov_from_unbalanced
