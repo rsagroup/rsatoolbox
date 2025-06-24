@@ -446,6 +446,7 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
     N, n_dist = vector.shape
     n_cond = _get_n_from_length(nan_idx.shape[0])
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
+    SPARSE_THRESHOLD = 100 # threshold for switching to sparse matrices
     if n_cond >= SPARSE_THRESHOLD:
         rowI, colI = row_col_indicator_g_sparse(n_cond) # use sparse indicator matrices
     else:
