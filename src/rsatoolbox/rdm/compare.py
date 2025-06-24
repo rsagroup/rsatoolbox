@@ -13,7 +13,7 @@ from rsatoolbox.util.matrix import pairwise_contrast_sparse
 from rsatoolbox.util.matrix import pairwise_contrast
 from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
 from rsatoolbox.util.rdm_utils import _get_n_from_length
-from rsatoolbox.util.matrix import row_col_indicator_g
+from rsatoolbox.util.matrix import row_col_indicator_g, row_col_indicator_g_sparse
 from rsatoolbox.util.rdm_utils import batch_to_matrices
 
 
@@ -446,7 +446,10 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
     N, n_dist = vector.shape
     n_cond = _get_n_from_length(nan_idx.shape[0])
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
-    rowI, colI = row_col_indicator_g(n_cond)
+    if n_cond >= 100:
+        rowI, colI = row_col_indicator_g_sparse(n_cond) # use sparse indicator matrices
+    else:
+        rowI, colI = row_col_indicator_g(n_cond) # use dense indicator matrices
     sumI = rowI + colI
     if np.all(nan_idx):
         # column and row means
