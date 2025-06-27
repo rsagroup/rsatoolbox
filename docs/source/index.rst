@@ -2,7 +2,7 @@
 Python Representational Similarity Analysis (rsatoolbox) toolbox
 ****************************************************************
 
-The rsatoolbox (https://github.com/rsagroup/rsatoolbox) is developed through a community effort by the labs of Nikolaus Kriegeskorte, Jörn Diedrichsen, Marieke Mur and Ian Charest. It was conceived during the RSA retreat 2019 in Blue Mountains, Ontario. The toolbox replaces the 2013 matlab version the toolbox of rsatoolbox previously at ilogue/rsatoolbox (no longer maintained) and reflects many of the new methodological developements.
+The rsatoolbox ([github.com/rsagroup/rsatoolbox](https://github.com/rsagroup/rsatoolbox)) is developed through a community effort by the labs of Nikolaus Kriegeskorte, Jörn Diedrichsen, Marieke Mur and Ian Charest. It was conceived during the RSA retreat 2019 in Blue Mountains, Ontario. The toolbox replaces the 2013 matlab version of rsatoolbox previously at ilogue/rsatoolbox (no longer maintained) and reflects many of the new methodological developments.
 
 
 Documentation
