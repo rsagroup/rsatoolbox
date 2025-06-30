@@ -15,7 +15,8 @@ licence <https://en.wikipedia.org/wiki/BSD_licenses>.
 We modified the MDS function to include an additional
 functionality of having an important matrix as an input.
 """
-
+from __future__ import annotations
+from typing import TYPE_CHECKING, Tuple
 import warnings
 import numpy as np
 from joblib import Parallel, delayed, effective_n_jobs
@@ -23,12 +24,14 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_random_state, check_array, check_symmetric
 from sklearn.isotonic import IsotonicRegression
-from sklearn.utils.validation import validate_data
+from sklearn.utils.validation import validate_data # type: ignore
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
 def _smacof_single(dissimilarities, metric=True, n_components=2, init=None,
                    max_iter=300, verbose=0, eps=1e-3, random_state=None,
-                   weight=None):
+                   weight=None) -> Tuple[NDArray, float, int]:
     """Computes multidimensional scaling using SMACOF algorithm.
 
     Parameters
@@ -152,13 +155,16 @@ def _smacof_single(dissimilarities, metric=True, n_components=2, init=None,
                                                                        stress))
                 break
         old_stress = stress / dis
+    else:
+        raise ValueError('No iterations, max_iter must be > 0')
 
     return X, stress, it + 1
 
 
 def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
            n_init=8, n_jobs=None, max_iter=300, verbose=0, eps=1e-3,
-           random_state=None, return_n_iter=False, weight=None):
+           random_state=None, return_n_iter=False, weight=None
+           ) -> Tuple[NDArray, float, int] | Tuple[NDArray, float]:
     """Computes multidimensional scaling using the SMACOF algorithm.
 
     The SMACOF (Scaling by MAjorizing a COmplicated Function) algorithm is a
@@ -271,7 +277,7 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
 
     best_pos, best_stress = None, None
 
-    if effective_n_jobs(n_jobs) == 1:
+    if effective_n_jobs(n_jobs) == 1: # type: ignore (effective_n_jobs wongly typed)
         for it in range(n_init):
             pos, stress, n_iter_ = _smacof_single(
                 dissimilarities, metric=metric,
@@ -283,6 +289,8 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
                 best_stress = stress
                 best_pos = pos.copy()
                 best_iter = n_iter_
+        else:
+            raise ValueError('No iterations, n_init must be > 0')
     else:
         seeds = random_state.randint(np.iinfo(np.int32).max, size=n_init)
         results = Parallel(n_jobs=n_jobs, verbose=max(verbose - 1, 0))(
