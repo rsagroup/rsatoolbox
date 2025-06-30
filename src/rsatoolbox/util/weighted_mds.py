@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Collection of helper methods for vis module
+"""Weighted MDS
 
 + Weighted_MDS:       an MDS class that incorporates weighting
-+ weight_to_matrices: batch squareform() to weight matrices
 
 @author: baihan
 
@@ -24,30 +23,7 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_random_state, check_array, check_symmetric
 from sklearn.isotonic import IsotonicRegression
-from scipy.spatial.distance import squareform
-from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
 from sklearn.utils.validation import validate_data
-
-
-def weight_to_matrices(x):
-    """converts a *stack* of weights in vector or matrix form into matrix form
-
-    Args:
-        **x** (np.ndarray): stack of weight matrices or weight vectors
-
-    Returns:
-        tuple: **v** (np.ndarray): 3D, matrix form of the stack of weight matrices
-    """
-    if x.ndim == 2:
-        v = x
-        n_rdm = x.shape[0]
-        n_cond = _get_n_from_reduced_vectors(x)
-        m = np.ndarray((n_rdm, n_cond, n_cond))
-        for idx in np.arange(n_rdm):
-            m[idx, :, :] = squareform(v[idx, :])
-    elif x.ndim == 3:
-        m = x
-    return m
 
 
 def _smacof_single(dissimilarities, metric=True, n_components=2, init=None,
