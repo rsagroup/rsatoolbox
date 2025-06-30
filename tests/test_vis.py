@@ -5,7 +5,7 @@ test_data
 Test for visualization class
 @author: baihan
 """
-from unittest import TestCase, skip
+from unittest import TestCase
 from unittest.mock import patch
 import numpy as np
 import rsatoolbox.rdm as rsr
