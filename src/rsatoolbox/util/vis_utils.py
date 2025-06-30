@@ -26,6 +26,7 @@ from sklearn.utils import check_random_state, check_array, check_symmetric
 from sklearn.isotonic import IsotonicRegression
 from scipy.spatial.distance import squareform
 from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
+from sklearn.utils.validation import validate_data
 
 
 def weight_to_matrices(x):
@@ -490,7 +491,7 @@ class Weighted_MDS(BaseEstimator):
             symmetric weighting matrix of similarities.
             In default, all weights are 1.
         """
-        X = self._validate_data(X)
+        X = validate_data(self, X)
         if X.shape[0] == X.shape[1] and self.dissimilarity != "precomputed":
             warnings.warn("The MDS API has changed. ``fit`` now constructs an"
                           " dissimilarity matrix from data. To use a custom "
