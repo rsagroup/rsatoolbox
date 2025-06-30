@@ -219,7 +219,7 @@ def show_iso(
     )
 
 
-def weight_to_matrices(x):
+def weight_to_matrices(x: NDArray) -> NDArray:
     """converts a *stack* of weights in vector or matrix form into matrix form
 
     Args:
@@ -237,4 +237,6 @@ def weight_to_matrices(x):
             m[idx, :, :] = squareform(v[idx, :])
     elif x.ndim == 3:
         m = x
+    else:
+        raise ValueError('X must have 2 or 3 dimensions')
     return m
