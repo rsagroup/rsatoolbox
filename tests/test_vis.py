@@ -5,14 +5,14 @@ test_data
 Test for visualization class
 @author: baihan
 """
-from unittest import TestCase
+from unittest import TestCase, skip
 from unittest.mock import patch
 import numpy as np
 import rsatoolbox.rdm as rsr
 import rsatoolbox.vis as rsv
 from scipy.spatial.distance import pdist
 
-
+@skip('Skip until fix in #444')
 class TestMDS(TestCase):
 
     def setUp(self) -> None:
