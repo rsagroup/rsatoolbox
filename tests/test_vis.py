@@ -12,7 +12,7 @@ import rsatoolbox.rdm as rsr
 import rsatoolbox.vis as rsv
 from scipy.spatial.distance import pdist
 
-@skip('Skip until fix in #444')
+
 class TestMDS(TestCase):
 
     def setUp(self) -> None:
