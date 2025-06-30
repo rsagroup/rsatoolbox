@@ -1,4 +1,3 @@
-import rsatoolbox as rsa
 import numpy as np
 import PcmPy as pcm
 import scipy.spatial.distance as sd
