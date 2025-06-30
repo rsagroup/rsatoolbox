@@ -22,7 +22,6 @@ license = "MIT"
 license-files = ["LICENSE"]
 classifiers = [
       'Programming Language :: Python',
-      'License :: OSI Approved :: MIT License',
       'Operating System :: OS Independent',
       'Development Status :: 4 - Beta',
       'Topic :: Scientific/Engineering',
