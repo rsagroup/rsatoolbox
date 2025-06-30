@@ -18,7 +18,8 @@ authors = [
     {name="rsatoolbox authors"},
 ]
 keywords = ["neuroscience"]
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
       'Programming Language :: Python',
       'License :: OSI Approved :: MIT License',
