@@ -16,7 +16,7 @@ We modified the MDS function to include an additional
 functionality of having an important matrix as an input.
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, Tuple, Optional
 import warnings
 import numpy as np
 from joblib import Parallel, delayed, effective_n_jobs
@@ -164,7 +164,7 @@ def _smacof_single(dissimilarities, metric=True, n_components=2, init=None,
 def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
            n_init=8, n_jobs=None, max_iter=300, verbose=0, eps=1e-3,
            random_state=None, return_n_iter=False, weight=None
-           ) -> Tuple[NDArray, float, int] | Tuple[NDArray, float]:
+           ) -> Tuple[Optional[NDArray], Optional[float], Optional[int]] | Tuple[Optional[NDArray], Optional[float]]:
     """Computes multidimensional scaling using the SMACOF algorithm.
 
     The SMACOF (Scaling by MAjorizing a COmplicated Function) algorithm is a
@@ -275,7 +275,7 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
                 % n_init)
             n_init = 1
 
-    best_pos, best_stress = None, None
+    best_pos, best_stress, best_iter = None, None, None
 
     if effective_n_jobs(n_jobs) == 1: # type: ignore (effective_n_jobs wongly typed)
         for it in range(n_init):
@@ -289,8 +289,7 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
                 best_stress = stress
                 best_pos = pos.copy()
                 best_iter = n_iter_
-        else:
-            raise ValueError('No iterations, n_init must be > 0')
+
     else:
         seeds = random_state.randint(np.iinfo(np.int32).max, size=n_init)
         results = Parallel(n_jobs=n_jobs, verbose=max(verbose - 1, 0))(
