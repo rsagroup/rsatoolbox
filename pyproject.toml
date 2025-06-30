@@ -13,7 +13,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rsatoolbox"
 description = "Representational Similarity Analysis (RSA) in Python"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 authors = [
     {name="rsatoolbox authors"},
 ]
@@ -26,11 +26,11 @@ classifiers = [
       'Development Status :: 4 - Beta',
       'Topic :: Scientific/Engineering',
       'Intended Audience :: Science/Research',
-      'Programming Language :: Python :: 3.8',
       'Programming Language :: Python :: 3.9',
       'Programming Language :: Python :: 3.10',
       'Programming Language :: Python :: 3.11',
       'Programming Language :: Python :: 3.12',
+      'Programming Language :: Python :: 3.13',
 ]
 dynamic = ["readme", "dependencies", "version"]
 [project.optional-dependencies]
