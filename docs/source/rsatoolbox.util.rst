@@ -15,7 +15,7 @@ Submodules
    rsatoolbox.util.pooling
    rsatoolbox.util.rdm_utils
    rsatoolbox.util.searchlight
-   rsatoolbox.util.vis_utils
+   rsatoolbox.util.weighted_mds
 
 Module contents
 ---------------

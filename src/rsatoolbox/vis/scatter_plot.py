@@ -4,8 +4,10 @@ import math
 import matplotlib.pyplot
 import sklearn.manifold
 import numpy
-from rsatoolbox.util.vis_utils import weight_to_matrices, Weighted_MDS
+from scipy.spatial.distance import squareform
+from rsatoolbox.util.weighted_mds import Weighted_MDS
 from rsatoolbox.vis.icon import Icon
+from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
 if TYPE_CHECKING:
     from rsatoolbox.rdm import RDMs
     from numpy.typing import NDArray
@@ -215,3 +217,26 @@ def show_iso(
         pattern_descriptor=pattern_descriptor,
         icon_size=icon_size
     )
+
+
+def weight_to_matrices(x: NDArray) -> NDArray:
+    """converts a *stack* of weights in vector or matrix form into matrix form
+
+    Args:
+        **x** (np.ndarray): stack of weight matrices or weight vectors
+
+    Returns:
+        tuple: **v** (np.ndarray): 3D, matrix form of the stack of weight matrices
+    """
+    if x.ndim == 2:
+        v = x
+        n_rdm = x.shape[0]
+        n_cond = _get_n_from_reduced_vectors(x)
+        m = numpy.ndarray((n_rdm, n_cond, n_cond))
+        for idx in numpy.arange(n_rdm):
+            m[idx, :, :] = squareform(v[idx, :])
+    elif x.ndim == 3:
+        m = x
+    else:
+        raise ValueError('X must have 2 or 3 dimensions')
+    return m
