@@ -65,21 +65,24 @@ def calc_rdm(
                     ds_i, method=method,
                     descriptor=descriptor,
                     cv_descriptor=cv_descriptor,
-                    prior_lambda=prior_lambda, prior_weight=prior_weight))
+                    prior_lambda=prior_lambda, prior_weight=prior_weight,
+                    remove_mean=remove_mean))
             elif isinstance(noise, np.ndarray) and noise.ndim == 2:
                 rdms.append(calc_rdm(
                     ds_i, method=method,
                     descriptor=descriptor,
                     noise=noise,
                     cv_descriptor=cv_descriptor,
-                    prior_lambda=prior_lambda, prior_weight=prior_weight))
+                    prior_lambda=prior_lambda, prior_weight=prior_weight,
+                    remove_mean=remove_mean))
             elif isinstance(noise, Iterable):
                 rdms.append(calc_rdm(
                     ds_i, method=method,
                     descriptor=descriptor,
                     noise=noise[i_dat],
                     cv_descriptor=cv_descriptor,
-                    prior_lambda=prior_lambda, prior_weight=prior_weight))
+                    prior_lambda=prior_lambda, prior_weight=prior_weight,
+                    remove_mean=remove_mean))
         if descriptor is None:
             rdm = concat(rdms)
         else:
