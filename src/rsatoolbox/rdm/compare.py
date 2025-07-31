@@ -672,10 +672,10 @@ def _parse_input_rdms(rdm1, rdm2):
     if not vector1.shape[1] == vector2.shape[1]:
         raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
     nan_idx = ~np.isnan(vector1)
-    vector1_no_nan = vector1[nan_idx].reshape(vector1.shape[0], -1)
-    vector2_no_nan = vector2[~np.isnan(vector2)].reshape(vector2.shape[0], -1)
-    if not vector1_no_nan.shape[1] == vector2_no_nan.shape[1]:
+    if not np.all(nan_idx == ~np.isnan(vector2)):
         raise ValueError('rdm1 and rdm2 have different nan positions')
+    vector1_no_nan = vector1[nan_idx].reshape(vector1.shape[0], -1)
+    vector2_no_nan = vector2[nan_idx].reshape(vector2.shape[0], -1)
     return vector1_no_nan, vector2_no_nan, nan_idx[0]
 
 
