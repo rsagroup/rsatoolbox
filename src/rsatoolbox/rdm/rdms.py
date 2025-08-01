@@ -6,7 +6,7 @@ Definition of RSA RDMs class and subclasses
 @author: baihan
 """
 from __future__ import annotations
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 import warnings
 from copy import deepcopy
 from collections.abc import Iterable
@@ -543,7 +543,7 @@ def load_rdm(filename, file_type=None):
     return rdms_from_dict(rdm_dict)
 
 
-def concat(*rdms: RDMs, target_pdesc: Optional[str] = None) -> RDMs:
+def concat(rdms: List[RDMs], target_pdesc: Optional[str] = None) -> RDMs:
     """Merge into single RDMs object
     requires that the rdms have the same shape
     descriptor and pattern descriptors are taken from the first rdms object
