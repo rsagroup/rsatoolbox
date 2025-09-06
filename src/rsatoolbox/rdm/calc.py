@@ -385,7 +385,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
         'crossnobis',
         descriptor,
         noise=noise,
-        cv=cv_descriptor
+        cv=np.array(datasetCopy.obs_descriptors[cv_descriptor])
     )
 
 
