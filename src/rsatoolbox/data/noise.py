@@ -464,7 +464,7 @@ def sigmak_from_measurements(dataset, obs_desc, cv_descriptor, noise=None):
 
     """
 
-    n_channels = dataset.n_channels
+    n_channels = dataset.n_channel
     if noise is None:
         noise = np.eye(n_channels)
     else:
@@ -472,7 +472,7 @@ def sigmak_from_measurements(dataset, obs_desc, cv_descriptor, noise=None):
             raise ValueError("noise must have shape n_channel x n_channel")
     noise_sqrt = sqrtm(noise)  # take matrix square root to get whitening matrix
     dataset_whitened = dataset.copy()
-    dataset_whitened.measurements = dataset.measurements @ noise_sqrt.T
+    dataset_whitened.measurements = dataset.measurements @ noise_sqrt
 
     # Compute mean patterns per condition
     U_mean, conds, _ = average_dataset_by(dataset_whitened, obs_desc)
@@ -487,11 +487,11 @@ def sigmak_from_measurements(dataset, obs_desc, cv_descriptor, noise=None):
     for fold in cv_folds:
         U_fold = np.zeros(U_mean.shape) * np.nan  # fold activations
         dataset_fold = dataset_whitened.subset_obs(cv_descriptor, fold)
-        dataset_fold, fold_conds, _ = average_dataset_by(dataset_fold, obs_desc)[0]
+        dataset_fold, fold_conds, _ = average_dataset_by(dataset_fold, obs_desc)
         # Get indices mapping from subsetted conditions to full set, fill out U_fold
         inds = [np.where(conds == c)[0][0] for c in fold_conds]
-        U_fold[inds, :] = dataset_fold.measurements
-        sigma_k_fold = (U_fold @ U_fold.T)
+        U_fold[inds, :] = dataset_fold
+        sigma_k_fold = ((U_fold - U_mean) @ ((U_fold - U_mean).T))
         sigma_ks.append(sigma_k_fold)
 
         # Increment pair counts for all condition pairs present in this fold
@@ -499,4 +499,6 @@ def sigmak_from_measurements(dataset, obs_desc, cv_descriptor, noise=None):
 
     # Finally add all sigma_ks and divide by pair counts to get average
     sigma_k = np.nansum(sigma_ks, axis=0) / (pair_counts - 1) / n_channels
+    # Any pairs that never occurred together should be set to zero
+    sigma_k[np.isnan(sigma_k)] = 0.0
     return sigma_k
