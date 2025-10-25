@@ -15,14 +15,14 @@ if TYPE_CHECKING:
 
 
 def _build_rdms(
-            utv: NDArray,
-            ds: DatasetBase,
-            method: str,
-            obs_desc_name: str | None,
-            obs_desc_vals: Optional[NDArray] = None,
-            cv: Optional[NDArray] = None,
-            noise: Optional[NDArray] = None
-        ) -> RDMs:
+        utv: NDArray,
+        ds: DatasetBase,
+        method: str,
+        obs_desc_name: str | None,
+        obs_desc_vals: Optional[NDArray] = None,
+        cv: Optional[NDArray] = None,
+        noise: Optional[NDArray] = None
+) -> RDMs:
     rdms = RDMs(
         dissimilarities=np.array([utv]),
         dissimilarity_measure=method,
@@ -51,14 +51,15 @@ def _build_rdms(
         rdms.descriptors['noise'] = noise
     if cv is not None:
         rdms.descriptors['cv_descriptor'] = cv
+        rdms.descriptors['n_fold'] = len(np.unique(ds.obs_descriptors[cv]))
     return rdms
 
 
 def _averaging_occurred(
-            ds: DatasetBase,
-            obs_desc_name: str | None,
-            obs_desc_vals: NDArray | None
-        ) -> bool:
+        ds: DatasetBase,
+        obs_desc_name: str | None,
+        obs_desc_vals: NDArray | None
+) -> bool:
     if obs_desc_name is None:
         return False
     orig_obs_desc_vals = ds.obs_descriptors[obs_desc_name]

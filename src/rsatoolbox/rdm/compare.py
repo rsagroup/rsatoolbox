@@ -17,13 +17,14 @@ from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
 from rsatoolbox.util.rdm_utils import _get_n_from_length
 from rsatoolbox.util.matrix import row_col_indicator_g, row_col_indicator_g_sparse
 from rsatoolbox.util.rdm_utils import batch_to_matrices
+
 if TYPE_CHECKING:
     from numpy.typing import NDArray
     from numpy import float64
     from rsatoolbox.rdm.rdms import RDMs
 
 
-def compare(rdm1: RDMs, rdm2: RDMs, method='cosine', sigma_k: Optional[NDArray]=None) -> NDArray:
+def compare(rdm1: RDMs, rdm2: RDMs, method='cosine', sigma_k: Optional[NDArray] = None) -> NDArray:
     """Calculates the similarity between two RDMs objects using a chosen method
 
     Args:
@@ -132,7 +133,7 @@ def compare_correlation(rdm1: RDMs, rdm2: RDMs) -> NDArray:
     return sim
 
 
-def compare_cosine_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray]=None) -> NDArray:
+def compare_cosine_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None) -> NDArray:
     """Calculates the cosine similarities between two RDMs objects
 
     Args:
@@ -150,7 +151,7 @@ def compare_cosine_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArra
     return sim
 
 
-def compare_correlation_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray]=None) -> NDArray:
+def compare_correlation_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None) -> NDArray:
     """Calculates the correlations between two RDMs objects after whitening
     with the covariance of the entries
 
@@ -263,7 +264,7 @@ def compare_kendall_tau_a(rdm1: RDMs, rdm2: RDMs) -> NDArray[float64]:
     return sim
 
 
-def compare_neg_riemannian_distance(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray]=None) -> NDArray:
+def compare_neg_riemannian_distance(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None) -> NDArray:
     """Calculates the negative Riemannian distance between two RDMs objects.
 
     Args:
@@ -279,16 +280,16 @@ def compare_neg_riemannian_distance(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[ND
     n_cond = _get_n_from_length(vector1.shape[1])
     if sigma_k is None:
         sigma_k = np.eye(n_cond)
-    P = np.block([-1*np.ones((n_cond - 1, 1)), np.eye(n_cond - 1)])
-    sigma_k_hat = P@sigma_k@P.T
+    P = np.block([-1 * np.ones((n_cond - 1, 1)), np.eye(n_cond - 1)])
+    sigma_k_hat = P @ sigma_k @ P.T
     # construct RDM to 2nd-moment (G) transformation
-    pairs = pairwise_contrast(np.arange(n_cond-1))
+    pairs = pairwise_contrast(np.arange(n_cond - 1))
     pairs[pairs == -1] = 1
     T = np.block([
-        [np.eye(n_cond - 1), np.zeros((n_cond-1, vector1.shape[1] - n_cond + 1))],
+        [np.eye(n_cond - 1), np.zeros((n_cond - 1, vector1.shape[1] - n_cond + 1))],
         [0.5 * pairs, np.diag(-0.5 * np.ones(vector1.shape[1] - n_cond + 1))]])
-    vec_G1 = vector1@np.transpose(T)
-    vec_G2 = vector2@np.transpose(T)
+    vec_G1 = vector1 @ np.transpose(T)
+    vec_G2 = vector2 @ np.transpose(T)
 
     sim = _all_combinations(vec_G1, vec_G2, _riemannian_distance, sigma_k_hat)
     return sim
@@ -457,11 +458,11 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
     N, n_dist = vector.shape
     n_cond = _get_n_from_length(nan_idx.shape[0])
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
-    SPARSE_THRESHOLD = 100 # threshold for switching to sparse matrices
+    SPARSE_THRESHOLD = 100  # threshold for switching to sparse matrices
     if n_cond >= SPARSE_THRESHOLD:
-        rowI, colI = row_col_indicator_g_sparse(n_cond) # use sparse indicator matrices
+        rowI, colI = row_col_indicator_g_sparse(n_cond)  # use sparse indicator matrices
     else:
-        rowI, colI = row_col_indicator_g(n_cond) # use dense indicator matrices
+        rowI, colI = row_col_indicator_g(n_cond)  # use dense indicator matrices
     sumI = rowI + colI
     if np.all(nan_idx):
         # column and row means
@@ -494,8 +495,8 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
         diag = np.concatenate((np.ones((n_dist, 1)) / 2, np.ones((n_cond, 1))))
         # one line version much faster here!
         vector_w = vector_w - (
-            vector_w
-            @ sumI @ np.linalg.inv(sumI.T @ (diag * sumI)) @ (diag * sumI).T)
+                vector_w
+                @ sumI @ np.linalg.inv(sumI.T @ (diag * sumI)) @ (diag * sumI).T)
         if sigma_k is not None:
             if sigma_k.ndim == 1:
                 sigma_k_sqrt = np.sqrt(sigma_k)
@@ -558,12 +559,13 @@ def _riemannian_distance(vec_G1, vec_G2, sigma_k):
                 negative riemannian distance
     """
     n_cond = _get_n_from_length(len(vec_G1))
-    G1 = np.diag(vec_G1[0:(n_cond-1)])+squareform(vec_G1[(n_cond-1):len(vec_G1)])
-    G2 = np.diag(vec_G2[0:(n_cond-1)])+squareform(vec_G2[(n_cond-1):len(vec_G2)])
+    G1 = np.diag(vec_G1[0:(n_cond - 1)]) + squareform(vec_G1[(n_cond - 1):len(vec_G1)])
+    G2 = np.diag(vec_G2[0:(n_cond - 1)]) + squareform(vec_G2[(n_cond - 1):len(vec_G2)])
 
     def fun(theta):
         return np.sqrt((np.log(linalg.eigvalsh(
-            np.exp(theta[0]) * G1 + np.exp(theta[1]) * sigma_k, G2))**2).sum())
+            np.exp(theta[0]) * G1 + np.exp(theta[1]) * sigma_k, G2)) ** 2).sum())
+
     theta = minimize(fun, (0, 0), method='Nelder-Mead')
     neg_riem = -1 * theta.fun
     return neg_riem
@@ -608,8 +610,8 @@ def _tau_a(vector1, vector2):
                       (vector2[1:] != vector2[:-1]), True]
     cnt = np.diff(np.nonzero(obs)[0]).astype('int64', copy=False)
     ntie = (cnt * (cnt - 1) // 2).sum()  # joint ties
-    xtie, _, _ = _count_rank_tie(vector1)     # ties in x, stats
-    ytie, _, _ = _count_rank_tie(vector2)     # ties in y, stats
+    xtie, _, _ = _count_rank_tie(vector1)  # ties in x, stats
+    ytie, _, _ = _count_rank_tie(vector2)  # ties in y, stats
     tot = (size * (size - 1)) // 2
     # Note that tot = con + dis + (xtie - ntie) + (ytie - ntie) + ntie
     #               = con + dis + xtie + ytie - ntie
@@ -635,11 +637,15 @@ def _count_rank_tie(ranks):
     cnt = cnt[cnt > 1]
     return ((cnt * (cnt - 1) // 2).sum(),
             (cnt * (cnt - 1.) * (cnt - 2)).sum(),
-            (cnt * (cnt - 1.) * (2*cnt + 5)).sum())
+            (cnt * (cnt - 1.) * (2 * cnt + 5)).sum())
 
 
-def _get_v(n_cond, sigma_k):
-    """ get the rdm covariance from sigma_k """
+def _get_v(n_cond, sigma_k, rdm=None, rdm_mask=None):
+    """ get the rdm covariance from sigma_k. If an rdm is given, incorporates estimates of true distances
+     into the estimation of V. If an rdm_mask (boolean np.array same size as RDM) is further provided,
+     only incorporates the true distances for the specified entries."""
+
+    # First compute signal-independent component of V
     # calculate Xi
     c_mat = pairwise_contrast_sparse(np.arange(n_cond))
     if sigma_k is None:
@@ -650,9 +656,21 @@ def _get_v(n_cond, sigma_k):
     else:
         sigma_k = scipy.sparse.csr_matrix(sigma_k)
         xi = c_mat @ sigma_k @ c_mat.transpose()
-    # calculate V
-    v = xi.multiply(xi).tocsc()
-    return v
+    # if no RDM provided, return the signal-independent component
+    if rdm is None:
+        v = xi.multiply(xi).tocsc()
+        return v
+
+    # If RDM provided, compute full V
+    n_fold = rdm.descriptors['n_fold']
+    D = rdm.get_matrices()[0]
+    if rdm_mask is not None:  # apply mask if given
+        D = D * (rdm_mask.astype(int))
+    v_noise = xi.multiply(xi).tocsc() / (n_fold - 1)
+    v_signal = -xi.multiply(c_mat @ D @ c_mat.transpose()).tocsc()
+
+    V = v_signal + v_noise
+    return V
 
 
 def _parse_input_rdms(rdm1, rdm2):
@@ -694,8 +712,8 @@ def _sq_bures_metric_first_way(A, B):
     va, ua = np.linalg.eigh(A)
     Asq = ua @ (np.sqrt(np.maximum(va[:, None], 0.0)) * ua.T)
     return (
-        np.trace(A) + np.trace(B)
-        - 2 * np.sum(np.sqrt(np.maximum(0.0, np.linalg.eigvalsh(Asq @ B @ Asq))))
+            np.trace(A) + np.trace(B)
+            - 2 * np.sum(np.sqrt(np.maximum(0.0, np.linalg.eigvalsh(Asq @ B @ Asq))))
     )
 
 
@@ -705,12 +723,12 @@ def _sq_bures_metric_second_way(A, B):
     sva = np.sqrt(np.maximum(va, 0.0))
     svb = np.sqrt(np.maximum(vb, 0.0))
     return (
-        np.sum(va) + np.sum(vb) - 2 * np.sum(
-            np.linalg.svd(
-                (sva[:, None] * ua.T) @ (ub * svb[None, :]),
-                compute_uv=False
-            )
+            np.sum(va) + np.sum(vb) - 2 * np.sum(
+        np.linalg.svd(
+            (sva[:, None] * ua.T) @ (ub * svb[None, :]),
+            compute_uv=False
         )
+    )
     )
 
 
