@@ -640,10 +640,23 @@ def _count_rank_tie(ranks):
             (cnt * (cnt - 1.) * (2 * cnt + 5)).sum())
 
 
-def _get_v(n_cond, sigma_k, rdm=None, rdm_mask=None):
-    """ get the rdm covariance from sigma_k. If an rdm is given, incorporates estimates of true distances
-     into the estimation of V. If an rdm_mask (boolean np.array same size as RDM) is further provided,
-     only incorporates the true distances for the specified entries."""
+def get_v(n_cond: int,
+          sigma_k: Optional[np.ndarray] = None,
+          rdm: RDMs = None,
+          rdm_mask: Optional[np.ndarray] = None):
+    """Estimates V, the variance-covariance matrix of the dissimilarity estimates.
+
+    Args:
+        n_cond(int): number of experimental conditions defining the RDM entries
+        sigma_k(np.array): covariance matrix between experimental conditions. Leave blank to default to identity
+            matrix, or provide a 1-D vector to create diagonal matrix with specified diagonal.
+        rdm: if given, incorporates the estimated distances between patterns into the V estimate
+        rdm_mask(np.array): binary mask to apply to rdm before computing V (e.g., if the user wishes to
+            incorporate certain distances but not others into the estimation of V)
+
+    Returns:
+        v(sparse matrix): the estimated variance-covariance matrix of the dissimilarity estimates
+    """
 
     # First compute signal-independent component of V
     # calculate Xi
