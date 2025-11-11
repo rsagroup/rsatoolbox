@@ -992,13 +992,13 @@ class FramedDataset(Dataset):
 
         self.measurements = np.vstack(measurements_list)
 
-        descriptors['noise'] = noise
-        descriptors['is_framed'] = True
-        descriptors['cond_descriptor'] = cond_descriptor
-        descriptors['all_c_scale'] = all_c_scale
-        descriptors['include_all_zeros'] = include_all_zeros
-        descriptors['include_all_c'] = all_c_scale is not None
-        descriptors['n_framing_patterns'] = int(include_all_zeros) + int(all_c_scale is not None)
+        descriptors['noise'] = [noise]
+        descriptors['is_framed'] = [True]
+        descriptors['cond_descriptor'] = [cond_descriptor]
+        descriptors['all_c_scale'] = [all_c_scale]
+        descriptors['include_all_zeros'] = [include_all_zeros]
+        descriptors['include_all_c'] = [all_c_scale is not None]
+        descriptors['n_framing_patterns'] = [int(include_all_zeros) + int(all_c_scale is not None)]
         self.descriptors = parse_input_descriptor(descriptors)
         self.obs_descriptors = parse_input_descriptor(obs_descriptors)
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
