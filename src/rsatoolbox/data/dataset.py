@@ -993,6 +993,7 @@ class FramedDataset(Dataset):
         self.measurements = np.vstack(measurements_list)
 
         descriptors['noise'] = noise
+        descriptors['is_framed'] = True
         descriptors['cond_descriptor'] = cond_descriptor
         descriptors['all_c_scale'] = all_c_scale
         descriptors['include_all_zeros'] = include_all_zeros
