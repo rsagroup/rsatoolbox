@@ -970,14 +970,14 @@ class FramedDataset(Dataset):
 
         measurements_list = [measurements]
 
-        if include_all_zeros:
+        if include_all_zeros:  # all-zeros inserted as the first pattern
             all_zeros_measurements = np.zeros((num_combs, measurements.shape[1]))
-            measurements_list.append(all_zeros_measurements)
-            obs_descriptors[cond_descriptor].extend(['all_z'] * num_combs)
+            measurements_list = [all_zeros_measurements, measurements]
+            obs_descriptors[cond_descriptor] = ['all_z'] * num_combs + obs_descriptors[cond_descriptor]
             for desc in other_descriptors:  # fill out remaining obs_descriptors
-                obs_descriptors[desc].extend(other_obs_combs[desc])
+                obs_descriptors[desc] = other_obs_combs[desc] + obs_descriptors[desc]
 
-        if all_c_scale is not None:  # tune the value of c
+        if all_c_scale is not None:  # tune the value of c, insert as last pattern
             all_ones = np.ones((1, self.n_channel))
             noise_sqrt = sqrtm(noise)
             measurements_whitened = measurements @ noise_sqrt
