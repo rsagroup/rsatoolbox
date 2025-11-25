@@ -79,7 +79,7 @@ class TestCalcOne(unittest.TestCase):
                 descriptor='idx', i_des=1, j_des=2)
             sim_c, w_c = calc_one_similarity_c(
                 d1, d2,
-                np.array([0, 1]), np.array([2, 3, 4]),
+                np.array([0, 1], dtype=np.int64), np.array([2, 3, 4], dtype=np.int64),
                 method=method)
             self.assertAlmostEqual(
                 w, w_c, None,
@@ -93,7 +93,7 @@ class TestCalcOne(unittest.TestCase):
         ds1 = Dataset(np.asarray([[0], [2]]).T)  # one pattern, two channels
         ds2 = Dataset(np.asarray([[0], [2]]).T)  # one pattern, two channels
         dissim, _ = calc_one_similarity_c(
-            ds1, ds2, np.array([0]), np.array([1]))
+            ds1, ds2, np.array([0], dtype=np.int64), np.array([1], dtype=np.int64))
         assert_almost_equal(dissim, 2)  # standard-squared euclidean
 
 
@@ -101,7 +101,7 @@ class TestCalc(unittest.TestCase):
 
     def setUp(self):
         self.rng = np.random.default_rng(0)
-        self.dat = self.rng.random((300, 100))
+        self.dat = self.rng.random((300, 100), dtype=np.float64)
         self.data = rsatoolbox.data.Dataset(
             self.dat,
             obs_descriptors={'obs': np.repeat(np.arange(50), 6),
@@ -114,8 +114,8 @@ class TestCalc(unittest.TestCase):
             # directly call c version
             a = calc(
                 self.dat,
-                self.data.obs_descriptors['obs'].astype(int),
-                self.data.obs_descriptors['rep'].astype(int),
+                self.data.obs_descriptors['obs'].astype(np.int64),
+                self.data.obs_descriptors['rep'].astype(np.int64),
                 50, i + 1)
             self_sim = a[:50]
             rdm = a[50:]

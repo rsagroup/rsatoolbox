@@ -154,7 +154,7 @@ def _covariance_eye(matrix, dof):
     return s_shrink
 
 
-def _covariance_diag(matrix, dof, mem_threshold=(10 ** 9) / 8):
+def _covariance_diag(matrix, dof):
     """
     computes the sample covariance matrix from a 2d-array.
     matrix should be demeaned before!

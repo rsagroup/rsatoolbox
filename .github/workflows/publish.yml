@@ -1,5 +1,3 @@
-
-
 name: Publish
 
 on:
@@ -22,20 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all  artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: dist
+          merge-multiple: true
       - name: List files
-        run: ls -R artifacts
-      - name: Gather artifacts
-        run: |
-          mkdir dist
-          mv artifacts/source/*.tar.gz dist/
-          mv artifacts/wheels-macos-latest/*.whl dist/
-          mv artifacts/wheels-ubuntu-latest/*.whl dist/
-          mv artifacts/wheels-windows-latest/*.whl dist/
+        run: ls -R dist
       - name: Publish package
-        uses: pypa/gh-action-pypi-publish@v1.5.1
+        uses: pypa/gh-action-pypi-publish@v1.13.0
         with:
           verbose: true
           password: ${{ secrets.API_TOKEN_PYPI }}

@@ -4,10 +4,9 @@
 Collection of different utility Matrices
 """
 
-from typing import List
-
+from typing import List, Optional
 import numpy as np
-from scipy.sparse import coo_matrix, csr_matrix
+from scipy.sparse import coo_matrix, csr_matrix, spmatrix
 
 
 def indicator(index_vector, positive=False):
@@ -67,7 +66,7 @@ def pairwise_contrast(index_vector):
     return indicator_matrix
 
 
-def pairwise_contrast_sparse(index_vector):
+def pairwise_contrast_sparse(index_vector) -> csr_matrix:
     """ Contrast matrix with one row per unqiue pairwise contrast
 
     Args:
@@ -105,7 +104,7 @@ def pairwise_contrast_sparse(index_vector):
             n_row = n_row + 1
     indicator_matrix = coo_matrix((dat, (idx_i, idx_j)),
                                   shape=(cols, rows))
-    return indicator_matrix.asformat("csr")
+    return indicator_matrix.asformat("csr")  # pyright: ignore reportReturnType
 
 
 def centering(size):
@@ -152,7 +151,7 @@ def row_col_indicator_g(n_cond):
         row_indicator (numpy.ndarray): n_cond (n_cond-1)/2+n_cond * n_cond
         col_indicator (numpy.ndarray): n_cond (n_cond-1)/2+n_cond * n_cond
     """
-    n_elem = int(n_cond * (n_cond - 1) / 2)+n_cond  # Number of elements in G
+    n_elem = int(n_cond * (n_cond - 1) / 2) + n_cond  # Number of elements in G
     row_i = np.zeros((n_elem, n_cond))
     col_i = np.zeros((n_elem, n_cond))
     _row_col_indicator(row_i, col_i, n_cond)
@@ -160,8 +159,56 @@ def row_col_indicator_g(n_cond):
     np.fill_diagonal(col_i[-n_cond:, :], 1)
     return (row_i, col_i)
 
+def row_col_indicator_g_sparse(n_cond, dtype=np.int8, index_dtype=np.int64):
+    """
+    Generates row and column indicator matrices as sparse matrices (CSR format)
+    for a vectorized second moment matrix.
+    The vectorized version has the off-diagonal elements first, then appends the diagonal.
 
-def get_v(n_cond, sigma_k):
+    Args:
+        n_cond (int): Number of conditions underlying the second moment.
+        dtype (numpy.dtype, optional): Data type for the non-zero elements
+                                       of the sparse matrices. Defaults to np.int8.
+        index_dtype (numpy.dtype, optional): Data type for the indices in the sparse matrix.
+                                              Defaults to np.int64.
+
+    Returns:
+        tuple: (row_indicator_sparse, col_indicator_sparse)
+            row_indicator_sparse (scipy.sparse.csr_matrix): Sparse indicator matrix for rows.
+            col_indicator_sparse (scipy.sparse.csr_matrix): Sparse indicator matrix for columns.
+    """
+    num_off_diag = n_cond * (n_cond - 1) // 2
+    n_elem = num_off_diag + n_cond
+    shape = (n_elem, n_cond)
+    if n_elem == 0:
+        return (csr_matrix(shape, dtype=dtype),
+                csr_matrix(shape, dtype=dtype))
+    sparse_data = np.ones(n_elem, dtype=dtype)
+
+    sparse_row_coords = np.arange(n_elem, dtype=index_dtype)
+    row_i_col_coords = np.empty(n_elem, dtype=index_dtype)
+    col_i_col_coords = np.empty(n_elem, dtype=index_dtype)
+    if num_off_diag > 0:
+        upper_p, upper_q = np.triu_indices(n_cond, k=1)
+        row_i_col_coords[:num_off_diag] = upper_p.astype(index_dtype)
+        col_i_col_coords[:num_off_diag] = upper_q.astype(index_dtype)
+    if n_cond > 0:
+        diag_indices_in_matrix = np.arange(n_cond, dtype=index_dtype)
+        row_i_col_coords[num_off_diag:] = diag_indices_in_matrix
+        col_i_col_coords[num_off_diag:] = diag_indices_in_matrix
+    row_i_sparse = csr_matrix((sparse_data, (sparse_row_coords, row_i_col_coords)), shape=shape)
+    col_i_sparse = csr_matrix((sparse_data, (sparse_row_coords, col_i_col_coords)), shape=shape)
+    return (row_i_sparse, col_i_sparse)
+
+def run() -> spmatrix:
+    a = csr_matrix(np.eye(3))
+    b = csr_matrix(np.eye(3))
+    c = a @ b
+    c = c.multiply(3.0)
+    return c
+
+
+def get_v(n_cond: int, sigma_k: Optional[spmatrix]) -> spmatrix:
     """ get the rdm covariance from sigma_k """
     # calculate Xi
     c_mat = pairwise_contrast_sparse(np.arange(n_cond))

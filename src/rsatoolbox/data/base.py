@@ -78,7 +78,7 @@ class DatasetBase:
                 f'channel_descriptors: \n{string_channel_desc}\n'
                 )
 
-    def __eq__(self, other: DatasetBase) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Equality check, to be implemented in the specific
         Dataset class
 
@@ -92,7 +92,10 @@ class DatasetBase:
         Returns:
             bool: Never returns
         """
-        raise NotImplementedError()
+        if isinstance(other, DatasetBase):
+            raise NotImplementedError()
+        else:
+            return False
 
     def copy(self) -> DatasetBase:
         """Copy Dataset

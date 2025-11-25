@@ -108,7 +108,7 @@ def _read_group(group: Group) -> Dict:
             dictionary[key] = None
         else:
             dictionary[key] = np.array(sub_val)
-            if dictionary[key].dtype.type is np.string_:
+            if dictionary[key].dtype.type is np.bytes_:
                 dictionary[key] = np.array(sub_val).astype('unicode')
             # if (len(dictionary[key].shape) == 1
             #     and dictionary[key].shape[0] == 1):

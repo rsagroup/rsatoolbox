@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools>=68.0",
+    "setuptools>=77.0.3",
     "setuptools-scm[toml]>=8.0",
     "wheel",
     "numpy>=1.21.2",
@@ -13,26 +13,32 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rsatoolbox"
 description = "Representational Similarity Analysis (RSA) in Python"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 authors = [
     {name="rsatoolbox authors"},
 ]
 keywords = ["neuroscience"]
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
       'Programming Language :: Python',
-      'License :: OSI Approved :: MIT License',
       'Operating System :: OS Independent',
       'Development Status :: 4 - Beta',
       'Topic :: Scientific/Engineering',
       'Intended Audience :: Science/Research',
-      'Programming Language :: Python :: 3.8',
       'Programming Language :: Python :: 3.9',
       'Programming Language :: Python :: 3.10',
       'Programming Language :: Python :: 3.11',
       'Programming Language :: Python :: 3.12',
+      'Programming Language :: Python :: 3.13',
 ]
 dynamic = ["readme", "dependencies", "version"]
+[project.optional-dependencies]
+imaging = [
+    "mne~=1.5.1",
+    "nibabel~=5.1.0",
+    "neuroimagingtools~=1.1.4",
+]
 
 [project.urls]
 homepage = "https://github.com/rsagroup/rsatoolbox"
@@ -53,9 +59,22 @@ testpaths = [
     "tests"
 ]
 python_files = "*.py"
+addopts = "--assert=plain"
 
 [tool.cibuildwheel]
 test-requires = "pytest"
 test-command = "pytest {project}/tests"
 before-test = "pip install -r tests/requirements.txt"
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "pp*"]
+
+[tool.pyright]
+include = ["src"]
+exclude = []
+ignore = []
+defineConstant = { DEBUG = true }
+stubPath = ""
+reportMissingImports = false
+pythonVersion = "3.11"
+executionEnvironments = [
+  { root = "src" }
+]

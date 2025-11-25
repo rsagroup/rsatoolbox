@@ -7,7 +7,7 @@ Calculation of RDMs from datasets
 from __future__ import annotations
 from collections.abc import Iterable
 from copy import deepcopy
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple, List, Union
 import numpy as np
 from rsatoolbox.rdm.rdms import concat
 from rsatoolbox.rdm.calc_unbalanced import calc_rdm_unbalanced
@@ -17,6 +17,7 @@ from rsatoolbox.util.rdm_utils import _extract_triu_
 from rsatoolbox.util.build_rdm import _build_rdms
 
 if TYPE_CHECKING:
+    from rsatoolbox.rdm.rdms import RDMs
     from rsatoolbox.data.base import DatasetBase
     from numpy.typing import NDArray
 
@@ -27,9 +28,9 @@ def calc_rdm(
         descriptor: Optional[str] = None,
         noise: Optional[NDArray] = None,
         cv_descriptor: Optional[str] = None,
-        prior_lambda: float = 1,
+        prior_lambda: float = 1.0,
         prior_weight: float = 0.1,
-        remove_mean: bool = False):
+        remove_mean: bool = False) -> Union[RDMs, List[RDMs]]:
     """
     calculates an RDM from an input dataset
 
@@ -58,55 +59,58 @@ def calc_rdm(
 
     """
     if isinstance(dataset, Iterable):
-        rdms = []
+        rdms: List[RDMs] = []
         for i_dat, ds_i in enumerate(dataset):
-            if noise is None:
-                rdms.append(calc_rdm(
-                    ds_i, method=method,
-                    descriptor=descriptor,
-                    cv_descriptor=cv_descriptor,
-                    prior_lambda=prior_lambda, prior_weight=prior_weight))
-            elif isinstance(noise, np.ndarray) and noise.ndim == 2:
-                rdms.append(calc_rdm(
-                    ds_i, method=method,
-                    descriptor=descriptor,
-                    noise=noise,
-                    cv_descriptor=cv_descriptor,
-                    prior_lambda=prior_lambda, prior_weight=prior_weight))
-            elif isinstance(noise, Iterable):
-                rdms.append(calc_rdm(
-                    ds_i, method=method,
-                    descriptor=descriptor,
-                    noise=noise[i_dat],
-                    cv_descriptor=cv_descriptor,
-                    prior_lambda=prior_lambda, prior_weight=prior_weight))
+            if isinstance(noise, Iterable):
+                noise_i = noise[i_dat]
+            else:
+                noise_i = noise
+            rdms.append(_calc_rdm_single(ds_i, method, descriptor, noise_i,
+                                         cv_descriptor, prior_lambda,
+                                         prior_weight, remove_mean))
         if descriptor is None:
-            rdm = concat(rdms)
+            return concat(rdms)
         else:
-            rdm = from_partials(rdms, descriptor=descriptor)
+            return from_partials(rdms, descriptor=descriptor)
     else:
-        if method == 'euclidean':
-            rdm = calc_rdm_euclidean(dataset, descriptor, remove_mean)
-        elif method == 'correlation':
-            rdm = calc_rdm_correlation(dataset, descriptor)
-        elif method == 'mahalanobis':
-            rdm = calc_rdm_mahalanobis(dataset, descriptor, noise, remove_mean)
-        elif method == 'crossnobis':
-            rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                      cv_descriptor, remove_mean)
-        elif method == 'poisson':
-            rdm = calc_rdm_poisson(dataset, descriptor,
-                                   prior_lambda=prior_lambda,
-                                   prior_weight=prior_weight)
-        elif method == 'poisson_cv':
-            rdm = calc_rdm_poisson_cv(dataset, descriptor,
-                                      cv_descriptor=cv_descriptor,
-                                      prior_lambda=prior_lambda,
-                                      prior_weight=prior_weight)
-        else:
-            raise NotImplementedError
-        if descriptor is not None:
-            rdm.sort_by(**{descriptor: 'alpha'})
+        return _calc_rdm_single(dataset, method, descriptor, noise,
+                                cv_descriptor, prior_lambda,
+                                prior_weight, remove_mean)
+
+
+def _calc_rdm_single(
+        dataset: DatasetBase,
+        method: str,
+        descriptor: Optional[str],
+        noise: Optional[NDArray],
+        cv_descriptor: Optional[str],
+        prior_lambda: float,
+        prior_weight: float,
+        remove_mean: bool) -> RDMs:
+    """Create RDMs object for a single Dataset
+    """
+    if method == 'euclidean':
+        rdm = calc_rdm_euclidean(dataset, descriptor, remove_mean)
+    elif method == 'correlation':
+        rdm = calc_rdm_correlation(dataset, descriptor)
+    elif method == 'mahalanobis':
+        rdm = calc_rdm_mahalanobis(dataset, descriptor, noise, remove_mean)
+    elif method == 'crossnobis':
+        rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
+                                    cv_descriptor, remove_mean)
+    elif method == 'poisson':
+        rdm = calc_rdm_poisson(dataset, descriptor,
+                                prior_lambda=prior_lambda,
+                                prior_weight=prior_weight)
+    elif method == 'poisson_cv':
+        rdm = calc_rdm_poisson_cv(dataset, descriptor,
+                                    cv_descriptor=cv_descriptor,
+                                    prior_lambda=prior_lambda,
+                                    prior_weight=prior_weight)
+    else:
+        raise NotImplementedError
+    if descriptor is not None:
+        rdm.sort_by(reindex=True, **{descriptor: 'alpha'})
     return rdm
 
 
@@ -169,7 +173,7 @@ def calc_rdm_movie(
 
         rdms = []
         for dat in splited_data:
-            dat_single = dat.convert_to_dataset(time_descriptor)
+            dat_single = dat.time_as_observations(time_descriptor)
             if unbalanced:
                 rdms.append(calc_rdm_unbalanced(
                     dat_single, method=method,
@@ -385,7 +389,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     )
 
 
-def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
+def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1.0,
                      prior_weight=0.1):
     """
     calculates an RDM from an input dataset using the symmetrized
@@ -414,7 +418,7 @@ def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
     return _build_rdms(rdm, dataset, 'poisson', descriptor, desc)
 
 
-def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
+def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1.0,
                         prior_weight=0.1, cv_descriptor=None):
     """
     calculates an RDM from an input dataset using the crossvalidated
@@ -478,7 +482,7 @@ def _gen_default_cv_descriptor(dataset, descriptor) -> np.ndarray:
     This assumes that the first occurence each descriptor value forms the
     first group, the second occurence forms the second group, etc.
     """
-    desc = dataset.obs_descriptors[descriptor]
+    desc = np.asarray(dataset.obs_descriptors[descriptor])
     values, counts = np.unique(desc, return_counts=True)
     assert np.all(counts == counts[0]), (
         'cv_descriptor generation failed:\n'

@@ -279,7 +279,7 @@ def plot_model_comparison(result, sort=False, colors=None,
 
     # Prepare axes for bars and pairwise comparisons
     fs, fs2 = 18, 14  # axis label font sizes
-    l, b, w, h = 0.15, 0.15, 0.8, 0.8
+    l, b, w, h = 0.15, 0.15, 0.8, 0.8  # noqa: E741
     fig = plt.figure(figsize=(12.5, 10))
     if test_pair_comparisons is True:
         test_pair_comparisons = 'arrows'

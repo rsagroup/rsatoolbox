@@ -109,7 +109,7 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     if noise_cov_trial is None:
         noise_chol_trial = None
     else:
-        if noise_cov_trial.shape != (n_channel, n_channel):
+        if noise_cov_trial.shape != (n_obs, n_obs):
             raise ValueError("noise covariance for trials needs to be \
                               n_obs x n_obs array")
         noise_chol_trial = np.linalg.cholesky(noise_cov_trial)
@@ -126,9 +126,9 @@ def make_dataset(model, theta, cond_vec, n_channel=30, n_sim=1,
     des = {"signal": signal, "noise": noise,
            "model": model.name, "theta": theta}
     dataset_list = []
-    for _ in range(0, n_sim):
+    for n in range(0, n_sim):
         # If necessary - make a new signal
-        if not use_same_signal:
+        if n==0 or not use_same_signal:
             true_U = make_signal(G, n_channel, use_exact_signal,
                                  signal_chol_channel)
         # Make noise with normal distribution
