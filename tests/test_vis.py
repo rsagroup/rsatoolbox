@@ -120,7 +120,7 @@ def _dummy_rdm():
     images = [
         this_image * this_ind / 4.0 for this_ind in range(4) for this_image in images
     ]
-    images = [PIL.Image.fromarray(255 * this_image, "RGB")
+    images = [PIL.Image.fromarray((255 * this_image).astype(np.uint8), "RGB")
               for this_image in images]
     names = [
         this_class + this_ex
