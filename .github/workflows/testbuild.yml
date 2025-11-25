@@ -64,10 +64,6 @@ jobs:
         $sdistfname = Get-ChildItem dist -Name
         pip install dist/$sdistfname
       if: matrix.os == 'windows-latest'
-    - name: Install Tcl/Tk (Windows)
-      run: |
-        choco install python3-tcltk -y
-      if: matrix.os == 'windows-latest'
     - name: Install test dependencies
       run: pip install -r tests/requirements.txt
     - name: Skeleton tests
