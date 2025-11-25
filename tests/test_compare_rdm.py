@@ -25,7 +25,7 @@ class TestCompareRDM(unittest.TestCase):
         dissimilarities1 = dist[np.triu_indices(6, 1)]
         des1 = {"session": 0, "subj": 0}
         self.test_rdm1 = rsa.rdm.RDMs(
-            dissimilarities=dissimilarities1, dissimilarity_measure="test", descriptors=des1
+            dissimilarities=dissimilarities1, dissimilarity_measure='test', descriptors=des1
         )
         x = self.rng.random((3, 20, 6))
         x -= np.mean(x, 2, keepdims=True)
@@ -38,12 +38,12 @@ class TestCompareRDM(unittest.TestCase):
             dissimilarities2[i] = dist[np.triu_indices(6, 1)]
         des2 = {"session": 0, "subj": 0}
         self.test_rdm2 = rsa.rdm.RDMs(
-            dissimilarities=dissimilarities2, dissimilarity_measure="test", descriptors=des2
+            dissimilarities=dissimilarities2, dissimilarity_measure='test', descriptors=des2
         )
         dissimilarities3 = self.rng.random((7, 15))
         des2 = {"session": 0, "subj": 0}
         self.test_rdm3 = rsa.rdm.RDMs(
-            dissimilarities=dissimilarities3, dissimilarity_measure="test", descriptors=des2
+            dissimilarities=dissimilarities3, dissimilarity_measure='test', descriptors=des2
         )
 
     def test_compare_cosine(self):
@@ -125,9 +125,9 @@ class TestCompareRDM(unittest.TestCase):
                 rsa.data.Dataset(self.rng.random((6, 20)), descriptors={"subj": i_subj})
             )
 
-        rdms1 = rsa.rdm.calc_rdm(dataset1, method="euclidean")
-        rdms2 = rsa.rdm.calc_rdm(dataset2, method="euclidean")
-        rdms3 = rsa.rdm.calc_rdm(dataset3, method="euclidean")
+        rdms1 = rsa.rdm.calc_rdm(dataset1, method='euclidean')
+        rdms2 = rsa.rdm.calc_rdm(dataset2, method='euclidean')
+        rdms3 = rsa.rdm.calc_rdm(dataset3, method='euclidean')
 
         result = compare_neg_riemannian_distance(rdms1, rdms1)
         assert_array_almost_equal(result, 0)
@@ -254,14 +254,14 @@ class TestCompareRDM(unittest.TestCase):
 
         result = compare(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
-        result = compare(self.test_rdm1, self.test_rdm2, method="corr")
-        result = compare(self.test_rdm1, self.test_rdm2, method="corr_cov")
-        result = compare(self.test_rdm1, self.test_rdm2, method="spearman")
-        result = compare(self.test_rdm1, self.test_rdm2, method="cosine")
-        result = compare(self.test_rdm1, self.test_rdm2, method="cosine_cov")
-        result = compare(self.test_rdm1, self.test_rdm2, method="kendall")
-        result = compare(self.test_rdm1, self.test_rdm2, method="bures")
-        result = compare(self.test_rdm1, self.test_rdm2, method="bures_metric")
+        result = compare(self.test_rdm1, self.test_rdm2, method='corr')
+        result = compare(self.test_rdm1, self.test_rdm2, method='corr_cov')
+        result = compare(self.test_rdm1, self.test_rdm2, method='spearman')
+        result = compare(self.test_rdm1, self.test_rdm2, method='cosine')
+        result = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov')
+        result = compare(self.test_rdm1, self.test_rdm2, method='kendall')
+        result = compare(self.test_rdm1, self.test_rdm2, method='bures')
+        result = compare(self.test_rdm1, self.test_rdm2, method='bures_metric')
 
 
 class TestCompareRDMNaN(unittest.TestCase):
@@ -271,21 +271,21 @@ class TestCompareRDMNaN(unittest.TestCase):
         dissimilarities1 = self.rng.random((1, 15))
         des1 = {"session": 0, "subj": 0}
         test_rdm1 = rsa.rdm.RDMs(
-            dissimilarities=dissimilarities1, dissimilarity_measure="test", descriptors=des1
+            dissimilarities=dissimilarities1, dissimilarity_measure='test', descriptors=des1
         )
-        self.test_rdm1 = test_rdm1.subsample_pattern("index", [0, 1, 1, 3, 4, 5])
+        self.test_rdm1 = test_rdm1.subsample_pattern('index', [0, 1, 1, 3, 4, 5])
         dissimilarities2 = self.rng.random((3, 15))
         des2 = {"session": 0, "subj": 0}
         test_rdm2 = rsa.rdm.RDMs(
-            dissimilarities=dissimilarities2, dissimilarity_measure="test", descriptors=des2
+            dissimilarities=dissimilarities2, dissimilarity_measure='test', descriptors=des2
         )
-        self.test_rdm2 = test_rdm2.subsample_pattern("index", [0, 1, 1, 3, 4, 5])
+        self.test_rdm2 = test_rdm2.subsample_pattern('index', [0, 1, 1, 3, 4, 5])
         dissimilarities3 = self.rng.random((7, 15))
         des2 = {"session": 0, "subj": 0}
         test_rdm3 = rsa.rdm.RDMs(
-            dissimilarities=dissimilarities3, dissimilarity_measure="test", descriptors=des2
+            dissimilarities=dissimilarities3, dissimilarity_measure='test', descriptors=des2
         )
-        self.test_rdm3 = test_rdm3.subsample_pattern("index", [0, 1, 1, 3, 4, 5])
+        self.test_rdm3 = test_rdm3.subsample_pattern('index', [0, 1, 1, 3, 4, 5])
 
     def test_compare_cosine(self):
         from rsatoolbox.rdm.compare import compare_cosine
@@ -409,12 +409,12 @@ class TestCompareRDMNaN(unittest.TestCase):
 
         result = compare(self.test_rdm1, self.test_rdm1)
         assert_array_almost_equal(result, 1)
-        result = compare(self.test_rdm1, self.test_rdm2, method="corr")
-        result = compare(self.test_rdm1, self.test_rdm2, method="corr_cov")
-        result = compare(self.test_rdm1, self.test_rdm2, method="spearman")
-        result = compare(self.test_rdm1, self.test_rdm2, method="cosine")
-        result = compare(self.test_rdm1, self.test_rdm2, method="cosine_cov")
-        result = compare(self.test_rdm1, self.test_rdm2, method="kendall")
+        result = compare(self.test_rdm1, self.test_rdm2, method='corr')
+        result = compare(self.test_rdm1, self.test_rdm2, method='corr_cov')
+        result = compare(self.test_rdm1, self.test_rdm2, method='spearman')
+        result = compare(self.test_rdm1, self.test_rdm2, method='cosine')
+        result = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov')
+        result = compare(self.test_rdm1, self.test_rdm2, method='kendall')
 
     def test_nan_errors(self):
         from rsatoolbox.rdm.compare import _parse_input_rdms
@@ -437,33 +437,33 @@ class TestCompareCov(unittest.TestCase):
         dissimilarities1 = self.rng.random((1, 15))
         des1 = {"session": 0, "subj": 0}
         self.test_rdm1 = rsa.rdm.RDMs(
-            dissimilarities=dissimilarities1, dissimilarity_measure="test", descriptors=des1
+            dissimilarities=dissimilarities1, dissimilarity_measure='test', descriptors=des1
         )
         dissimilarities2 = self.rng.random((3, 15))
         des2 = {"session": 0, "subj": 0}
         self.test_rdm2 = rsa.rdm.RDMs(
-            dissimilarities=dissimilarities2, dissimilarity_measure="test", descriptors=des2
+            dissimilarities=dissimilarities2, dissimilarity_measure='test', descriptors=des2
         )
         dissimilarities3 = self.rng.random((7, 15))
         des2 = {"session": 0, "subj": 0}
         self.test_rdm3 = rsa.rdm.RDMs(
-            dissimilarities=dissimilarities3, dissimilarity_measure="test", descriptors=des2
+            dissimilarities=dissimilarities3, dissimilarity_measure='test', descriptors=des2
         )
 
     def test_corr_identity_equal(self):
         from rsatoolbox.rdm.compare import compare
 
-        result = compare(self.test_rdm1, self.test_rdm2, method="corr_cov")
-        result_1D = compare(self.test_rdm1, self.test_rdm2, method="corr_cov", sigma_k=np.ones(6))
-        result_2D = compare(self.test_rdm1, self.test_rdm2, method="corr_cov", sigma_k=np.eye(6))
+        result = compare(self.test_rdm1, self.test_rdm2, method='corr_cov')
+        result_1D = compare(self.test_rdm1, self.test_rdm2, method='corr_cov', sigma_k=np.ones(6))
+        result_2D = compare(self.test_rdm1, self.test_rdm2, method='corr_cov', sigma_k=np.eye(6))
         assert_array_almost_equal(result, result_1D)
         assert_array_almost_equal(result, result_2D)
 
     def test_cos_identity_equal(self):
         from rsatoolbox.rdm.compare import compare
 
-        result = compare(self.test_rdm1, self.test_rdm2, method="cosine_cov")
-        result_1D = compare(self.test_rdm1, self.test_rdm2, method="cosine_cov", sigma_k=np.ones(6))
-        result_2D = compare(self.test_rdm1, self.test_rdm2, method="cosine_cov", sigma_k=np.eye(6))
+        result = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov')
+        result_1D = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov', sigma_k=np.ones(6))
+        result_2D = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov', sigma_k=np.eye(6))
         assert_array_almost_equal(result, result_1D)
         assert_array_almost_equal(result, result_2D)
