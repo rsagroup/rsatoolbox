@@ -185,6 +185,8 @@ class TestDemos(unittest.TestCase):
     def test_exercise_all(self):
         import numpy as np
         from scipy import io
+        import matplotlib
+        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import rsatoolbox
         import os

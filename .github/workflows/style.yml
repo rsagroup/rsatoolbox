@@ -29,8 +29,8 @@ jobs:
       run: echo "$(ruff check -e --output-format github)"
     - name: Process Ruff output
       run: python devops/style_assistant.py ${{ github.run_id }} ${{ github.job }} ${{ github.event.pull_request.head.sha }}
-    - name: Report status
-      run: gh api ${{ env.DEVOPS_ASST_API_ARGS }}
+    # - name: Report status
+    #   run: gh api ${{ env.DEVOPS_ASST_API_ARGS }}
 
 
   typing:
@@ -75,5 +75,5 @@ jobs:
       run: pyright > pyright_pr.log
     - name: Process Pyright output
       run: python devops/typing_assistant.py ${{ github.run_id }} ${{ github.job }} ${{ github.event.pull_request.head.sha }}
-    - name: Report status
-      run: gh api ${{ env.DEVOPS_ASST_API_ARGS }}
+    # - name: Report status
+    #   run: gh api ${{ env.DEVOPS_ASST_API_ARGS }}
