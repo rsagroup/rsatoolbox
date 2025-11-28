@@ -7,7 +7,7 @@ Calculation of RDMs from datasets
 from __future__ import annotations
 from collections.abc import Iterable
 from copy import deepcopy
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple, List, Union
 import numpy as np
 from rsatoolbox.rdm.rdms import concat
 from rsatoolbox.rdm.calc_unbalanced import calc_rdm_unbalanced
@@ -15,8 +15,10 @@ from rsatoolbox.rdm.combine import from_partials
 from rsatoolbox.data import average_dataset_by
 from rsatoolbox.util.rdm_utils import _extract_triu_
 from rsatoolbox.util.build_rdm import _build_rdms
+from rsatoolbox.util.matrix import pairwise_contrast
 
 if TYPE_CHECKING:
+    from rsatoolbox.rdm.rdms import RDMs
     from rsatoolbox.data.base import DatasetBase
     from numpy.typing import NDArray
 
@@ -27,9 +29,11 @@ def calc_rdm(
         descriptor: Optional[str] = None,
         noise: Optional[NDArray] = None,
         cv_descriptor: Optional[str] = None,
-        prior_lambda: float = 1,
+        prior_lambda: float = 1.0,
         prior_weight: float = 0.1,
-        remove_mean: bool = False):
+        degree: float = 2,
+        root: bool = True,
+        remove_mean: bool = False) -> Union[RDMs, List[RDMs]]:
     """
     calculates an RDM from an input dataset
 
@@ -49,6 +53,10 @@ def calc_rdm(
             precision matrix used to calculate the RDM
             used only for Mahalanobis and Crossnobis estimators
             defaults to an identity matrix, i.e. euclidean distance
+        degree: float
+            degree of the minkowski distance
+        root: bool
+            whether to take the root of the minkowski distance
         remove_mean (bool):
             whether the mean of each pattern shall be removed before distance calculation.
             This has no effect on poisson based and correlation distances.
@@ -58,55 +66,63 @@ def calc_rdm(
 
     """
     if isinstance(dataset, Iterable):
-        rdms = []
+        rdms: List[RDMs] = []
         for i_dat, ds_i in enumerate(dataset):
-            if noise is None:
-                rdms.append(calc_rdm(
-                    ds_i, method=method,
-                    descriptor=descriptor,
-                    cv_descriptor=cv_descriptor,
-                    prior_lambda=prior_lambda, prior_weight=prior_weight))
-            elif isinstance(noise, np.ndarray) and noise.ndim == 2:
-                rdms.append(calc_rdm(
-                    ds_i, method=method,
-                    descriptor=descriptor,
-                    noise=noise,
-                    cv_descriptor=cv_descriptor,
-                    prior_lambda=prior_lambda, prior_weight=prior_weight))
-            elif isinstance(noise, Iterable):
-                rdms.append(calc_rdm(
-                    ds_i, method=method,
-                    descriptor=descriptor,
-                    noise=noise[i_dat],
-                    cv_descriptor=cv_descriptor,
-                    prior_lambda=prior_lambda, prior_weight=prior_weight))
+            if isinstance(noise, Iterable):
+                noise_i = noise[i_dat]
+            else:
+                noise_i = noise
+            rdms.append(_calc_rdm_single(ds_i, method, descriptor, noise_i,
+                                         cv_descriptor, prior_lambda,
+                                         prior_weight, degree, root, remove_mean))
         if descriptor is None:
-            rdm = concat(rdms)
+            return concat(rdms)
         else:
-            rdm = from_partials(rdms, descriptor=descriptor)
+            return from_partials(rdms, descriptor=descriptor)
     else:
-        if method == 'euclidean':
-            rdm = calc_rdm_euclidean(dataset, descriptor, remove_mean)
-        elif method == 'correlation':
-            rdm = calc_rdm_correlation(dataset, descriptor)
-        elif method == 'mahalanobis':
-            rdm = calc_rdm_mahalanobis(dataset, descriptor, noise, remove_mean)
-        elif method == 'crossnobis':
-            rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                      cv_descriptor, remove_mean)
-        elif method == 'poisson':
-            rdm = calc_rdm_poisson(dataset, descriptor,
-                                   prior_lambda=prior_lambda,
-                                   prior_weight=prior_weight)
-        elif method == 'poisson_cv':
-            rdm = calc_rdm_poisson_cv(dataset, descriptor,
-                                      cv_descriptor=cv_descriptor,
-                                      prior_lambda=prior_lambda,
-                                      prior_weight=prior_weight)
-        else:
-            raise NotImplementedError
-        if descriptor is not None:
-            rdm.sort_by(**{descriptor: 'alpha'})
+        return _calc_rdm_single(dataset, method, descriptor, noise,
+                                cv_descriptor, prior_lambda,
+                                prior_weight, degree, root, remove_mean)
+
+
+def _calc_rdm_single(
+        dataset: DatasetBase,
+        method: str,
+        descriptor: Optional[str],
+        noise: Optional[NDArray],
+        cv_descriptor: Optional[str],
+        prior_lambda: float,
+        prior_weight: float,
+        degree: float,
+        root: bool,
+        remove_mean: bool) -> RDMs:
+    """Create RDMs object for a single Dataset
+    """
+    if method == 'euclidean':
+        rdm = calc_rdm_euclidean(dataset, descriptor, remove_mean)
+    elif method == 'correlation':
+        rdm = calc_rdm_correlation(dataset, descriptor)
+    elif method == 'mahalanobis':
+        rdm = calc_rdm_mahalanobis(dataset, descriptor, noise, remove_mean)
+    elif method == 'crossnobis':
+        rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
+                                  cv_descriptor, remove_mean)
+    elif method == 'poisson':
+        rdm = calc_rdm_poisson(dataset, descriptor,
+                               prior_lambda=prior_lambda,
+                               prior_weight=prior_weight)
+    elif method == 'poisson_cv':
+        rdm = calc_rdm_poisson_cv(dataset, descriptor,
+                                  cv_descriptor=cv_descriptor,
+                                  prior_lambda=prior_lambda,
+                                  prior_weight=prior_weight)
+    elif method == 'minkowski':
+        rdm = calc_rdm_minkowski(dataset, descriptor, degree,
+                                 root, remove_mean)
+    else:
+        raise NotImplementedError
+    if descriptor is not None:
+        rdm.sort_by(reindex=True, **{descriptor: 'alpha'})
     return rdm
 
 
@@ -169,7 +185,7 @@ def calc_rdm_movie(
 
         rdms = []
         for dat in splited_data:
-            dat_single = dat.convert_to_dataset(time_descriptor)
+            dat_single = dat.time_as_observations(time_descriptor)
             if unbalanced:
                 rdms.append(calc_rdm_unbalanced(
                     dat_single, method=method,
@@ -209,11 +225,41 @@ def calc_rdm_euclidean(
         rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
     """
     measurements, desc = _parse_input(dataset, descriptor, remove_mean)
-    sum_sq_measurements = np.sum(measurements**2, axis=1, keepdims=True)
+    sum_sq_measurements = np.sum(measurements ** 2, axis=1, keepdims=True)
     rdm = sum_sq_measurements + sum_sq_measurements.T \
-        - 2 * np.dot(measurements, measurements.T)
+          - 2 * np.dot(measurements, measurements.T)
     rdm = _extract_triu_(rdm) / measurements.shape[1]
     return _build_rdms(rdm, dataset, 'squared euclidean', descriptor, desc)
+
+
+def calc_rdm_minkowski(
+        dataset: DatasetBase,
+        descriptor: Optional[str] = None,
+        degree: float = 2,
+        root: bool = True,
+        remove_mean: bool = False):
+    """
+    Args:
+        dataset (rsatoolbox.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+        remove_mean (bool):
+            whether the mean of each pattern shall be removed
+            before calculating distances.
+    Returns:
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
+    """
+    measurements, desc = _parse_input(dataset, descriptor, remove_mean)
+    # Calculate minkowski distance between the measurement rows
+    n_cond = measurements.shape[0]
+    C = pairwise_contrast(np.arange(n_cond))
+    deltas = C @ measurements
+    rdm = np.sum(np.abs(deltas) ** degree, axis=1)
+    if root:
+        rdm = rdm ** (1 / degree)
+    return _build_rdms(rdm, dataset, 'minkowski distance', descriptor, desc)
 
 
 def calc_rdm_correlation(dataset, descriptor=None):
@@ -269,7 +315,7 @@ def calc_rdm_mahalanobis(dataset, descriptor=None, noise=None, remove_mean: bool
     noise = _check_noise(noise, dataset.n_channel)
     kernel = measurements @ noise @ measurements.T
     rdm = np.expand_dims(np.diag(kernel), 0) + \
-        np.expand_dims(np.diag(kernel), 1) - 2 * kernel
+          np.expand_dims(np.diag(kernel), 1) - 2 * kernel
     rdm = _extract_triu_(rdm) / measurements.shape[1]
     return _build_rdms(
         rdm,
@@ -371,7 +417,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
                         measurements[i_fold], measurements[j_fold],
                         np.linalg.inv(
                             (variances[i_fold] + variances[j_fold]) / 2)
-                        )
+                    )
                     rdms.append(rdm)
     rdms = np.array(rdms)
     rdm = np.einsum('ij->j', rdms) / rdms.shape[0]
@@ -385,7 +431,7 @@ def calc_rdm_crossnobis(dataset, descriptor, noise=None,
     )
 
 
-def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
+def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1.0,
                      prior_weight=0.1):
     """
     calculates an RDM from an input dataset using the symmetrized
@@ -406,15 +452,15 @@ def calc_rdm_poisson(dataset, descriptor=None, prior_lambda=1,
     """
     measurements, desc = _parse_input(dataset, descriptor)
     measurements = (measurements + prior_lambda * prior_weight) \
-        / (1 + prior_weight)
+                   / (1 + prior_weight)
     kernel = measurements @ np.log(measurements).T
     rdm = np.expand_dims(np.diag(kernel), 0) + \
-        np.expand_dims(np.diag(kernel), 1) - kernel - kernel.T
+          np.expand_dims(np.diag(kernel), 1) - kernel - kernel.T
     rdm = _extract_triu_(rdm) / measurements.shape[1]
     return _build_rdms(rdm, dataset, 'poisson', descriptor, desc)
 
 
-def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
+def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1.0,
                         prior_weight=0.1, cv_descriptor=None):
     """
     calculates an RDM from an input dataset using the crossvalidated
@@ -455,13 +501,13 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
         measurements_test, _, _ = average_dataset_by(data_test, descriptor)
         measurements_train = (measurements_train
                               + prior_lambda * prior_weight) \
-            / (1 + prior_weight)
+                             / (1 + prior_weight)
         measurements_test = (measurements_test
                              + prior_lambda * prior_weight) \
-            / (1 + prior_weight)
+                            / (1 + prior_weight)
         kernel = measurements_train @ np.log(measurements_test).T
         rdm = np.expand_dims(np.diag(kernel), 0) + \
-            np.expand_dims(np.diag(kernel), 1) - kernel - kernel.T
+              np.expand_dims(np.diag(kernel), 1) - kernel - kernel.T
         rdm = _extract_triu_(rdm) / measurements_train.shape[1]
     return _build_rdms(rdm, dataset, 'poisson_cv', descriptor)
 
@@ -469,7 +515,7 @@ def calc_rdm_poisson_cv(dataset, descriptor=None, prior_lambda=1,
 def _calc_rdm_crossnobis_single(meas1, meas2, noise) -> NDArray:
     kernel = meas1 @ noise @ meas2.T
     rdm = np.expand_dims(np.diag(kernel), 0) + \
-        np.expand_dims(np.diag(kernel), 1) - kernel - kernel.T
+          np.expand_dims(np.diag(kernel), 1) - kernel - kernel.T
     return _extract_triu_(rdm) / meas1.shape[1]
 
 
@@ -478,11 +524,11 @@ def _gen_default_cv_descriptor(dataset, descriptor) -> np.ndarray:
     This assumes that the first occurence each descriptor value forms the
     first group, the second occurence forms the second group, etc.
     """
-    desc = dataset.obs_descriptors[descriptor]
+    desc = np.asarray(dataset.obs_descriptors[descriptor])
     values, counts = np.unique(desc, return_counts=True)
     assert np.all(counts == counts[0]), (
-        'cv_descriptor generation failed:\n'
-        + 'different number of observations per pattern')
+            'cv_descriptor generation failed:\n'
+            + 'different number of observations per pattern')
     n_repeats = counts[0]
     cv_descriptor = np.zeros_like(desc)
     for i_val in values:
@@ -491,10 +537,10 @@ def _gen_default_cv_descriptor(dataset, descriptor) -> np.ndarray:
 
 
 def _parse_input(
-            dataset: DatasetBase,
-            descriptor: Optional[str],
-            remove_mean: bool = False
-        ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+        dataset: DatasetBase,
+        descriptor: Optional[str],
+        remove_mean: bool = False
+) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     if descriptor is None:
         measurements = dataset.measurements
         desc = None
