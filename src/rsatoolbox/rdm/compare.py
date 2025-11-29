@@ -654,7 +654,7 @@ def _count_rank_tie(ranks):
 def _get_v(
     n_cond: int,
     sigma_k: Optional[np.ndarray] = None,
-    rdm: RDMs = None,
+    rdm: Optional[RDMs] = None,
     rdm_mask: Optional[np.ndarray] = None,
 ):
     """Estimates V, the variance-covariance matrix of the dissimilarity estimates.
