@@ -1,10 +1,12 @@
 """
 saving to and reading from HDF5 files
 """
+
 from __future__ import annotations
 from typing import Union, Dict, List, IO
 import os
 from collections.abc import Iterable
+
 try:  # drop:py37 (backport)
     from importlib.metadata import version
 except ModuleNotFoundError:
@@ -14,7 +16,7 @@ import numpy as np
 
 
 def write_dict_hdf5(fhandle: Union[str, IO], dictionary: Dict) -> None:
-    """ writes a nested dictionary containing strings & arrays as data into
+    """writes a nested dictionary containing strings & arrays as data into
     a hdf5 file
 
     Args:
@@ -24,14 +26,14 @@ def write_dict_hdf5(fhandle: Union[str, IO], dictionary: Dict) -> None:
     """
     if isinstance(fhandle, str):
         if os.path.exists(fhandle):
-            raise ValueError('File already exists!')
-    file = File(fhandle, 'a')
-    file.attrs['rsatoolbox_version'] = version('rsatoolbox')
+            raise ValueError("File already exists!")
+    file = File(fhandle, "a")
+    file.attrs["rsatoolbox_version"] = version("rsatoolbox")
     _write_to_group(file, dictionary)
 
 
 def _write_to_group(group: Group, dictionary: Dict) -> None:
-    """ writes a dictionary to a hdf5 group, which can recurse"""
+    """writes a dictionary to a hdf5 group, which can recurse"""
     for key in dictionary.keys():
         value = dictionary[key]
         if isinstance(value, str):
@@ -39,8 +41,8 @@ def _write_to_group(group: Group, dictionary: Dict) -> None:
             # like numpy.str_
             group.attrs[key] = str(value)
         elif isinstance(value, np.ndarray):
-            if str(value.dtype)[:2] == '<U':
-                group[key] = value.astype('S')
+            if str(value.dtype)[:2] == "<U":
+                group[key] = value.astype("S")
             else:
                 group[key] = value
         elif isinstance(value, list):
@@ -72,18 +74,22 @@ def _write_list(group: Group, key: str, value: List) -> None:
     """
     try:
         value = np.array(value)
-        if str(value.dtype)[:2] == '<U':
-            group[key] = value.astype('S')
+        if str(value.dtype)[:2] == "<U":
+            group[key] = value.astype("S")
         else:
             group[key] = value
     except TypeError:
         l_group = group.create_group(key)
         for i, v in enumerate(value):
             l_group[str(i)] = v
+    except ValueError:
+        l_group = group.create_group(key)
+        for i, v in enumerate(value):
+            l_group[str(i)] = v
 
 
 def read_dict_hdf5(fhandle: Union[str, IO]) -> Dict:
-    """ writes a nested dictionary containing strings & arrays as data into
+    """writes a nested dictionary containing strings & arrays as data into
     a hdf5 file
 
     Args:
@@ -93,12 +99,12 @@ def read_dict_hdf5(fhandle: Union[str, IO]) -> Dict:
         dictionary(dict): the loaded dict
 
     """
-    file = File(fhandle, 'r')
+    file = File(fhandle, "r")
     return _read_group(file)
 
 
 def _read_group(group: Group) -> Dict:
-    """ reads a group from a hdf5 file into a dict, which allows recursion"""
+    """reads a group from a hdf5 file into a dict, which allows recursion"""
     dictionary = {}
     for key in group.keys():
         sub_val = group[key]
@@ -109,7 +115,7 @@ def _read_group(group: Group) -> Dict:
         else:
             dictionary[key] = np.array(sub_val)
             if dictionary[key].dtype.type is np.bytes_:
-                dictionary[key] = np.array(sub_val).astype('unicode')
+                dictionary[key] = np.array(sub_val).astype("unicode")
             # if (len(dictionary[key].shape) == 1
             #     and dictionary[key].shape[0] == 1):
             #     dictionary[key] = dictionary[key][0]

@@ -260,7 +260,6 @@ class TestConsistency(unittest.TestCase):
             rdm_no_normalized = model_weighted.predict(theta_no_normalized)
             assert compare(rdm, rdm_no_normalized) > 0.999
 
-
     def test_two_rdms_nn(self):
         from rsatoolbox.model import ModelInterpolate, ModelWeighted
         from rsatoolbox.model.fitter import fit_regress_nn, fit_optimize_positive
