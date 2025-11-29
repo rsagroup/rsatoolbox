@@ -15,12 +15,17 @@ from rsatoolbox.rdm.calc import calc_rdm
 from rsatoolbox.rdm import RDMs
 
 
-def _get_searchlight_neighbors(mask, center, radius=3):
+def _get_searchlight_neighbors(mask, center, radius=3, truncate_at_boundary=False):
     """Return indices for searchlight where distance
         between a voxel and their center < radius (in voxels)
 
     Args:
         center (index):  point around which to make searchlight sphere
+        radius (int): radius of the searchlight sphere in voxels
+        truncate_at_boundary (bool): if True, only include voxels where mask is True.
+            if False (default), include all voxels within radius regardless of mask value.
+            Setting to True addresses issue #466 by preventing searchlights from including
+            voxels outside the mask boundary.
 
     Returns:
         list: the list of volume indices that respect the
@@ -44,10 +49,19 @@ def _get_searchlight_neighbors(mask, center, radius=3):
     data = np.vstack((X.ravel(), Y.ravel(), Z.ravel())).T
     distance = cdist(data, center.reshape(1, -1), 'euclidean').ravel()
 
-    return tuple(data[distance < radius].T.tolist())
+    # Get voxels within radius
+    within_radius = data[distance < radius]
+
+    # Optionally filter to only include voxels inside the mask
+    if truncate_at_boundary:
+        neighbors_tuple = tuple(within_radius.T.astype(int).tolist())
+        mask_filter = mask[neighbors_tuple]
+        within_radius = within_radius[mask_filter > 0]
+
+    return tuple(within_radius.T.astype(int).tolist())
 
 
-def get_volume_searchlight(mask, radius=2, threshold=1.0):
+def get_volume_searchlight(mask, radius=2, threshold=1.0, truncate_at_boundary=False):
     """
     Searches through the non-zero voxels of the mask, selects centers where
     proportion of sphere voxels >= self.threshold.
@@ -67,6 +81,15 @@ def get_volume_searchlight(mask, radius=2, threshold=1.0):
         the brain mask.
         Defaults to 1.0.
 
+        truncate_at_boundary (bool, optional): if True, searchlight spheres will only
+        include voxels where the mask is True, effectively truncating spheres at
+        the mask boundary. if False (default), spheres include all voxels within
+        the radius regardless of mask value (maintains backward compatibility).
+        When False and threshold < 1.0, this can lead to artifacts as reported in
+        issue #466. Setting to True fixes this but may require accounting for
+        different variance characteristics in second-level analysis.
+        Defaults to False.
+
     Returns:
         numpy array: array of centers of size n_centers x 3
 
@@ -82,7 +105,7 @@ def get_volume_searchlight(mask, radius=2, threshold=1.0):
     good_neighbors = []
 
     for center in tqdm(centers, desc='Finding searchlights...'):
-        neighbors = _get_searchlight_neighbors(mask, center, radius)
+        neighbors = _get_searchlight_neighbors(mask, center, radius, truncate_at_boundary)
         if mask[neighbors].mean() >= threshold:
             good_centers.append(center)
             good_neighbors.append(neighbors)
