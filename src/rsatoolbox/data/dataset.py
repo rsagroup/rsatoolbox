@@ -35,7 +35,7 @@ class Dataset(DatasetBase):
     It contains one data set - or multiple data sets with the same structure
     """
 
-    def __eq__(self, other: Dataset) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Test for equality
         This magic method gets called when you compare two
         Datasets objects: `ds1 == ds2`.
@@ -48,13 +48,14 @@ class Dataset(DatasetBase):
         Returns:
             bool: True if the objects' properties are equal
         """
-        return all([
-            isinstance(other, Dataset),
-            np.all(self.measurements == other.measurements),
-            self.descriptors == other.descriptors,
-            desc_eq(self.obs_descriptors, other.obs_descriptors),
-            desc_eq(self.channel_descriptors, other.channel_descriptors),
-        ])
+        if isinstance(other, Dataset):
+            return all([
+                np.all(self.measurements == other.measurements),
+                self.descriptors == other.descriptors,
+                desc_eq(self.obs_descriptors, other.obs_descriptors),
+                desc_eq(self.channel_descriptors, other.channel_descriptors),
+            ])
+        return False
 
     def copy(self) -> Dataset:
         """Return a copy of this object, with all properties
@@ -85,6 +86,7 @@ class Dataset(DatasetBase):
             selection = np.where(inverse == i_v)[0]
             measurements = self.measurements[selection, :]
             descriptors = self.descriptors.copy()
+            descriptors[by] = unique_values[i_v]
             obs_descriptors = subset_descriptor(
                 self.obs_descriptors, selection)
             channel_descriptors = self.channel_descriptors
@@ -416,15 +418,16 @@ class TemporalDataset(Dataset):
         self.channel_descriptors = parse_input_descriptor(channel_descriptors)
         self.time_descriptors = parse_input_descriptor(time_descriptors)
 
-    def __eq__(self, other: TemporalDataset) -> bool:
-        return all([
-            isinstance(other, TemporalDataset),
-            np.all(self.measurements == other.measurements),
-            self.descriptors == other.descriptors,
-            desc_eq(self.obs_descriptors, other.obs_descriptors),
-            desc_eq(self.channel_descriptors, other.channel_descriptors),
-            desc_eq(self.time_descriptors, other.time_descriptors)
-        ])
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TemporalDataset):
+            return all([
+                np.all(self.measurements == other.measurements),
+                self.descriptors == other.descriptors,
+                desc_eq(self.obs_descriptors, other.obs_descriptors),
+                desc_eq(self.channel_descriptors, other.channel_descriptors),
+                desc_eq(self.time_descriptors, other.time_descriptors)
+            ])
+        return False
 
     def __str__(self):
         """
@@ -807,7 +810,7 @@ class TemporalDataset(Dataset):
         data_dict['descriptors'] = self.descriptors
         data_dict['obs_descriptors'] = self.obs_descriptors
         data_dict['channel_descriptors'] = self.channel_descriptors
-        data_dict['time_descriptors'] = self.channel_descriptors
+        data_dict['time_descriptors'] = self.time_descriptors
         data_dict['type'] = type(self).__name__
         return data_dict
 

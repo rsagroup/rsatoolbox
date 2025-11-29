@@ -6,7 +6,8 @@ Definition of RSA RDMs class and subclasses
 @author: baihan
 """
 from __future__ import annotations
-from typing import Dict, Optional
+from typing import Dict, Optional, Union, List, overload
+import warnings
 from copy import deepcopy
 from collections.abc import Iterable
 import numpy as np
@@ -22,6 +23,7 @@ from rsatoolbox.util.descriptor_utils import append_descriptor
 from rsatoolbox.util.descriptor_utils import dict_to_list
 from rsatoolbox.util.descriptor_utils import desc_eq
 from rsatoolbox.util.data_utils import extract_dict
+from rsatoolbox.rdm.combine import _merged_rdm_descriptors
 from rsatoolbox.io.hdf5 import read_dict_hdf5, write_dict_hdf5
 from rsatoolbox.io.pkl import read_dict_pkl, write_dict_pkl
 from rsatoolbox.util.file_io import remove_file
@@ -103,7 +105,7 @@ class RDMs:
                 f'pattern_descriptors = \n{self.pattern_descriptors}\n'
                 )
 
-    def __eq__(self, other: RDMs) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Test for equality
         This magic method gets called when you compare two
         RDMs objects: `rdms1 == rdms2`.
@@ -117,13 +119,14 @@ class RDMs:
         Returns:
             bool: True if equal
         """
-        return all([
-            isinstance(other, RDMs),
-            np.all(self.dissimilarities == other.dissimilarities),
-            self.descriptors == other.descriptors,
-            desc_eq(self.rdm_descriptors, other.rdm_descriptors),
-            desc_eq(self.pattern_descriptors, other.pattern_descriptors),
-        ])
+        if isinstance(other, RDMs):
+            return all([
+                np.all(self.dissimilarities == other.dissimilarities),
+                self.descriptors == other.descriptors,
+                desc_eq(self.rdm_descriptors, other.rdm_descriptors),
+                desc_eq(self.pattern_descriptors, other.pattern_descriptors),
+            ])
+        return False
 
     def __str__(self):
         """
@@ -426,7 +429,7 @@ class RDMs:
         """Reorder the patterns by sorting a descriptor
 
         Args:
-            reindex (bool): whether to reset the 'index' descriptor 
+            reindex (bool): whether to reset the 'index' descriptor
                 following sorting
 
         Pass keyword arguments that correspond to descriptors,
@@ -539,38 +542,75 @@ def load_rdm(filename, file_type=None):
         raise ValueError('filetype not understood')
     return rdms_from_dict(rdm_dict)
 
+@overload
+def concat(*rdms:  List[RDMs], target_pdesc: Optional[str] = None) -> RDMs:
+    ...
 
-def concat(*rdms):
-    """ concatenates rdm objects
+@overload
+def concat(*rdms: RDMs, target_pdesc: Optional[str] = None) -> RDMs:
+    ...
+
+def concat(*rdms, target_pdesc: Optional[str] = None) -> RDMs:
+    """Merge into single RDMs object
     requires that the rdms have the same shape
     descriptor and pattern descriptors are taken from the first rdms object
     for rdm_descriptors concatenation is tried
     the rdm index is reinitialized
 
     Args:
-        rdms(iterable of pyrsa.rdm.RDMs): RDMs objects to be concatenated
-        or multiple RDMs as separate arguments
+        rdms(iterable of rsatoolbox.rdm.RDMs): RDMs objects to be concatenated
+            or multiple RDMs as separate arguments
+        target_pdesc(optional, str): a pattern descriptor to use for sorting
 
     Returns:
         rsatoolbox.rdm.RDMs: concatenated rdms object
 
     """
-    if len(rdms) == 1:
+    if len(rdms) == 1: ## single argument
         if isinstance(rdms[0], RDMs):
             rdms_list = [rdms[0]]
         else:
             rdms_list = list(rdms[0])
-    else:
+    else: ## multiple arguments
         rdms_list = list(rdms)
     assert isinstance(rdms_list[0], RDMs), \
         'Supply list of RDMs objects, or RDMs objects as separate arguments'
-    rdm_descriptors = deepcopy(rdms_list[0].rdm_descriptors)
+
+    descriptors, rdm_descriptors = _merged_rdm_descriptors(rdms_list)
+
+    if target_pdesc is None:
+        # see if we can find an authoritative descriptor for pattern order
+        pdescs = rdms_list[0].pattern_descriptors.keys()
+        pdesc_candidates = list(filter(
+            lambda n: n != 'index' and (
+                len(rdms_list[0].pattern_descriptors[n])
+                == len(set(rdms_list[0].pattern_descriptors[n]))),
+                pdescs))
+        target_pdesc = None
+        if len(pdesc_candidates) > 0:
+            target_pdesc = pdesc_candidates[0]
+        if len(pdesc_candidates) > 1:
+            warnings.warn(f'[concat] Multiple pattern descriptors found, using "{target_pdesc}"')
+    else:
+        assert target_pdesc in rdms_list[0].pattern_descriptors.keys(), \
+            'The provided descriptor is not a pattern descriptor'
+        assert len(rdms_list[0].pattern_descriptors[target_pdesc]) == rdms_list[0].n_cond, \
+            'The provided descriptor is not unique'
+
     for rdm_new in rdms_list[1:]:
         assert isinstance(rdm_new, RDMs), 'rdm for concat should be an RDMs'
         assert rdm_new.n_cond == rdms_list[0].n_cond, 'rdm for concat had wrong shape'
         assert rdm_new.dissimilarity_measure == rdms_list[0].dissimilarity_measure, \
             'appended rdm had wrong dissimilarity measure'
-        rdm_descriptors = append_descriptor(rdm_descriptors, rdm_new.rdm_descriptors)
+        if target_pdesc:
+            # if we have a target descriptor, check if the order is the same
+            auth_order = rdms_list[0].pattern_descriptors[target_pdesc]
+            other_order = rdm_new.pattern_descriptors[target_pdesc]
+            if not np.all(other_order == auth_order):
+                # order varies; reorder this rdms object
+                _, new_order = np.where(auth_order[:, None] == other_order)
+                rdm_new.reorder(new_order)
+
     dissimilarities = np.concatenate([
         rdm.dissimilarities
         for rdm in rdms_list
@@ -584,7 +624,7 @@ def concat(*rdms):
         dissimilarities=dissimilarities,
         dissimilarity_measure=dissimilarity_measure,
         rdm_descriptors=rdm_descriptors,
-        descriptors=rdms_list[0].descriptors,
+        descriptors=descriptors,
         pattern_descriptors=rdms_list[0].pattern_descriptors
     )
     return rdm

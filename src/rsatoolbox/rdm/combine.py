@@ -2,13 +2,67 @@
 """
 from __future__ import annotations
 from copy import deepcopy
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple, Dict
 import numpy as np
 from numpy import sqrt, nan, inf, ndarray
 from scipy.spatial.distance import squareform
 import rsatoolbox.rdm.rdms
 if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
+
+
+def _merged_rdm_descriptors(list_of_rdms: List[RDMs]) -> Tuple[Dict, Dict]:
+    """Merge descriptors and rdm_descriptors for multiple RDMs objects
+
+    Some descriptors have to be demoted to rdm_descriptors if they vary.
+    Used by
+        rsatoolbox.rdm.combine.from_partials
+        rsatoolbox.rdm.rdms.concat
+
+    Args:
+        list_of_rdms (List[RDMs]): List of RDMs objects
+
+    Returns:
+        Tuple[Dict, Dict]: descriptors, rdms_descriptors
+    """
+
+    n_rdms = sum([rdms.n_rdm for rdms in list_of_rdms])
+    rdm_desc_names = []
+    descriptors = deepcopy(list_of_rdms[0].descriptors)
+    desc_diff_names = []
+    for rdms in list_of_rdms[1:]:
+        rdm_desc_names += list(rdms.rdm_descriptors.keys())
+        delete = []
+        for k, v in descriptors.items():
+            if k not in rdms.descriptors.keys():
+                desc_diff_names.append(k)
+                delete.append(k)
+            elif not np.all(rdms.descriptors[k] == v):
+                desc_diff_names.append(k)
+                delete.append(k)
+        for k in delete:
+            descriptors.pop(k)
+        for k, v in rdms.descriptors.items():
+            if k not in descriptors.keys() and k not in desc_diff_names:
+                desc_diff_names.append(k)
+
+    rdm_desc_names = set(rdm_desc_names + list(desc_diff_names))
+    rdm_descriptors = dict([(n, [None]*n_rdms) for n in rdm_desc_names])
+    rdm_id = 0
+    for rdms in list_of_rdms:
+        for rdm_local_id, _ in enumerate(rdms.dissimilarities):
+            for name in rdm_descriptors.keys():
+                if name == 'index':
+                    rdm_descriptors['index'][rdm_id] = rdm_id
+                elif name in rdms.rdm_descriptors:
+                    val = rdms.rdm_descriptors[name][rdm_local_id]
+                    rdm_descriptors[name][rdm_id] = val
+                elif name in rdms.descriptors:
+                    rdm_descriptors[name][rdm_id] = rdms.descriptors[name]
+                else:
+                    rdm_descriptors[name] = None
+            rdm_id += 1
+    return descriptors, rdm_descriptors
 
 
 def from_partials(
@@ -44,27 +98,9 @@ def from_partials(
 
     n_rdms = sum([rdms.n_rdm for rdms in list_of_rdms])
     n_patterns = len(all_patterns)
-    rdm_desc_names = []
-    descriptors = deepcopy(list_of_rdms[0].descriptors)
-    desc_diff_names = []
-    for rdms in list_of_rdms[1:]:
-        rdm_desc_names += list(rdms.rdm_descriptors.keys())
-        delete = []
-        for k, v in descriptors.items():
-            if k not in rdms.descriptors.keys():
-                desc_diff_names.append(k)
-                delete.append(k)
-            elif not np.all(rdms.descriptors[k] == v):
-                desc_diff_names.append(k)
-                delete.append(k)
-        for k in delete:
-            descriptors.pop(k)
-        for k, v in rdms.descriptors.items():
-            if k not in descriptors.keys() and k not in desc_diff_names:
-                desc_diff_names.append(k)
 
-    rdm_desc_names = set(rdm_desc_names + list(desc_diff_names))
-    rdm_descriptors = dict([(n, [None]*n_rdms) for n in rdm_desc_names])
+    descriptors, rdm_descriptors = _merged_rdm_descriptors(list_of_rdms)
+
     measure = None
     vector_len = int(n_patterns * (n_patterns-1) / 2)
     vectors = np.full((n_rdms, vector_len), np.nan)
@@ -72,20 +108,10 @@ def from_partials(
     for rdms in list_of_rdms:
         measure = rdms.dissimilarity_measure
         pidx = [all_patterns.index(i) for i in pdescs(rdms, descriptor)]
-        for rdm_local_id, utv in enumerate(rdms.dissimilarities):
+        for _, utv in enumerate(rdms.dissimilarities):
             rdm = np.full((len(all_patterns), len(all_patterns)), np.nan)
             rdm[np.ix_(pidx, pidx)] = squareform(utv, checks=False)
             vectors[rdm_id, :] = squareform(rdm, checks=False)
-            for name in rdm_descriptors.keys():
-                if name == 'index':
-                    rdm_descriptors['index'][rdm_id] = rdm_id
-                elif name in rdms.rdm_descriptors:
-                    val = rdms.rdm_descriptors[name][rdm_local_id]
-                    rdm_descriptors[name][rdm_id] = val
-                elif name in rdms.descriptors:
-                    rdm_descriptors[name][rdm_id] = rdms.descriptors[name]
-                else:
-                    rdm_descriptors[name] = None
             rdm_id += 1
     return rsatoolbox.rdm.RDMs(
         dissimilarities=vectors,
@@ -105,7 +131,7 @@ def rescale(rdms, method: str = 'evidence', threshold=1e-8):
     Args:
         method (str, optional): One of 'evidence', 'setsize' or
             'simple'. Defaults to 'evidence'.
-        threshold (float): Stop iterating when the sum of squares 
+        threshold (float): Stop iterating when the sum of squares
             difference between iterations is smaller than this value.
             A smaller value means more iterations, but the algorithm
             may not always converge.
@@ -126,7 +152,7 @@ def rescale(rdms, method: str = 'evidence', threshold=1e-8):
     )
 
 
-def _mean(vectors: ndarray, weights: ndarray = None) -> ndarray:
+def _mean(vectors: ndarray, weights: Optional[ndarray] = None) -> ndarray:
     """Weighted mean of RDM vectors, ignores nans
 
     See :meth:`rsatoolbox.rdm.rdms.RDMs.mean`

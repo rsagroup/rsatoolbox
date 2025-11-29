@@ -185,6 +185,8 @@ class TestDemos(unittest.TestCase):
     def test_exercise_all(self):
         import numpy as np
         from scipy import io
+        import matplotlib
+        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import rsatoolbox
         import os
@@ -368,7 +370,7 @@ class TestDemos(unittest.TestCase):
         print(data_binned.time_descriptors['time'][0])
         print('shape of original measurements')
         print(data.measurements.shape)
-        data_dataset = data.convert_to_dataset('time')
+        data_dataset = data.time_as_observations('time')
         print('\nafter binning')
         print(data_dataset.measurements.shape)
         print(data_dataset.obs_descriptors['time'][0])

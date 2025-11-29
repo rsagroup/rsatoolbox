@@ -234,21 +234,15 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(transformed_rdm.n_cond, rdms.n_cond)
 
     def test_rank_transform(self):
-        from rsatoolbox.rdm import rank_transform
-        dis = np.zeros((8, 10))
-        mes = "Euclidean"
-        des = {'subj': 0}
-        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
-        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
-        rdms = rsr.RDMs(dissimilarities=dis,
-                        rdm_descriptors=rdm_des,
-                        pattern_descriptors=pattern_des,
-                        dissimilarity_measure=mes,
-                        descriptors=des)
+        from rsatoolbox.rdm.transform import rank_transform
+        from rsatoolbox.rdm.rdms import RDMs
+        rdms = RDMs(
+            dissimilarities=np.array([[8, 6, 10, np.nan]]),
+            dissimilarity_measure="Euclidean",
+        )
         rank_rdm = rank_transform(rdms)
-        self.assertEqual(rank_rdm.n_rdm, rdms.n_rdm)
-        self.assertEqual(rank_rdm.n_cond, rdms.n_cond)
         self.assertEqual(rank_rdm.dissimilarity_measure, 'Euclidean (ranks)')
+        assert_array_equal(rank_rdm.dissimilarities, [[2, 1, 3, np.nan]])
 
     def test_rank_transform_unknown_measure(self):
         from rsatoolbox.rdm import rank_transform
@@ -289,6 +283,54 @@ class TestRDM(unittest.TestCase):
         self.assertEqual(pos_rdm.n_cond, rdms.n_cond)
         assert np.all(pos_rdm.dissimilarities >= 0)
 
+    def test_minmax_transform(self):
+        from rsatoolbox.rdm import minmax_transform
+        dis = np.zeros((8, 10))
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        mm_rdm = minmax_transform(rdms)
+        self.assertEqual(mm_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(mm_rdm.n_cond, rdms.n_cond)
+
+    def test_geotopological_transform(self):
+        from rsatoolbox.rdm import geotopological_transform
+        dis = np.zeros((8, 10))
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        gt_rdm = geotopological_transform(rdms, low=0.2, up=0.8)
+        self.assertEqual(gt_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(gt_rdm.n_cond, rdms.n_cond)
+
+    def test_geodesic_transform(self):
+        from rsatoolbox.rdm import geodesic_transform
+        dis = np.random.rand(8, 10)
+        mes = "Euclidean"
+        des = {'subj': 0}
+        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
+        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
+        rdms = rsr.RDMs(dissimilarities=dis,
+                        rdm_descriptors=rdm_des,
+                        pattern_descriptors=pattern_des,
+                        dissimilarity_measure=mes,
+                        descriptors=des)
+        gd_rdm = geodesic_transform(rdms)
+        self.assertEqual(gd_rdm.n_rdm, rdms.n_rdm)
+        self.assertEqual(gd_rdm.n_cond, rdms.n_cond)
+
     def test_rdm_append(self):
         dis = np.zeros((8, 10))
         mes = "Euclidean"
@@ -305,26 +347,55 @@ class TestRDM(unittest.TestCase):
 
     def test_concat(self):
         from rsatoolbox.rdm import concat
-        dis = np.zeros((8, 10))
-        dis2 = self.rng.random((8, 10))
-        mes = "Euclidean"
-        des = {'subj': 0}
-        pattern_des = {'type': np.array([0, 1, 2, 2, 4])}
-        rdm_des = {'session': np.array([0, 1, 2, 2, 4, 5, 6, 7])}
-        rdms1 = rsr.RDMs(dissimilarities=dis,
-                         pattern_descriptors=pattern_des,
-                         dissimilarity_measure=mes,
-                         descriptors=des,
-                         rdm_descriptors=rdm_des)
-        rdms2 = rsr.RDMs(dissimilarities=dis2,
-                         pattern_descriptors=pattern_des,
-                         dissimilarity_measure=mes,
-                         descriptors=des,
-                         rdm_descriptors=rdm_des)
-        rdms = concat((rdms1, rdms2))
-        self.assertEqual(rdms.n_rdm, 16)
-        assert len(rdms.rdm_descriptors['session']) == 16
-        self.assertEqual(rdms.dissimilarity_measure, mes)
+        rdms1 = rsr.RDMs(
+            dissimilarities=np.array([[2, 1, 3, 1, 1, 2]]),
+            pattern_descriptors=dict(cond=np.array(['a', 'c', 'b', 'd'])),
+            dissimilarity_measure='euclidean',
+            descriptors=dict(subject='zoe', exp='foo'),
+            rdm_descriptors=dict(session=[1])
+        )
+        rdms2 = rsr.RDMs(
+            dissimilarities=np.array([[2, 4, 6, 2, 4, 2]]),
+            pattern_descriptors=dict(cond=np.array(['a', 'b', 'c', 'd'])),
+            dissimilarity_measure='euclidean',
+            descriptors=dict(subject='joe', exp='foo'),
+            rdm_descriptors=dict(session=[3])
+        )
+        rdms3 = rsr.RDMs(
+            dissimilarities=np.array([
+                [3,   9,  6,  6,  3,  3],
+                [13, 19, 16, 16, 13, 13]
+            ]),
+            pattern_descriptors=dict(cond=np.array(['d', 'c', 'a', 'b'])),
+            dissimilarity_measure='euclidean',
+            descriptors=dict(subject='max', exp='foo'),
+            rdm_descriptors=dict(session=[5, 7])
+        )
+        rdms = concat([rdms1, rdms2, rdms3])
+        self.assertEqual(rdms.n_rdm, 4)
+        self.assertEqual(rdms.dissimilarity_measure, 'euclidean')
+        self.assertEqual(rdms.descriptors['exp'], 'foo')
+        assert_array_equal(
+            rdms.rdm_descriptors['session'],
+            [1, 3, 5, 7]
+        )
+        assert_array_equal(
+            rdms.rdm_descriptors['subject'],
+            ['zoe', 'joe', 'max', 'max']
+        )
+        assert_array_equal(
+            rdms.pattern_descriptors['cond'],
+            ['a', 'c', 'b', 'd']
+        )
+        assert_array_equal(
+            rdms.dissimilarities,
+            [
+                [ 2,  1,  3,  1,  1,  2],  # noqa: E201
+                [ 4,  2,  6,  2,  2,  4],  # noqa: E201
+                [ 6,  3,  9,  3,  3,  6],  # noqa: E201
+                [16, 13, 19, 13, 13, 16]   # noqa: E201
+            ]
+        )
 
     def test_concat_varargs_multiple_rdms(self):
         from rsatoolbox.rdm import concat
@@ -515,12 +586,13 @@ class TestRDM(unittest.TestCase):
         ]
         )
         conds = list(reversed("abcdefghij"))
-        cats  = list("ababababab")
+        cats = list("ababababab")
         rdms = RDMs(
             np.atleast_2d(squareform(rdm)),
             pattern_descriptors=dict(conds=conds, cats=cats)
         )
-        rdms.sort_by(index=np.random.permutation(rdms.n_cond).tolist())  # Randomise the condition labels first
+        # Randomise the condition labels first
+        rdms.sort_by(index=np.random.permutation(rdms.n_cond).tolist())
         rdms.sort_by(conds='alpha')
         rdms.sort_by(cats="alpha")
         self.assertListEqual(

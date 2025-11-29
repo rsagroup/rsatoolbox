@@ -20,7 +20,7 @@ def _build_rdms(
             method: str,
             obs_desc_name: str | None,
             obs_desc_vals: Optional[NDArray] = None,
-            cv: Optional[NDArray] = None,
+            cv: Optional[str] = None,
             noise: Optional[NDArray] = None
         ) -> RDMs:
     rdms = RDMs(
