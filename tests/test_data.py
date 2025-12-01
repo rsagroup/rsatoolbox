@@ -403,7 +403,7 @@ class TestTemporalDataset(unittest.TestCase):
 
     def test_temporaldataset_time_as_channels(self):
         from rsatoolbox.data.dataset import TemporalDataset
-        measurements = np.zeros((3, 2, 4)) # 3 trials, 2 channels, 4 timepoints
+        measurements = np.zeros((3, 2, 4))  # 3 trials, 2 channels, 4 timepoints
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 1, 1])}
         chn_des = {'electrode': np.array(['A1', 'B2'])}
@@ -418,8 +418,8 @@ class TestTemporalDataset(unittest.TestCase):
         )
         data = data_temporal.time_as_channels()
         self.assertEqual(data.n_obs, 3)
-        self.assertEqual(data.n_channel, 2*4)
-        self.assertEqual(len(data.channel_descriptors['time']), 2*4)
+        self.assertEqual(data.n_channel, 2 * 4)
+        self.assertEqual(len(data.channel_descriptors['time']), 2 * 4)
         assert_array_equal(
             data.channel_descriptors['time'],
             np.concatenate([tim_des['time'], tim_des['time']])
@@ -428,7 +428,7 @@ class TestTemporalDataset(unittest.TestCase):
             data.channel_descriptors['time_formatted'],
             tim_des['time_formatted'] + tim_des['time_formatted']
         )
-        self.assertEqual(len(data.channel_descriptors['electrode']), 2*4)
+        self.assertEqual(len(data.channel_descriptors['electrode']), 2 * 4)
         assert_array_equal(
             data.channel_descriptors['electrode'],
             ['A1', 'A1', 'A1', 'A1', 'B2', 'B2', 'B2', 'B2']
@@ -541,7 +541,8 @@ class TestNoiseComputations(unittest.TestCase):
         self.res_list = res_list
         self.dataset = rsd.Dataset(
             self.residuals,
-            obs_descriptors={'obs': np.repeat(np.arange(10), 10)})
+            obs_descriptors={'obs': np.repeat(np.arange(10), 10),
+                             'fold': np.tile(np.arange(10), 10)})
 
     def test_cov(self):
         from rsatoolbox.data import cov_from_residuals
@@ -580,6 +581,11 @@ class TestNoiseComputations(unittest.TestCase):
         cov1 = cov_from_measurements(self.dataset, 'obs')
         cov2 = cov_from_unbalanced(self.dataset, 'obs')
         np.testing.assert_allclose(cov1, cov2)
+
+    def test_sigmak(self):
+        from rsatoolbox.data import sigmak_from_measurements
+        sigmak = sigmak_from_measurements(self.dataset, 'obs', 'fold')
+        np.testing.assert_equal(sigmak.shape, [10, 10])
 
 
 class TestSave(unittest.TestCase):

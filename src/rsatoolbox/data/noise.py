@@ -437,21 +437,21 @@ def prec_from_unbalanced(dataset, obs_desc, dof=None, method='shrinkage_diag'):
     return prec
 
 
-def sigmak_from_measurements(dataset, obs_desc, cv_descriptor, noise=None):
+def sigmak_from_measurements(dataset, obs_descriptor, cv_descriptor, noise=None):
     """
     Estimates sigma_k, the matrix encoding the noise variance/covariance among the k conditions when two
     conditions are measured in the same partition (e.g., due to shared fMRI noise
     from the sluggishness of the HRF when two conditions are adjacent in time). If a noise matrix is provided,
-    prewhitening is performed on the data prior to computing sigma_k (make sure to do this if using
+    prewhitening is performed on the data before computing sigma_k (make sure to do this if using
     Mahalanobis or crossnobis distance). Assumes that sigma_k is constant across partitions, implementing
     equation 36 from Diedrichsen et al. (2016), "On the distribution of cross-validated Mahalanobis distances."
 
     Args:
         dataset(data.Dataset):
             rsatoolbox Dataset object
-        obs_desc (String):
+        obs_descriptor (String):
             descriptor defining experimental conditions
-        cv_desc (String):
+        cv_descriptor (String):
             descriptor defining crossvalidation folds/partitions
         noise (numpy.ndarray):
             dataset.n_channel x dataset.n_channel
@@ -475,7 +475,7 @@ def sigmak_from_measurements(dataset, obs_desc, cv_descriptor, noise=None):
     dataset_whitened.measurements = dataset.measurements @ noise_sqrt
 
     # Compute mean patterns per condition
-    U_mean, conds, _ = average_dataset_by(dataset_whitened, obs_desc)
+    U_mean, conds, _ = average_dataset_by(dataset_whitened, obs_descriptor)
     n_cond = len(conds)
     cv_folds = np.unique(np.array(dataset_whitened.obs_descriptors[cv_descriptor]))
 
@@ -487,7 +487,7 @@ def sigmak_from_measurements(dataset, obs_desc, cv_descriptor, noise=None):
     for fold in cv_folds:
         U_fold = np.zeros(U_mean.shape) * np.nan  # fold activations
         dataset_fold = dataset_whitened.subset_obs(cv_descriptor, fold)
-        dataset_fold, fold_conds, _ = average_dataset_by(dataset_fold, obs_desc)
+        dataset_fold, fold_conds, _ = average_dataset_by(dataset_fold, obs_descriptor)
         # Get indices mapping from subsetted conditions to full set, fill out U_fold
         inds = [np.where(conds == c)[0][0] for c in fold_conds]
         U_fold[inds, :] = dataset_fold
