@@ -10,6 +10,7 @@ import unittest
 import rsatoolbox.data as rsd
 import numpy as np
 from numpy.testing import assert_array_equal
+from scipy import stats
 
 
 class TestData(unittest.TestCase):
@@ -541,8 +542,7 @@ class TestNoiseComputations(unittest.TestCase):
         self.res_list = res_list
         self.dataset = rsd.Dataset(
             self.residuals,
-            obs_descriptors={'obs': np.repeat(np.arange(10), 10),
-                             'fold': np.tile(np.arange(10), 10)})
+            obs_descriptors={'obs': np.repeat(np.arange(10), 10)})
 
     def test_cov(self):
         from rsatoolbox.data import cov_from_residuals
@@ -582,10 +582,51 @@ class TestNoiseComputations(unittest.TestCase):
         cov2 = cov_from_unbalanced(self.dataset, 'obs')
         np.testing.assert_allclose(cov1, cov2)
 
-    def test_sigmak(self):
+
+class TestSigmaK(unittest.TestCase):
+    def setUp(self):
+        self.n_voxels = 10
+        self.n_cond = 3
+        self.n_fold = 1000
+        self.n_patterns = self.n_cond * self.n_fold
+        self.sigma_k_true = np.array([[1.0, 0.5, 0.2],
+                                      [0.5, 2.0, 0.3],
+                                      [0.2, 0.3, 3.0]])
+        self.measurements_full = stats.matrix_normal(
+            mean=np.zeros((self.n_cond, self.n_voxels)),
+            rowcov=self.sigma_k_true, colcov=np.eye(self.n_voxels), seed=42).rvs(self.n_fold).reshape(
+            self.n_fold * self.n_cond, self.n_voxels)
+        self.obs_full = np.tile(np.arange(self.n_cond), self.n_fold)
+        self.fold_full = np.repeat(np.arange(self.n_fold), self.n_cond)
+        self.dataset_full = rsd.Dataset(
+            self.measurements_full,
+            obs_descriptors={'obs': self.obs_full,
+                             'fold': self.fold_full})
+        # Discard 1000 trials to make sure nothing breaks
+        trials_to_remove = np.sort(np.random.choice(np.arange(self.n_cond, self.n_patterns),
+                                                    size=1000,
+                                                    replace=False))
+        self.dataset_subset = rsd.Dataset(
+            np.delete(self.measurements_full, trials_to_remove, axis=0),
+            obs_descriptors={
+                'obs': np.delete(self.obs_full, trials_to_remove, axis=0),
+                'fold': np.delete(self.fold_full, trials_to_remove, axis=0)}
+        )
+
+    def test_shape(self):
         from rsatoolbox.data import sigmak_from_measurements
-        sigmak = sigmak_from_measurements(self.dataset, 'obs', 'fold')
-        np.testing.assert_equal(sigmak.shape, [10, 10])
+        sigmak = sigmak_from_measurements(self.dataset_full, 'obs', 'fold')
+        np.testing.assert_equal(sigmak.shape, [self.n_cond, self.n_cond])
+
+    def test_values_full(self):
+        from rsatoolbox.data import sigmak_from_measurements
+        sigmak = sigmak_from_measurements(self.dataset_full, 'obs', 'fold')
+        np.testing.assert_allclose(sigmak, self.sigma_k_true, rtol=0.2)
+
+    def test_values_unbalanced(self):
+        from rsatoolbox.data import sigmak_from_measurements
+        sigmak = sigmak_from_measurements(self.dataset_subset, 'obs', 'fold')
+        np.testing.assert_allclose(sigmak, self.sigma_k_true, rtol=0.2)
 
 
 class TestSave(unittest.TestCase):
