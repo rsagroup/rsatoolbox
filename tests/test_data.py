@@ -585,6 +585,7 @@ class TestNoiseComputations(unittest.TestCase):
 
 class TestSigmaK(unittest.TestCase):
     def setUp(self):
+        self.rng = np.random.default_rng(42)
         self.n_voxels = 10
         self.n_cond = 3
         self.n_fold = 1000
@@ -603,9 +604,9 @@ class TestSigmaK(unittest.TestCase):
             obs_descriptors={'obs': self.obs_full,
                              'fold': self.fold_full})
         # Discard 1000 trials to make sure nothing breaks
-        trials_to_remove = np.sort(np.random.choice(np.arange(self.n_cond, self.n_patterns),
-                                                    size=1000,
-                                                    replace=False))
+        trials_to_remove = np.sort(self.rng.choice(np.arange(self.n_cond, self.n_patterns),
+                                                   size=1000,
+                                                   replace=False))
         self.dataset_subset = rsd.Dataset(
             np.delete(self.measurements_full, trials_to_remove, axis=0),
             obs_descriptors={
