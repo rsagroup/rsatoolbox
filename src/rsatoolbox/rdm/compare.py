@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Optional
 import numpy as np
 import scipy.stats
 from scipy import linalg
+from scipy import sparse
 from scipy.optimize import minimize
 from scipy.stats._stats import _kendall_dis
 from scipy.spatial.distance import squareform
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
 
 
-def compare(rdm1: RDMs, rdm2: RDMs, method="cosine", sigma_k: Optional[NDArray] = None) -> NDArray:
+def compare(rdm1: RDMs, rdm2: RDMs, method="cosine", v: Optional[Union[NDArray, sparse.spmatrix]] = None) -> NDArray:
     """Calculates the similarity between two RDMs objects using a chosen method
 
     Args:
@@ -59,8 +60,8 @@ def compare(rdm1: RDMs, rdm2: RDMs, method="cosine", sigma_k: Optional[NDArray] 
 
             'bures_metric' = distances based on bures similarity, which is a metric
 
-        sigma_k (numpy.ndarray):
-            covariance matrix of the pattern estimates.
+        v (numpy.ndarray or scipy.sparse.spmatrix):
+            Variance-covariance matrix of the dissimilarity estimates, calculated using get_v.
             Used only for methods 'corr_cov' and 'cosine_cov'.
 
     Returns:
@@ -80,9 +81,9 @@ def compare(rdm1: RDMs, rdm2: RDMs, method="cosine", sigma_k: Optional[NDArray] 
     elif method == "rho-a":
         sim = compare_rho_a(rdm1, rdm2)
     elif method == "corr_cov":
-        sim = compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
+        sim = compare_correlation_cov_weighted(rdm1, rdm2, v=v)
     elif method == "cosine_cov":
-        sim = compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
+        sim = compare_cosine_cov_weighted(rdm1, rdm2, v=v)
     elif method == "neg_riem_dist":
         sim = compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=sigma_k)
     elif method == "bures":
@@ -134,7 +135,7 @@ def compare_correlation(rdm1: RDMs, rdm2: RDMs) -> NDArray:
 
 
 def compare_cosine_cov_weighted(
-    rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None
+        rdm1: RDMs, rdm2: RDMs, v: Optional[Union[NDArray, sparse.spmatrix]] = None
 ) -> NDArray:
     """Calculates the cosine similarities between two RDMs objects
 
@@ -154,7 +155,7 @@ def compare_cosine_cov_weighted(
 
 
 def compare_correlation_cov_weighted(
-    rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None
+        rdm1: RDMs, rdm2: RDMs, v: Optional[Union[NDArray, sparse.spmatrix]] = None
 ) -> NDArray:
     """Calculates the correlations between two RDMs objects after whitening
     with the covariance of the entries
@@ -174,7 +175,7 @@ def compare_correlation_cov_weighted(
     # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
-    sim = _cosine_cov_weighted(vector1, vector2, sigma_k, nan_idx)
+    sim = _cosine_cov_weighted(vector1, vector2, v, nan_idx)
     return sim
 
 
@@ -224,7 +225,7 @@ def compare_rho_a(rdm1: RDMs, rdm2: RDMs) -> NDArray:
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
     n = vector1.shape[1]
-    sim = np.einsum("ij,kj->ik", vector1, vector2) / (n**3 - n) * 12
+    sim = np.einsum("ij,kj->ik", vector1, vector2) / (n ** 3 - n) * 12
     return sim
 
 
@@ -269,7 +270,7 @@ def compare_kendall_tau_a(rdm1: RDMs, rdm2: RDMs) -> NDArray[float64]:
 
 
 def compare_neg_riemannian_distance(
-    rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None
+        rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None
 ) -> NDArray:
     """Calculates the negative Riemannian distance between two RDMs objects.
 
@@ -373,7 +374,7 @@ def _all_combinations(vectors1, vectors2, func, *args, **kwargs):
     return value
 
 
-def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None, nan_idx=None):
+def _cosine_cov_weighted_slow(vector1, vector2, v=None, nan_idx=None):
     """computes the cosine similarities between two sets of vectors
     after whitening by their covariance.
 
@@ -393,12 +394,8 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None, nan_idx=None):
 
     """
     if nan_idx is not None:
-        n_cond = _get_n_from_reduced_vectors(nan_idx.reshape(1, -1))
-        v = _get_v(n_cond, sigma_k)
         v = v[nan_idx][:, nan_idx]
-    else:
-        n_cond = _get_n_from_reduced_vectors(vector1)
-        v = _get_v(n_cond, sigma_k)
+
     # compute V^-1 vector1/2 for all vectors by solving Vx = vector1/2
     vector1_m = np.array(
         [scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0] for i in range(vector1.shape[0])]
@@ -415,7 +412,7 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None, nan_idx=None):
     return cos
 
 
-def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
+def _cosine_cov_weighted(vector1, vector2, v: Optional[Union[NDArray, sparse.spmatrix]] = None, nan_idx=None):
     """computes the cosine angles between two sets of vectors
     weighted by the covariance
     If no covariance is given this is computed using the linear CKA,
@@ -427,27 +424,27 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
             first vectors (2D)
         vector1 (numpy.ndarray):
             second vectors (2D)
-        sigma_k (Matrix):
-            optional, covariance between pattern estimates
+        v (numpy.ndarray or scipy.sparse.spmatrix):
+            variance-covariance matrix between dissimilarity estimates
 
     Returns:
         cos (float):
             cosine angle between vectors
 
     """
-    if (sigma_k is not None) and (sigma_k.ndim >= 2):
-        cos = _cosine_cov_weighted_slow(vector1, vector2, sigma_k=sigma_k, nan_idx=nan_idx)
+    if v is not None:
+        cos = _cosine_cov_weighted_slow(vector1, vector2, v=v, nan_idx=nan_idx)
     else:
         if nan_idx is None:
             nan_idx = np.ones(vector1[0].shape, bool)
         # Compute the extended version of RDM vectors in whitened space
-        vector1_m = _cov_weighting(vector1, nan_idx, sigma_k)
-        vector2_m = _cov_weighting(vector2, nan_idx, sigma_k)
+        vector1_m = _cov_weighting(vector1, nan_idx)
+        vector2_m = _cov_weighting(vector2, nan_idx)
         cos = _cosine(vector1_m, vector2_m)
     return cos
 
 
-def _cov_weighting(vector, nan_idx, sigma_k=None):
+def _cov_weighting(vector, nan_idx):
     """Transforms an array of RDM vectors in to representation
     in which the elements are isotropic. This is a stretched-out
     second moment matrix, with the diagonal elements appended.
@@ -465,6 +462,7 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
     """
     N, n_dist = vector.shape
     n_cond = _get_n_from_length(nan_idx.shape[0])
+    sigma_k = np.eye(n_cond)
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
     SPARSE_THRESHOLD = 100  # threshold for switching to sparse matrices
     if n_cond >= SPARSE_THRESHOLD:
@@ -502,7 +500,7 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
         diag = np.concatenate((np.ones((n_dist, 1)) / 2, np.ones((n_cond, 1))))
         # one line version much faster here!
         vector_w = vector_w - (
-            vector_w @ sumI @ np.linalg.inv(sumI.T @ (diag * sumI)) @ (diag * sumI).T
+                vector_w @ sumI @ np.linalg.inv(sumI.T @ (diag * sumI)) @ (diag * sumI).T
         )
         if sigma_k is not None:
             if sigma_k.ndim == 1:
@@ -566,13 +564,13 @@ def _riemannian_distance(vec_G1, vec_G2, sigma_k):
                 negative riemannian distance
     """
     n_cond = _get_n_from_length(len(vec_G1))
-    G1 = np.diag(vec_G1[0 : (n_cond - 1)]) + squareform(vec_G1[(n_cond - 1) : len(vec_G1)])
-    G2 = np.diag(vec_G2[0 : (n_cond - 1)]) + squareform(vec_G2[(n_cond - 1) : len(vec_G2)])
+    G1 = np.diag(vec_G1[0: (n_cond - 1)]) + squareform(vec_G1[(n_cond - 1): len(vec_G1)])
+    G2 = np.diag(vec_G2[0: (n_cond - 1)]) + squareform(vec_G2[(n_cond - 1): len(vec_G2)])
 
     def fun(theta):
         return np.sqrt(
             (
-                np.log(linalg.eigvalsh(np.exp(theta[0]) * G1 + np.exp(theta[1]) * sigma_k, G2)) ** 2
+                    np.log(linalg.eigvalsh(np.exp(theta[0]) * G1 + np.exp(theta[1]) * sigma_k, G2)) ** 2
             ).sum()
         )
 
@@ -651,11 +649,11 @@ def _count_rank_tie(ranks):
     )
 
 
-def _get_v(
-    n_cond: int,
-    sigma_k: Optional[np.ndarray] = None,
-    rdm: Optional[RDMs] = None,
-    rdm_mask: Optional[np.ndarray] = None,
+def get_v(
+        n_cond: int,
+        sigma_k: Optional[np.ndarray] = None,
+        rdm: Optional[RDMs] = None,
+        rdm_mask: Optional[np.ndarray] = None,
 ):
     """Estimates V, the variance-covariance matrix of the dissimilarity estimates.
 
@@ -689,10 +687,12 @@ def _get_v(
 
     # If RDM provided, compute full V
     n_fold = rdm.descriptors["n_fold"]
+    if rdm.dissimilarity_measure == 'crossnobis':
+        n_fold -= 1  # adjust for crossnobis bias correction
     D = rdm.get_matrices()[0]
     if rdm_mask is not None:  # apply mask if given
         D = D * (rdm_mask.astype(int))
-    v_noise = xi.multiply(xi).tocsc() / (n_fold - 1)
+    v_noise = xi.multiply(xi).tocsc() / n_fold
     v_signal = -xi.multiply(c_mat @ D @ c_mat.transpose()).tocsc()
 
     V = v_signal + v_noise
@@ -740,9 +740,9 @@ def _sq_bures_metric_first_way(A, B):
     va, ua = np.linalg.eigh(A)
     Asq = ua @ (np.sqrt(np.maximum(va[:, None], 0.0)) * ua.T)
     return (
-        np.trace(A)
-        + np.trace(B)
-        - 2 * np.sum(np.sqrt(np.maximum(0.0, np.linalg.eigvalsh(Asq @ B @ Asq))))
+            np.trace(A)
+            + np.trace(B)
+            - 2 * np.sum(np.sqrt(np.maximum(0.0, np.linalg.eigvalsh(Asq @ B @ Asq))))
     )
 
 
@@ -752,9 +752,9 @@ def _sq_bures_metric_second_way(A, B):
     sva = np.sqrt(np.maximum(va, 0.0))
     svb = np.sqrt(np.maximum(vb, 0.0))
     return (
-        np.sum(va)
-        + np.sum(vb)
-        - 2 * np.sum(np.linalg.svd((sva[:, None] * ua.T) @ (ub * svb[None, :]), compute_uv=False))
+            np.sum(va)
+            + np.sum(vb)
+            - 2 * np.sum(np.linalg.svd((sva[:, None] * ua.T) @ (ub * svb[None, :]), compute_uv=False))
     )
 
 
