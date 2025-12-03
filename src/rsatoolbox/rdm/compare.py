@@ -676,10 +676,13 @@ def get_v(n_cond: int,
 
     # If RDM provided, compute full V
     n_fold = rdm.descriptors['n_fold']
+    if rdm.dissimilarity_measure == 'crossnobis':
+        n_fold -= 1  # correct for the bias-correction in crossnobis
+
     D = rdm.get_matrices()[0]
     if rdm_mask is not None:  # apply mask if given
         D = D * (rdm_mask.astype(int))
-    v_noise = xi.multiply(xi).tocsc() / (n_fold - 1)
+    v_noise = xi.multiply(xi).tocsc() / n_fold
     v_signal = -xi.multiply(c_mat @ D @ c_mat.transpose()).tocsc()
 
     V = v_signal + v_noise

@@ -30,7 +30,7 @@ def _build_rdms(
     )
     if (obs_desc_vals is None) and (obs_desc_name is not None):
         # obtain the unique values in the target obs descriptor
-        _, obs_desc_vals, _ = average_dataset_by(ds, obs_desc_name)
+        _, obs_desc_vals, n_obs = average_dataset_by(ds, obs_desc_name)
 
     if _averaging_occurred(ds, obs_desc_name, obs_desc_vals):
         orig_obs_desc_vals = np.asarray(ds.obs_descriptors[obs_desc_name])
@@ -52,6 +52,9 @@ def _build_rdms(
     if cv is not None:
         rdms.descriptors['cv_descriptor'] = cv
         rdms.descriptors['n_fold'] = len(np.unique(ds.obs_descriptors[cv]))
+    else:
+        rdms.descriptors['cv_descriptor'] = None
+        rdms.descriptors['n_fold'] = np.max(n_obs)
     return rdms
 
 
