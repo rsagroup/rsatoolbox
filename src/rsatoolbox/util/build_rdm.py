@@ -15,14 +15,14 @@ if TYPE_CHECKING:
 
 
 def _build_rdms(
-        utv: NDArray,
-        ds: DatasetBase,
-        method: str,
-        obs_desc_name: str | None,
-        obs_desc_vals: Optional[NDArray] = None,
-        cv: Optional[NDArray] = None,
-        noise: Optional[NDArray] = None
-) -> RDMs:
+            utv: NDArray,
+            ds: DatasetBase,
+            method: str,
+            obs_desc_name: str | None,
+            obs_desc_vals: Optional[NDArray] = None,
+            cv: Optional[str] = None,
+            noise: Optional[NDArray] = None
+        ) -> RDMs:
     rdms = RDMs(
         dissimilarities=np.array([utv]),
         dissimilarity_measure=method,
