@@ -17,6 +17,8 @@ from rsatoolbox.util.rdm_utils import _extract_triu_
 from rsatoolbox.util.build_rdm import _build_rdms
 from rsatoolbox.util.matrix import pairwise_contrast
 
+EPSILON = 1e-8
+
 if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
     from rsatoolbox.data.base import DatasetBase
@@ -256,7 +258,7 @@ def calc_rdm_minkowski(
     n_cond = measurements.shape[0]
     C = pairwise_contrast(np.arange(n_cond))
     deltas = C @ measurements
-    rdm = np.sum(np.abs(deltas) ** degree, axis=1)
+    rdm = np.sum((np.abs(deltas) + EPSILON) ** degree, axis=1)
     if root:
         rdm = rdm ** (1 / degree)
     return _build_rdms(rdm, dataset, 'minkowski distance', descriptor, desc)
