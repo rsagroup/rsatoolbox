@@ -9,6 +9,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 from typing import TYPE_CHECKING, Optional, Tuple, List, Union
 import numpy as np
+from scipy.linalg import sqrtm
 from rsatoolbox.rdm.rdms import concat
 from rsatoolbox.rdm.calc_unbalanced import calc_rdm_unbalanced
 from rsatoolbox.rdm.combine import from_partials
@@ -120,7 +121,7 @@ def _calc_rdm_single(
                                   prior_weight=prior_weight)
     elif method == 'minkowski':
         rdm = calc_rdm_minkowski(dataset, descriptor, degree,
-                                 root, remove_mean)
+                                 root, noise, remove_mean)
     else:
         raise NotImplementedError
     if descriptor is not None:
@@ -239,6 +240,7 @@ def calc_rdm_minkowski(
         descriptor: Optional[str] = None,
         degree: float = 2,
         root: bool = True,
+        noise: Optional[NDArray] = None,
         remove_mean: bool = False):
     """
     Args:
@@ -254,6 +256,9 @@ def calc_rdm_minkowski(
         rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
     """
     measurements, desc = _parse_input(dataset, descriptor, remove_mean)
+    if noise is None:
+        noise = np.eye(measurements.shape[1])
+    measurements = measurements @ sqrtm(noise)  # whiten if specified
     # Calculate minkowski distance between the measurement rows
     n_cond = measurements.shape[0]
     C = pairwise_contrast(np.arange(n_cond))
