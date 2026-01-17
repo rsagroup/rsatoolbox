@@ -65,7 +65,9 @@ addopts = "--assert=plain"
 test-requires = "pytest"
 test-command = "pytest {project}/tests"
 before-test = "pip install -r tests/requirements.txt"
-skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "pp*"]
+skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "pp*", "cp3??t-*"]
+# Free-threading builds disabled on all platforms as
+# no h5py wheels for cp314t https://docs.h5py.org/en/latest/threads.html
 
 [tool.pyright]
 include = ["src"]
