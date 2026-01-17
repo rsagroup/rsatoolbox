@@ -13,7 +13,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rsatoolbox"
 description = "Representational Similarity Analysis (RSA) in Python"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     {name="rsatoolbox authors"},
 ]
@@ -26,11 +26,11 @@ classifiers = [
       'Development Status :: 4 - Beta',
       'Topic :: Scientific/Engineering',
       'Intended Audience :: Science/Research',
-      'Programming Language :: Python :: 3.9',
       'Programming Language :: Python :: 3.10',
       'Programming Language :: Python :: 3.11',
       'Programming Language :: Python :: 3.12',
       'Programming Language :: Python :: 3.13',
+      'Programming Language :: Python :: 3.14',
 ]
 dynamic = ["readme", "dependencies", "version"]
 [project.optional-dependencies]
@@ -65,7 +65,9 @@ addopts = "--assert=plain"
 test-requires = "pytest"
 test-command = "pytest {project}/tests"
 before-test = "pip install -r tests/requirements.txt"
-skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "pp*"]
+skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "pp*", "cp3??t-*"]
+# Free-threading builds disabled on all platforms as
+# no h5py wheels for cp314t https://docs.h5py.org/en/latest/threads.html
 
 [tool.pyright]
 include = ["src"]
