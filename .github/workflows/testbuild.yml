@@ -56,6 +56,8 @@ jobs:
       run: pip install build setuptools
     - name: Build package
       run: python -m build --sdist
+    - name: Test package for corruption
+      run: gzip -t dist/*
     - name: Install rsatoolbox (Linux, Mac)
       run: pip install dist/*
       if: matrix.os != 'windows-latest'
