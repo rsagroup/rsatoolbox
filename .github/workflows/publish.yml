@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   call-test-build:
@@ -30,4 +31,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@v1.13.0
         with:
           verbose: true
-          password: ${{ secrets.API_TOKEN_PYPI }}
