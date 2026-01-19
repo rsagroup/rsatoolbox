@@ -8,3 +8,4 @@ prune demos
 prune docs
 prune tests
 prune wiki
+prune devops

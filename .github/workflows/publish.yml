@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   call-test-build:
@@ -19,15 +20,23 @@ jobs:
     needs: call-test-build
     runs-on: ubuntu-latest
     steps:
-      - name: Download all  artifacts
-        uses: actions/download-artifact@v4
+      - name: Download all wheels
+        uses: actions/download-artifact@v7
         with:
+          pattern: wheels-*
           path: dist
           merge-multiple: true
+      ## Download only a single source file as merging may cause corruption
+      - name: Download source tarball
+        uses: actions/download-artifact@v7
+        with:
+          name: source-ubuntu-latest-3.14
+          path: dist
       - name: List files
         run: ls -R dist
+      - name: Test source package for corruption
+        run: gzip -t dist/*.tar.gz
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@v1.13.0
         with:
           verbose: true
-          password: ${{ secrets.API_TOKEN_PYPI }}

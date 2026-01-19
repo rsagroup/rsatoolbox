@@ -77,7 +77,7 @@ jobs:
         pip install -q twine
         twine check dist/*
     - name: Store artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: source-${{ matrix.os }}-${{ matrix.python-version }}
         path: dist/*
@@ -110,7 +110,7 @@ jobs:
         pip install -q twine
         twine check dist/*
     - name: Store artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: wheels-${{ matrix.os }}
         path: dist/*.whl
