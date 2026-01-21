@@ -44,6 +44,9 @@ imaging = [
 homepage = "https://github.com/rsagroup/rsatoolbox"
 documentation = "https://rsatoolbox.readthedocs.io/"
 
+[project.scripts]
+rsatoolbox = "rsatoolbox.cli:main"
+
 [tool.setuptools_scm]
 local_scheme = "no-local-version"
 
