@@ -24,7 +24,7 @@ def crossval_sim(n_part=2,n_cond=4,n_sim=10,n_channel=200,sigma='iid'):
     if (sigma=='iid'):
         Sigma = np.kron(np.eye(n_part),np.eye(n_cond))
     elif (sigma=='neigh'):
-        A = [[1,0.8,0,0],[0.8,1,0,0.5],[0,0,1,0],[0,0.5,0,1]]
+        A = [[1,0.5,0,0],[0.5,1,0,0.5],[0,0,1,0],[0,0.5,0,1]]
         Sigma = np.kron(np.eye(n_part),A)
     data = pcm.sim.make_dataset(M,[],cond_vec,
                          n_sim=n_sim,
@@ -48,13 +48,13 @@ def crossval_sim(n_part=2,n_cond=4,n_sim=10,n_channel=200,sigma='iid'):
     #              use_exact_signal=False, use_same_signal=False)
     T=pd.DataFrame({'Simp':D_simp.flatten(),
                     'Cross':D_cross.flatten(),
-                    'True':np.tile(true_dist,n_sim),
+                    'Trued':np.tile(true_dist,n_sim),
                     'dist_type':np.tile(dist_type,n_sim)})
     return(T)
 
 def plot_panel(T):
-    sb.violinplot(data=T,x='True',y='Simp')
-    sb.violinplot(data=T,x='True',y='Cross')
+    sb.violinplot(data=T,x='Trued',y='Simp')
+    sb.violinplot(data=T,x='Trued',y='Cross')
     sb.despine()
     plt.plot([0,3],[0,3],'k--')
     plt.xlabel('True distance')
