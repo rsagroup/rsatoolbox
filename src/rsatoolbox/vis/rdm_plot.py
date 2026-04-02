@@ -407,7 +407,9 @@ def _contour_coords(mask: NDArray, offset: float) -> Iterator[Tuple[float, float
     ]
     for x, y in np.vstack(mask_idx).T:
         for neighbor, edge in sides:
-            if not mask_t[(x+neighbor[0], y+neighbor[1])]:
+            nx, ny = x + neighbor[0], y + neighbor[1]
+            if (nx < 0 or ny < 0 or nx >= mask_t.shape[0] or ny >= mask_t.shape[1]
+                or not mask_t[(nx, ny)]):
                 x1, y1, x2, y2 = edge
                 yield (x+x1+offset, y+y1+offset, x+x2+offset, y+y2+offset)
 
