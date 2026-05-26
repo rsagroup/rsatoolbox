@@ -277,27 +277,37 @@ cdef float_t mahalanobis(float_t [:] vec_i, float_t [:] vec_j, int n_dim,
             n_finite += 1
         else:
             finite[i] = 0
-    vec1 = <float_t*> PyMem_Malloc(n_finite * sizeof(float_t))
-    vec2 = <float_t*> PyMem_Malloc(n_finite * sizeof(float_t))
-    vec3 = <float_t*> PyMem_Malloc(n_finite * sizeof(float_t))
-    noise_small = cvarray(shape=(n_finite, n_finite), itemsize=sizeof(float_t), format="d")
-    k = 0
-    for i in range(n_dim):
-        if finite[i]:
-            vec1[k] = vec_i[i]
-            vec2[k] = vec_j[i]
-            l = 0
-            for j in range(n_dim):
-                if finite[j]:
-                    noise_small[k, l] = noise[i, j]
-                    l += 1
-            k += 1
-    blas.dgemv(&trans, &n_finite, &n_finite, &onef, &noise_small[0, 0], &n_finite, vec2, &one, &zerof, vec3, &one)
-    for i in range(n_dim):
-        sim += vec1[i] * vec3[i]
-    PyMem_Free(vec1)
-    PyMem_Free(vec2)
-    PyMem_Free(vec3)
+    if n_finite < n_dim:
+        # if there are nans, we need to create smaller vectors and a smaller noise precision matrix
+        vec1 = <float_t*> PyMem_Malloc(n_finite * sizeof(float_t))
+        vec2 = <float_t*> PyMem_Malloc(n_finite * sizeof(float_t))
+        vec3 = <float_t*> PyMem_Malloc(n_finite * sizeof(float_t))
+        noise_small = cvarray(shape=(n_finite, n_finite), itemsize=sizeof(float_t), format="d")
+        k = 0
+        for i in range(n_dim):
+            if finite[i]:
+                vec1[k] = vec_i[i]
+                vec2[k] = vec_j[i]
+                l = 0
+                for j in range(n_dim):
+                    if finite[j]:
+                        noise_small[k, l] = noise[i, j]
+                        l += 1
+                k += 1
+        blas.dgemv(&trans, &n_finite, &n_finite, &onef, &noise_small[0, 0], &n_finite, vec2, &one, &zerof, vec3, &one)
+        for i in range(n_finite):
+            sim += vec1[i] * vec3[i]
+        PyMem_Free(vec1)
+        PyMem_Free(vec2)
+        PyMem_Free(vec3)
+    else:
+        vec3 = <float_t*> PyMem_Malloc(n_dim * sizeof(float_t))
+        # if there are no nans, we can directly use the input vectors and noise precision matrix
+        blas.dgemv(&trans, &n_dim, &n_dim, &onef, &noise[0, 0], &n_dim, &vec_j[0], &one, &zerof, vec3, &one)
+        for i in range(n_dim):
+            sim += vec_i[i] * vec3[i]
+        PyMem_Free(vec3)
+
     PyMem_Free(finite)
     return sim
 
