@@ -12,12 +12,14 @@ from collections.abc import Iterable
 from copy import deepcopy
 import warnings
 import numpy as np
+from tqdm import tqdm
 from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox.rdm.rdms import concat
 from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.matrix import row_col_indicator_rdm
 from rsatoolbox.util.build_rdm import _build_rdms
 from rsatoolbox.cengine.similarity import calc_one, calc
+
 if TYPE_CHECKING:
     from rsatoolbox.data.base import DatasetBase
     from numpy.typing import NDArray
@@ -27,7 +29,8 @@ if TYPE_CHECKING:
 def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
                         descriptor=None, noise=None, cv_descriptor=None,
                         prior_lambda=1, prior_weight=0.1,
-                        weighting='number', enforce_same=False) -> RDMs:
+                        weighting='number', enforce_same=False,
+                        progress_bar=False) -> RDMs:
     """
     calculate a RDM from an input dataset for unbalanced datasets.
 
@@ -50,6 +53,8 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
     """
     if isinstance(dataset, Iterable):
         rdms = []
+        if progress_bar:
+            dataset = tqdm(dataset, desc='Calculating RDMs')
         for i_dat, dat in enumerate(dataset):
             if noise is None:
                 rdms.append(calc_rdm_unbalanced(
