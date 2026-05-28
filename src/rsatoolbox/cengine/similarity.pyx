@@ -14,7 +14,7 @@ ctypedef cnp.int64_t int_t
 ctypedef cnp.float64_t float_t
 
 cdef struct mah_struct:
-    float_t [:, :] noise
+    float_t *vec1
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
@@ -253,7 +253,7 @@ cdef (float_t, float_t) poisson_cv(float_t [:] vec_i, float_t [:] vec_j,
 
 
 @cython.boundscheck(False)
-cdef float_t mahalanobis(float_t [:] vec_i, float_t [:] vec_j, int n_dim,
+cdef (float_t, float_t) mahalanobis(float_t [:] vec_i, float_t [:] vec_j, int n_dim,
                         float_t [:, :] noise):
     cdef:
         float_t *vec1
