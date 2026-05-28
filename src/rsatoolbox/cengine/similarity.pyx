@@ -13,6 +13,9 @@ cnp.import_array()
 ctypedef cnp.int64_t int_t
 ctypedef cnp.float64_t float_t
 
+cdef struct mah_struct:
+    float_t [:, :] noise
+
 @cython.boundscheck(False)
 @cython.cdivision(True)
 cpdef float_t [:] calc(
@@ -78,8 +81,7 @@ cpdef float_t [:] calc(
                 if noise is None:
                     sim, weight = euclid(data[i], data[i], n_dim)
                 else:
-                    sim = mahalanobis(data[i], data[i], n_dim, noise)
-                    weight = <float_t> n_dim
+                    sim, weight = mahalanobis(data[i], data[i], n_dim, noise)
             elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
                 sim, weight = poisson_cv(data[i], data[i], log_data[i], log_data[i], n_dim)
             idx = desc[i]
@@ -101,8 +103,7 @@ cpdef float_t [:] calc(
                     if noise is None:
                         sim, weight = euclid(data[i], data[j], n_dim)
                     else:
-                        sim = mahalanobis(data[i], data[j], n_dim, noise)
-                        weight = <float_t> n_dim
+                        sim, weight = mahalanobis(data[i], data[j], n_dim, noise)
                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
                     sim, weight = poisson_cv(data[i], data[j], log_data[i], log_data[j], n_dim)
                 if weight > 0:
@@ -177,8 +178,7 @@ cpdef (float_t, float_t) calc_one(
                     if noise is None:
                         sim, weight = euclid(data_i[i], data_j[j], n_dim)
                     else:
-                        sim = mahalanobis(data_i[i], data_j[j], n_dim, noise)
-                        weight = <float_t> n_dim
+                        sim, weight = mahalanobis(data_i[i], data_j[j], n_dim, noise)
                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
                     sim, weight = poisson_cv(data_i[i], data_j[j], log_data_i[i], log_data_j[j], n_dim)
                 if weight > 0:
@@ -218,8 +218,7 @@ cpdef (float_t, float_t) similarity(float_t [:] vec_i, float_t [:] vec_j, int me
         if noise is None:
             sim, weight = euclid(vec_i, vec_j, n_dim)
         else:
-            sim = mahalanobis(vec_i, vec_j, n_dim, noise)
-            weight = <float_t> n_dim
+            sim, weight = mahalanobis(vec_i, vec_j, n_dim, noise)
     return sim, weight
 
 
@@ -268,6 +267,7 @@ cdef float_t mahalanobis(float_t [:] vec_i, float_t [:] vec_j, int n_dim,
         float_t sim = 0.0
         int i, j, k, l, n_finite
         float_t [:, :] noise_small
+        float_t weight
     finite = <int*> PyMem_Malloc(n_dim * sizeof(int))
     # use finite as a bool to choose the non-nan values
     n_finite = 0
@@ -307,9 +307,9 @@ cdef float_t mahalanobis(float_t [:] vec_i, float_t [:] vec_j, int n_dim,
         for i in range(n_dim):
             sim += vec_i[i] * vec3[i]
         PyMem_Free(vec3)
-
+    weight = <float_t> n_dim
     PyMem_Free(finite)
-    return sim
+    return sim, weight
 
 
 @cython.boundscheck(False)
