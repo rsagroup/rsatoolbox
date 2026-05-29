@@ -58,6 +58,7 @@ cpdef float_t [:] calc(
     #     2: method == 'correlation'
     #     3: method in ['mahalanobis', 'crossnobis']
     #     4: method in ['poisson', 'poisson_cv']
+    #     5: method in ['mahalanobis', 'crossnobis'] without nan handling
     # double [:, :] noise = None: noise for Mahalanobis/Crossnobis
     # double prior_lambda=1 : for poisson KL
     # double prior_weight=0.1 : for poisson KL
@@ -66,7 +67,6 @@ cpdef float_t [:] calc(
     #     1: rows weighted by number of valid measurements
     cdef:
         float_t [:] vec_i
-        float_t [:] vec_j
         float_t weight, sim
         float_t [:] weights
         float_t [:] values
@@ -76,8 +76,13 @@ cpdef float_t [:] calc(
         float_t prior_lambda_l = prior_lambda * prior_weight
         float_t prior_weight_l = 1 + prior_weight
         float_t [:, :] log_data
+        char trans = b'n'
+        int zero = 0
+        int one = 1
+        float_t onef = 1.0
+        float_t zerof = 0.0
         mah_struct mah
-    if (method_idx > 4) or (method_idx < 1):
+    if (method_idx > 5) or (method_idx < 1):
         raise ValueError('dissimilarity method not recognized!')
     # precompute stuff for poisson KL
     if method_idx == 4:
@@ -91,10 +96,15 @@ cpdef float_t [:] calc(
         mah = init_mah_struct(n_dim)
     weights = <float_t [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(float_t))
     values = <float_t [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(float_t))
+    if method_idx == 5: # memory allocation for noise multiplied vector
+        vec_i = <float_t [:n_dim]> PyMem_Malloc(n_dim * sizeof(float_t))
     for idx in range(n_rdm + n):
         weights[idx] = 0
         values[idx] = 0
     for i in range(data.shape[0]):
+        if method_idx == 5: # method in ['mahalanobis', 'crossnobis'] without nan handling:
+            # compute noise precision matrix times data[i] and store in vec_i
+            blas.dgemv(&trans, &n_dim, &n_dim, &onef, &noise[0, 0], &n_dim, &data[i, 0], &one, &zerof, &vec_i[0], &one)
         if not crossval:
             if method_idx == 1: # method == 'euclidean':
                 sim, weight = euclid(data[i], data[i], n_dim)
@@ -107,6 +117,8 @@ cpdef float_t [:] calc(
                     sim, weight = mahalanobis(data[i], data[i], n_dim, noise, mah)
             elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
                 sim, weight = poisson_cv(data[i], data[i], log_data[i], log_data[i], n_dim)
+            elif method_idx == 5: # method in ['mahalanobis', 'crossnobis'] without nan handling:
+                sim, weight = euclid_no_check(data[i], vec_i, n_dim)
             idx = desc[i]
             if weighting == 1: #'number':
                 values[idx] += sim / 2
@@ -129,6 +141,8 @@ cpdef float_t [:] calc(
                         sim, weight = mahalanobis(data[i], data[j], n_dim, noise, mah)
                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
                     sim, weight = poisson_cv(data[i], data[j], log_data[i], log_data[j], n_dim)
+                elif method_idx == 5: # method in ['mahalanobis', 'crossnobis'] without nan handling:
+                    sim, weight = euclid_no_check(data[j], vec_i, n_dim)
                 if weight > 0:
                     if desc[i] == desc[j]:
                         idx = desc[i]
@@ -150,6 +164,8 @@ cpdef float_t [:] calc(
             values[idx] = NAN
     if method_idx == 3:
         free_mah_struct(mah)
+    if method_idx == 5: # free memory for noise multiplied vector
+        PyMem_Free(&vec_i[0])
     return values
 
 
@@ -163,8 +179,6 @@ cpdef (float_t, float_t) calc_one(
     float_t prior_lambda=1, float_t prior_weight=0.1,
     int weighting=1):
     cdef:
-        #double [:] values = np.zeros(n_i * n_j)
-        #double [:] weights = np.zeros(n_i * n_j)
         float_t [:] vec_i
         float_t [:] vec_j
         float_t weight, sim, weight_sum, value
@@ -174,7 +188,12 @@ cpdef (float_t, float_t) calc_one(
         float_t prior_weight_l = 1 + prior_weight
         float_t [:, :] log_data_i
         float_t [:, :] log_data_j
-    if (method_idx > 4) or (method_idx < 1):
+        char trans = b'n'
+        int zero = 0
+        int one = 1
+        float_t onef = 1.0
+        float_t zerof = 0.0
+    if (method_idx > 5) or (method_idx < 1):
         raise ValueError('dissimilarity method not recognized!')
     if method_idx == 3:
         mah = init_mah_struct(n_dim)
@@ -192,9 +211,14 @@ cpdef (float_t, float_t) calc_one(
             for j in range(n_dim):
                 data_j[i, j] = (data_j[i, j] + prior_lambda_l) / prior_weight_l
                 log_data_j[i, j] = log(data_j[i, j])
+    if method_idx == 5: # memory allocation for noise multiplied vector
+        vec_i = <float_t [:n_dim]> PyMem_Malloc(n_dim * sizeof(float_t))
     weight_sum = 0
     value = 0
     for i in range(n_i):
+        if method_idx == 5: # method in ['mahalanobis', 'crossnobis'] without nan handling:
+            # compute noise precision matrix times data[i] and store in vec_i
+            blas.dgemv(&trans, &n_dim, &n_dim, &onef, &noise[0, 0], &n_dim, &data_i[i, 0], &one, &zerof, &vec_i[0], &one)
         for j in range(n_j):
             if not (cv_desc_i[i] == cv_desc_j[j]):
                 if method_idx == 1: # method == 'euclidean':
@@ -208,6 +232,8 @@ cpdef (float_t, float_t) calc_one(
                         sim, weight = mahalanobis(data_i[i], data_j[j], n_dim, noise, mah)
                 elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
                     sim, weight = poisson_cv(data_i[i], data_j[j], log_data_i[i], log_data_j[j], n_dim)
+                elif method_idx == 5: # method in ['mahalanobis', 'crossnobis'] without nan handling:
+                    sim, weight = euclid_no_check(data_j[j], vec_i, n_dim)
                 if weight > 0:
                     if weighting == 1: #'number':
                         value += sim
@@ -221,12 +247,16 @@ cpdef (float_t, float_t) calc_one(
         value = NAN
     if method_idx == 3:
         free_mah_struct(mah)
+    if method_idx == 5: # free memory for noise multiplied vector
+        PyMem_Free(&vec_i[0])
     return value, weight_sum
 
 
 @cython.boundscheck(False)
-cpdef (float_t, float_t) similarity(float_t [:] vec_i, float_t [:] vec_j, int method_idx,
-                       int n_dim, float_t [:, :] noise):
+cpdef (float_t, float_t) similarity(
+        float_t [:] vec_i, float_t [:] vec_j, int method_idx,
+        int n_dim, float_t [:, :] noise, 
+        float_t prior_lambda=1, float_t prior_weight=0.1):
     """
     double similarity(double [:] vec_i, double [:] vec_j, int method_idx,
                       int n_dim, double [:, :] noise=None)
@@ -237,8 +267,19 @@ cpdef (float_t, float_t) similarity(float_t [:] vec_i, float_t [:] vec_j, int me
 
     Mahalanobis distances require full measurement vectors at the moment!
     """
-    cdef float_t sim
-    cdef float_t weight
+    cdef:
+        float_t sim
+        float_t weight
+        float_t prior_lambda_l = prior_lambda * prior_weight
+        float_t prior_weight_l = 1 + prior_weight
+        float_t [:] vec_i_p
+        float_t [:] vec_j_p
+        char trans = b'n'
+        int zero = 0
+        int one = 1
+        float_t onef = 1.0
+        float_t zerof = 0.0
+        int i
     if method_idx == 1: # method == 'euclidean':
         sim, weight = euclid(vec_i, vec_j, n_dim)
     elif method_idx == 2: # method == 'correlation':
@@ -250,6 +291,23 @@ cpdef (float_t, float_t) similarity(float_t [:] vec_i, float_t [:] vec_j, int me
             mah = init_mah_struct(n_dim)
             sim, weight = mahalanobis(vec_i, vec_j, n_dim, noise, mah)
             free_mah_struct(mah)
+    elif method_idx == 4: # method in ['poisson', 'poisson_cv']:
+        vec_i = vec_i.copy()
+        vec_i_p = vec_i.copy()
+        for i in range(n_dim):
+            vec_i[i] = (vec_i[i] + prior_lambda_l) / prior_weight_l
+            vec_i_p[i] = log(vec_i[i])
+        vec_j = vec_j.copy()
+        vec_j_p = vec_j.copy()
+        for i in range(n_dim):
+            vec_j[i] = (vec_j[i] + prior_lambda_l) / prior_weight_l
+            vec_j_p[i] = log(vec_j[i])
+        sim, weight = poisson_cv(vec_i, vec_j, vec_i_p, vec_j_p, n_dim)
+    elif method_idx == 5: # method in ['mahalanobis', 'crossnobis'] without nan handling:
+        vec_i_p = <float_t [:n_dim]> PyMem_Malloc(n_dim * sizeof(float_t))
+        blas.dgemv(&trans, &n_dim, &n_dim, &onef, &noise[0, 0], &n_dim, &vec_i[0], &one, &zerof, &vec_i_p[0], &one)
+        sim, weight = euclid_no_check(vec_j, vec_i_p, n_dim)
+        PyMem_Free(&vec_i_p[0])
     return sim, weight
 
 
@@ -263,6 +321,18 @@ cdef (float_t, float_t) euclid(float_t [:] vec_i, float_t [:] vec_j, int n_dim):
         if not isnan(vec_i[i]) and not isnan(vec_j[i]):
             sim += vec_i[i] * vec_j[i]
             weight += 1
+    return sim, weight
+
+
+@cython.boundscheck(False)
+cdef (float_t, float_t) euclid_no_check(float_t [:] vec_i, float_t [:] vec_j, int n_dim):
+    cdef:
+        float_t sim = 0
+        float_t weight = 0
+        int i
+    for i in range(n_dim):
+        sim += vec_i[i] * vec_j[i]
+        weight += 1
     return sim, weight
 
 
