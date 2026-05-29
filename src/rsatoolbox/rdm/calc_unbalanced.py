@@ -110,7 +110,10 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
         elif method == 'correlation':
             method_idx = 2
         elif method in ['mahalanobis', 'crossnobis']:
-            method_idx = 3
+            if np.all(np.isfinite(dataset.measurements)):
+                method_idx = 5 # mahalanobis without nan handling
+            else:
+                method_idx = 3 # mahalanobis with nan handling
         elif method in ['poisson', 'poisson_cv']:
             method_idx = 4
         else:
@@ -173,7 +176,10 @@ def calc_one_similarity(data_i: DatasetBase, data_j: DatasetBase,
     elif method == 'correlation':
         method_idx = 2
     elif method in ['mahalanobis', 'crossnobis']:
-        method_idx = 3
+        if np.all(np.isfinite(data_i.measurements)) and np.all(np.isfinite(data_j.measurements)):
+            method_idx = 5 # mahalanobis without nan handling
+        else:
+            method_idx = 3 # mahalanobis with nan handling
     elif method in ['poisson', 'poisson_cv']:
         method_idx = 4
     else:

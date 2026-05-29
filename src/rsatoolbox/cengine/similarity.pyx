@@ -214,14 +214,16 @@ cpdef (float_t, float_t) calc_one(
             for j in range(n_dim):
                 data_j[i, j] = (data_j[i, j] + prior_lambda_l) / prior_weight_l
                 log_data_j[i, j] = log(data_j[i, j])
-    if method_idx == 5: # memory allocation for noise multiplied vector
+    if method_idx == 5 and noise is not None: # memory allocation for noise multiplied vector
         vec_i = <float_t [:n_dim]> PyMem_Malloc(n_dim * sizeof(float_t))
     weight_sum = 0
     value = 0
     for i in range(n_i):
-        if method_idx == 5: # method in ['mahalanobis', 'crossnobis'] without nan handling:
+        if method_idx == 5 and noise is not None: # method in ['mahalanobis', 'crossnobis'] without nan handling:
             # compute noise precision matrix times data[i] and store in vec_i
             blas.dgemv(&trans, &n_dim, &n_dim, &onef, &noise[0, 0], &n_dim, &data_i[i, 0], &one, &zerof, &vec_i[0], &one)
+        else:
+            vec_i = data_i[i]
         for j in range(n_j):
             if not (cv_desc_i[i] == cv_desc_j[j]):
                 if method_idx == 1: # method == 'euclidean':
@@ -250,7 +252,7 @@ cpdef (float_t, float_t) calc_one(
         value = NAN
     if method_idx == 3:
         free_mah_struct(mah)
-    if method_idx == 5: # free memory for noise multiplied vector
+    if method_idx == 5 and noise is not None: # free memory for noise multiplied vector
         PyMem_Free(&vec_i[0])
     return value, weight_sum
 
@@ -307,10 +309,13 @@ cpdef (float_t, float_t) similarity(
             vec_j_p[i] = log(vec_j[i])
         sim, weight = poisson_cv(vec_i, vec_j, vec_i_p, vec_j_p, n_dim)
     elif method_idx == 5: # method in ['mahalanobis', 'crossnobis'] without nan handling:
-        vec_i_p = <float_t [:n_dim]> PyMem_Malloc(n_dim * sizeof(float_t))
-        blas.dgemv(&trans, &n_dim, &n_dim, &onef, &noise[0, 0], &n_dim, &vec_i[0], &one, &zerof, &vec_i_p[0], &one)
-        sim, weight = euclid_no_check(vec_j, vec_i_p, n_dim)
-        PyMem_Free(&vec_i_p[0])
+        if noise is not None:
+            vec_i_p = <float_t [:n_dim]> PyMem_Malloc(n_dim * sizeof(float_t))
+            blas.dgemv(&trans, &n_dim, &n_dim, &onef, &noise[0, 0], &n_dim, &vec_i[0], &one, &zerof, &vec_i_p[0], &one)
+            sim, weight = euclid_no_check(vec_j, vec_i_p, n_dim)
+            PyMem_Free(&vec_i_p[0])
+        else:
+            sim, weight = euclid_no_check(vec_j, vec_i, n_dim)
     return sim, weight
 
 
