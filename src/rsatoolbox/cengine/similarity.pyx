@@ -96,7 +96,7 @@ cpdef float_t [:] calc(
         mah = init_mah_struct(n_dim)
     weights = <float_t [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(float_t))
     values = <float_t [:(n_rdm+n)]> PyMem_Malloc((n_rdm+n) * sizeof(float_t))
-    if method_idx == 5: # memory allocation for noise multiplied vector
+    if method_idx == 5 and noise is not None: # memory allocation for noise multiplied vector
         vec_i = <float_t [:n_dim]> PyMem_Malloc(n_dim * sizeof(float_t))
     for idx in range(n_rdm + n):
         weights[idx] = 0
@@ -104,7 +104,10 @@ cpdef float_t [:] calc(
     for i in range(data.shape[0]):
         if method_idx == 5: # method in ['mahalanobis', 'crossnobis'] without nan handling:
             # compute noise precision matrix times data[i] and store in vec_i
-            blas.dgemv(&trans, &n_dim, &n_dim, &onef, &noise[0, 0], &n_dim, &data[i, 0], &one, &zerof, &vec_i[0], &one)
+            if noise is not None:
+                blas.dgemv(&trans, &n_dim, &n_dim, &onef, &noise[0, 0], &n_dim, &data[i, 0], &one, &zerof, &vec_i[0], &one)
+            else:
+                vec_i = data[i]
         if not crossval:
             if method_idx == 1: # method == 'euclidean':
                 sim, weight = euclid(data[i], data[i], n_dim)
@@ -164,7 +167,7 @@ cpdef float_t [:] calc(
             values[idx] = NAN
     if method_idx == 3:
         free_mah_struct(mah)
-    if method_idx == 5: # free memory for noise multiplied vector
+    if method_idx == 5 and noise is not None: # free memory for noise multiplied vector
         PyMem_Free(&vec_i[0])
     return values
 
