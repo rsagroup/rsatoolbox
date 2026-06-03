@@ -211,4 +211,4 @@ def ensure_double(a: NDArray) -> NDArray[np.float64]:
     Returns:
         NDArray[np.float64]: The float64 version of the array
     """
-    return a.astype(np.float64)
+    return np.require(a, dtype=np.float64, requirements=['C_CONTIGUOUS'])
