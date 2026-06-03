@@ -353,3 +353,17 @@ class TestCalcUnbalancedRDM(unittest.TestCase):
             rdms.pattern_descriptors['conds'],
             self.test_data.obs_descriptors['conds']
         )
+
+    def test_c_contiguous(self):
+        # check that C-contiguous and F-contiguous arrays give the same result
+        a = self.test_data
+        b = self.test_data.copy()
+        a.measurements = np.require(a.measurements, dtype=np.float64, requirements=['C_CONTIGUOUS'] )
+        b.measurements = np.require(b.measurements, dtype=np.float64, requirements=['F_CONTIGUOUS'] )
+        for method in ALL_METHODS:
+            rdm_a = rsr.calc_rdm_unbalanced(a, descriptor='conds', method=method)
+            rdm_b = rsr.calc_rdm_unbalanced(b, descriptor='conds', method=method)
+            assert_array_almost_equal(
+                rdm_a.dissimilarities.flatten(),
+                rdm_b.dissimilarities.flatten()
+            )
