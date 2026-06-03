@@ -146,6 +146,52 @@ class TestCalcUnbalancedRDM(unittest.TestCase):
             rdm_check.dissimilarities.flatten()
         )
 
+    def test_calc_mahalanobis_noise_eye(self):
+        noise = np.eye(5)
+        rdm = rsr.calc_rdm_unbalanced(
+            self.test_data, descriptor='conds',
+            method='mahalanobis',
+            noise=noise)
+        rdm_euc = rsr.calc_rdm_unbalanced(
+            self.test_data, descriptor='conds',
+            method='euclidean')
+        assert_array_almost_equal(
+            rdm.dissimilarities.flatten(),
+            rdm_euc.dissimilarities.flatten()
+        )
+        rdm_bal = rsr.calc_rdm_unbalanced(
+            self.test_data_balanced, descriptor='conds',
+            method='mahalanobis',
+            noise=noise)
+        rdm_check = rsr.calc_rdm(
+            self.test_data_balanced, descriptor='conds',
+            method='euclidean')
+        assert_array_almost_equal(
+            rdm_bal.dissimilarities.flatten(),
+            rdm_check.dissimilarities.flatten()
+        )
+
+    def test_calc_mahalanobis_noise(self):
+        noise = self.rng.random((10, 5))
+        noise = np.matmul(noise.T, noise)
+        rdm = rsr.calc_rdm_unbalanced(
+            self.test_data, descriptor='conds',
+            method='mahalanobis',
+            noise=noise)
+        assert rdm.n_cond == 6
+        rdm_bal = rsr.calc_rdm_unbalanced(
+            self.test_data_balanced, descriptor='conds',
+            method='mahalanobis',
+            noise=noise)
+        rdm_check = rsr.calc_rdm(
+            self.test_data_balanced, descriptor='conds',
+            method='mahalanobis',
+            noise=noise)
+        assert_array_almost_equal(
+            rdm_bal.dissimilarities.flatten(),
+            rdm_check.dissimilarities.flatten()
+        )
+
     def test_calc_crossnobis(self):
         rdm = rsr.calc_rdm_unbalanced(self.test_data,
                                       descriptor='conds',

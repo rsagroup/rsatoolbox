@@ -38,7 +38,7 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
         dataset (rsatoolbox.data.dataset.DatasetBase):
             The dataset the RDM is computed from
         method (String):
-            a description of the dissimilarity measure (e.g. 'Euclidean')
+            a description of the dissimilarity measure (e.g. 'euclidean')
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
         noise (numpy.ndarray):
