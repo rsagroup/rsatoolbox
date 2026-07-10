@@ -3,7 +3,7 @@
 """
 Definition of RSA Model class and subclasses
 """
-
+from typing import TYPE_CHECKING, Optional, Any
 import numpy as np
 from rsatoolbox.rdm import RDMs
 from rsatoolbox.rdm import rdms_from_dict
@@ -25,7 +25,7 @@ class Model:
         self.default_fitter = fit_mock
         self.rdm_obj = None
 
-    def predict(self, theta=None):
+    def predict(self, theta: Optional[Any] = None):
         """ Returns the predicted rdm vector
 
         Args:
@@ -131,7 +131,7 @@ class ModelFixed(Model):
         """
         return self.rdm
 
-    def predict_rdm(self, theta=None):
+    def predict_rdm(self, theta=None) -> RDMs:
         """ Returns the predicted rdm vector
 
         For the fixed model there are no parameters.
@@ -188,7 +188,7 @@ class ModelSelect(Model):
         """
         return self.rdm[theta]
 
-    def predict_rdm(self, theta=0):
+    def predict_rdm(self, theta: Optional[int] = None) -> RDMs:
         """ Returns the predicted rdm vector
 
         For the fixed model there are no parameters.
@@ -200,6 +200,8 @@ class ModelSelect(Model):
             rsatoolbox.rdm.RDMs: rdm object
 
         """
+        if theta is None:
+            theta = 0
         return self.rdm_obj[theta]
 
 
@@ -247,7 +249,7 @@ class ModelWeighted(Model):
         theta = np.array(theta)
         return np.matmul(self.rdm.T, theta.reshape(-1))
 
-    def predict_rdm(self, theta=None):
+    def predict_rdm(self, theta=None) -> RDMs:
         """ Returns the predicted rdm vector
 
         For the fixed model there are no parameters.
@@ -342,7 +344,7 @@ class ModelInterpolate(Model):
         return rdms
 
 
-def model_from_dict(model_dict):
+def model_from_dict(model_dict: dict) -> Model:
     """ recreates a model object from a dictionary
 
     Args:
@@ -354,6 +356,8 @@ def model_from_dict(model_dict):
     """
     if model_dict['rdm']:
         rdm_obj = rdms_from_dict(model_dict['rdm'])
+    else:
+        rdm_obj = None
     if model_dict['type'] == 'Model':
         model = Model(model_dict['name'])
     elif model_dict['type'] == 'ModelFixed':
@@ -364,4 +368,7 @@ def model_from_dict(model_dict):
         model = ModelWeighted(model_dict['name'], rdm_obj)
     elif model_dict['type'] == 'ModelInterpolate':
         model = ModelInterpolate(model_dict['name'], rdm_obj)
+    else:
+        raise ValueError('model_from_dict: Unknown model type: ' +
+                         model_dict['type'] + '.')
     return model

@@ -3,7 +3,7 @@
 """
 calculation of noise ceilings
 """
-
+from typing import TYPE_CHECKING, Tuple
 import numpy as np
 from rsatoolbox.util.inference_util import pool_rdm
 from rsatoolbox.rdm import compare
@@ -51,7 +51,7 @@ def cv_noise_ceiling(rdms, ceil_set, test_set, method='cosine',
     return noise_min, noise_max
 
 
-def boot_noise_ceiling(rdms, method='cosine', rdm_descriptor='index'):
+def boot_noise_ceiling(rdms, method='cosine', rdm_descriptor='index') -> Tuple[float, float]:
     """ calculates a noise ceiling by leave one out & full set
 
     Args:

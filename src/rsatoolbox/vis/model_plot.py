@@ -24,7 +24,8 @@ def plot_model_comparison(result, sort=False, colors=None,
                           test_above_0=True,
                           test_below_noise_ceil=True,
                           error_bars='sem',
-                          test_type='t-test'):
+                          test_type='t-test',
+                          show_zero_line=True):
     """ Plots the results of RSA inference on a set of models as a bar graph
     with one bar for each model indicating its predictive performance. The
     function also shows the noise ceiling whose upper edge is an upper bound
@@ -219,6 +220,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     diff_var = result.diff_var
     noise_ceil_var = result.noise_ceil_var
     dof = result.dof
+    half_sym_size = 9
     if result.cv_method == 'fixed':
         n_bootstraps, n_models, _ = evaluations.shape
         perf = np.mean(evaluations, axis=0)
@@ -268,6 +270,8 @@ def plot_model_comparison(result, sort=False, colors=None,
                 'plot_model_comparison: Argument ' +
                 'sort is incorrectly defined as ' +
                 sort + '.')
+    else:
+        idx = np.arange(n_models)
 
     # run tests
     if any([test_pair_comparisons,
@@ -348,8 +352,7 @@ def plot_model_comparison(result, sort=False, colors=None,
     if test_above_0 is True:
         test_above_0 = 'dewdrops'
     if test_above_0:
-        model_significant = p_zero < alpha / n_models
-        half_sym_size = 9
+        model_significant = p_zero < alpha / n_models  # pyright: ignore[reportPossiblyUnboundVariable]
         if test_above_0.lower() == 'dewdrops':
             halfmoonup = Path.wedge(0, 180)
             ax.plot(model_significant.nonzero()[0],
@@ -375,13 +378,19 @@ def plot_model_comparison(result, sort=False, colors=None,
                                       noise_upper-noise_lower, linewidth=0,
                                       facecolor=noise_ceil_col, zorder=1e6)
         ax.add_patch(noiserect)
+    else:
+        noise_lower, noise_upper = np.nan, np.nan
+
+    if show_zero_line and method in ['cosine']:
+
+        ax.axhline(0, color='k', linestyle='--', linewidth=1)
 
     # Test whether model performance is below the noise ceiling's lower bound
     # (one sided)
     if test_below_noise_ceil is True:
         test_below_noise_ceil = 'dewdrops'
     if test_below_noise_ceil:
-        model_below_lower_bound = p_noise < alpha / n_models
+        model_below_lower_bound = p_noise < alpha / n_models  # pyright: ignore[reportPossiblyUnboundVariable]
 
         if test_below_noise_ceil.lower() == 'dewdrops':
             halfmoondown = Path.wedge(180, 360)
@@ -417,9 +426,9 @@ def plot_model_comparison(result, sort=False, colors=None,
             multiple_pair_testing = 'uncorrected'
         if multiple_pair_testing.lower() == 'bonferroni' or \
            multiple_pair_testing.lower() == 'fwer':
-            significant = p_pairwise < (alpha / n_tests)
+            significant = p_pairwise < (alpha / n_tests)  # pyright: ignore[reportPossiblyUnboundVariable]
         elif multiple_pair_testing.lower() == 'fdr':
-            ps = batch_to_vectors(np.array([p_pairwise]))[0][0]
+            ps = batch_to_vectors(np.array([p_pairwise]))[0][0]  # pyright: ignore[reportPossiblyUnboundVariable]
             ps = np.sort(ps)
             criterion = alpha * (np.arange(ps.shape[0]) + 1) / ps.shape[0]
             k_ok = ps < criterion
@@ -428,14 +437,14 @@ def plot_model_comparison(result, sort=False, colors=None,
                 crit = criterion[k_max]
             else:
                 crit = 0
-            significant = p_pairwise < crit
+            significant = p_pairwise < crit  # pyright: ignore[reportPossiblyUnboundVariable]
         else:
             if 'uncorrected' not in multiple_pair_testing.lower():
                 raise ValueError(
                     'plot_model_comparison: Argument ' +
                     'multiple_pair_testing is incorrectly defined as ' +
                     multiple_pair_testing + '.')
-            significant = p_pairwise < alpha
+            significant = p_pairwise < alpha  # pyright: ignore[reportPossiblyUnboundVariable]
         model_comp_descr = _get_model_comp_descr(
             test_type, n_models, multiple_pair_testing, alpha,
             n_bootstraps, result.cv_method, error_bars,
@@ -637,7 +646,7 @@ def plot_golan_wings(axbar, significant, perf, sort, colors=None,
                                markeredgecolor=colors[i, :],
                                markerfacecolor=colors[i, :])
                 elif version in [2, 3, 4]:
-                    if perf[i] > perf[j]:
+                    if perf[i] >= perf[j]:
                         tick_ver_end = k - tick_length_inch/h_inch*h
                     elif perf[i] < perf[j]:
                         tick_ver_end = k + tick_length_inch/h_inch*h
@@ -894,6 +903,10 @@ def _get_model_comp_descr(test_type, n_models, multiple_pair_testing, alpha,
         model_comp_descr = 'Model comparisons: two-tailed t-test, '
     elif test_type == 'ranksum':
         model_comp_descr = 'Model comparisons: two-tailed Wilcoxon-test, '
+    else:
+        raise ValueError(
+            'plot_model_comparison: Argument test_type is incorrectly defined '
+            + 'as ' + test_type + '.')
     n_tests = int((n_models ** 2 - n_models) / 2)
     if multiple_pair_testing is None:
         multiple_pair_testing = 'uncorrected'

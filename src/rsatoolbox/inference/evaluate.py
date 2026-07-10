@@ -577,6 +577,7 @@ def bootstrap_crossval(
     boot_type: str = "both",
     use_correction: bool = True,
     verbose: int = 0,
+    sigma_k: Optional[NDArray] = None,
 ) -> Result:
     """evaluates a set of models by k-fold crossvalidation within a bootstrap
 
@@ -732,6 +733,12 @@ def bootstrap_crossval(
         evals_nonan = np.mean(np.mean(evaluations[eval_ok], -1), -1)
         noise_ceil_nonan = np.mean(noise_ceil[:, eval_ok], -1)
         variances = np.cov(np.concatenate([evals_nonan.T, noise_ceil_nonan]))
+    if method in ["cosine", "cosine_cov"]:
+        rdm_of_ones = data[0].copy()
+        rdm_of_ones.dissimilarities = np.ones_like(rdm_of_ones.dissimilarities)
+        eval0 = np.mean(compare(rdm_of_ones, data, method=method, sigma_k=sigma_k))
+    else:
+        eval0 = 0
     result = Result(
         models,
         evaluations,
@@ -742,6 +749,7 @@ def bootstrap_crossval(
         dof=dof,
         n_rdm=n_rdm,
         n_pattern=n_cond,
+        eval0=eval0
     )
     return result
 

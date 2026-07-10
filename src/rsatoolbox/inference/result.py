@@ -3,10 +3,13 @@
 """
 Result object definition
 """
-
+from __future__ import annotations
+from typing import TYPE_CHECKING, List, Optional, Tuple
+from collections.abc import Callable
 import numpy as np
 import scipy.stats
 import rsatoolbox.model
+from rsatoolbox.model import Model
 from rsatoolbox.io.hdf5 import read_dict_hdf5, write_dict_hdf5
 from rsatoolbox.io.pkl import read_dict_pkl, write_dict_pkl
 from rsatoolbox.util.file_io import remove_file
@@ -39,8 +42,19 @@ class Result:
 
     """
 
-    def __init__(self, models, evaluations, method, cv_method, noise_ceiling,
-                 variances=None, dof=1, fitter=None, n_rdm=None, n_pattern=None):
+    def __init__(
+            self,
+            models: List[Model],
+            evaluations: np.ndarray,
+            method: str,
+            cv_method: str,
+            noise_ceiling: Tuple[float, float] = None,
+            variances: Optional[np.ndarray] = None,
+            dof: Optional[int] = 1,
+            fitter: Optional[Callable] = None,
+            n_rdm: Optional[int] = None,
+            n_pattern: Optional[int] = None,
+            eval0: float = 0.0):
         if isinstance(models, rsatoolbox.model.Model):
             models = [models]
         assert len(models) == evaluations.shape[1], 'evaluations shape does' \
@@ -57,6 +71,7 @@ class Result:
         self.n_bootstraps = evaluations.shape[0]
         self.n_rdm = n_rdm
         self.n_pattern = n_pattern
+        self.eval0 = eval0
         if variances is not None:
             # if the variances only refer to the models this should have the
             # same number of entries as the models list.
@@ -176,6 +191,7 @@ class Result:
         result_dict['n_rdm'] = self.n_rdm
         result_dict['n_pattern'] = self.n_pattern
         result_dict['models'] = {}
+        result_dict['eval0'] = self.eval0
         for i_model in range(len(self.models)):
             key = 'model_%d' % i_model
             result_dict['models'][key] = self.models[i_model].to_dict()
@@ -271,6 +287,9 @@ class Result:
                 raise ValueError(
                     'plot_model_comparison: Too few bootstrap samples for ' +
                     'the requested confidence interval: ' + eb_type + '.')
+        else:
+            raise ValueError('plot_model_comparison: Unknown errorbar type: ' +
+                             eb_type + '.')
         return (errorbar_low, errorbar_high)
 
     def get_model_var(self):
@@ -333,5 +352,9 @@ def result_from_dict(result_dict):
             result_dict['models'][key])
     n_rdm = result_dict['n_rdm']
     n_pattern = result_dict['n_pattern']
+    if 'eval0' in result_dict.keys():
+        eval0 = result_dict['eval0']
+    else:
+        eval0 = 0
     return Result(models, evaluations, method, cv_method, noise_ceiling,
-                  variances=variances, dof=dof, n_rdm=n_rdm, n_pattern=n_pattern)
+                  variances=variances, dof=dof, n_rdm=n_rdm, n_pattern=n_pattern, eval0=eval0)
