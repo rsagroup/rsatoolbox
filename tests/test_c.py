@@ -101,7 +101,7 @@ class TestCalc(unittest.TestCase):
 
     def setUp(self):
         self.rng = np.random.default_rng(0)
-        self.dat = self.rng.random((300, 100), dtype=np.float64)
+        self.dat = self.rng.random((300, 50), dtype=np.float64)
         self.data = rsatoolbox.data.Dataset(
             self.dat,
             obs_descriptors={'obs': np.repeat(np.arange(50), 6),
@@ -110,7 +110,7 @@ class TestCalc(unittest.TestCase):
 
     def test_basic(self):
         for i, method in enumerate(
-                ['euclidean', 'correlation', 'mahalanobis', 'poisson']):
+                ['euclidean', 'correlation', 'mahalanobis', 'poisson', 'mahalanobis']):
             # directly call c version
             a = calc(
                 self.dat,
@@ -143,6 +143,59 @@ class TestCalc(unittest.TestCase):
         ds = Dataset(np.asarray([[0, 0], [2, 2]]))
         rdms = calc_rdm_unbalanced(ds)
         assert_almost_equal(rdms.dissimilarities, 4)
+
+    def test_fast_mahalanobis(self):
+        # directly call c versions
+        a3 = calc(
+            self.dat,
+            self.data.obs_descriptors['obs'].astype(np.int64),
+            self.data.obs_descriptors['rep'].astype(np.int64),
+            50, 3)
+        a5 = calc(
+            self.dat,
+            self.data.obs_descriptors['obs'].astype(np.int64),
+            self.data.obs_descriptors['rep'].astype(np.int64),
+            50, 5)
+        assert_almost_equal(np.array(a3), np.array(a5))
+
+    def test_fast_mahalanobis_noise(self):
+        # directly call c versions
+        a3 = calc(
+            self.dat,
+            self.data.obs_descriptors['obs'].astype(np.int64),
+            self.data.obs_descriptors['rep'].astype(np.int64),
+            50,
+            3,
+            noise=np.eye(50))
+        a5 = calc(
+            self.dat,
+            self.data.obs_descriptors['obs'].astype(np.int64),
+            self.data.obs_descriptors['rep'].astype(np.int64),
+            50,
+            5,
+            noise=np.eye(50))
+        assert_almost_equal(np.array(a3), np.array(a5))
+        noise = np.eye(50)
+        noise[0, 0] = 2
+        noise[0, 1] = 0.2
+        noise[1, 0] = 0.2
+        # directly call c versions
+        a3 = calc(
+            self.dat,
+            self.data.obs_descriptors['obs'].astype(np.int64),
+            self.data.obs_descriptors['rep'].astype(np.int64),
+            50,
+            3,
+            noise=noise)
+        a5 = calc(
+            self.dat,
+            self.data.obs_descriptors['obs'].astype(np.int64),
+            self.data.obs_descriptors['rep'].astype(np.int64),
+            50,
+            5,
+            noise=noise)
+        assert_almost_equal(np.array(a3), np.array(a5))
+
 
 
 # Original Python version used as reference implementation:
@@ -226,7 +279,7 @@ def calc_one_similarity(dataset, descriptor, i_des, j_des,
                 if np.any(finite):
                     if weighting == 'number':
                         weight = np.sum(finite)
-                    elif weighting == 'equal':
+                    else: #elif weighting == 'equal':
                         weight = 1
                     sim = similarity(
                         vec_i[finite], vec_j[finite],
