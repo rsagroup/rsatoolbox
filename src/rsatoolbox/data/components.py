@@ -13,6 +13,7 @@ import numpy as np
 import sklearn.decomposition
 from numpy.typing import NDArray
 from typing import Optional
+from .dataset import Dataset, DatasetBase
 
 
 class Components:
@@ -45,6 +46,10 @@ class Components:
 
         self.R = R
         self.W = W
+        self.descriptors = None
+        self.obs_descriptors = None
+        self.channel_descriptors = None
+
         if (self.R is not None) and (self.W is not None):
             if self.R.shape[1] != self.W.shape[0]:
                 raise NameError('Columns of R must match rows of W')
@@ -70,6 +75,22 @@ class Components:
             measurements = np.matmul(self.R, self.W)
         return measurements
 
+    def reconstruct_dataset(self, subset=None):
+        '''Reconstructs a dataset by multiplying response and weight matrices.
+
+        Args:
+            subset: Optional; list of component indices.
+              Default is to use all components
+
+        Returns:
+            A dataset object with reconstructed data.
+        '''
+        return Dataset(
+            self.reconstruct(subset=subset),
+            descriptors=self.descriptors,
+            obs_descriptors=self.obs_descriptors,
+            channel_descriptors=self.channel_descriptors)
+
     def pca(self, measurements, n_components=None):
         '''PCA decomposition of data matrix.
 
@@ -89,6 +110,11 @@ class Components:
         Returns:
             Objects with self.R and self.W given as above
         '''
+        if isinstance(measurements, DatasetBase):
+            self.descriptors = measurements.descriptors
+            self.obs_descriptors = measurements.obs_descriptors
+            self.channel_descriptors = measurements.channel_descriptors
+            measurements = measurements.measurements
         [U, s, Vh] = np.linalg.svd(measurements, full_matrices=False)
         self.R = U
         self.W = np.expand_dims(s, axis=1) * Vh
@@ -125,6 +151,11 @@ class Components:
         Returns:
             Objects with self.R and self.W given as above
         '''
+        if isinstance(measurements, DatasetBase):
+            self.descriptors = measurements.descriptors
+            self.obs_descriptors = measurements.obs_descriptors
+            self.channel_descriptors = measurements.channel_descriptors
+            measurements = measurements.measurements
 
         if method_params is None:
             method_params = {}
