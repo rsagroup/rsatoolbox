@@ -149,6 +149,6 @@ class SpmGlm:
 
         fdata = data.copy()
         for i in range(self.nruns):
-            Y = fdata[scan_bounds[i]:scan_bounds[i+1], :]
-            Y = Y - self.filter_matrices[i] @ (self.filter_matrices[i].T @ Y)
+            start, end = scan_bounds[i], scan_bounds[i+1]
+            fdata[start:end, :] -= self.filter_matrices[i] @ (self.filter_matrices[i].T @ fdata[start:end, :])
         return fdata

@@ -37,9 +37,14 @@ def _merged_rdm_descriptors(list_of_rdms: List[RDMs]) -> Tuple[Dict, Dict]:
             if k not in rdms.descriptors.keys():
                 desc_diff_names.append(k)
                 delete.append(k)
-            elif not np.all(rdms.descriptors[k] == v):
-                desc_diff_names.append(k)
-                delete.append(k)
+            else:
+                try:
+                    equal = np.all(rdms.descriptors[k] == v)
+                except ValueError:
+                    equal = False
+                if not equal:
+                    desc_diff_names.append(k)
+                    delete.append(k)
         for k in delete:
             descriptors.pop(k)
         for k, v in rdms.descriptors.items():

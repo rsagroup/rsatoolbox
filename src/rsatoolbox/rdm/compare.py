@@ -3,6 +3,8 @@
 """
 Comparison methods for comparing two RDMs objects
 """
+from __future__ import annotations
+from typing import TYPE_CHECKING, Optional
 import numpy as np
 import scipy.stats
 from scipy import linalg
@@ -13,12 +15,16 @@ from rsatoolbox.util.matrix import pairwise_contrast_sparse
 from rsatoolbox.util.matrix import pairwise_contrast
 from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
 from rsatoolbox.util.rdm_utils import _get_n_from_length
-from rsatoolbox.util.matrix import row_col_indicator_g
+from rsatoolbox.util.matrix import row_col_indicator_g, row_col_indicator_g_sparse
 from rsatoolbox.util.rdm_utils import batch_to_matrices
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+    from numpy import float64
+    from rsatoolbox.rdm.rdms import RDMs
 
 
-def compare(rdm1, rdm2, method='cosine', sigma_k=None):
-    """calculates the similarity between two RDMs objects using a chosen method
+def compare(rdm1: RDMs, rdm2: RDMs, method='cosine', sigma_k: Optional[NDArray]=None) -> NDArray:
+    """Calculates the similarity between two RDMs objects using a chosen method
 
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
@@ -59,7 +65,6 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
     Returns:
         numpy.ndarray: dist:
             pariwise similarities between the RDMs from the RDMs objects
-
     """
     if method == 'cosine':
         sim = compare_cosine(rdm1, rdm2)
@@ -88,8 +93,8 @@ def compare(rdm1, rdm2, method='cosine', sigma_k=None):
     return sim
 
 
-def compare_cosine(rdm1, rdm2):
-    """calculates the cosine similarities between two RDMs objects
+def compare_cosine(rdm1: RDMs, rdm2: RDMs) -> NDArray:
+    """Calculates the cosine similarities between two RDMs objects
 
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
@@ -106,8 +111,8 @@ def compare_cosine(rdm1, rdm2):
     return sim
 
 
-def compare_correlation(rdm1, rdm2):
-    """calculates the correlations between two RDMs objects
+def compare_correlation(rdm1: RDMs, rdm2: RDMs) -> NDArray:
+    """Calculates the correlations between two RDMs objects
 
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
@@ -127,8 +132,8 @@ def compare_correlation(rdm1, rdm2):
     return sim
 
 
-def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
-    """calculates the cosine similarities between two RDMs objects
+def compare_cosine_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray]=None) -> NDArray:
+    """Calculates the cosine similarities between two RDMs objects
 
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
@@ -145,8 +150,8 @@ def compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=None):
     return sim
 
 
-def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
-    """calculates the correlations between two RDMs objects after whitening
+def compare_correlation_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray]=None) -> NDArray:
+    """Calculates the correlations between two RDMs objects after whitening
     with the covariance of the entries
 
     Args:
@@ -168,9 +173,10 @@ def compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=None):
     return sim
 
 
-def compare_spearman(rdm1, rdm2):
-    """calculates the spearman rank correlations between
-    two RDMs objects
+def compare_spearman(rdm1: RDMs, rdm2: RDMs) -> NDArray:
+    """Calculates the spearman rank correlation coefficient between
+    two RDMs objects (fast, but inadequate if any of the models predicts
+    some tied dissimilarities)
 
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
@@ -191,9 +197,11 @@ def compare_spearman(rdm1, rdm2):
     return sim
 
 
-def compare_rho_a(rdm1, rdm2):
-    """calculates the spearman rank correlations between
-    two RDMs objects without tie correction
+def compare_rho_a(rdm1: RDMs, rdm2: RDMs) -> NDArray:
+    """Calculates the spearman rank correlation coefficient under random tie
+    breaking between two RDMs objects, specifically an analytical
+    solution for the expected value thereof (fast and appropriate in general,
+    even when some or all models predict some tied dissimilarities)
 
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
@@ -215,10 +223,11 @@ def compare_rho_a(rdm1, rdm2):
     return sim
 
 
-def compare_kendall_tau(rdm1, rdm2):
-    """calculates the Kendall-tau bs between two RDMs objects.
-    Kendall-tau b is the version, which corrects for ties.
-    We here use the implementation from scipy.
+def compare_kendall_tau(rdm1: RDMs, rdm2: RDMs) -> NDArray:
+    """Calculates the conventional Kendall rank correlation coefficient
+    (i.e. Kendall-tau b) between two RDMs objects (slow and inadequate if any
+    of the models predicts some tied dissimilarities). We here use the
+    implementation from scipy.
 
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
@@ -234,9 +243,11 @@ def compare_kendall_tau(rdm1, rdm2):
     return sim
 
 
-def compare_kendall_tau_a(rdm1, rdm2):
-    """calculates the Kendall-tau a based distance between two RDMs objects.
-    adequate when some models predict ties
+def compare_kendall_tau_a(rdm1: RDMs, rdm2: RDMs) -> NDArray[float64]:
+    """Calculates the Kendall rank correlation coefficient without tie
+    adjustment in the denominator (i.e. Kendall-tau a) between two RDMs objects
+    (slow and appropriate in general, even when some or all models predict
+    some tied dissimilarities). We here use the implementation from scipy.
 
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
@@ -252,8 +263,8 @@ def compare_kendall_tau_a(rdm1, rdm2):
     return sim
 
 
-def compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=None):
-    """calculates the negative Riemannian distance between two RDMs objects.
+def compare_neg_riemannian_distance(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray]=None) -> NDArray:
+    """Calculates the negative Riemannian distance between two RDMs objects.
 
     Args:
         rdm1 (rsatoolbox.rdm.RDMs):
@@ -283,7 +294,7 @@ def compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=None):
     return sim
 
 
-def compare_bures_similarity(rdm1, rdm2):
+def compare_bures_similarity(rdm1: RDMs, rdm2: RDMs) -> NDArray:
     """calculates the Bures similarity between two RDMs objects.
 
     Args:
@@ -306,7 +317,7 @@ def compare_bures_similarity(rdm1, rdm2):
     return sim
 
 
-def compare_bures_metric(rdm1, rdm2):
+def compare_bures_metric(rdm1: RDMs, rdm2: RDMs) -> NDArray:
     """calculates the squared Bures metric between two RDMs objects.
 
     Args:
@@ -446,7 +457,11 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
     N, n_dist = vector.shape
     n_cond = _get_n_from_length(nan_idx.shape[0])
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
-    rowI, colI = row_col_indicator_g(n_cond)
+    SPARSE_THRESHOLD = 100 # threshold for switching to sparse matrices
+    if n_cond >= SPARSE_THRESHOLD:
+        rowI, colI = row_col_indicator_g_sparse(n_cond) # use sparse indicator matrices
+    else:
+        rowI, colI = row_col_indicator_g(n_cond) # use dense indicator matrices
     sumI = rowI + colI
     if np.all(nan_idx):
         # column and row means
@@ -667,12 +682,14 @@ def _parse_input_rdms(rdm1, rdm2):
             vector2 = rdm2
     if not vector1.shape[1] == vector2.shape[1]:
         raise ValueError('rdm1 and rdm2 must be RDMs of equal shape')
-    nan_idx = ~np.isnan(vector1)
-    vector1_no_nan = vector1[nan_idx].reshape(vector1.shape[0], -1)
-    vector2_no_nan = vector2[~np.isnan(vector2)].reshape(vector2.shape[0], -1)
-    if not vector1_no_nan.shape[1] == vector2_no_nan.shape[1]:
+    # A NaN in any RDM means that position must be excluded from all
+    nan_mask = ~np.isnan(vector1).any(axis=0)
+    if not np.all(nan_mask == ~np.isnan(vector2).any(axis=0)):
+        # Only raise error when rdm1 and rdm2 conflict
         raise ValueError('rdm1 and rdm2 have different nan positions')
-    return vector1_no_nan, vector2_no_nan, nan_idx[0]
+    vector1_no_nan = vector1[:,nan_mask].reshape(vector1.shape[0], -1)
+    vector2_no_nan = vector2[:,nan_mask].reshape(vector2.shape[0], -1)
+    return vector1_no_nan, vector2_no_nan, nan_mask
 
 
 def _sq_bures_metric_first_way(A, B):

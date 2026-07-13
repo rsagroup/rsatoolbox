@@ -807,7 +807,7 @@ class TemporalDataset(Dataset):
         data_dict['descriptors'] = self.descriptors
         data_dict['obs_descriptors'] = self.obs_descriptors
         data_dict['channel_descriptors'] = self.channel_descriptors
-        data_dict['time_descriptors'] = self.channel_descriptors
+        data_dict['time_descriptors'] = self.time_descriptors
         data_dict['type'] = type(self).__name__
         return data_dict
 

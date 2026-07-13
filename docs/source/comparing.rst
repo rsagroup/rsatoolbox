@@ -115,14 +115,17 @@ The normalized Bures similarity (NBS) is defined as:
 .. math::
 
     NBS(K_1, K_2) = \frac{\mathcal{F}(K_1, K_2)}{\sqrt{\operatorname{Tr}[K_1] \operatorname{Tr}[K_2]}}
-    \mathcal{F}(K_1, K_2) = \operatorname{Tr}[(K_1^{1/2}K_2K_1^{1/2})^{1/2}]
 
-and :math:`\mathcal{F}` is known as the fidelity.
+where :math:`\mathcal{F}` is known as the fidelity.
+
+.. math::
+
+    \mathcal{F}(K_1, K_2) = \operatorname{Tr}[(K_1^{1/2}K_2K_1^{1/2})^{1/2}]
 
 and relatedly the Bures distance :math:`\mathcal{B}`, a proper metric is defined as:
 
 .. math::
-    \mathcal{B}^2(K_1, K_2) = \operatorname{Tr}[K_1] \operatorname{Tr}[K_2] - 2 \operatorname{Tr}[(K_1^{1/2}K_2K_1^{1/2})^{1/2}]
+    \mathcal{B}^2(K_1, K_2) = \operatorname{Tr}[K_1] + \operatorname{Tr}[K_2] - 2 \operatorname{Tr}[(K_1^{1/2}K_2K_1^{1/2})^{1/2}]
 
 
 
