@@ -3,6 +3,9 @@
 """ Top level package: Only imports and organisation
 """
 
+from importlib.metadata import version
+__version__ = version("rsatoolbox")
+
 from . import cengine
 from . import data
 from . import inference
