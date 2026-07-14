@@ -12,12 +12,14 @@ from collections.abc import Iterable
 from copy import deepcopy
 import warnings
 import numpy as np
+from tqdm import tqdm
 from rsatoolbox.rdm.rdms import RDMs
 from rsatoolbox.rdm.rdms import concat
 from rsatoolbox.util.data_utils import get_unique_inverse
 from rsatoolbox.util.matrix import row_col_indicator_rdm
 from rsatoolbox.util.build_rdm import _build_rdms
 from rsatoolbox.cengine.similarity import calc_one, calc
+
 if TYPE_CHECKING:
     from rsatoolbox.data.base import DatasetBase
     from numpy.typing import NDArray
@@ -27,7 +29,8 @@ if TYPE_CHECKING:
 def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
                         descriptor=None, noise=None, cv_descriptor=None,
                         prior_lambda=1, prior_weight=0.1,
-                        weighting='number', enforce_same=False) -> RDMs:
+                        weighting='number', enforce_same=False,
+                        progress_bar=False) -> RDMs:
     """
     calculate a RDM from an input dataset for unbalanced datasets.
 
@@ -35,7 +38,7 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
         dataset (rsatoolbox.data.dataset.DatasetBase):
             The dataset the RDM is computed from
         method (String):
-            a description of the dissimilarity measure (e.g. 'Euclidean')
+            a description of the dissimilarity measure (e.g. 'euclidean')
         descriptor (String):
             obs_descriptor used to define the rows/columns of the RDM
         noise (numpy.ndarray):
@@ -50,6 +53,8 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
     """
     if isinstance(dataset, Iterable):
         rdms = []
+        if progress_bar:
+            dataset = tqdm(dataset, desc='Calculating RDMs')
         for i_dat, dat in enumerate(dataset):
             if noise is None:
                 rdms.append(calc_rdm_unbalanced(
@@ -91,21 +96,24 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
             dataset.obs_descriptors[descriptor])
         # unique_cond = set(dataset.obs_descriptors[descriptor])
         if cv_descriptor is None:
-            cv_desc_int = np.arange(dataset.n_obs, dtype=int)
+            cv_desc_int = np.arange(dataset.n_obs, dtype=np.int64)
             crossval = 0
         else:
             _, indices = np.unique(
                 dataset.obs_descriptors[cv_descriptor],
                 return_inverse=True
             )
-            cv_desc_int = indices.astype(int)
+            cv_desc_int = indices.astype(np.int64)
             crossval = 1
         if method == 'euclidean':
             method_idx = 1
         elif method == 'correlation':
             method_idx = 2
         elif method in ['mahalanobis', 'crossnobis']:
-            method_idx = 3
+            if np.all(np.isfinite(dataset.measurements)):
+                method_idx = 5 # mahalanobis without nan handling
+            else:
+                method_idx = 3 # mahalanobis with nan handling
         elif method in ['poisson', 'poisson_cv']:
             method_idx = 4
         else:
@@ -114,7 +122,7 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
             weight_idx = 0
         else:
             weight_idx = 1
-        cond_indices_int = cond_indices.astype(int)
+        cond_indices_int = cond_indices.astype(np.int64)
         rdm = calc(
             ensure_double(dataset.measurements),
             cond_indices_int,
@@ -168,7 +176,10 @@ def calc_one_similarity(data_i: DatasetBase, data_j: DatasetBase,
     elif method == 'correlation':
         method_idx = 2
     elif method in ['mahalanobis', 'crossnobis']:
-        method_idx = 3
+        if np.all(np.isfinite(data_i.measurements)) and np.all(np.isfinite(data_j.measurements)):
+            method_idx = 5 # mahalanobis without nan handling
+        else:
+            method_idx = 3 # mahalanobis with nan handling
     elif method in ['poisson', 'poisson_cv']:
         method_idx = 4
     else:
@@ -200,4 +211,4 @@ def ensure_double(a: NDArray) -> NDArray[np.float64]:
     Returns:
         NDArray[np.float64]: The float64 version of the array
     """
-    return a.astype(np.float64)
+    return np.require(a, dtype=np.float64, requirements=['C_CONTIGUOUS'])

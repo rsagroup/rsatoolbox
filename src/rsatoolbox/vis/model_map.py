@@ -339,7 +339,7 @@ def plot_model_map(locs2d, significant, model_significant, model_below_lower_bou
     ns_col = [0, 0, 0, 0.15]  # color for non-significance cords and rays
 
     # prepare axes for map
-    l, b, w, h = 0.15, 0.15, 0.85, 0.85
+    l, b, w, h = 0.15, 0.15, 0.85, 0.85  # noqa: E741
     ax = plt.axes((l, b, w, h))
     r_max = np.max(np.sqrt(np.sum(np.array(locs2d)**2, axis=1)))
     clearance_fac = 1.08  # factor by which the maximum radius is multiplied

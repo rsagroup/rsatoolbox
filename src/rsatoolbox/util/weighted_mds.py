@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Collection of helper methods for vis module
+"""Weighted MDS
 
 + Weighted_MDS:       an MDS class that incorporates weighting
-+ weight_to_matrices: batch squareform() to weight matrices
 
 @author: baihan
 
@@ -16,7 +15,8 @@ licence <https://en.wikipedia.org/wiki/BSD_licenses>.
 We modified the MDS function to include an additional
 functionality of having an important matrix as an input.
 """
-
+from __future__ import annotations
+from typing import TYPE_CHECKING, Tuple, Optional
 import warnings
 import numpy as np
 from joblib import Parallel, delayed, effective_n_jobs
@@ -24,34 +24,14 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_random_state, check_array, check_symmetric
 from sklearn.isotonic import IsotonicRegression
-from scipy.spatial.distance import squareform
-from rsatoolbox.util.rdm_utils import _get_n_from_reduced_vectors
-
-
-def weight_to_matrices(x):
-    """converts a *stack* of weights in vector or matrix form into matrix form
-
-    Args:
-        **x** (np.ndarray): stack of weight matrices or weight vectors
-
-    Returns:
-        tuple: **v** (np.ndarray): 3D, matrix form of the stack of weight matrices
-    """
-    if x.ndim == 2:
-        v = x
-        n_rdm = x.shape[0]
-        n_cond = _get_n_from_reduced_vectors(x)
-        m = np.ndarray((n_rdm, n_cond, n_cond))
-        for idx in np.arange(n_rdm):
-            m[idx, :, :] = squareform(v[idx, :])
-    elif x.ndim == 3:
-        m = x
-    return m
+from sklearn.utils.validation import validate_data # type: ignore
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
 def _smacof_single(dissimilarities, metric=True, n_components=2, init=None,
                    max_iter=300, verbose=0, eps=1e-3, random_state=None,
-                   weight=None):
+                   weight=None) -> Tuple[NDArray, float, int]:
     """Computes multidimensional scaling using SMACOF algorithm.
 
     Parameters
@@ -175,13 +155,16 @@ def _smacof_single(dissimilarities, metric=True, n_components=2, init=None,
                                                                        stress))
                 break
         old_stress = stress / dis
+    else:
+        raise ValueError('No iterations, max_iter must be > 0')
 
     return X, stress, it + 1
 
 
 def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
            n_init=8, n_jobs=None, max_iter=300, verbose=0, eps=1e-3,
-           random_state=None, return_n_iter=False, weight=None):
+           random_state=None, return_n_iter=False, weight=None
+           ) -> Tuple[Optional[NDArray], Optional[float], Optional[int]] | Tuple[Optional[NDArray], Optional[float]]:
     """Computes multidimensional scaling using the SMACOF algorithm.
 
     The SMACOF (Scaling by MAjorizing a COmplicated Function) algorithm is a
@@ -292,9 +275,9 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
                 % n_init)
             n_init = 1
 
-    best_pos, best_stress = None, None
+    best_pos, best_stress, best_iter = None, None, None
 
-    if effective_n_jobs(n_jobs) == 1:
+    if effective_n_jobs(n_jobs) == 1: # type: ignore (effective_n_jobs wongly typed)
         for it in range(n_init):
             pos, stress, n_iter_ = _smacof_single(
                 dissimilarities, metric=metric,
@@ -306,6 +289,7 @@ def smacof(dissimilarities, *, metric=True, n_components=2, init=None,
                 best_stress = stress
                 best_pos = pos.copy()
                 best_iter = n_iter_
+
     else:
         seeds = random_state.randint(np.iinfo(np.int32).max, size=n_init)
         results = Parallel(n_jobs=n_jobs, verbose=max(verbose - 1, 0))(
@@ -490,7 +474,7 @@ class Weighted_MDS(BaseEstimator):
             symmetric weighting matrix of similarities.
             In default, all weights are 1.
         """
-        X = self._validate_data(X)
+        X = validate_data(self, X)
         if X.shape[0] == X.shape[1] and self.dissimilarity != "precomputed":
             warnings.warn("The MDS API has changed. ``fit`` now constructs an"
                           " dissimilarity matrix from data. To use a custom "

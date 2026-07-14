@@ -7,6 +7,9 @@ from .transform import rank_transform
 from .transform import sqrt_transform
 from .transform import positive_transform
 from .transform import transform
+from .transform import minmax_transform
+from .transform import geotopological_transform
+from .transform import geodesic_transform
 from .calc import calc_rdm
 from .calc import calc_rdm_movie
 from .calc import calc_rdm_euclidean

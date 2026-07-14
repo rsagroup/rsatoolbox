@@ -101,7 +101,7 @@ def _get_n_from_length(n):
     return int(np.ceil(np.sqrt(n * 2)))
 
 
-def add_pattern_index(rdms, pattern_descriptor):
+def add_pattern_index(rdms: RDMs, pattern_descriptor):
     """
     adds index if pattern_descriptor is None
 
@@ -174,7 +174,7 @@ def _extract_triu_(X):
     return X[mask]
 
 
-def category_condition_idxs(rdms,
+def category_condition_idxs(rdms: RDMs,
                             category_selector: Union[str, List[int]]
                             ) -> Dict[str, List[int]]:
     """
@@ -196,10 +196,6 @@ def category_condition_idxs(rdms,
 
     @author: caiw
     """
-
-    from rsatoolbox.rdm import RDMs
-    rdms: RDMs
-
     _msg_arg_category_selector = (
         "Argument category_selector must be a string specifying a "
         "pattern_descriptor or a list of ints indicating RDM conditions."

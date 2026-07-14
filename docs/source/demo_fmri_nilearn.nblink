@@ -1,0 +1,6 @@
+{
+    "path": "../../demos/demo_fmri_nilearn.ipynb",
+    "extra-media": [
+        "../../demos/demo_fmri_files"
+    ]
+}

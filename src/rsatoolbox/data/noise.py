@@ -239,7 +239,7 @@ def cov_from_residuals(residuals, dof=None, method='shrinkage_diag'):
         numpy.ndarray (or list): sigma_p: covariance matrix over channels
 
     """
-    if not isinstance(residuals, np.ndarray) or len(residuals.shape) > 2:
+    if not isinstance(residuals, np.ndarray):
         cov_mat = []
         for i, residual in enumerate(residuals):
             if dof is None:
