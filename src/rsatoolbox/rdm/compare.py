@@ -136,7 +136,7 @@ def compare_correlation(rdm1: RDMs, rdm2: RDMs) -> NDArray:
     return sim
 
 
-def compare_cosine_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray]=None) -> NDArray:
+def compare_cosine_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None) -> NDArray:
     """Calculates the cosine similarities between two RDMs objects
 
     Args:
@@ -150,11 +150,7 @@ def compare_cosine_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArra
 
     """
     vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
-    stim_nums = np.array(rdm1.pattern_descriptors['stimulus'])
-    frozen_inds = list(np.where(stim_nums == -1)[0]) + list(np.where(stim_nums == -2)[0])
-    # sigma_k[frozen_inds, :] = 0
-    # sigma_k[:, frozen_inds] = 0
-    sim = _cosine_cov_weighted(vector1, vector2, frozen_inds, sigma_k, nan_idx)
+    sim = _cosine_cov_weighted(vector1, vector2, sigma_k, nan_idx)
     return sim
 
 
@@ -174,14 +170,12 @@ def compare_correlation_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[N
 
     """
     vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
-    stim_nums = np.array(rdm1.pattern_descriptors['stimulus'])
-    frozen_inds = list(np.where(stim_nums == -1)[0]) + list(np.where(stim_nums == -2)[0])
     # sigma_k[frozen_inds, :] = 0
     # sigma_k[:, frozen_inds] = 0
     # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
-    sim = _cosine_cov_weighted(vector1, vector2, frozen_inds, sigma_k, nan_idx)
+    sim = _cosine_cov_weighted(vector1, vector2, sigma_k, nan_idx)
     return sim
 
 
@@ -375,7 +369,7 @@ def _all_combinations(vectors1, vectors2, func, *args, **kwargs):
     return value
 
 
-def _cosine_cov_weighted_slow(vector1, vector2, frozen_inds=[], sigma_k=None, nan_idx=None):
+def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None, nan_idx=None):
     """computes the cosine similarities between two sets of vectors
     after whitening by their covariance.
 
@@ -464,7 +458,7 @@ def _correct_covariance_for_frozen_patterns(v, n_cond, frozen_inds):
     return v
 
 
-def _cosine_cov_weighted(vector1, vector2, frozen_inds=[], sigma_k=None, nan_idx=None):
+def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
     """computes the cosine angles between two sets of vectors
     weighted by the covariance
     If no covariance is given this is computed using the linear CKA,
@@ -486,7 +480,7 @@ def _cosine_cov_weighted(vector1, vector2, frozen_inds=[], sigma_k=None, nan_idx
     """
     if (sigma_k is not None) and (sigma_k.ndim >= 2):
         cos = _cosine_cov_weighted_slow(
-            vector1, vector2, frozen_inds=frozen_inds, sigma_k=sigma_k, nan_idx=nan_idx)
+            vector1, vector2, sigma_k=sigma_k, nan_idx=nan_idx)
     else:
         if nan_idx is None:
             nan_idx = np.ones(vector1[0].shape, bool)

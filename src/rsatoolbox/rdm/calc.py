@@ -97,7 +97,7 @@ def _calc_rdm_single(
         rdm = calc_rdm_mahalanobis(dataset, descriptor, noise, remove_mean)
     elif method == 'crossnobis':
         rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                    cv_descriptor, remove_mean)
+                                  cv_descriptor, remove_mean)
     elif method == 'dotproduct':
         rdm = calc_rdm_dotproduct(dataset, descriptor)
     elif method == 'mean_profile':
@@ -117,7 +117,7 @@ def _calc_rdm_single(
         raise NotImplementedError
     if (descriptor is not None) and (method not in ['mean_profile', 'norm_profile']):
         rdm.sort_by(reindex=True, **{descriptor: 'alpha'})
-    else:
+    elif descriptor is not None:
         desc = np.unique(np.array(dataset.obs_descriptors[descriptor]))
         inds = desc.argsort()
         rdm = rdm[inds]
