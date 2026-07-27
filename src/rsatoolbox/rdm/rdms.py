@@ -6,7 +6,7 @@ Definition of RSA RDMs class and subclasses
 @author: baihan
 """
 from __future__ import annotations
-from typing import Dict, Optional, List, overload
+from typing import Dict, Optional, Union, List, overload, IO
 import warnings
 from copy import deepcopy
 from collections.abc import Iterable
@@ -532,11 +532,16 @@ def rdms_from_dict(rdm_dict):
     return rdms
 
 
-def load_rdm(filename, file_type=None):
+def load_rdm(filename: Union[str, IO], file_type: Optional[str] = None) -> RDMs:
     """loads a RDMs object from disk
 
     Args:
-        filename(String): path to file to load
+        filename(String): path to file to load or open file
+        file_type(String): Type of file to load:
+            "hdf5": hdf5 file
+            "pkl": pickle file
+            the file type is optional for filenames,
+            for which the type is inferred from the file extension
 
     """
     if file_type is None:
