@@ -1,6 +1,3 @@
 {
-    "path": "../../demos/demo_sim_mahalanobis.ipynb",
-    "extra-media": [
-        "../../demos/92imageData"
-    ]
+    "path": "../../demos/demo_sim_mahalanobis.ipynb"
 }
