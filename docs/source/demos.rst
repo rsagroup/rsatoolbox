@@ -32,3 +32,5 @@ Miscellaneous
 * :doc:`/demo_unbalanced`
 * :doc:`/demo_flexible_models`
 * :doc:`/demo_riemannian`
+* :doc:`/demo_sim_crossval`
+* :doc:`/demo_sim_mahalanobis`
