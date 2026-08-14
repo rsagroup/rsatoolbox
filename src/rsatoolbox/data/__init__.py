@@ -11,3 +11,4 @@ from .noise import cov_from_measurements
 from .noise import prec_from_measurements
 from .noise import cov_from_unbalanced
 from .noise import prec_from_unbalanced
+from .noise import sigmak_from_measurements
