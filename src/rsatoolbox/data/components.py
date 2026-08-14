@@ -34,7 +34,7 @@ class Components:
         '''Constructs the core component object.
 
         When called with no arguments, R and W are simply set to None.
-        Once initialized, you can computed components from data
+        Once initialized, you can compute components from data
         using one of the component functions:
             pca
             fastica
@@ -57,7 +57,7 @@ class Components:
         else:
             self.n_components = None
 
-    def reconstruct(self, subset=None):
+    def reconstruct(self, subset=None) -> NDArray:
         '''Reconstructs data by multiplying response and weight matrices.
 
         Args:
@@ -75,7 +75,7 @@ class Components:
             measurements = np.matmul(self.R, self.W)
         return measurements
 
-    def reconstruct_dataset(self, subset=None):
+    def reconstruct_dataset(self, subset=None) -> Dataset:
         '''Reconstructs a dataset by multiplying response and weight matrices.
 
         Args:
@@ -91,7 +91,7 @@ class Components:
             obs_descriptors=self.obs_descriptors,
             channel_descriptors=self.channel_descriptors)
 
-    def pca(self, measurements, n_components=None):
+    def pca(self, measurements, n_components=None) -> None:
         '''PCA decomposition of data matrix.
 
         Decomposition is computed using SVD:
@@ -120,7 +120,7 @@ class Components:
         self.W = np.expand_dims(s, axis=1) * Vh
         self._select_top_components(n_components)
 
-    def fastica(self, measurements, n_components=None, method_params=None):
+    def fastica(self, measurements, n_components=None, method_params=None) -> None:
         '''Decomposition computed using FastICA.
 
         Returns decomposition with maximally independent weights,
@@ -165,7 +165,7 @@ class Components:
         self.R = ica.mixing_
         self.W = np.matmul(np.linalg.pinv(self.R), measurements)
 
-    def _select_top_components(self, n_components=None):
+    def _select_top_components(self, n_components=None) -> None:
         if self.R is None or self.W is None:
             return
         if n_components is not None:
@@ -173,7 +173,7 @@ class Components:
             self.W = self.W[:n_components, :]
             self.n_components = n_components
 
-    def order_components(self, order):
+    def order_components(self, order) -> None:
         '''Re-order components'''
         if self.R is not None:
             self.R = self.R[:, order]
