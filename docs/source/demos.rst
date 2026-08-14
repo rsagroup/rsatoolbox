@@ -34,3 +34,4 @@ Miscellaneous
 * :doc:`/demo_riemannian`
 * :doc:`/demo_sim_crossval`
 * :doc:`/demo_sim_mahalanobis`
+* :doc:`/demo_component_projection`

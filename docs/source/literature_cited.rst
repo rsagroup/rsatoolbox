@@ -31,6 +31,8 @@ References
 
 * Nili, H., Wingfield, C., Walther, A., Su, L., Marslen-Wilson, W., and Kriegeskorte, N. (2014). A toolbox for representational similarity analysis. PLoS Comput Biol 10, e1003553.
 
+* Norman-Haignere SV, Kanwisher NG, McDermott JH (2015). Distinct cortical pathways for music and speech revealed by hypothesis free voxel decomposition. Neuron.
+
 * Walther, A., Nili, H., Ejaz, N., Alink, A., Kriegeskorte, N., and Diedrichsen, J. (2016). Reliability of dissimilarity measures for multi-voxel pattern analysis. Neuroimage 137, 188–200.
 
 * Yokoi, A., and Diedrichsen, J. (2019). Neural Organization of Hierarchical Motor Sequence Representations in the Human Neocortex. Neuron.
