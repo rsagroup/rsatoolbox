@@ -5,18 +5,19 @@ Created on Fri Sep 18 2020
 
 @author: snormanhaignere
 """
-
 import unittest
 import numpy as np
+from numpy.testing import assert_allclose
 from rsatoolbox.data.components import Components
 
 
 class TestComponents(unittest.TestCase):
+
     def test_pca_reconstruction(self):
         X = np.random.randn(10, 100)
         components = Components()
         components.pca(X)
-        assert np.allclose(components.reconstruct(), X)
+        assert_allclose(components.reconstruct(), X)
 
     def test_fastica_recon_equals_pca_recon(self):
         X = np.random.randn(10, 100)
@@ -25,9 +26,7 @@ class TestComponents(unittest.TestCase):
         pca_components.pca(X, n_components=3)
         fastica_components = Components()
         fastica_components.fastica(X, n_components=3)
-        assert np.allclose(pca_components.reconstruct(),
-                           fastica_components.reconstruct())
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert_allclose(
+            pca_components.reconstruct(),
+            fastica_components.reconstruct()
+        )
