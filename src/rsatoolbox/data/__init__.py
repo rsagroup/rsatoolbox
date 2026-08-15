@@ -6,6 +6,7 @@ from .dataset import load_dataset
 from .dataset import dataset_from_dict
 from .noise import cov_from_residuals
 from .noise import prec_from_residuals
+from .components import Components
 from .noise import cov_from_measurements
 from .noise import prec_from_measurements
 from .noise import cov_from_unbalanced
