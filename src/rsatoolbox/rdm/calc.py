@@ -15,6 +15,7 @@ from rsatoolbox.rdm.combine import from_partials
 from rsatoolbox.data import average_dataset_by
 from rsatoolbox.util.rdm_utils import _extract_triu_
 from rsatoolbox.util.build_rdm import _build_rdms
+from rsatoolbox.util.matrix import pairwise_contrast
 
 if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
@@ -30,6 +31,8 @@ def calc_rdm(
         cv_descriptor: Optional[str] = None,
         prior_lambda: float = 1.0,
         prior_weight: float = 0.1,
+        degree: float = 2,
+        root: bool = True,
         remove_mean: bool = False) -> Union[RDMs, List[RDMs]]:
     """
     calculates an RDM from an input dataset
@@ -50,6 +53,10 @@ def calc_rdm(
             precision matrix used to calculate the RDM
             used only for Mahalanobis and Crossnobis estimators
             defaults to an identity matrix, i.e. euclidean distance
+        degree: float
+            degree of the minkowski distance
+        root: bool
+            whether to take the root of the minkowski distance
         remove_mean (bool):
             whether the mean of each pattern shall be removed before distance calculation.
             This has no effect on poisson based and correlation distances.
@@ -67,7 +74,7 @@ def calc_rdm(
                 noise_i = noise
             rdms.append(_calc_rdm_single(ds_i, method, descriptor, noise_i,
                                          cv_descriptor, prior_lambda,
-                                         prior_weight, remove_mean))
+                                         prior_weight, degree, root, remove_mean))
         if descriptor is None:
             return concat(rdms)
         else:
@@ -75,7 +82,7 @@ def calc_rdm(
     else:
         return _calc_rdm_single(dataset, method, descriptor, noise,
                                 cv_descriptor, prior_lambda,
-                                prior_weight, remove_mean)
+                                prior_weight, degree, root, remove_mean)
 
 
 def _calc_rdm_single(
@@ -86,6 +93,8 @@ def _calc_rdm_single(
         cv_descriptor: Optional[str],
         prior_lambda: float,
         prior_weight: float,
+        degree: float,
+        root: bool,
         remove_mean: bool) -> RDMs:
     """Create RDMs object for a single Dataset
     """
@@ -107,6 +116,9 @@ def _calc_rdm_single(
                                     cv_descriptor=cv_descriptor,
                                     prior_lambda=prior_lambda,
                                     prior_weight=prior_weight)
+    elif method == 'minkowski':
+        rdm = calc_rdm_minkowski(dataset, descriptor, degree,
+                                 root, remove_mean)
     else:
         raise NotImplementedError
     if descriptor is not None:
@@ -218,6 +230,36 @@ def calc_rdm_euclidean(
         - 2 * np.dot(measurements, measurements.T)
     rdm = _extract_triu_(rdm) / measurements.shape[1]
     return _build_rdms(rdm, dataset, 'squared euclidean', descriptor, desc)
+
+
+def calc_rdm_minkowski(
+        dataset: DatasetBase,
+        descriptor: Optional[str] = None,
+        degree: float = 2,
+        root: bool = True,
+        remove_mean: bool = False):
+    """
+    Args:
+        dataset (rsatoolbox.data.DatasetBase):
+            The dataset the RDM is computed from
+        descriptor (String):
+            obs_descriptor used to define the rows/columns of the RDM
+            defaults to one row/column per row in the dataset
+        remove_mean (bool):
+            whether the mean of each pattern shall be removed
+            before calculating distances.
+    Returns:
+        rsatoolbox.rdm.rdms.RDMs: RDMs object with the one RDM
+    """
+    measurements, desc = _parse_input(dataset, descriptor, remove_mean)
+    # Calculate minkowski distance between the measurement rows
+    n_cond = measurements.shape[0]
+    C = pairwise_contrast(np.arange(n_cond))
+    deltas = C @ measurements
+    rdm = np.sum(np.abs(deltas) ** degree, axis=1)
+    if root:
+        rdm = rdm ** (1 / degree)
+    return _build_rdms(rdm, dataset, 'minkowski distance', descriptor, desc)
 
 
 def calc_rdm_correlation(dataset, descriptor=None):
