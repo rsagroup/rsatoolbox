@@ -768,9 +768,9 @@ class TemporalDataset(Dataset):
             for key in self.time_descriptors:
                 obs_descriptors[key] = np.concatenate((
                     obs_descriptors[key], np.repeat(
-                    [self.time_descriptors[key][s]
-                     for s in selection],
-                    self.n_obs)),
+                        [self.time_descriptors[key][s]
+                         for s in selection],
+                        self.n_obs)),
                     axis=0)
 
         dataset = Dataset(measurements=measurements,

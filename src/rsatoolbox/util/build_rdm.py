@@ -59,10 +59,10 @@ def _build_rdms(
 
 
 def _averaging_occurred(
-        ds: DatasetBase,
-        obs_desc_name: str | None,
-        obs_desc_vals: NDArray | None
-) -> bool:
+            ds: DatasetBase,
+            obs_desc_name: str | None,
+            obs_desc_vals: NDArray | None
+        ) -> bool:
     if obs_desc_name is None:
         return False
     orig_obs_desc_vals = ds.obs_descriptors[obs_desc_name]
