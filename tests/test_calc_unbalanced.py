@@ -244,6 +244,29 @@ class TestCalcUnbalancedRDM(unittest.TestCase):
             rdm_check.dissimilarities.flatten()
         )
 
+    def test_calc_unbalanced_noise_list_raises(self):
+        """Unbalanced doesn't support per-fold noise yet,
+        throw an error early to warn the user.
+        """
+        with self.assertRaises(NotImplementedError):
+            rsr.calc_rdm_unbalanced(
+                self.test_data,
+                descriptor='conds', cv_descriptor='fold',
+                noise=[np.eye(5), np.eye(5)],
+                method='crossnobis')
+
+    def test_calc_unbalanced_per_dataset_noise_list(self):
+        """Passing a list of noise vars is fine if running
+        on a stack of datasets.
+        """
+        d = self.test_data
+        rdm = rsr.calc_rdm_unbalanced(
+            [d, d],
+            descriptor='conds', cv_descriptor='fold',
+            noise=[np.eye(5), np.eye(5)],
+            method='crossnobis')
+        assert rdm.n_rdm == 2
+
     def test_calc_poisson(self):
         """ for the poisson-KL the dissimilarities differ! This is explained
         in more detail in the demo on this computation"""
