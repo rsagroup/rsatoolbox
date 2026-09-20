@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
 
 
-def compare(rdm1: RDMs, rdm2: RDMs, method='cosine', sigma_k: Optional[NDArray]=None) -> NDArray:
+def compare(rdm1: RDMs, rdm2: RDMs, method='cosine', sigma_k: Optional[NDArray] = None) -> NDArray:
     """Calculates the similarity between two RDMs objects using a chosen method
 
     Args:
@@ -132,7 +132,9 @@ def compare_correlation(rdm1: RDMs, rdm2: RDMs) -> NDArray:
     return sim
 
 
-def compare_cosine_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray]=None) -> NDArray:
+def compare_cosine_cov_weighted(
+        rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None
+        ) -> NDArray:
     """Calculates the cosine similarities between two RDMs objects
 
     Args:
@@ -150,7 +152,9 @@ def compare_cosine_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArra
     return sim
 
 
-def compare_correlation_cov_weighted(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray]=None) -> NDArray:
+def compare_correlation_cov_weighted(
+        rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None
+        ) -> NDArray:
     """Calculates the correlations between two RDMs objects after whitening
     with the covariance of the entries
 
@@ -263,7 +267,9 @@ def compare_kendall_tau_a(rdm1: RDMs, rdm2: RDMs) -> NDArray[float64]:
     return sim
 
 
-def compare_neg_riemannian_distance(rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray]=None) -> NDArray:
+def compare_neg_riemannian_distance(
+        rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None
+        ) -> NDArray:
     """Calculates the negative Riemannian distance between two RDMs objects.
 
     Args:
@@ -438,7 +444,7 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
     return cos
 
 
-def _cov_weighting(vector, nan_idx, sigma_k=None):
+def _cov_weighting(vector, nan_idx, sigma_k=None, use_sparse=None):
     """Transforms an array of RDM vectors in to representation
     in which the elements are isotropic. This is a stretched-out
     second moment matrix, with the diagonal elements appended.
@@ -457,11 +463,16 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
     N, n_dist = vector.shape
     n_cond = _get_n_from_length(nan_idx.shape[0])
     vector_w = -0.5 * np.c_[vector, np.zeros((N, n_cond))]
-    SPARSE_THRESHOLD = 100 # threshold for switching to sparse matrices
-    if n_cond >= SPARSE_THRESHOLD:
-        rowI, colI = row_col_indicator_g_sparse(n_cond) # use sparse indicator matrices
+    if use_sparse is None:
+        SPARSE_THRESHOLD = 100  # threshold for switching to sparse matrices
+        use_sparse = (n_cond >= SPARSE_THRESHOLD)
+    if use_sparse and not np.all(nan_idx):
+        # use sparse float indicator matrices
+        rowI, colI = row_col_indicator_g_sparse(n_cond, dtype=np.float64)  # type: ignore
+    elif use_sparse:
+        rowI, colI = row_col_indicator_g(n_cond)  # use dense indicator matrices
     else:
-        rowI, colI = row_col_indicator_g(n_cond) # use dense indicator matrices
+        rowI, colI = row_col_indicator_g(n_cond)  # use dense indicator matrices
     sumI = rowI + colI
     if np.all(nan_idx):
         # column and row means
@@ -485,17 +496,27 @@ def _cov_weighting(vector, nan_idx, sigma_k=None):
                     Gs[i_vec] = G
                 # These two are the slow lines for this whitening
                 Gs = np.einsum('ij,mjk,lk->mil', l_sigma_k, Gs, l_sigma_k)
-                vector_w = np.einsum('ij,mjk,ik->mi', rowI, Gs, colI)
+                vector_w = rowI @ Gs @ colI.T  # np.einsum('ij,mjk,ik->mi', rowI, Gs, colI)
     else:
         nan_idx_ext = np.concatenate((nan_idx, np.ones(n_cond, bool)))
-        sumI = sumI[nan_idx_ext]
+        sumI = sumI[np.where(nan_idx_ext)[0]]
         # get matrix for double centering with missing values:
         sumI[n_dist:, :] /= 2
-        diag = np.concatenate((np.ones((n_dist, 1)) / 2, np.ones((n_cond, 1))))
-        # one line version much faster here!
-        vector_w = vector_w - (
-            vector_w
-            @ sumI @ np.linalg.inv(sumI.T @ (diag * sumI)) @ (diag * sumI).T)
+        if use_sparse:
+            diag = scipy.sparse.diags(
+                np.concatenate((np.ones(n_dist) / 2, np.ones(n_cond))))
+            # one line version much faster here!
+            vector_w = vector_w - (
+                vector_w
+                @ sumI
+                @ scipy.sparse.linalg.inv(sumI.T @ (diag @ sumI))
+                @ (diag @ sumI).T)
+        else:
+            diag = np.concatenate((np.ones((n_dist, 1)) / 2, np.ones((n_cond, 1))))
+            # one line version much faster here!
+            vector_w = vector_w - (
+                vector_w
+                @ sumI @ np.linalg.inv(sumI.T @ (diag * sumI)) @ (diag * sumI).T)
         if sigma_k is not None:
             if sigma_k.ndim == 1:
                 sigma_k_sqrt = np.sqrt(sigma_k)
@@ -687,8 +708,8 @@ def _parse_input_rdms(rdm1, rdm2):
     if not np.all(nan_mask == ~np.isnan(vector2).any(axis=0)):
         # Only raise error when rdm1 and rdm2 conflict
         raise ValueError('rdm1 and rdm2 have different nan positions')
-    vector1_no_nan = vector1[:,nan_mask].reshape(vector1.shape[0], -1)
-    vector2_no_nan = vector2[:,nan_mask].reshape(vector2.shape[0], -1)
+    vector1_no_nan = vector1[:, nan_mask].reshape(vector1.shape[0], -1)
+    vector2_no_nan = vector2[:, nan_mask].reshape(vector2.shape[0], -1)
     return vector1_no_nan, vector2_no_nan, nan_mask
 
 
