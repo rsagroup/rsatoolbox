@@ -994,7 +994,8 @@ class FramedDataset(Dataset):
                 obs_descriptors[desc].extend(other_obs_combs[desc])
 
         self.measurements = np.vstack(measurements_list)
-
+        if descriptors is None:
+            descriptors = {}
         descriptors['noise'] = [noise]
         descriptors['is_framed'] = [True]
         descriptors['cond_descriptor'] = [cond_descriptor]

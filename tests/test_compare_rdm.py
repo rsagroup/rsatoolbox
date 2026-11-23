@@ -54,9 +54,11 @@ class TestCompareRDM(unittest.TestCase):
 
     def test_compare_cosine_cov(self):
         from rsatoolbox.rdm.compare import compare_cosine_cov_weighted
-        result = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm1, sigma_k=np.eye(6))
+        from rsatoolbox.rdm.compare import get_v
+        v = get_v(self.test_rdm1.n_cond, sigma_k=np.eye(6))
+        result = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm1, v=v)
         assert_array_almost_equal(result, 1)
-        result = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm2, sigma_k=np.eye(6))
+        result = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm2, v=v)
         assert np.all(result < 1)
 
     def test_compare_cosine_loop(self):
@@ -92,9 +94,11 @@ class TestCompareRDM(unittest.TestCase):
 
     def test_compare_correlation_cov_sk(self):
         from rsatoolbox.rdm.compare import compare_correlation_cov_weighted
-        result = compare_correlation_cov_weighted(self.test_rdm1, self.test_rdm1, sigma_k=np.eye(6))
+        from rsatoolbox.rdm.compare import get_v
+        v = get_v(self.test_rdm1.n_cond, sigma_k=np.eye(6))
+        result = compare_correlation_cov_weighted(self.test_rdm1, self.test_rdm1, v=v)
         assert_array_almost_equal(result, 1)
-        result = compare_correlation_cov_weighted(self.test_rdm1, self.test_rdm2, sigma_k=np.eye(6))
+        result = compare_correlation_cov_weighted(self.test_rdm1, self.test_rdm2, v=v)
         assert np.all(result < 1)
 
     def test_compare_neg_riemannian_distance(self):
@@ -281,16 +285,20 @@ class TestCompareRDMNaN(unittest.TestCase):
 
     def test_compare_cosine_cov(self):
         from rsatoolbox.rdm.compare import compare_cosine_cov_weighted
-        result = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm1, sigma_k=np.eye(6))
+        from rsatoolbox.rdm.compare import get_v
+        v = get_v(self.test_rdm1.n_cond, sigma_k=np.eye(6))
+        result = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm1, v=v)
         assert_array_almost_equal(result, 1)
-        result = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm2, sigma_k=np.eye(6))
+        result = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm2, v=v)
         assert np.all(result < 1)
 
     def test_compare_cosine_cov_sk(self):
         from rsatoolbox.rdm.compare import compare_cosine_cov_weighted
-        result = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm2, sigma_k=None)
-        result_1D = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm2, sigma_k=np.ones(6))
-        result_2D = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm2, sigma_k=np.eye(6))
+        from rsatoolbox.rdm.compare import get_v
+        v = get_v(self.test_rdm1.n_cond, sigma_k=np.eye(6))
+        result = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm2, v=None)
+        result_1D = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm2, v=v)
+        result_2D = compare_cosine_cov_weighted(self.test_rdm1, self.test_rdm2, v=v)
         assert_array_almost_equal(result, result_1D)
         assert_array_almost_equal(result, result_2D)
 
@@ -319,9 +327,11 @@ class TestCompareRDMNaN(unittest.TestCase):
 
     def test_compare_correlation_cov_sk(self):
         from rsatoolbox.rdm.compare import compare_correlation_cov_weighted
-        result = compare_correlation_cov_weighted(self.test_rdm1, self.test_rdm1, sigma_k=np.eye(6))
+        from rsatoolbox.rdm.compare import get_v
+        v = get_v(self.test_rdm1.n_cond, sigma_k=np.eye(6))
+        result = compare_correlation_cov_weighted(self.test_rdm1, self.test_rdm1, v=v)
         assert_array_almost_equal(result, 1)
-        result = compare_correlation_cov_weighted(self.test_rdm1, self.test_rdm2, sigma_k=np.eye(6))
+        result = compare_correlation_cov_weighted(self.test_rdm1, self.test_rdm2, v=v)
         assert np.all(result < 1)
 
     def test_compare_spearman(self):
@@ -437,3 +447,21 @@ class TestCompareCov(unittest.TestCase):
         result_2D = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov', sigma_k=np.eye(6))
         assert_array_almost_equal(result, result_1D)
         assert_array_almost_equal(result, result_2D)
+
+    def test_cov_weighting_sparse(self):
+        from rsatoolbox.rdm.compare import _cov_weighting
+        vector = self.test_rdm1.get_vectors()
+        nan_idx = ~np.isnan(vector).any(axis=0)
+        a = _cov_weighting(vector, nan_idx, sigma_k=None, use_sparse=True)
+        b = _cov_weighting(vector, nan_idx, sigma_k=None, use_sparse=False)
+        assert_array_almost_equal(a, b)
+
+    def test_cov_weighting_sparse_nan(self):
+        from rsatoolbox.rdm.compare import _cov_weighting
+        vector = self.test_rdm1.get_vectors()
+        vector[0, 3] = np.nan
+        nan_idx = ~np.isnan(vector).any(axis=0)
+        vector = vector[:, nan_idx]
+        b = _cov_weighting(vector, nan_idx, sigma_k=None, use_sparse=False)
+        a = _cov_weighting(vector, nan_idx, sigma_k=None, use_sparse=True)
+        assert_array_almost_equal(a, b)

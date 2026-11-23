@@ -105,17 +105,25 @@ def _calc_rdm_single(
     elif method == 'mahalanobis':
         rdm = calc_rdm_mahalanobis(dataset, descriptor, noise, remove_mean)
     elif method == 'crossnobis':
-        rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                    cv_descriptor, remove_mean)
+        rdm = calc_rdm_crossnobis(
+            dataset,
+            descriptor,
+            noise,
+            cv_descriptor,
+            remove_mean)
     elif method == 'poisson':
-        rdm = calc_rdm_poisson(dataset, descriptor,
-                                prior_lambda=prior_lambda,
-                                prior_weight=prior_weight)
+        rdm = calc_rdm_poisson(
+            dataset,
+            descriptor,
+            prior_lambda=prior_lambda,
+            prior_weight=prior_weight)
     elif method == 'poisson_cv':
-        rdm = calc_rdm_poisson_cv(dataset, descriptor,
-                                    cv_descriptor=cv_descriptor,
-                                    prior_lambda=prior_lambda,
-                                    prior_weight=prior_weight)
+        rdm = calc_rdm_poisson_cv(
+            dataset,
+            descriptor,
+            cv_descriptor=cv_descriptor,
+            prior_lambda=prior_lambda,
+            prior_weight=prior_weight)
     elif method == 'minkowski':
         rdm = calc_rdm_minkowski(dataset, descriptor, degree,
                                  root, remove_mean)
