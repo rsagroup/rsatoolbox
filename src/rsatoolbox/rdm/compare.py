@@ -4,10 +4,12 @@
 Comparison methods for comparing two RDMs objects
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 import numpy as np
 import scipy.stats
+import warnings
 from scipy import linalg
+from scipy import sparse
 from scipy.optimize import minimize
 from scipy.stats._stats import _kendall_dis
 from scipy.spatial.distance import squareform
@@ -23,7 +25,12 @@ if TYPE_CHECKING:
     from rsatoolbox.rdm.rdms import RDMs
 
 
-def compare(rdm1: RDMs, rdm2: RDMs, method='cosine', sigma_k: Optional[NDArray] = None) -> NDArray:
+def compare(
+        rdm1: RDMs,
+        rdm2: RDMs,
+        method='cosine',
+        v: Optional[Union[NDArray, sparse.spmatrix]] = None,
+        sigma_k: Optional[NDArray] = None) -> NDArray:
     """Calculates the similarity between two RDMs objects using a chosen method
 
     Args:
@@ -58,8 +65,8 @@ def compare(rdm1: RDMs, rdm2: RDMs, method='cosine', sigma_k: Optional[NDArray] 
 
             'bures_metric' = distances based on bures similarity, which is a metric
 
-        sigma_k (numpy.ndarray):
-            covariance matrix of the pattern estimates.
+        v (numpy.ndarray or scipy.sparse.spmatrix):
+            Variance-covariance matrix of the dissimilarity estimates, calculated using get_v.
             Used only for methods 'corr_cov' and 'cosine_cov'.
 
     Returns:
@@ -79,9 +86,17 @@ def compare(rdm1: RDMs, rdm2: RDMs, method='cosine', sigma_k: Optional[NDArray] 
     elif method == 'rho-a':
         sim = compare_rho_a(rdm1, rdm2)
     elif method == 'corr_cov':
-        sim = compare_correlation_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
+        if v is None and sigma_k is not None:
+            v = get_v(rdm1.n_cond, sigma_k=sigma_k)
+            warnings.warn(
+                'Input of sigma_k is deprecated, please precompute v using get_v instead')
+        sim = compare_correlation_cov_weighted(rdm1, rdm2, v=v)
     elif method == 'cosine_cov':
-        sim = compare_cosine_cov_weighted(rdm1, rdm2, sigma_k=sigma_k)
+        if v is None and sigma_k is not None:
+            v = get_v(rdm1.n_cond, sigma_k=sigma_k)
+            warnings.warn(
+                'Input of sigma_k is deprecated, please precompute v using get_v instead')
+        sim = compare_cosine_cov_weighted(rdm1, rdm2, v=v)
     elif method == 'neg_riem_dist':
         sim = compare_neg_riemannian_distance(rdm1, rdm2, sigma_k=sigma_k)
     elif method == 'bures':
@@ -133,7 +148,9 @@ def compare_correlation(rdm1: RDMs, rdm2: RDMs) -> NDArray:
 
 
 def compare_cosine_cov_weighted(
-        rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None
+        rdm1: RDMs,
+        rdm2: RDMs,
+        v: Optional[Union[NDArray, sparse.spmatrix]] = None
         ) -> NDArray:
     """Calculates the cosine similarities between two RDMs objects
 
@@ -148,12 +165,14 @@ def compare_cosine_cov_weighted(
 
     """
     vector1, vector2, nan_idx = _parse_input_rdms(rdm1, rdm2)
-    sim = _cosine_cov_weighted(vector1, vector2, sigma_k, nan_idx)
+    sim = _cosine_cov_weighted(vector1, vector2, v, nan_idx)
     return sim
 
 
 def compare_correlation_cov_weighted(
-        rdm1: RDMs, rdm2: RDMs, sigma_k: Optional[NDArray] = None
+        rdm1: RDMs,
+        rdm2: RDMs,
+        v: Optional[Union[NDArray, sparse.spmatrix]] = None
         ) -> NDArray:
     """Calculates the correlations between two RDMs objects after whitening
     with the covariance of the entries
@@ -173,7 +192,7 @@ def compare_correlation_cov_weighted(
     # compute by subtracting the mean and then calculating cosine similarity
     vector1 = vector1 - np.mean(vector1, 1, keepdims=True)
     vector2 = vector2 - np.mean(vector2, 1, keepdims=True)
-    sim = _cosine_cov_weighted(vector1, vector2, sigma_k, nan_idx)
+    sim = _cosine_cov_weighted(vector1, vector2, v, nan_idx)
     return sim
 
 
@@ -369,7 +388,7 @@ def _all_combinations(vectors1, vectors2, func, *args, **kwargs):
     return value
 
 
-def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None, nan_idx=None):
+def _cosine_cov_weighted_slow(vector1, vector2, v=None, nan_idx=None):
     """computes the cosine similarities between two sets of vectors
     after whitening by their covariance.
 
@@ -388,13 +407,14 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None, nan_idx=None):
             cosine of the angle between vectors
 
     """
+    if v is None:
+        warnings.warn('Covariance matrix not provided!\n' +
+                      'This point should not be reached,' +
+                      ' as this function is only called when v is provided')
+        n_cond = _get_n_from_length(vector1.shape[1])
+        v = get_v(n_cond)
     if nan_idx is not None:
-        n_cond = _get_n_from_reduced_vectors(nan_idx.reshape(1, -1))
-        v = _get_v(n_cond, sigma_k)
         v = v[nan_idx][:, nan_idx]
-    else:
-        n_cond = _get_n_from_reduced_vectors(vector1)
-        v = _get_v(n_cond, sigma_k)
     # compute V^-1 vector1/2 for all vectors by solving Vx = vector1/2
     vector1_m = np.array([scipy.sparse.linalg.cg(v, vector1[i], atol=0)[0]
                           for i in range(vector1.shape[0])])
@@ -411,7 +431,11 @@ def _cosine_cov_weighted_slow(vector1, vector2, sigma_k=None, nan_idx=None):
     return cos
 
 
-def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
+def _cosine_cov_weighted(
+        vector1,
+        vector2,
+        v: Optional[Union[NDArray, sparse.spmatrix]] = None,
+        nan_idx=None):
     """computes the cosine angles between two sets of vectors
     weighted by the covariance
     If no covariance is given this is computed using the linear CKA,
@@ -423,23 +447,22 @@ def _cosine_cov_weighted(vector1, vector2, sigma_k=None, nan_idx=None):
             first vectors (2D)
         vector1 (numpy.ndarray):
             second vectors (2D)
-        sigma_k (Matrix):
-            optional, covariance between pattern estimates
+        v (numpy.ndarray or scipy.sparse.spmatrix):
+            variance-covariance matrix between dissimilarity estimates
 
     Returns:
         cos (float):
             cosine angle between vectors
 
     """
-    if (sigma_k is not None) and (sigma_k.ndim >= 2):
-        cos = _cosine_cov_weighted_slow(
-            vector1, vector2, sigma_k=sigma_k, nan_idx=nan_idx)
+    if v is not None:
+        cos = _cosine_cov_weighted_slow(vector1, vector2, v=v, nan_idx=nan_idx)
     else:
         if nan_idx is None:
             nan_idx = np.ones(vector1[0].shape, bool)
         # Compute the extended version of RDM vectors in whitened space
-        vector1_m = _cov_weighting(vector1, nan_idx, sigma_k)
-        vector2_m = _cov_weighting(vector2, nan_idx, sigma_k)
+        vector1_m = _cov_weighting(vector1, nan_idx)
+        vector2_m = _cov_weighting(vector2, nan_idx)
         cos = _cosine(vector1_m, vector2_m)
     return cos
 
@@ -659,8 +682,29 @@ def _count_rank_tie(ranks):
             (cnt * (cnt - 1.) * (2*cnt + 5)).sum())
 
 
-def _get_v(n_cond, sigma_k):
-    """ get the rdm covariance from sigma_k """
+def get_v(
+        n_cond: int,
+        sigma_k: Optional[np.ndarray] = None,
+        rdm: Optional[RDMs] = None,
+        rdm_mask: Optional[np.ndarray] = None,
+):
+    """Estimates V, the variance-covariance matrix of the dissimilarity estimates.
+
+    Args:
+        n_cond(int): number of experimental conditions defining the RDM entries
+        sigma_k(np.array): covariance matrix between experimental conditions.
+            Leave blank to default to identity matrix,
+            or provide a 1-D vector to create diagonal matrix with specified diagonal.
+        rdm: if given, incorporates the estimated distances between patterns into the V estimate
+        rdm_mask(np.array): binary mask to apply to rdm before computing V
+            (e.g., if the user wishes to incorporate certain distances
+            but not others into the estimation of V)
+
+    Returns:
+        v(sparse matrix): the estimated variance-covariance matrix of the dissimilarity estimates
+    """
+
+    # First compute signal-independent component of V
     # calculate Xi
     c_mat = pairwise_contrast_sparse(np.arange(n_cond))
     if sigma_k is None:
@@ -671,9 +715,23 @@ def _get_v(n_cond, sigma_k):
     else:
         sigma_k = scipy.sparse.csr_matrix(sigma_k)
         xi = c_mat @ sigma_k @ c_mat.transpose()
-    # calculate V
-    v = xi.multiply(xi).tocsc()
-    return v
+    # if no RDM provided, return the signal-independent component
+    if rdm is None:
+        v = xi.multiply(xi).tocsc()
+        return v
+
+    # If RDM provided, compute full V
+    n_fold = rdm.descriptors["n_fold"]
+    if rdm.dissimilarity_measure == 'crossnobis':
+        n_fold -= 1  # adjust for crossnobis bias correction
+    D = rdm.get_matrices()[0]
+    if rdm_mask is not None:  # apply mask if given
+        D = D * (rdm_mask.astype(int))
+    v_noise = xi.multiply(xi).tocsc() / n_fold
+    v_signal = -xi.multiply(c_mat @ D @ c_mat.transpose()).tocsc()
+
+    V = v_signal + v_noise
+    return V
 
 
 def _parse_input_rdms(rdm1, rdm2):

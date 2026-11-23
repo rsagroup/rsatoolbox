@@ -51,6 +51,7 @@ def _build_rdms(
         rdms.descriptors['noise'] = noise
     if cv is not None:
         rdms.descriptors['cv_descriptor'] = cv
+        rdms.descriptors['n_fold'] = len(np.unique(ds.obs_descriptors[cv]))
     return rdms
 
 
