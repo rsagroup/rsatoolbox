@@ -12,6 +12,7 @@ Basics
 * :doc:`/demo_dissimilarities`
 * :doc:`/demo_rdm_vis`
 * :doc:`/demo_annotated_rdm_plot`
+* :doc:`/demo_paper`
 
 By Neuroimaging Modality
 ************************
