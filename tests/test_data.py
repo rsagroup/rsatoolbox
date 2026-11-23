@@ -10,6 +10,7 @@ import unittest
 import rsatoolbox.data as rsd
 import numpy as np
 from numpy.testing import assert_array_equal
+from scipy import stats
 
 
 class TestData(unittest.TestCase):
@@ -403,7 +404,7 @@ class TestTemporalDataset(unittest.TestCase):
 
     def test_temporaldataset_time_as_channels(self):
         from rsatoolbox.data.dataset import TemporalDataset
-        measurements = np.zeros((3, 2, 4)) # 3 trials, 2 channels, 4 timepoints
+        measurements = np.zeros((3, 2, 4))  # 3 trials, 2 channels, 4 timepoints
         des = {'session': 0, 'subj': 0}
         obs_des = {'conds': np.array([0, 1, 1])}
         chn_des = {'electrode': np.array(['A1', 'B2'])}
@@ -418,8 +419,8 @@ class TestTemporalDataset(unittest.TestCase):
         )
         data = data_temporal.time_as_channels()
         self.assertEqual(data.n_obs, 3)
-        self.assertEqual(data.n_channel, 2*4)
-        self.assertEqual(len(data.channel_descriptors['time']), 2*4)
+        self.assertEqual(data.n_channel, 2 * 4)
+        self.assertEqual(len(data.channel_descriptors['time']), 2 * 4)
         assert_array_equal(
             data.channel_descriptors['time'],
             np.concatenate([tim_des['time'], tim_des['time']])
@@ -428,7 +429,7 @@ class TestTemporalDataset(unittest.TestCase):
             data.channel_descriptors['time_formatted'],
             tim_des['time_formatted'] + tim_des['time_formatted']
         )
-        self.assertEqual(len(data.channel_descriptors['electrode']), 2*4)
+        self.assertEqual(len(data.channel_descriptors['electrode']), 2 * 4)
         assert_array_equal(
             data.channel_descriptors['electrode'],
             ['A1', 'A1', 'A1', 'A1', 'B2', 'B2', 'B2', 'B2']
@@ -580,6 +581,53 @@ class TestNoiseComputations(unittest.TestCase):
         cov1 = cov_from_measurements(self.dataset, 'obs')
         cov2 = cov_from_unbalanced(self.dataset, 'obs')
         np.testing.assert_allclose(cov1, cov2)
+
+
+class TestSigmaK(unittest.TestCase):
+    def setUp(self):
+        self.rng = np.random.default_rng(42)
+        self.n_voxels = 10
+        self.n_cond = 3
+        self.n_fold = 1000
+        self.n_patterns = self.n_cond * self.n_fold
+        self.sigma_k_true = np.array([[1.0, 0.5, 0.2],
+                                      [0.5, 2.0, 0.3],
+                                      [0.2, 0.3, 3.0]])
+        self.measurements_full = stats.matrix_normal(
+            mean=np.zeros((self.n_cond, self.n_voxels)),
+            rowcov=self.sigma_k_true, colcov=np.eye(self.n_voxels), seed=42).rvs(self.n_fold).reshape(
+            self.n_fold * self.n_cond, self.n_voxels)
+        self.obs_full = np.tile(np.arange(self.n_cond), self.n_fold)
+        self.fold_full = np.repeat(np.arange(self.n_fold), self.n_cond)
+        self.dataset_full = rsd.Dataset(
+            self.measurements_full,
+            obs_descriptors={'obs': self.obs_full,
+                             'fold': self.fold_full})
+        # Discard 1000 trials to make sure nothing breaks
+        trials_to_remove = np.sort(self.rng.choice(np.arange(self.n_cond, self.n_patterns),
+                                                   size=1000,
+                                                   replace=False))
+        self.dataset_subset = rsd.Dataset(
+            np.delete(self.measurements_full, trials_to_remove, axis=0),
+            obs_descriptors={
+                'obs': np.delete(self.obs_full, trials_to_remove, axis=0),
+                'fold': np.delete(self.fold_full, trials_to_remove, axis=0)}
+        )
+
+    def test_shape(self):
+        from rsatoolbox.data import sigmak_from_measurements
+        sigmak = sigmak_from_measurements(self.dataset_full, 'obs', 'fold')
+        np.testing.assert_equal(sigmak.shape, [self.n_cond, self.n_cond])
+
+    def test_values_full(self):
+        from rsatoolbox.data import sigmak_from_measurements
+        sigmak = sigmak_from_measurements(self.dataset_full, 'obs', 'fold')
+        np.testing.assert_allclose(sigmak, self.sigma_k_true, rtol=0.2)
+
+    def test_values_unbalanced(self):
+        from rsatoolbox.data import sigmak_from_measurements
+        sigmak = sigmak_from_measurements(self.dataset_subset, 'obs', 'fold')
+        np.testing.assert_allclose(sigmak, self.sigma_k_true, rtol=0.2)
 
 
 class TestSave(unittest.TestCase):

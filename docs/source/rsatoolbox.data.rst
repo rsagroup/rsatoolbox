@@ -8,6 +8,7 @@ Submodules
    :maxdepth: 4
 
    rsatoolbox.data.base
+   rsatoolbox.data.components
    rsatoolbox.data.computations
    rsatoolbox.data.dataset
    rsatoolbox.data.noise

@@ -437,3 +437,21 @@ class TestCompareCov(unittest.TestCase):
         result_2D = compare(self.test_rdm1, self.test_rdm2, method='cosine_cov', sigma_k=np.eye(6))
         assert_array_almost_equal(result, result_1D)
         assert_array_almost_equal(result, result_2D)
+
+    def test_cov_weighting_sparse(self):
+        from rsatoolbox.rdm.compare import _cov_weighting
+        vector = self.test_rdm1.get_vectors()
+        nan_idx = ~np.isnan(vector).any(axis=0)
+        a = _cov_weighting(vector, nan_idx, sigma_k=None, use_sparse=True)
+        b = _cov_weighting(vector, nan_idx, sigma_k=None, use_sparse=False)
+        assert_array_almost_equal(a, b)
+
+    def test_cov_weighting_sparse_nan(self):
+        from rsatoolbox.rdm.compare import _cov_weighting
+        vector = self.test_rdm1.get_vectors()
+        vector[0, 3] = np.nan
+        nan_idx = ~np.isnan(vector).any(axis=0)
+        vector = vector[:, nan_idx]
+        b = _cov_weighting(vector, nan_idx, sigma_k=None, use_sparse=False)
+        a = _cov_weighting(vector, nan_idx, sigma_k=None, use_sparse=True)
+        assert_array_almost_equal(a, b)

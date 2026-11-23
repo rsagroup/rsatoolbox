@@ -96,23 +96,31 @@ def _calc_rdm_single(
     elif method == 'mahalanobis':
         rdm = calc_rdm_mahalanobis(dataset, descriptor, noise, remove_mean)
     elif method == 'crossnobis':
-        rdm = calc_rdm_crossnobis(dataset, descriptor, noise,
-                                  cv_descriptor, remove_mean)
+        rdm = calc_rdm_crossnobis(
+            dataset,
+            descriptor,
+            noise,
+            cv_descriptor,
+            remove_mean)
+    elif method == 'poisson':
+        rdm = calc_rdm_poisson(
+            dataset,
+            descriptor,
+            prior_lambda=prior_lambda,
+            prior_weight=prior_weight)
+    elif method == 'poisson_cv':
+        rdm = calc_rdm_poisson_cv(
+            dataset,
+            descriptor,
+            cv_descriptor=cv_descriptor,
+            prior_lambda=prior_lambda,
+            prior_weight=prior_weight)
     elif method == 'dotproduct':
         rdm = calc_rdm_dotproduct(dataset, descriptor)
     elif method == 'mean_profile':
         rdm = calc_rdm_mean_profile(dataset, descriptor)
     elif method == 'norm_profile':
         rdm = calc_rdm_norm_profile(dataset, descriptor)
-    elif method == 'poisson':
-        rdm = calc_rdm_poisson(dataset, descriptor,
-                                prior_lambda=prior_lambda,
-                                prior_weight=prior_weight)
-    elif method == 'poisson_cv':
-        rdm = calc_rdm_poisson_cv(dataset, descriptor,
-                                    cv_descriptor=cv_descriptor,
-                                    prior_lambda=prior_lambda,
-                                    prior_weight=prior_weight)
     else:
         raise NotImplementedError
     if (descriptor is not None) and (method not in ['mean_profile', 'norm_profile']):

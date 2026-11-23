@@ -10,6 +10,7 @@ from collections.abc import Iterable
 import numpy as np
 from rsatoolbox.data import average_dataset_by
 from rsatoolbox.util.data_utils import get_unique_inverse
+from scipy.linalg import sqrtm
 
 
 def _check_demean(matrix):
@@ -206,15 +207,6 @@ def _covariance_diag(matrix, dof, lamb_opt=None, mem_threshold=(10 ** 9) / 8):
         lamb = lamb_opt
     scaling = np.eye(s.shape[0]) + (1 - lamb) * mask
     s_shrink = s * scaling
-
-    # mean_shrunk_eigenvalue = np.mean(np.linalg.eigvals(s_shrink))
-    # mean_full_eigenvalue = np.mean(np.linalg.eigvals(s))
-    # print(f"data shape: {matrix.shape}")
-    # print(f"dof: {dof}")
-    # print(f"lambda: {lamb}")
-    # print(f"mean var: {np.mean(var)}")
-    # print(f"mean full eigenvalue: {mean_full_eigenvalue}")
-    # print(f"mean shrunk eigenvalue: {mean_shrunk_eigenvalue}")
     return s_shrink
 
 
@@ -454,3 +446,70 @@ def prec_from_unbalanced(dataset, obs_desc, dof=None, method='shrinkage_diag'):
     else:
         prec = np.linalg.inv(cov)
     return prec
+
+
+def sigmak_from_measurements(dataset, obs_descriptor, cv_descriptor, noise=None):
+    """
+    Estimates sigma_k, the matrix encoding the noise variance/covariance among the k conditions when two
+    conditions are measured in the same partition (e.g., due to shared fMRI noise
+    from the sluggishness of the HRF when two conditions are adjacent in time). If a noise matrix is provided,
+    prewhitening is performed on the data before computing sigma_k (make sure to do this if using
+    Mahalanobis or crossnobis distance). Assumes that sigma_k is constant across partitions, implementing
+    equation 36 from Diedrichsen et al. (2016), "On the distribution of cross-validated Mahalanobis distances."
+
+    Args:
+        dataset(data.Dataset):
+            rsatoolbox Dataset object
+        obs_descriptor (String):
+            descriptor defining experimental conditions
+        cv_descriptor (String):
+            descriptor defining crossvalidation folds/partitions
+        noise (numpy.ndarray):
+            dataset.n_channel x dataset.n_channel
+            precision matrix for noise between channels
+            default: identity matrix, i.e. euclidean distance
+
+    Returns:
+        numpy.ndarray: sigma_k: noise covariance matrix over conditions
+            n_conditions x n_conditions
+
+    """
+
+    n_channels = dataset.n_channel
+    if noise is None:
+        noise = np.eye(n_channels)
+    else:
+        if noise.shape != (n_channels, n_channels):
+            raise ValueError("noise must have shape n_channel x n_channel")
+    noise_sqrt = sqrtm(noise)  # take matrix square root to get whitening matrix
+    dataset_whitened = dataset.copy()
+    dataset_whitened.measurements = dataset.measurements @ noise_sqrt
+
+    # Compute mean patterns per condition
+    U_mean, conds, _ = average_dataset_by(dataset_whitened, obs_descriptor)
+    n_cond = len(conds)
+    cv_folds = np.unique(np.array(dataset_whitened.obs_descriptors[cv_descriptor]))
+
+    pair_counts = np.zeros((n_cond, n_cond))  # tally how many partitions each condition pair occurs in
+
+    # Compute sigma_k per partition, then average
+    sigma_ks = []
+
+    for fold in cv_folds:
+        U_fold = np.zeros(U_mean.shape) * np.nan  # fold activations
+        dataset_fold = dataset_whitened.subset_obs(cv_descriptor, fold)
+        dataset_fold, fold_conds, _ = average_dataset_by(dataset_fold, obs_descriptor)
+        # Get indices mapping from subsetted conditions to full set, fill out U_fold
+        inds = [np.where(conds == c)[0][0] for c in fold_conds]
+        U_fold[inds, :] = dataset_fold
+        sigma_k_fold = ((U_fold - U_mean) @ ((U_fold - U_mean).T))
+        sigma_ks.append(sigma_k_fold)
+
+        # Increment pair counts for all condition pairs present in this fold
+        pair_counts += np.isfinite(sigma_k_fold).astype(int)
+
+    # Finally add all sigma_ks and divide by pair counts to get average
+    sigma_k = np.nansum(sigma_ks, axis=0) / (pair_counts - 1) / n_channels
+    # Any pairs that never occurred together should be set to zero
+    sigma_k[np.isnan(sigma_k)] = 0.0
+    return sigma_k

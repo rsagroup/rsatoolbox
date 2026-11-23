@@ -159,6 +159,7 @@ def row_col_indicator_g(n_cond):
     np.fill_diagonal(col_i[-n_cond:, :], 1)
     return (row_i, col_i)
 
+
 def row_col_indicator_g_sparse(n_cond, dtype=np.int8, index_dtype=np.int64):
     """
     Generates row and column indicator matrices as sparse matrices (CSR format)
@@ -199,13 +200,6 @@ def row_col_indicator_g_sparse(n_cond, dtype=np.int8, index_dtype=np.int64):
     row_i_sparse = csr_matrix((sparse_data, (sparse_row_coords, row_i_col_coords)), shape=shape)
     col_i_sparse = csr_matrix((sparse_data, (sparse_row_coords, col_i_col_coords)), shape=shape)
     return (row_i_sparse, col_i_sparse)
-
-def run() -> spmatrix:
-    a = csr_matrix(np.eye(3))
-    b = csr_matrix(np.eye(3))
-    c = a @ b
-    c = c.multiply(3.0)
-    return c
 
 
 def get_v(n_cond: int, sigma_k: Optional[spmatrix]) -> spmatrix:

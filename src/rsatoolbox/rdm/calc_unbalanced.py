@@ -62,7 +62,7 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
                     cv_descriptor=cv_descriptor,
                     prior_lambda=prior_lambda, prior_weight=prior_weight,
                     weighting=weighting, enforce_same=enforce_same))
-            elif isinstance(noise, np.ndarray) and noise.ndim == 2:
+            elif is_precision_matrix(noise):
                 rdms.append(calc_rdm_unbalanced(
                     dat, method=method,
                     descriptor=descriptor,
@@ -123,6 +123,10 @@ def calc_rdm_unbalanced(dataset: SingleOrMultiDataset, method='euclidean',
         else:
             weight_idx = 1
         cond_indices_int = cond_indices.astype(np.int64)
+        if (noise is not None) and not is_precision_matrix(noise):
+            raise NotImplementedError(
+                'As "noise", pass None or a single '
+                'n_channel x n_channel precision matrix.')
         rdm = calc(
             ensure_double(dataset.measurements),
             cond_indices_int,
@@ -212,3 +216,15 @@ def ensure_double(a: NDArray) -> NDArray[np.float64]:
         NDArray[np.float64]: The float64 version of the array
     """
     return np.require(a, dtype=np.float64, requirements=['C_CONTIGUOUS'])
+
+
+def is_precision_matrix(noise) -> bool:
+    """Whether noise is a single precision matrix, as opposed to several.
+
+    Args:
+        noise: the noise argument passed by the user
+
+    Returns:
+        bool: True if noise is one two-dimensional array
+    """
+    return isinstance(noise, np.ndarray) and noise.ndim == 2
